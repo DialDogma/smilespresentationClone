@@ -437,7 +437,15 @@
           <Parameter Name="CreatedByUserId" Type="int" Mode="In" />
         </Function>
         <Function Name="usp_UnderWriteHistoryBySchoolId_Select" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="SchoolId" Type="int" Mode="In" />
+          <Parameter Name="SchoolId" Type="varchar" Mode="In" />
+          <Parameter Name="IndexStart" Type="int" Mode="In" />
+          <Parameter Name="PageSize" Type="int" Mode="In" />
+          <Parameter Name="SortField" Type="nvarchar(max)" Mode="In" />
+          <Parameter Name="OrderType" Type="nvarchar(max)" Mode="In" />
+          <Parameter Name="Search" Type="nvarchar(max)" Mode="In" />
+        </Function>
+        <Function Name="usp_UnderWriteHistoryBySchoolId_SelectV2" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="SchoolId" Type="varchar" Mode="In" />
           <Parameter Name="IndexStart" Type="int" Mode="In" />
           <Parameter Name="PageSize" Type="int" Mode="In" />
           <Parameter Name="SortField" Type="nvarchar(max)" Mode="In" />
@@ -665,7 +673,7 @@
             <Parameter Name="Search" Mode="In" Type="String" />
           </FunctionImport>
           <FunctionImport Name="usp_UnderWriteHistoryBySchoolId_Select" ReturnType="Collection(UnderwriteModel.usp_UnderWriteHistoryBySchoolId_Select_Result)">
-            <Parameter Name="SchoolId" Mode="In" Type="Int32" />
+            <Parameter Name="SchoolId" Mode="In" Type="String" />
             <Parameter Name="IndexStart" Mode="In" Type="Int32" />
             <Parameter Name="PageSize" Mode="In" Type="Int32" />
             <Parameter Name="SortField" Mode="In" Type="String" />
@@ -913,6 +921,14 @@
             <Parameter Name="OrderType" Mode="In" Type="String" />
             <Parameter Name="Search" Mode="In" Type="String" />
             <Parameter Name="YearData" Mode="In" Type="String" />
+          </FunctionImport>
+          <FunctionImport Name="usp_UnderWriteHistoryBySchoolId_SelectV2" ReturnType="Collection(UnderwriteModel.usp_UnderWriteHistoryBySchoolId_SelectV2_Result)">
+            <Parameter Name="SchoolId" Mode="In" Type="String" />
+            <Parameter Name="IndexStart" Mode="In" Type="Int32" />
+            <Parameter Name="PageSize" Mode="In" Type="Int32" />
+            <Parameter Name="SortField" Mode="In" Type="String" />
+            <Parameter Name="OrderType" Mode="In" Type="String" />
+            <Parameter Name="Search" Mode="In" Type="String" />
           </FunctionImport>
         </EntityContainer>
         <ComplexType Name="sp_helpdiagramdefinition_Result">
@@ -1655,6 +1671,39 @@
           <Property Type="DateTime" Name="ClosedDate" Nullable="true" Precision="23" />
           <Property Type="Int32" Name="DayCount" Nullable="true" />
           <Property Type="DateTime" Name="AssignDate" Nullable="true" Precision="23" />
+          <Property Type="Int32" Name="TotalCount" Nullable="true" />
+        </ComplexType>
+        <ComplexType Name="usp_UnderWriteHistoryBySchoolId_SelectV2_Result">
+          <Property Type="Int32" Name="QueueId" Nullable="false" />
+          <Property Type="String" Name="QueueCode" Nullable="true" MaxLength="20" />
+          <Property Type="Int32" Name="QueueTypeId" Nullable="true" />
+          <Property Type="Int32" Name="QueueStatusId" Nullable="true" />
+          <Property Type="String" Name="ReferenceCode" Nullable="true" MaxLength="20" />
+          <Property Type="Int32" Name="AssignToUserId" Nullable="true" />
+          <Property Type="String" Name="QueueDetail" Nullable="true" />
+          <Property Type="Boolean" Name="IsActive" Nullable="true" />
+          <Property Type="DateTime" Name="CreatedDate" Nullable="true" Precision="23" />
+          <Property Type="Int32" Name="CreatedByUserId" Nullable="true" />
+          <Property Type="DateTime" Name="UpdatedDate" Nullable="true" Precision="23" />
+          <Property Type="Int32" Name="UpdatedByUserId" Nullable="true" />
+          <Property Type="String" Name="Detail1" Nullable="true" MaxLength="500" />
+          <Property Type="String" Name="Detail2" Nullable="true" MaxLength="500" />
+          <Property Type="String" Name="Detail3" Nullable="true" MaxLength="500" />
+          <Property Type="DateTime" Name="ClosedDate" Nullable="true" Precision="23" />
+          <Property Type="Int32" Name="ClosedByUserId" Nullable="true" />
+          <Property Type="DateTime" Name="AssignDate" Nullable="true" Precision="23" />
+          <Property Type="String" Name="QueueTypeDetail" Nullable="true" MaxLength="500" />
+          <Property Type="String" Name="QueueStatus" Nullable="true" MaxLength="250" />
+          <Property Type="Int32" Name="CallStatusId" Nullable="true" />
+          <Property Type="String" Name="CallStatus" Nullable="true" MaxLength="250" />
+          <Property Type="String" Name="CallByCode" Nullable="true" MaxLength="20" />
+          <Property Type="String" Name="CallByName" Nullable="true" MaxLength="501" />
+          <Property Type="DateTime" Name="CallDate" Nullable="true" Precision="23" />
+          <Property Type="Int32" Name="CallRound" Nullable="true" />
+          <Property Type="String" Name="UnderwriteStatusDetail" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="Remark" Nullable="true" MaxLength="500" />
+          <Property Type="String" Name="AssignToCode" Nullable="true" MaxLength="20" />
+          <Property Type="String" Name="AssignToName" Nullable="true" MaxLength="501" />
           <Property Type="Int32" Name="TotalCount" Nullable="true" />
         </ComplexType>
       </Schema>
@@ -2548,6 +2597,43 @@
                 <ScalarProperty Name="ClosedDate" ColumnName="ClosedDate" />
                 <ScalarProperty Name="DayCount" ColumnName="DayCount" />
                 <ScalarProperty Name="AssignDate" ColumnName="AssignDate" />
+                <ScalarProperty Name="TotalCount" ColumnName="TotalCount" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_UnderWriteHistoryBySchoolId_SelectV2" FunctionName="UnderwriteModel.Store.usp_UnderWriteHistoryBySchoolId_SelectV2">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="UnderwriteModel.usp_UnderWriteHistoryBySchoolId_SelectV2_Result">
+                <ScalarProperty Name="QueueId" ColumnName="QueueId" />
+                <ScalarProperty Name="QueueCode" ColumnName="QueueCode" />
+                <ScalarProperty Name="QueueTypeId" ColumnName="QueueTypeId" />
+                <ScalarProperty Name="QueueStatusId" ColumnName="QueueStatusId" />
+                <ScalarProperty Name="ReferenceCode" ColumnName="ReferenceCode" />
+                <ScalarProperty Name="AssignToUserId" ColumnName="AssignToUserId" />
+                <ScalarProperty Name="QueueDetail" ColumnName="QueueDetail" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="CreatedByUserId" ColumnName="CreatedByUserId" />
+                <ScalarProperty Name="UpdatedDate" ColumnName="UpdatedDate" />
+                <ScalarProperty Name="UpdatedByUserId" ColumnName="UpdatedByUserId" />
+                <ScalarProperty Name="Detail1" ColumnName="Detail1" />
+                <ScalarProperty Name="Detail2" ColumnName="Detail2" />
+                <ScalarProperty Name="Detail3" ColumnName="Detail3" />
+                <ScalarProperty Name="ClosedDate" ColumnName="ClosedDate" />
+                <ScalarProperty Name="ClosedByUserId" ColumnName="ClosedByUserId" />
+                <ScalarProperty Name="AssignDate" ColumnName="AssignDate" />
+                <ScalarProperty Name="QueueTypeDetail" ColumnName="QueueTypeDetail" />
+                <ScalarProperty Name="QueueStatus" ColumnName="QueueStatus" />
+                <ScalarProperty Name="CallStatusId" ColumnName="CallStatusId" />
+                <ScalarProperty Name="CallStatus" ColumnName="CallStatus" />
+                <ScalarProperty Name="CallByCode" ColumnName="CallByCode" />
+                <ScalarProperty Name="CallByName" ColumnName="CallByName" />
+                <ScalarProperty Name="CallDate" ColumnName="CallDate" />
+                <ScalarProperty Name="CallRound" ColumnName="CallRound" />
+                <ScalarProperty Name="UnderwriteStatusDetail" ColumnName="UnderwriteStatusDetail" />
+                <ScalarProperty Name="Remark" ColumnName="Remark" />
+                <ScalarProperty Name="AssignToCode" ColumnName="AssignToCode" />
+                <ScalarProperty Name="AssignToName" ColumnName="AssignToName" />
                 <ScalarProperty Name="TotalCount" ColumnName="TotalCount" />
               </ComplexTypeMapping>
             </ResultMapping>

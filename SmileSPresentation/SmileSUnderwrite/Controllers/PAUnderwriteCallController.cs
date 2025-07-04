@@ -422,7 +422,7 @@ namespace SmileSUnderwrite.Controllers
         {
             try
             {
-                var result = _context.usp_UnderWriteHistoryBySchoolId_Select(schoolId,
+                var result = _context.usp_UnderWriteHistoryBySchoolId_SelectV2(schoolId.ToString(),
                     indexStart, pageSize, sortField, orderType, search).ToList();
 
                 var dt = new Dictionary<string, object>
@@ -460,7 +460,7 @@ namespace SmileSUnderwrite.Controllers
         {
             var schoolBase64 = GlobalFunction.Base64StringDecode(schoolId);
 
-            var result = _context.usp_UnderWriteHistoryBySchoolId_Select(Convert.ToInt32(schoolBase64),
+            var result = _context.usp_UnderWriteHistoryBySchoolId_SelectV2(schoolBase64,
                 null, null, null, null, null).FirstOrDefault();
             ViewBag.NoData = null;
             if (result != null)
@@ -468,6 +468,7 @@ namespace SmileSUnderwrite.Controllers
                 ViewBag.SchoolName = result.Detail2;
 
                 ViewBag.SchoolId = Convert.ToInt32(schoolBase64);
+                ViewBag.Remark = result.Remark;
             }
             else
             {

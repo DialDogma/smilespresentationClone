@@ -618,11 +618,11 @@ namespace SmileSUnderwrite.Models
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<usp_UnderwriteLog_Select_Result>("usp_UnderwriteLog_Select", referrenceCodeParameter, indexStartParameter, pageSizeParameter, sortFieldParameter, orderTypeParameter, searchParameter);
         }
     
-        public virtual ObjectResult<usp_UnderWriteHistoryBySchoolId_Select_Result> usp_UnderWriteHistoryBySchoolId_Select(Nullable<int> schoolId, Nullable<int> indexStart, Nullable<int> pageSize, string sortField, string orderType, string search)
+        public virtual ObjectResult<usp_UnderWriteHistoryBySchoolId_Select_Result> usp_UnderWriteHistoryBySchoolId_Select(string schoolId, Nullable<int> indexStart, Nullable<int> pageSize, string sortField, string orderType, string search)
         {
-            var schoolIdParameter = schoolId.HasValue ?
+            var schoolIdParameter = schoolId != null ?
                 new ObjectParameter("SchoolId", schoolId) :
-                new ObjectParameter("SchoolId", typeof(int));
+                new ObjectParameter("SchoolId", typeof(string));
     
             var indexStartParameter = indexStart.HasValue ?
                 new ObjectParameter("IndexStart", indexStart) :
@@ -1504,6 +1504,35 @@ namespace SmileSUnderwrite.Models
                 new ObjectParameter("YearData", typeof(string));
     
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<usp_Queue_Select_Result1>("usp_Queue_Select", queueIdParameter, queueTypeIdParameter, queueStatusIdParameter, assignToUserIdParameter, createDateFromParameter, createDateToParameter, assignDateFromParameter, assignDateToParameter, indexStartParameter, pageSizeParameter, sortFieldParameter, orderTypeParameter, searchParameter, yearDataParameter);
+        }
+    
+        public virtual ObjectResult<usp_UnderWriteHistoryBySchoolId_SelectV2_Result> usp_UnderWriteHistoryBySchoolId_SelectV2(string schoolId, Nullable<int> indexStart, Nullable<int> pageSize, string sortField, string orderType, string search)
+        {
+            var schoolIdParameter = schoolId != null ?
+                new ObjectParameter("SchoolId", schoolId) :
+                new ObjectParameter("SchoolId", typeof(string));
+    
+            var indexStartParameter = indexStart.HasValue ?
+                new ObjectParameter("IndexStart", indexStart) :
+                new ObjectParameter("IndexStart", typeof(int));
+    
+            var pageSizeParameter = pageSize.HasValue ?
+                new ObjectParameter("PageSize", pageSize) :
+                new ObjectParameter("PageSize", typeof(int));
+    
+            var sortFieldParameter = sortField != null ?
+                new ObjectParameter("SortField", sortField) :
+                new ObjectParameter("SortField", typeof(string));
+    
+            var orderTypeParameter = orderType != null ?
+                new ObjectParameter("OrderType", orderType) :
+                new ObjectParameter("OrderType", typeof(string));
+    
+            var searchParameter = search != null ?
+                new ObjectParameter("Search", search) :
+                new ObjectParameter("Search", typeof(string));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<usp_UnderWriteHistoryBySchoolId_SelectV2_Result>("usp_UnderWriteHistoryBySchoolId_SelectV2", schoolIdParameter, indexStartParameter, pageSizeParameter, sortFieldParameter, orderTypeParameter, searchParameter);
         }
     }
 }

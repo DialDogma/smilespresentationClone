@@ -24,6 +24,25 @@
         -webkit-appearance: none;
         margin: 0;
     }
+
+    .btn-icon {
+        background-color: transparent;
+        color: #0d6efd;
+        border: none;
+        border-radius: 0.375rem;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-size: 30px;
+    }
+
+    .btn-icon:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 </style>
 
 <div class="row">
@@ -425,6 +444,30 @@
     <!-- /.modal-dialog -->
 </div>
 @* end modal *@
+
+@* Remark modal *@
+<div class="modal fade in" id="modal_Remark" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">หมายเหตุ</h4>
+            </div>
+            <div class="modal-body">
+                <!-- /.modal-content -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+@* end modal *@
+
 @section ViewSpecificJavascript
 {
     <script type="text/javascript">
@@ -442,7 +485,7 @@
 
                 AssignQueue($('#hd_queueId').val(), $('input[type=radio][name=EmpChkrow]:checked').val(), @Session["User_ID"]);
             });
-            $('#btnEndQueue').prop('disabled', true);
+            $('.btnEndQueue').prop('disabled', true);
             if ($('#radio_call1').is(':checked')) {
                 $('#btnEndQueue').prop('disabled', false);
             }
@@ -1035,12 +1078,43 @@
                     { title: 'ผู้รับผิดชอบ', data: 'AssignToName' },
                     {  data: 'QueueId',
                         title: 'รายละเอียด',
-                        render: function (data) {
-                            return '<button type="button" class="btn btn-block btn-info" id="btnDetail_'+data+'" name="btnDetail_'+data+'" value="'+data+'" onclick="CallDetail('+data+')" >Detail</button>';
+                        render: function (data, _, row) {
+                            const hasRemark = !!row.Remark; // ตรวจสอบว่า remark มีค่าหรือไม่
+                            const disabledAttr = hasRemark ? '' : 'disabled';
+                            const btnClass = hasRemark ? 'btn-info' : 'btn-secondary';
+                            const style = hasRemark ? '' : 'opacity: 0.5; cursor: not-allowed;';
+
+                            return `
+                                <div style="display:flex;justify-content: space-around;align-items: space-around;">
+                                    <button type="button"
+                                            class="btn-icon"
+                                            id="btnViewRemark-${data}"
+                                            onclick="ViewRemark(\`${row.Remark}\`)"
+                                            data-toggle="modal"
+                                            data-target="#modal_Remark"
+                                            ${disabledAttr}
+                                            style="${style}">
+                                        <i class="fa fa-info-circle"></i>
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-icon"
+                                            id="btnDetail_${data}"
+                                            name="btnDetail_${data}"
+                                            value="${data}"
+                                            onclick="CallDetail(${data})">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </div>
+                            `;
                         }
+
                     }
                 ]
             });
+        }
+
+        function ViewRemark(remark) {
+            $("#modal_Remark .modal-dialog .modal-content .modal-body").html(`<p style="padding: 0px 25px 0px 25px; font-size:17px">${remark}</p>`)
         }
 
         function CallDetail(queueId) {
