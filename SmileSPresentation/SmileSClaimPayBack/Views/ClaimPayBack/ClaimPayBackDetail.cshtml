@@ -1,0 +1,235 @@
+﻿
+@{
+    ViewBag.Title = "รายละเอียด บ.ส.";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .btn-red2 {
+        color: #ffffff;
+        background-color: #e85858;
+    }
+
+        .btn-red2:hover, .btn-red2:focus {
+            color: #ffffff;
+            background-color: #ab3d3d;
+        }
+</style>
+
+<div class="col-sm">
+    <div class="box box-solid">
+        <div class="box-header" style="background-color:#2f95cc">
+            @if (@ViewBag.Code != null)
+            {
+                <h3 class="box-title" style="color:white"><i class="fa fa-thumb-tack"></i> รหัสรายการ : <b> @ViewBag.Code</b></h3>
+            }
+        </div>
+        <div class="box-body">
+            <div class="row">
+                <div class="col-sm-12">
+                    <table id="dtDetail" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bd-example-modal-sm" id="modalRemark" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content" style="margin-top:70%;width:450px">
+            <div class="modal-header bg-gray">
+                <button type="button" data-dismiss="modal" class="close"><i class="fa fa-times"></i> </button>
+                <span style="font-size:18px"><i class="fa fa-warning"></i>&nbsp; ยกเลิกรายการ</span>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="claimPayBackDetailId" hidden />
+                <label>ระบุเหตุผลในการยกเลิก</label>
+                <textarea rows="4" id="txtRemark" class="form-control" type="text"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn bg-green" id="btnSaveRemoveBS">ยืนยัน</button>
+                <button class="btn bg-gray " data-dismiss="modal">ยกเลิก</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+
+     $(function () {
+         DoloadDetail();
+
+         $('#btnSaveRemoveBS').click(function (e) {
+             e.preventDefault();
+             SaveRemoveBS();
+         });
+
+         $('#txtRemark').keyup(function (e) {
+             e.preventDefault();
+             CheckTxtRemark();
+         });
+
+     })
+
+        function DoloadDetail() {
+
+            var statusId = parseInt('@ViewBag.StatusId', 32);
+            var claimGroupTypeId = parseInt('@ViewBag.ClaimGroupTypeId', 32);
+
+            console.log('@ViewBag.RoleOperation');
+            console.log(claimGroupTypeId);
+
+             $('#dtDetail').empty();
+             var t = $('#dtDetail').dataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                "order": [[1, "desc"]],
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetClaimPayBackDetail", "ClaimPayBack")',
+
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchDetail = d.search;
+                        d.claimPayBackId = '@ViewBag.Id';
+
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ', data: null, className: 'h-dt-center text-center', width: '3%',
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+
+                    },
+                    { title: 'เลขบ.ส.', data: 'ClaimGroupCode', className: 'h-dt-center ', width: '14%'},
+                    { title: 'จำนวนรายการ', data: 'ItemCount', className: 'h-dt-center text-center' },
+                    {
+                        title: 'ยอดเงินตามบ.ส.',
+                        data: 'Amount',
+                        className: 'h-dt-center text-center',
+                         mRender: function (data) {
+                            return numberWithCommas(data);
+                        }
+
+                    },
+                    { title: 'ประเภทงานเคลม', data: 'ClaimGroupType', className: 'h-dt-center ' },
+                    {
+                        title: 'วันที่ส่งการเงิน', data: 'CreatedDate', className: 'h-dt-center ', width: '8%',
+                        mRender: function (data) {
+                            return toBuddhistYear(moment(data), 'DD/MM/YYYY HH:mm:ss');
+                        }
+                    },
+                    { title: 'บริษัทประกันภัย', data: 'InsuranceCompany', className: 'h-dt-center ' },
+                    {
+                        title: 'รายละเอียด',
+                        className: 'h-dt-center text-center',
+                        data: null,
+                        mRender: (data, type, full) => {
+                            return `<a onclick="openBSDetail(${data.ClaimPayBackDetailId})" class="btn bg-teal-active"> ดูรายละเอียด</a>`
+                        }
+                    },
+                     {
+                        title: 'ยกเลิก',
+                         className: 'h-dt-center text-center',
+                        data: null,
+                         mRender: (data, type, full) => {
+                             var btnEnableRemove = `<a class="btn btn-red2" onclick="RemoveBS(${data.ClaimPayBackDetailId})" ><i class="fa fa-times-circle"></i> ยกเลิก</a>`;
+
+                             if (statusId === 2 && claimGroupTypeId !== 4) {
+                                 return btnEnableRemove
+                             } else if (statusId === 2 && '@ViewBag.RoleOperation' === 'False' && claimGroupTypeId === 4) {
+                                 return btnEnableRemove
+                             } else {
+                                 return `<a class="btn btn-default" disabled><i class="fa fa-times-circle"></i> ยกเลิก</a>`
+                             }
+                        }
+
+                    }
+                ],
+                bLengthChange: false,
+
+            });
+        };
+
+        //---------------------------------------Function------------------------------------
+
+        function openBSDetail(ClaimPayBackDetailId) {
+            event.preventDefault();
+            let encode_id = window.btoa(ClaimPayBackDetailId);
+            view = `@Url.Action("ClaimPayBackDetailXClaim", "ClaimPayBack")?claimPayBackDetailId=${encode_id}`;
+
+            window.open(view, '_blank');
+        };
+
+        function RemoveBS(id) {
+
+            event.preventDefault();
+
+            $('#claimPayBackDetailId').val(id);
+            $('#txtRemark').val('');
+            $('#modalRemark').modal('show');
+            CheckTxtRemark();
+        };
+
+        function SaveRemoveBS() {
+            console.log($('#claimPayBackDetailId').val())
+            $.ajax({
+                url: "@Url.Action("RemoveBS", "ClaimPayBack")",
+                type: "POST",
+                data: {
+                    claimPayBackDetailId: $('#claimPayBackDetailId').val(),
+                    remark: $('#txtRemark').val()
+                },
+                success: function (response) {
+                    if (response.IsResult == true) {
+                        swal('สำเร็จ', 'ยกเลิกรายการเรียบร้อยแล้ว', 'success')
+                        $('#modalRemark').modal('hide');
+                        DoloadDetail();
+                    }
+                    else {
+                        swal('ข้อมูลผิดพลาด !', response.Msg, 'error');
+                    }
+
+                },
+                 error: function (jqXHR, exception) {
+                    checkXHRStatus(jqXHR.status);
+                 }
+            });
+        };
+
+        function CheckTxtRemark() {
+
+            if ($('#txtRemark').val().trim() == '') {
+                $('#btnSaveRemoveBS').attr('disabled', true);
+            }
+            else {
+                $('#btnSaveRemoveBS').attr('disabled', false);
+            }
+        };
+
+        function toBuddhistYear(moment, format) {
+            var christianYear = moment.format('YYYY')
+            var buddhishYear = (parseInt(christianYear) + 543).toString()
+            return moment
+                .format(format.replace('YYYY', buddhishYear).replace('YY', buddhishYear.substring(2, 4)))
+                .replace(christianYear, buddhishYear)
+        }
+
+    </script>
+
+}

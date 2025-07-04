@@ -1,0 +1,3583 @@
+﻿@{
+    ViewBag.Title = "CreateCOL";
+}
+<style>
+    #bankaccount-error {
+        margin-left: 50px;
+    }
+
+    #contact-error {
+        margin-left: 50px;
+    }
+
+    .row {
+        margin-right: 0px !important;
+        margin-left: 0px !important;
+    }
+
+    .answerList {
+        margin-bottom: 15px;
+    }
+
+    ol, ul {
+        list-style: none;
+    }
+
+    .answerList li:first-child {
+        border-top-width: 0;
+    }
+
+    .answerList li {
+        margin: 10px;
+        padding: 3px 0;
+        height: 100px;
+        width: 25%
+    }
+
+    .answerList label {
+        height: 100px;
+        display: block;
+        padding: 6px;
+        border-radius: 6px;
+        border: solid 1px #dde7e8;
+        font-weight: 400;
+        font-size: 13px;
+        cursor: pointer;
+        font-family: Arial, sans-serif;
+    }
+
+        .answerList label:hover {
+            background-color: #dbeffa !important;
+        }
+
+    input[type=checkbox], input[type=radio] {
+        margin: 4px 0 0;
+        margin-top: 1px;
+        line-height: normal;
+    }
+
+    @@media(max-width :585px) {
+        .answerList li {
+            margin: 10px;
+            padding: 3px 0;
+            height: 100px;
+            width: 85%
+        }
+    }
+
+    .loading::before {
+        content: "";
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        border: 3px solid white;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+<div class="row">
+    <div class="col-md-12">
+        <div class="wizard">
+            <div class="wizard-inner">
+                <div class="connecting-line"></div>
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active">
+                        <a href="#step1" data-toggle="tab" aria-controls="step1" role="tab" title="Step 1">
+                            <span class="round-tab">
+                                <i class="fa fa-edit"></i>
+                            </span>
+                            <span class="span-title">สร้าง COL</span>
+                        </a>
+                    </li>
+                    <li role="presentation" class="disabled">
+                        <a href="#step2" data-toggle="tab" aria-controls="step2" role="tab" title="Step 2">
+                            <span class="round-tab">
+                                <i class="fa fa-edit"></i>
+                            </span>
+                            <span class="span-title">สร้าง CL</span>
+                        </a>
+                    </li>
+                    <li role="presentation" class="disabled">
+                        <a href="#complete" data-toggle="tab" aria-controls="complete" role="tab" title="Complete">
+                            <span class="round-tab">
+                                <i class="fa fa-check"></i>
+                            </span>
+                            <span class="span-title" style="left:-12px !important">รายละเอียดบัญชี</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="tab-content">
+                @* step 1 *@
+                <div class="tab-pane active" role="tabpanel" id="step1">
+                    <section id="section_main">
+                        <form id="form_main">
+                            <div class="box-body">
+                                <div class="row pl-2">
+                                    <div class="col-xs-12 col-sm-12 col-md-4">
+                                        <div class="form-group">
+                                            <label>ประเภทเคลม :</label>
+                                            <select class="form-control select2" id="ddlClaimType" style="width:100%">
+
+                                                @foreach (var item in @ViewBag.ProductType)
+                                                {
+                                                    <option value=@item.ProductType_ID>  @item.ProductTypeDetail </option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row pl-2">
+                                    <div class="col-xs-12 col-sm-12 col-md-4">
+                                        <div class="form-group">
+                                            <label class="control-label">ผู้ให้บริการ :</label>
+                                            <select name="txtSearchService" id="txtSearchService" class="form-control js-search-person" required="required" style="width:100%"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row pl-2">
+                                    <div class="col-xs-12 col-sm-12 col-md-4">
+                                        <div class="form-group">
+                                            <label class="control-label">ชื่อเจ้าของรถ :</label>
+                                            <select name="txtZebraCarOwnerID" id="txtZebraCarOwnerID" class="form-control js-search-person-1" required="required" style="width:100%"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row pl-2">
+                                    <div class="col-xs-12 col-sm-12 col-md-4">
+                                        <div class="form-group">
+                                            <label class="control-label">หมายเหตุ :</label>
+                                            <textarea name="txtRemark" id="txtRemark" class="form-control" style="resize:none"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </section>
+                    <div class="box-footer clearfix">
+                        <ul class="list-inline pull-right">
+                            <li><button type="button" id="btnNext1" class="btn btn-primary next-step">ถัดไป </button></li>
+                        </ul>
+                    </div>
+                </div>
+                @* step 2 *@
+                <div class="tab-pane" role="tabpanel" id="step2">
+                    <div class="box-body">
+                        <div class="row pl-2 pr-2">
+                            <section id="section_detail">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">รายละเอียดเคลมออนไลน์</h3>
+                                </div>
+                                <div class="box-group">
+                                    <div class="form-group">
+                                        <div class="col-xs-12 col-md-4">
+                                            <label class="control-label" for="textinput">ประเภทเคลม :</label>
+                                            <label id="lblClaimType" class="control-label" style="color:blue;width:100%"></label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-xs-12 col-md-4">
+                                            <label class="control-label" for="textinput">ผู้ให้บริการ :</label>
+                                            <label id="lblService" class="control-label" style="color:blue;width:100%"></label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-xs-12 col-md-4">
+                                            <label class="control-label" for="textinput">เจ้าของรถ :</label>
+                                            <label id="lblZebraCarOwner" class="control-label" style="color:blue;width:100%"></label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr />
+                                <section id="section_btnAddClaim" hidden>
+                                    <div class="row">
+                                        <ul class="list-inline pull-right">
+                                            <li><button id="btn_addclaim" type="button" class="btn btn-info"><i class="fa fa-plus-square"></i> เพิ่มรายการเคลม</button></li>
+                                        </ul>
+                                    </div>
+                                </section>
+                            </section>
+                            <section id="section_claimDT">
+                                <div class="row">
+                                    <div class="box box-primary box-solid" style="margin-top:9px">
+                                        <div class="box-header with-border">
+                                            <h3 class="box-title">รายการเคลม</h3>
+                                        </div>
+                                        <div class="box-body">
+                                            <div class="box-group">
+                                                <div class="row">
+                                                    <div class="col-xs-12" style="text-align:center">
+                                                        <table id="dtClaim" class="display responsive nowrap" style="width:100%" role="grid">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>No data</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                            <section id="section_claimPH" hidden>
+                                <div class="box-body">
+                                    <div class="box-group">
+                                        <div class="row">
+                                            <div>
+                                                <label style="font-size:2em">เพิ่มเคลมสุขภาพ :</label>
+                                            </div>
+                                            @*<div class="col-xs-12 col-md-5">
+                                                    <input class="form-control" type="text" id="txtSearchIndex" placeholder="ชื่อ - สกุล / เลข application" />
+                                                </div>
+                                                <div class="col-xs-12 col-md-3">
+                                                    <button class="btn btn-primary" type="button" id="btnSearch">ค้นหา</button>
+                                                </div>*@
+
+                                            <div class="col-xs-12 col-md-3">
+                                                <label>เลข Application :</label>
+                                                <input class="form-control" type="text" width="100" id="txtSearchApplication" />
+                                            </div>
+                                            <div class="col-xs-12 col-md-3">
+                                                <label>เลขบัตรประชาชน :</label>
+                                                <input class="form-control" type="text" width="100" id="txtSearchIDCard" />
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="form-group">
+                                                <div class="col-xs-12 col-md-3">
+                                                    <label>ชื่อจริง :</label>
+                                                    <input class="form-control" type="text" width="100" id="txtSearchFirstName" />
+                                                </div>
+                                                <div class="col-xs-12 col-md-3">
+                                                    <label>นามสกุล :</label>
+                                                    <input class="form-control" type="text" width="100" id="txtSearchLastName" />
+                                                </div>
+                                                <div class="col-xs-12 col-md-3" style="padding-top: 25px;">
+                                                    <button class="btn btn-primary" type="button" id="btnSearch">ค้นหา</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="box box-primary box-solid" style="margin-top:9px">
+                                                <div class="box-header with-border">
+                                                    <h3 class="box-title">รายการ</h3>
+                                                </div>
+                                                <div class="box-body">
+                                                    <div class="box-group">
+                                                        <div class="row">
+                                                            <div id="divDTMain" class="col-xs-12 col-md-12" style="text-align:center">
+                                                                <table id="dtMain" class="table table-bordered table-hover dataTable" role="grid">
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td>No data</td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <form id="formClaimPH">
+                                            <div class="box box-primary box-solid">
+                                                <div class="box-header with-border">
+                                                    <h3 class="box-title">บันทึกเคลม PH </h3>
+                                                </div>
+                                                <div class="box-body">
+                                                    <div>
+                                                        <ul class="nav nav-pills">
+                                                            <li id="claim_t1" class="active"><a id="a_appDetail" data-toggle="pill" href="#appDetail"><h5>รายละเอียด Application</h5></a></li>
+                                                            <li id="claim_t2"><a id="a_history" data-toggle="pill" href="#history"><h5>ประวัติการเคลม</h5></a></li>
+                                                        </ul>
+                                                        <div class="tab-content">
+                                                            <div id="appDetail" style="padding-top:0px !important" class="tab-pane fade in active">
+                                                                <div class="box-group">
+                                                                    <div class="row">
+                                                                        <div class="col-xs-12">
+                                                                            <div class="box box-primary">
+
+                                                                                <div class="box-group">
+                                                                                    <div class="row">
+                                                                                        <div class="col-xs-12 col-md-6">
+                                                                                            <label>ApplicationID :</label>
+                                                                                            <label class="" id="lblApplicationID" style="color:blue;width:100%"></label>
+                                                                                        </div>
+                                                                                        <div class="col-xs-12 col-md-4">
+                                                                                            <label>ชื่อ - สกุล ผู้เอาประกัน :</label>
+                                                                                            <label class="" id="lblCustFullName" style="color:blue;width:100%"></label>
+                                                                                        </div>
+                                                                                        <div class="col-xs-12 col-md-2">
+                                                                                            <a id="lnkDetail">ดูรายละเอียด</a>
+                                                                                        </div>
+                                                                                    </div>
+
+                                                                                    <div class="row">
+                                                                                        <div class="col-xs-12 col-md-3">
+                                                                                            <label>วันเริ่มคุ้มครอง :</label>
+                                                                                            <label id="lblStartCoverDate" style="color:blue;width:100%"></label>
+                                                                                        </div>
+                                                                                        <div class="col-xs-12 col-md-3">
+                                                                                            <label>สถานะ :</label>
+                                                                                            <label id="lblStatus" style="color:blue;width:100%"></label>
+                                                                                        </div>
+                                                                                        <div class="col-xs-12 col-md-4">
+                                                                                            <label id="lblTextBenefit" style="display: block"></label>
+                                                                                            <label id="lblTextBenefitAccident" style="display: block"></label>
+                                                                                            <label id="lblOPDCount" class="text-red" style="color:blue;width:100%;display: block"></label>
+                                                                                        </div>
+                                                                                        <div class="col-xs-12 col-md-2">
+                                                                                            <label id="lblWarningCheckDate" style="color:red;width:100%;font-size:12px!important"></label>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div class="row">
+                                                                        <div class="col-xs-12 col-md-3">
+                                                                            <label>วันที่เกิดเหตุ :</label>
+                                                                            <div class="input-group date">
+                                                                                <div class="input-group-addon">
+                                                                                    <i class="fa fa-calendar"></i>
+                                                                                </div>
+                                                                                <input type="text" class="form-control pull-right dpk" id="dtpDateHappen" name="dtpDateHappen" data-provide="datepicker" data-date-language="th-th" required>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-xs-12 col-md-3">
+                                                                            <label>วันที่รับแจ้ง :</label>
+                                                                            <div class="input-group date">
+                                                                                <div class="input-group-addon">
+                                                                                    <i class="fa fa-calendar"></i>
+                                                                                </div>
+                                                                                @*<input type="text" class="form-control pull-right datepicker" id="dtpNoticeDate" name="dtpNoticeDate" data-provide="datepicker" data-date-language="th-th" required>*@
+                                                                                <input type="text" class="form-control pull-right dpk" id="dtpNoticeDate" name="dtpNoticeDate" data-provide="datepicker" data-date-language="th-th" required>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-xs-12 col-md-3">
+                                                                            <label>ประเภทการรักษา :</label>
+                                                                            <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlClaimAdmitType" name="ddlClaimAdmitType" checkNA="checkNA"></select>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row">
+                                                                        <div class="col-xs-12 col-md-3" id="divDateIn" hidden>
+                                                                            <label>วันที่เข้า รพ. :</label>
+                                                                            <div class="input-group date">
+                                                                                <div class="input-group-addon">
+                                                                                    <i class="fa fa-calendar"></i>
+                                                                                </div>
+                                                                                <input type="text" class="form-control pull-right dpk" id="dtpDateIn" name="dtpDateIn" data-provide="datepicker" data-date-language="th-th" required>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-xs-12 col-md-3" id="divDateOut" hidden>
+                                                                            <label>วันที่ออก รพ. :</label>
+                                                                            <div class="input-group date">
+                                                                                <div class="input-group-addon">
+                                                                                    <i class="fa fa-calendar"></i>
+                                                                                </div>
+                                                                                <input type="text" class="form-control pull-right dpk" id="dtpDateOut" name="dtpDateOut" data-provide="datepicker" data-date-language="th-th" required>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-xs-12 col-md-3" id="divDaysCount" hidden>
+                                                                            <label>จำนวนวัน :</label>
+                                                                            <input type="text" class="form-control text-right text-bold text-blue" id="txtDaysCount" name="txtDaysCount" required>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row">
+                                                                        <div class="col-xs-12 col-md-3">
+                                                                            <label>จังหวัดสถานพยาบาล :</label>
+                                                                            <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlProvinceHospital" name="ddlProvinceHospital" checkNA="checkNA">
+                                                                                <option value="-1">--โปรดระบุ--</option>
+                                                                                @{
+                                                                                    foreach (var item in ViewBag.Province)
+                                                                                    {
+                                                                                        <option value="@item.Code">@item.Detail</option>
+                                                                                    }
+
+                                                                                }
+                                                                            </select>
+                                                                        </div>
+                                                                        <div class="col-xs-12 col-md-6">
+                                                                            <label>สถานพยาบาล :</label>
+                                                                            <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlHospitalName" name="ddlHospitalName" required></select>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row">
+                                                                        <div class="col-xs-12 col-md-3">
+                                                                            <label>สถานะ :</label>
+                                                                            <select class="form-control" style="width:100%" id="ddlStatusClaim" name="ddlStatusClaim" disabled>
+                                                                                @{
+                                                                                    foreach (var item in ViewBag.StatusClaim)
+                                                                                    {
+                                                                                        <option value="@item.Code">@item.Detail</option>
+                                                                                    }
+
+                                                                                }
+                                                                            </select>
+                                                                        </div>
+                                                                        <div class="col-xs-12 col-md-3" id="divCancelCause" hidden>
+                                                                            <label>สาเหตุการปฏิเสธ :</label>
+                                                                            <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" disabled id="ddlCancelCause" required></select>
+                                                                        </div>
+                                                                        <div class="col-xs-12 col-md-3">
+                                                                            <label>ยอดเงิน :</label>
+                                                                            <input type="text" class="form-control" id="txtAmount" name="txtAmount" style="color:blue;width:100%" required>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row">
+                                                                        <div class="col-xs-12 col-md-9">
+                                                                            <label>Diagnosis (คำวินิจฉัยแพทย์) :</label>
+                                                                            <select class="form-control js-search-icdten" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlICD10" name="ddlICD10" required></select>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row">
+                                                                        <div class="col-xs-12 col-md-9">
+                                                                            <label>รายละเอียด :</label>
+                                                                            <input class="form-control" type="text" id="txtClaimRemark" required>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div id="history" style="padding-top:0px !important" class="tab-pane fade">
+                                                                <div class="box-body">
+                                                                    <div class="box-group">
+                                                                        <div class="row">
+                                                                            <div class="col-xs-12 col-md-12" style="text-align:center">
+                                                                                <table id="dtHistory" class="table table-bordered table-hover dataTable display" style="width:100%" role="grid">
+                                                                                    <thead>
+                                                                                        <tr>
+                                                                                            <th>เลขที่เคลม</th>
+                                                                                            <th>ประเภทเคลม</th>
+                                                                                            <th>สถานพยาบาล</th>
+                                                                                            <th>ChiefComplain</th>
+                                                                                            <th>การวินิจฉัย(Diagnosis)</th>
+                                                                                            <th>วันที่เคลม</th>
+                                                                                            <th>สถานะ</th>
+                                                                                            <th>รายละเอียด</th>
+                                                                                        </tr>
+                                                                                    </thead>
+                                                                                    <tbody id="bodyHistory"></tbody>
+                                                                                </table>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                    <section id="section_btnNextAcc">
+                        <div class="box-footer clearfix">
+                            <ul class="list-inline pull-right">
+                                <li><button id="btn_prev2" type="button" class="btn btn-default prev-step">ย้อนกลับ</button></li>
+                                <li><button id="btnNext2" type="button" class="btn btn-primary next-step">ถัดไป</button></li>
+                                <li><button id="btnNextAcc" type="button" class="btn btn-primary next-step">บันทึกและระบุบัญชีรับสินไหม</button></li>
+                            </ul>
+                        </div>
+                    </section>
+                </div>
+                @* step 3 *@
+                <div class="tab-pane" role="tabpanel" id="complete">
+                    <form id="formBankAccount">
+                        <div class="box-body">
+                            <div class="box-group">
+                                <div class="row">
+                                    <div class="col-xs-12 col-md-12">
+                                        <label style="font-size:2em"> บัญชีรับสินไหม :</label>
+                                    </div>
+                                </div>
+                                <div class="row radio-err">
+                                    <ul class="answerList" id="banklist"></ul>
+                                    <div style="padding-left: 50px;">
+                                        <!-- Button trigger modal -->
+                                        <button id="btnAddBankAccount" type="button" class="btn btn-info" data-toggle="modal" data-target="#myModal">
+                                            <i class="fa fa-plus-square"></i> เพิ่มบัญชีรับสินไหมใหม่
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <form id="formContact">
+                        <div class="box-body">
+                            <div class="box-group">
+                                <div class="row">
+                                    <div class="col-xs-12 col-md-12">
+                                        <label style="font-size:2em"> เบอร์โทรผู้ติดต่อ :</label>
+                                    </div>
+                                </div>
+                                <div class="row radio-err">
+                                    <ul class="answerList" id="contactlist"></ul>
+                                    <div style="padding-left: 50px;">
+                                        <!-- Button trigger modal -->
+                                        <button id="btnAddContact" type="button" class="btn btn-info" data-toggle="modal" data-target="#myModalContact">
+                                            <i class="fa fa-plus-square"></i> เพิ่มเบอร์โทรผู้ติดต่อใหม่
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <hr />
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-xs-12 col-md-12">
+                                <label style="font-size:2em"> แนบเอกสารหน้าบัญชีรับสินไหมใหม่ :</label>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="box-group">
+                                <div class="row">
+                                    <div id="divDTMain" class="col-xs-12 col-md-12" style="text-align:center">
+                                        <table id="dtDocument" class="table table-bordered table-hover dataTable display" style="width:100%" role="grid">
+                                            <thead>
+                                                <tr>
+                                                    <th>ประเภทเอกสาร</th>
+                                                    <th>แนบเอกสาร</th>
+                                                    <th>เรียกดู</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer clearfix">
+                        <ul class="list-inline pull-right">
+                            <li><button type="button" class="btn btn-default prev-step">ย้อนกลับ</button></li>
+                            <li><button id="btnNext3" type="button" class="btn btn-primary btn-info-full next-step">ถัดไป</button></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">เพิ่มบัญชีรับสินไหม</h4>
+            </div>
+            <div class="modal-body">
+                <form id="formAddAccountModal">
+                    <div class="form-group">
+                        <label class="control-label">ธนาคาร :</label>
+                        <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlBank" name="ddlBank" checkNA="checkNA">
+                            <option value="-1"> -- โปรดระบุ -- </option>
+                            @foreach (var item in @ViewBag.Bank)
+                            {
+                                <option value=@item.Bank_ID>  @item.BankDetail </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">เลขบัญชี :</label>
+                        <input class="form-control" style="width: 100%;" tabindex="-1" aria-hidden="true" id="txtBankAccountNo" name="txtBankAccountNo" onkeypress="return /[0-9]/i.test(event.key)" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">ชื่อบัญชี :</label>
+                        <input class="form-control" style="width: 100%;" tabindex="-1" aria-hidden="true" id="txtBankAccountName" name="txtBankAccountName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="btnCancelBankAccount" type="button" class="btn btn-default" data-dismiss="modal">ยกเลิก</button>
+                <button id="btnSaveBankAccount" type="button" class="btn btn-primary">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModalContact" tabindex="-1" role="dialog" aria-labelledby="myModalLabelContact">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabelContact">เพิ่มเบอร์โทรผู้ติดต่อ</h4>
+            </div>
+            <div class="modal-body">
+                <form id="formAddContactModal">
+                    <div class="form-group">
+                        <label class="control-label">ประเภทผู้ติดต่อ :</label>
+                        <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlContactType" name="ddlContactType" checkNA="checkNA">
+                            <option value="-1"> -- โปรดระบุ -- </option>
+
+                            @foreach (var item in @ViewBag.PersonContactType)
+                            {
+
+                                <option value=@item.PersonContactTypeId>  @item.PersonContactType </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">ชื่อผู้ติดต่อ :</label>
+                        <input class="form-control" style="width: 100%;" tabindex="-1" aria-hidden="true" id="txtContactName" name="txtContactName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">เบอร์โทรผู้ติดต่อ :</label>
+                        <input class="form-control" style="width: 100%;" tabindex="-1" aria-hidden="true" id="txtContactPhone" name="txtContactPhone" placeholder="ระบุหมายเลขโทรศัพท์เฉพาะตัวเลขเท่านั้น ตัวอย่าง 0924567892" checkFormatPhoneNumbers="checkFormatPhoneNumbers" maxlength="10" minLength="10" required>
+                    </div>
+                    <div class="form-group" id="divContactOther" hidden>
+                        <label class="control-label">อื่นๆ โปรดระบุ :</label>
+                        <input class="form-control" style="width: 100%;" tabindex="-1" aria-hidden="true" id="txtContactOther" name="txtContactOther" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="btnCancelContact" type="button" class="btn btn-default" data-dismiss="modal">ยกเลิก</button>
+                <button id="btnSaveContact" type="button" class="btn btn-primary">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModalConfirm" tabindex="-1" role="dialog" aria-labelledby="myModalLabelConfirm">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabelConfirm">ยืนยันการส่งข้อมูล</h4>
+            </div>
+            <div class="modal-body">
+                <div class="box-group">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <label style="font-size:1em">รายการเคลม :</label>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div class="box-group">
+                            <div class="row">
+                                <div class="col-xs-12" style="text-align:center">
+                                    <table id="dtClaimList" class="table table-bordered table-hover dataTable" role="grid">
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="box-group">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <label style="font-size:1em">บัญชีรับสินไหม :</label>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div class="box-group">
+                            <div class="row">
+                                <div class="col-xs-12" style="text-align:center">
+                                    <table id="dtBankAccountList" class="table table-bordered table-hover dataTable" role="grid">
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="box-group">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <label style="font-size:1em">เบอร์โทรผู้ติดต่อ :</label>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div class="box-group">
+                            <div class="row">
+                                <div class="col-xs-12" style="text-align:center">
+                                    <table id="dtContactList" class="table table-bordered table-hover dataTable" role="grid">
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btnCancel" type="button" class="btn btn-default" data-dismiss="modal">ยกเลิก</button>
+                <button id="btnConfirm" type="button" class="btn btn-success"> ยืนยัน</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit -->
+<div class="modal fade" id="myModalEdit" tabindex="-1" role="dialog" aria-labelledby="myModalEdit">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color:#f39c12">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" style="color:white" id="myModalLabelEdit">แก้ไขข้อมูล</h4>
+            </div>
+            <div class="modal-body">
+                <form id="formEdit">
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="box-group">
+                                    <div class="row">
+                                        <div class="col-xs-12 col-md-3">
+                                            <label>ApplicationID :</label>
+                                            <label class="" id="lblApplicationID_Edit" style="color:blue;width:100%"></label>
+                                        </div>
+                                        <div class="col-xs-12 col-md-3">
+                                            <label>ชื่อ - สกุล ผู้เอาประกัน :</label>
+                                            <label class="" id="lblCustFullName_Edit" style="color:blue;width:100%"></label>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-xs-12 col-md-3">
+                                            <label>วันเริ่มคุ้มครอง :</label>
+                                            <label id="lblStartCoverDate_Edit" style="color:blue;width:100%"></label>
+                                        </div>
+                                        <div class="col-xs-12 col-md-3">
+                                            <label>สถานะ :</label>
+                                            <label id="lblStatus_Edit" style="color:blue;width:100%"></label>
+                                        </div>
+                                        <div class="col-xs-12 col-md-4">
+                                            <label id="lblTextBenefit_Edit" style="display: block"></label>
+                                            <label id="lblTextBenefitAccident_Edit" style="display: block"></label>
+                                            <label id="lblOPDCount_Edit" class="text-red" style="color:blue;width:100%;display: block"></label>
+                                        </div>
+                                        <div class="col-xs-12 col-md-2">
+                                            <label id="lblWarningCheckDate_Edit" style="color:red;width:100%;font-size:12px!important"></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-12 col-md-3">
+                                <label>วันที่เกิดเหตุ :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpDateHappen_Edit" name="dtpDateHappen_Edit" data-provide="datepicker" data-date-language="th-th" required>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-md-3">
+                                <label>วันที่รับแจ้ง :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    @*<input type="text" class="form-control pull-right datepicker" id="dtpNoticeDate_Edit" name="dtpNoticeDate_Edit" data-provide="datepicker" data-date-language="th-th" required>*@
+                                    <input type="text" class="form-control dpk" id="dtpNoticeDate_Edit" name="dtpNoticeDate_Edit" data-provide="datepicker" data-date-language="th-th" required>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-md-3">
+                                <label>ประเภทการรักษา :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlClaimAdmitType_Edit" name="ddlClaimAdmitType_Edit" checkNA="checkNA"></select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-12 col-md-3" id="divDateIn_Edit" hidden>
+
+                                <label>วันที่เข้า รพ. :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right dpk" id="dtpDateIn_Edit" name="dtpDateIn_Edit" data-provide="datepicker" data-date-language="th-th" required>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-md-3" id="divDateOut_Edit" hidden>
+
+                                <label>วันที่ออก รพ. :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right dpk" id="dtpDateOut_Edit" name="dtpDateOut_Edit" data-provide="datepicker" data-date-language="th-th" required>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-md-3" id="divDaysCount_Edit" hidden>
+
+                                <label>จำนวนวัน :</label>
+                                <input type="text" class="form-control text-right text-bold text-blue" id="txtDaysCount_Edit" name="txtDaysCount_Edit" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12 col-md-3">
+                                <label>จังหวัดสถานพยาบาล :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlProvinceHospital_Edit" name="ddlProvinceHospital_Edit" checkNA="checkNA">
+                                    <option value="-1">--โปรดระบุ--</option>
+                                    @{
+                                        foreach (var item in ViewBag.Province)
+                                        {
+                                            <option value="@item.Code">@item.Detail</option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-xs-12 col-md-6">
+                                <label>สถานพยาบาล :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlHospitalName_Edit" name="ddlHospitalName_Edit" required></select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12 col-md-3">
+                                <label>สถานะ :</label>
+                                <select class="form-control" style="width:100%" id="ddlStatusClaim_Edit" name="ddlStatusClaim_Edit" disabled>
+                                    @{
+                                        foreach (var item in ViewBag.StatusClaim)
+                                        {
+                                            <option value="@item.Code">@item.Detail</option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-xs-12 col-md-3" id="divCancelCause" hidden>
+                                <label>สาเหตุการปฏิเสธ :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" disabled id="ddlCancelCause_Edit" required></select>
+                            </div>
+                            <div class="col-xs-12 col-md-3">
+                                <label>ยอดเงิน :</label>
+                                <input type="text" class="form-control" id="txtAmount_Edit" name="txtAmount_Edit" style="color:blue;width:100%" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12 col-md-9">
+                                <label>Diagnosis (คำวินิจฉัยแพทย์) :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlICD10_Edit" name="ddlICD10_Edit" required"></select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12 col-md-9">
+                                <label>รายละเอียด :</label>
+                                <input class="form-control" type="text" id="txtClaimRemark_Edit" required>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">ยกเลิก</button>
+                <button id="btnEdit" name="btnEdit" type="button" class="btn btn-warning">บันทึกการแก้ไข</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="hdfappID" name="hdfappID" />
+<input type="hidden" id="hdfappID_Edit" name="hdfappID_Edit" />
+<input type="hidden" id="hdfuuId_Edit" name="hdfuuId_Edit" />
+<input type="hidden" id="hdfProductId" name="hdfProductId" />
+<input type="hidden" id="hdfOpd" name="hdfOpd" />
+<input type="hidden" id="hdfOpd_Edit" name="hdfOpd_Edit" />
+<input type="hidden" id="hdflblStartCoverDate" name="hdflblStartCoverDate" />
+<input type="hidden" id="hdflblStartCoverDate_Edit" name="hdflblStartCoverDate_Edit" />
+<input type="hidden" id="hdfCOL_ID" name="hdfCOL_ID" />
+<input type="hidden" id="hdfCOL_CODE" name="hdfCOL_CODE" />
+@section ViewSpecificJavascript {
+    <script>
+        var cond = false;
+        var objDoc = {};
+        var objCOL = {};
+        var arrCL = [];
+        var arrDocCode = [];
+        var arrBankAccount = [];
+        var arrContact = [];
+        var arrAmount = [];
+        var hasClassSelected = false;
+        var currentAccountNo;
+        var IsCheckDate30;
+        var IsOPDByProductCode;
+        var OPDCount = 0;
+        var OPDAccidentPricePerUnit = 0;
+        var OPDPricePerUnit = 0;
+
+        var IsCheckDate30ForEdit;
+        var IsOPDByProductCodeForEdit;
+        var OPDCountForEdit = 0;
+        var OPDAccidentPricePerUnitForEdit = 0;
+        var OPDPricePerUnitForEdit = 0;
+        var arrClaimTypeIdIsPass = ["2002", "4001", "1002", "2004", "2005"];
+        var arrstatusAppId = ["3080", "3092", "3090", "3020"];
+        var statusIdByAppId;
+        var ClaimCode;
+        var payeeBankId;
+
+        class BankAccount {
+            constructor(bankid, bankname, bankaccountno, bankaccountname) {
+                this.bankid = bankid;
+                this.bankname = bankname;
+                this.bankaccountno = bankaccountno;
+                this.bankaccountname = bankaccountname;
+            }
+        }
+
+        class Contact {
+            constructor(contacttypeid, contacttype, contactname, contactphone,contactother) {
+                this.contacttypeid = contacttypeid;
+                this.contacttype = contacttype;
+                this.contactname = contactname;
+                this.contactphone = contactphone;
+                this.contactother = contactother;
+            }
+        }
+
+       
+        class ClaimPH {
+            constructor(uuid, appid, productid, custname, startcoverdate, status, opdcount, datehappen, noticedate, datein, dateout, datecount, claimadmidtype, claimadmidtypeid, province, provinceid, hospital, hospitalid, statusclaim, statusclaimid, denycauseid, amount, chiefcomplaint, chiefcomplaintid, claimremark, claimicdten, claimicdtenid) {
+                this.uuid = uuid;
+                this.appid = appid;
+                this.productid = productid;
+                this.custname = custname;
+                this.startcoverdate = startcoverdate;
+                this.status = status;
+                this.opdcount = opdcount;
+                this.datehappen = datehappen;
+                this.noticedate = noticedate;
+                this.datein = datein;
+                this.dateout = dateout;
+                this.datecount = datecount;
+                this.claimadmidtype = claimadmidtype;
+                this.claimadmidtypeid = claimadmidtypeid;
+                this.province = province;
+                this.provinceid = provinceid;
+                this.hospital = hospital;
+                this.hospitalid = hospitalid;
+                this.statusclaim = statusclaim;
+                this.statusclaimid = statusclaimid;
+                this.denycauseid = denycauseid;
+                this.amount = amount;
+                this.chiefcomplaint = chiefcomplaint;
+                this.chiefcomplaintid = chiefcomplaintid;
+                this.claimremark = claimremark;
+                this.claimicdten = claimicdten;
+                this.claimicdten = claimicdten;
+                this.claimicdtenid = claimicdtenid;
+            }
+        }
+
+        function addLoaddingButton(buttonIdToAdd, currentIconButton = null) {
+            $(buttonIdToAdd).addClass("loading");
+            if (currentIconButton !== null)
+                $('#upIcon').removeClass("glyphicon glyphicon-open");
+        }
+
+        function clearLoaddingButton(buttonIdToClear, currentIconButton = null) {
+            $(buttonIdToClear).removeClass("loading");
+            if (currentIconButton !== null)
+                $('#upIcon').addClass("glyphicon glyphicon-open");
+        }
+
+        $(document).ready(function () {
+
+            /*---------------------------------------------------------------------------------------------------------- */
+            $('#dtpDateHappen').change(function (e) {
+                e.preventDefault();
+                    $('#lblWarningCheckDate').text('');
+                    $('#ddlClaimAdmitType').select2().val("-1").trigger("change.select2");
+            });
+
+            //----------use date range ( 7 day pass To present )----------
+            //var startDate  = new Date();
+            //startDate.setDate(startDate.getDate() - 7);
+            //var endDate = new Date();
+            //endDate.setDate(endDate.getDate());
+            //$('#dtpNoticeDate').datepicker("setDate", new Date());
+
+            $('.select2').select2();
+            $('.content-header').hide();
+
+            //ไม่ให้ input mask currency ใส่ค่าลบ(-)
+            Inputmask.extendAliases({
+                'currency': {
+                    allowMinus: false
+                }
+            });
+
+            $("#txtAmount").inputmask({
+                rightAlign: true,
+                alias: "currency",
+                prefix: '',
+            });
+
+            //Load Default
+            GetClaimAdmitTypeDetail();
+            GetHospitalNameDetail();
+
+            //Load Default For Edit
+            $("#txtAmount_Edit").inputmask({
+                rightAlign: true,
+                alias: "currency",
+                prefix: '',
+
+            });
+            GetClaimAdmitTypeDetailForEdit();
+            GetHospitalNameDetailForEdit();
+            GetICDTenforEdit();
+            //jquery validation
+            $('#formBankAccount').validate({
+                rules:
+                {
+                    bankaccount: { required: true },
+                },
+                messages:
+                {
+                    bankaccount: { required: "<br>กรุณาเลือกบัญชีธนาคาร..<br />" },
+                },
+                errorPlacement: function (error, element) {
+                    if (element.is(":radio")) {
+                        error.prependTo(element.parents('.radio-err'));
+                    } else if (element.is(":checkbox")) {
+                        error.prependTo(element.parents('.radio-err'));
+                    }
+                    else { // This is the default behavior
+                        error.insertAfter(element);
+                    }
+                }
+            });
+
+            //jquery validation
+            $('#formContact').validate({
+                rules:
+                {
+                    contact: { required: true },
+                },
+                messages:
+                {
+                    contact: { required: "<br>กรุณาเลือกเบอร์ผู้ติดต่อ..<br />" },
+                },
+                errorPlacement: function (error, element) {
+                    if (element.is(":radio")) {
+                        error.prependTo(element.parents('.radio-err'));
+                    } else if (element.is(":checkbox")) {
+                        error.prependTo(element.parents('.radio-err'));
+                    }
+                    else { // This is the default behavior
+                        error.insertAfter(element);
+                    }
+                }
+            });
+
+            //Initialize tooltips
+            $('.nav-tabs > li a[title]').tooltip();
+
+            //----------Wizard----------//
+            $('a[data-toggle="tab"]').on('show.bs.tab', function (e) {
+
+                var $target = $(e.target);
+
+                if ($target.parent().hasClass('disabled')) {
+                    return false;
+                }
+            });
+
+            $('a[data-toggle="pill"]').on('show.bs.tab', function (e) {
+                var $id = e.currentTarget.id;
+
+                if ($id === "a_history") {
+
+                    //$('#dtDocument').DataTable({
+                    //    responsive: true,
+                    //    lengthChange: false,
+                    //    searching: false,
+                    //    info: false,
+                    //    paging: false,
+                    //    destroy: true
+                    //});
+
+                    $('#section_btnNextAcc').hide();
+                } else {
+                    $('#section_btnNextAcc').show();
+                }
+            });
+
+            //event next
+            $(".next-step").click(function (e) {
+                let btn = $(this)[0].id;
+                switch (btn) {
+                    case 'btnNext1':
+                        if ($('#form_main').valid()) {
+                            //assign values to obj
+                            objCOL.claimtype = $('#ddlClaimType option:selected').text().trim();
+                            objCOL.claimtypeId = $('#ddlClaimType').val();
+                            objCOL.servicename = $('#txtSearchService option:selected').text().trim();
+                            objCOL.servicenameId = $('#txtSearchService').val();
+                            objCOL.zebraCarOwner = $('#txtZebraCarOwnerID option:selected').text().trim();
+                            objCOL.zebraCarOwnerId = $('#txtZebraCarOwnerID').val();
+                            objCOL.remark = $('#txtRemark').val().trim();
+
+                            //assign values to text label
+                            $('#lblClaimType').text(objCOL.claimtype);
+                            $('#lblService').text(objCOL.servicename);
+                            $('#lblZebraCarOwner').text(objCOL.zebraCarOwner);
+
+                            //show section button add claim
+                            $('#section_btnAddClaim').show();
+
+                            //check array length > 0
+                            if (arrCL.length > 0) {
+                                //ซ่อน
+                                $('#btn_addclaim').hide();
+                                $('#btn_prev2').hide();
+                                //แสดงปุ่ม ยันทึกและระบุสินไหม
+                                $('#btnNextAcc').show();
+                            } else {
+                                //ซ่อน ป
+                                $('#btn_prev2').show();
+                                $('#btnNext2').hide();
+                                //ซ่อน ปุ่มบันทึกและระบุสืนไหม
+                                $('#btnNextAcc').hide();
+                            }
+
+                            //remove class disabled next element
+                            let $active = $('.wizard .nav-tabs li.active');
+                            $active.next().removeClass('disabled');
+                            $active.addClass('disabled');
+                            nextTab($active);
+                        }
+                        break;
+                    case 'btnNext2':
+                        if ($('#formClaimPH').valid()) {
+
+                            ClearBankAndContactList();
+
+                            if (!hasClassSelected) {
+                                swal("แจ้งเตือน!", "กรุณาเลือกรายการก่อนบันทึกเคลม", "warning");
+                                return false;
+                            }
+
+                            if (!CheckDateHappenDateNotice()) {
+                                swal("แจ้งเตือน!", "กรุณาตรวจสอบวันที่เกิดเหตุ / วันที่แจ้ง", "warning");
+                                return false;
+                            }
+
+                            //ValidatePH: 2000 = PH
+                            let r = ValidatePH($('#lblApplicationID').text(), $('#ddlHospitalName').val(), "2000", $('#ddlClaimAdmitType').val(), $('#dtpDateHappen').val(), $('#dtpNoticeDate').val(), $('#dtpDateIn').val(), $('#dtpDateOut').val());
+
+                            if (!(r.IsResult)) {
+                                swal("แจ้งเตือน!", r.Msg, "warning");
+                                return false;
+                            } else if (r.IsResult && r.Msg.length > 0) {
+                                swal_warning(r.Msg, function () {
+
+                                    let val = $('#ddlClaimAdmitType').val();
+
+                                    const amount = $('#txtAmount').val().replace(',', '');
+                                    if (amount == "0.00") {
+                                        $('#txtAmount').val('');
+                                        return false;
+                                    }
+
+                                    let res = ValidateAmount(val);
+                                    if (!res.IsResult) {
+                                        swal("แจ้งเตือน!", res.Msg, "error");
+                                        return false;
+                                    }
+
+                                    //assign values to contructor
+                                    const objCL = new ClaimPH(uuidv4(),
+                                        $('#lblApplicationID').text(),
+                                        $('#hdfProductId').val(),
+                                        $('#lblCustFullName').text(),
+                                        $('#lblStartCoverDate').text(),
+                                        $('#lblStatus').text(),
+                                        $('#lblOPDCount').text(),
+                                        $('#dtpDateHappen').val(),
+                                        $('#dtpNoticeDate').val(),
+                                        $('#dtpDateIn').val(),
+                                        $('#dtpDateOut').val(),
+                                        $('#txtDaysCount').val(),
+                                        $('#ddlClaimAdmitType option:selected').text(),
+                                        $('#ddlClaimAdmitType').val(),
+                                        $('#ddlProvinceHospital option:selected').text(),
+                                        $('#ddlProvinceHospital').val(),
+                                        $('#ddlHospitalName option:selected').text(),
+                                        $('#ddlHospitalName').val(),
+                                        $('#ddlStatusClaim option:selected').text(),
+                                        $('#ddlStatusClaim').val(),
+                                        $('#ddlCancelCause').val(),
+                                        $('#txtAmount').val().trim(),
+                                        null,
+                                        null,
+                                        $('#txtClaimRemark').val().trim(),
+                                        $('#ddlICD10 option:selected').text(),
+                                        $('#ddlICD10').val());
+
+                                    //push object to array
+                                    arrCL.push(objCL);
+                                    //console.log('arrCL->', JSON.stringify(arrCL));
+                                    //ซ่อน section บันทึกเคลม
+                                    $('#section_claimPH').hide();
+                                    //แสดง section รายละเอียด
+                                    $('#section_detail').show();
+                                    //แสดง section รายการเคลม
+                                    $('#section_claimDT').show();
+                                    //ซ่อนปุ่มถัดไป 2
+                                    $('#btnNext2').hide();
+                                    //เช็ค array มากกว่า 0 ให้แสดงปุ่ม บันทึกและระบุสินไหม
+                                    if (arrCL.length > 0) {
+                                        $('#btn_addclaim').hide();
+                                        $('#btn_prev2').hide();
+                                        $('#btnNextAcc').show();
+                                    }
+
+                                    //load datatables
+                                    ClaimDT(arrCL);
+                                })
+                                break;
+                            } else {
+                                let val = $('#ddlClaimAdmitType').val();
+
+                                const amount = $('#txtAmount').val().replace(',', '');
+                                if (amount == "0.00") {
+                                    $('#txtAmount').val('');
+                                    return false;
+                                }
+
+                                let res = ValidateAmount(val);
+                                if (!res.IsResult) {
+                                    swal("แจ้งเตือน!", res.Msg, "error");
+                                    return false;
+                                }
+
+                                //assign values to contructor
+                                const objCL = new ClaimPH(uuidv4(),
+                                    $('#lblApplicationID').text(),
+                                    $('#hdfProductId').val(),
+                                    $('#lblCustFullName').text(),
+                                    $('#lblStartCoverDate').text(),
+                                    $('#lblStatus').text(),
+                                    $('#lblOPDCount').text(),
+                                    $('#dtpDateHappen').val(),
+                                    $('#dtpNoticeDate').val(),
+                                    $('#dtpDateIn').val(),
+                                    $('#dtpDateOut').val(),
+                                    $('#txtDaysCount').val(),
+                                    $('#ddlClaimAdmitType option:selected').text(),
+                                    $('#ddlClaimAdmitType').val(),
+                                    $('#ddlProvinceHospital option:selected').text(),
+                                    $('#ddlProvinceHospital').val(),
+                                    $('#ddlHospitalName option:selected').text(),
+                                    $('#ddlHospitalName').val(),
+                                    $('#ddlStatusClaim option:selected').text(),
+                                    $('#ddlStatusClaim').val(),
+                                    $('#ddlCancelCause').val(),
+                                    $('#txtAmount').val().trim(),
+                                    null,
+                                    null,
+                                    $('#txtClaimRemark').val().trim(),
+                                    $('#ddlICD10 option:selected').text(),
+                                    $('#ddlICD10').val());
+                                //push object to array
+                                arrCL.push(objCL);
+                                //console.log(arrCL);
+                                //ซ่อน section บันทึกเคลม
+                                $('#section_claimPH').hide();
+                                //แสดง section รายละเอียด
+                                $('#section_detail').show();
+                                //แสดง section รายการเคลม
+                                $('#section_claimDT').show();
+                                //ซ่อนปุ่มถัดไป 2
+                                $('#btnNext2').hide();
+                                //เช็ค array มากกว่า 0 ให้แสดงปุ่ม บันทึกและระบุสินไหม
+                                if (arrCL.length > 0) {
+                                    $('#btn_addclaim').hide();
+                                    $('#btn_prev2').hide();
+                                    $('#btnNextAcc').show();
+                                }
+
+                                //load datatables
+                                ClaimDT(arrCL);
+                            }
+                        }
+                        break;
+                    case 'btnNextAcc':
+
+                        ClearBankAndContactList();
+                        GetBankAccount();
+                        GetPersonContact();
+
+                        //insert 28หน้าบัญชีธนาคาร 30ใบเสร็จ 31รับรองแพทย์ 32สำเนาบัตรผู้เอาประกัน 33เอกสารอื่นๆ,34สำเนาบัตรประชาชนเจ้าของบัญชี
+                        if (!objDoc.doc28) {
+
+                            DocumentInsert("28,30,31,32,33,34");
+                        } else {
+                            DocumentSelectByDocCode(objDoc.doc28);
+                        }
+
+                        let $active = $('.wizard .nav-tabs li.active');
+                        $active.next().removeClass('disabled');
+                        $active.addClass('disabled');
+                        nextTab($active);
+                        break;
+                    case 'btnNext3':
+
+                        //เช็คบัญชีธนาคาร
+                        if (arrBankAccount.length === 0) {
+                            swal("แจ้งเตือน!", "กรุณาเพิ่มข้อมูลบัญชี", "warning");
+                            return false;
+                        }
+                        //เช็คผู้ติดต่อ
+                        if (arrContact.length === 0) {
+                            swal("แจ้งเตือน!", "กรุณาเพิ่มข้อมูลเบอร์ผู้ติดต่อ", "warning");
+                            return false;
+                        }
+
+                        //form valid
+                        if ($('#formBankAccount').valid() && $('#formContact').valid()) {
+                            //เช็คบัญชีที่เลือกเป็นบัญชีใหม่
+                            if (CheckNewBankAccount()) {
+
+                                //validate Doc 28 - หน้าบัญชี
+                                let result = ValidateDocument(objDoc.doc28);
+                                if (result.IsResult) {
+                                    $("#myModalConfirm").modal("show");
+                                    LoadDTClaimList();
+                                    LoadDTBankAccountList();
+                                    LoadDTContactList();
+                                } else {
+                                    swal("แจ้งเตือน!", result.Msg, "warning");
+                                    return false;
+                                }
+                            } else {
+                                $("#myModalConfirm").modal("show");
+                                LoadDTClaimList();
+                                LoadDTBankAccountList();
+                                LoadDTContactList();
+                            }
+                        }
+
+                        break;
+                    default:
+                }
+            });
+
+            //event ปุ่มย้อนกลับ
+            $(".prev-step").click(function (e) {
+                //ถ้า section claim PH ซ่อนอยู่
+                if ($('#section_claimPH').is(":hidden")) {
+                    var $active = $('.wizard .nav-tabs li.active');
+                    $active.prev().removeClass('disabled');
+                    $active.addClass('disabled');
+                    prevTab($active);
+
+                } else {
+                    //แสดง / ซ่อน
+                    $('#section_claimPH').hide()
+                    $('#section_detail').show();
+                    $('#section_btnNextAcc').show();
+
+                    $('#section_claimDT').show()
+                    $('#btnNext2').hide();
+
+                    //ถ้า array มากกว่า 0
+                    if (arrCL.length > 0) {
+                        //แสดงปุ่ม บันทึกและระบุสินไหม
+                        $('#btn_addclaim').hide();
+                        $('#btn_prev2').hide();
+                        $('#btnNextAcc').show();
+                    } else {
+                        //ซ่อนปุ่ม บันทึกและระบุสินไหม
+                        $('#btnNextAcc').hide();
+                        $('#btn_prev2').show();
+                        $('#btn_addclaim').show();
+                    }
+                }
+            });
+            //----------End Wizard----------//
+
+            //button event
+
+            $('#btn_addclaim').off().on('click', function (e) {
+                e.preventDefault();
+
+                //default active tab1
+                if ($("#claim_t2").hasClass('active')) {
+                    $("#claim_t2").removeClass('active');
+                    $("#claim_t1").addClass('active');
+                } else {
+                    $("#claim_t1").addClass('active');
+                }
+                //clear and set value default
+                hasClassSelected = false;
+                $('#txtSearch').val('');
+                $('#dtHistory tbody').empty();
+                $('#formClaimPH').validate().resetForm();
+                $(".error").removeClass("error");
+
+                $('#txtSearchApplication').val("");
+                $('#txtSearchIDCard').val("");
+                $('#txtSearchFirstName').val("");
+                $('#txtSearchLastName').val("");
+
+                $('#divDTMain').hide();
+                DoClearApplicationDetail();
+                DoClearInputSaveClaim();
+
+                $('#section_detail').hide();
+
+                $('#section_claimDT').hide();
+                $('#section_claimPH').show();
+
+                $('#section_btnNextAcc').show();
+                $('#btnNextAcc').hide()
+                $('#btnNext2').show();
+            });
+
+            //ค้นหา PH
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                if ($('#txtSearchApplication').val().trim().length > 0 ||
+                    $('#txtSearchIDCard').val().trim().length > 0 ||
+                    $('#txtSearchFirstName').val().trim().length > 0 ||
+                    $('#txtSearchLastName').val().trim().length > 0) {
+
+                    $('#divDTMain').show();
+                    DoClearApplicationDetail();
+                    DoClearInputSaveClaim();
+                    GetApplicationPHDetail();
+
+                } else {
+                    swal('ระบุคำค้นหา', 'กรุณาระบุคำค้นหาอย่างน้อย 1 อย่าง', 'error');
+                }
+
+            });
+
+             //add bank account
+            $('#btnAddBankAccount').click(function (e) {
+                e.preventDefault();
+                //clear element in modal
+                $('#ddlBank').select2().val("-1").trigger("change.select2");
+                $('#txtBankAccountNo').val("");
+                $('#txtBankAccountName').val("");
+            });
+
+            //add contace
+            $('#btnAddContact').click(function (e) {
+                e.preventDefault();
+                //clear element in modal
+                $('#ddlContactType').select2().val("-1").trigger("change.select2");
+                $('#txtContactName').val("");
+                $('#txtContactPhone').val("");
+                $('#txtContactOther').val("");
+            });
+
+            //btn confrim
+            $('#btnConfirm').on('click',function (e) {
+                e.preventDefault();
+                $(this).prop('disabled', true);
+                SaveClaimOnLine();
+            });
+
+            //btn save edit
+            $('#btnEdit').click(function (e) {
+                e.preventDefault();
+                if ($('#formEdit').valid()) {
+                    if (!CheckDateHappenDateNoticeForEdit()) {
+                        swal("แจ้งเตือน!", "กรุณาตรวจสอบวันที่เกิดเหตุ / วันที่แจ้ง", "warning");
+                        return false;
+                    }
+
+                    //ValidatePH: 2000 = PH
+                    let r = ValidatePH($('#lblApplicationID').text(), $('#ddlHospitalName_Edit').val(), "2000", $('#ddlClaimAdmitType_Edit').val(), $('#dtpDateHappen_Edit').val(), $('#dtpNoticeDate_Edit').val(),$('#dtpDateIn_Edit').val(), $('#dtpDateOut_Edit').val());
+                    if (!(r.IsResult)) {
+                        swal("แจ้งเตือน!", r.Msg, "warning");
+                        return false;
+                    }
+
+                    let res = ValidateAmountForEdit($('#ddlClaimAdmitType_Edit').val());
+                    if (!res.IsResult) {
+                        swal("แจ้งเตือน!", res.Msg, "error");
+                        return false;
+                    }
+
+                    //Save
+                    SaveEdit();
+                }
+            });
+
+            //valid modal add bankaccount
+            $('#btnSaveBankAccount').click(function (e) {
+                e.preventDefault();
+                //valid in modal
+                if ($('#formAddAccountModal').valid()) {
+                    if (IsValidate()) {
+                        let bankId = parseInt($('#ddlBank').val().trim());
+                        let bankName = $('#ddlBank option:selected').text().trim();
+                        let accountNo = $('#txtBankAccountNo').val().trim();
+                        let accountName = $('#txtBankAccountName').val().trim();
+
+                        //check bankaccount no
+                        const index = arrBankAccount.findIndex(v => v.bankaccountno === accountNo);
+
+                        if (!(index >= 0)) {
+                            const objBankAccount = new BankAccount(bankId, bankName, accountNo, accountName);
+                            arrBankAccount.push(objBankAccount);
+
+                            LoadBankAccount(arrBankAccount);
+
+                            $(".modal").modal("hide");
+                        } else {
+                            swal("แจ้งเตือน!", "เลขที่บัญชีซ้ำ กรุณาตรวจสอบ", "warning");
+                        }
+                    }
+                }
+            });
+
+            const IsValidate = () => {
+                var accountNo = $('#txtBankAccountNo').val().trim();
+                // Using a regular expression to check if the value is numeric
+                var isNumeric = /^[0-9]+$/.test(accountNo);
+
+                // Using typeof and isFinite to check if the value is numeric
+                if (isNumeric == false) {
+                    swal("เลขที่บัญชีต้องเป็นตัวเลขเท่านั้น!", "", "warning");
+                    return false;
+                }
+
+                return true;
+            }
+
+            //valid modal add bankaccount
+            $('#btnSaveContact').click(function (e) {
+                //valid in modal
+                if ($('#formAddContactModal').valid()) {
+                    let contacttypeid = parseInt($('#ddlContactType').val().trim());
+                    let contacttype = $('#ddlContactType option:selected').text().trim();
+                    let contactname = $('#txtContactName').val().trim();
+                    let contactphone = $('#txtContactPhone').val().trim();
+                    let contactother = $('#txtContactOther').val().trim();
+
+                    //check bankaccount no
+                    const index = arrContact.findIndex(v => v.contactphone === contactphone);
+
+                    if (!(index >= 0)) {
+                        const objContact = new Contact(contacttypeid, contacttype, contactname, contactphone, contactother);
+                        arrContact.push(objContact);
+
+                        LoadPersonContact(arrContact);
+
+                        $(".modal").modal("hide");
+                    } else {
+                        swal("แจ้งเตือน!", "เบอร์ผู้ติดต่อซ้ำ กรุณาตรวจสอบ", "warning");
+                    }
+
+                }
+            });
+
+            // เลือกสถานะเคลม
+            $('#ddlStatusClaim').change(function (e) {
+                e.preventDefault();
+
+                //ถ้าเป้นปฏิเสธเคลม ให้เลือก สาเหตุการปฏิเสธ ได้ ถ้าไม่ใช่ให้ ปิด และเคลียร์
+                if ($("#ddlStatusClaim").val() == "3570") {  //3570 คือ ปฏิเสธเคลม
+                    //Get CancelCauseClaim
+                    GetCancelCauseClaim();
+                    //Enabled CancelCauseClaim
+                    $('#divCancelCause').show();
+                    $('#ddlCancelCause').prop('disabled', false);
+
+                }
+                else {
+                    $('#divCancelCause').hide();
+                    $('#ddlCancelCause').empty();
+                    $('#ddlCancelCause').prop('disabled', true);
+                }
+            });
+
+            $('#ddlContactType').change(function (e) {
+                let val = $(this).val();
+                //check other ph
+                if (val == 8) {
+                    $('#divContactOther').show();
+                } else {
+                    $('#divContactOther').hide();
+                }
+            });
+
+            //--event valid--//
+            $('#txtSearchService').change(function (e) {
+                $(this).valid();
+
+            });
+
+            $('#txtZebraCarOwnerID').change(function (e) {
+                $(this).valid();
+            });
+
+            $('#dtpDateHappen_Edit').change(function (e) {
+                if ($(this).valid()) {
+                    $('#lblWarningCheckDate_Edit').text('');
+                    $('#ddlClaimAdmitType_Edit').select2().val("-1").trigger("change.select2");
+                };
+            });
+
+            $('#dtpDateHappen').change(function (e) {
+                $(this).valid();
+            });
+
+            $('#dtpNoticeDate_Edit').change(function (e) {
+                $(this).valid();
+            });
+
+            $('#dtpNoticeDate').change(function (e) {
+                $(this).valid();
+            });
+
+            $('#dtpDateIn').change(function (e) {
+
+                if ($(this).valid()) {
+
+                    //check claim duplicate
+                    DuplicateClaimOnLine($('#hdfappID').val(), $(this).val());
+
+                    if ($('#dtpDateOut').val().trim() !== "") {
+                      let days =  CalculateDays($('#dtpDateOut').val().trim(), $(this).val().trim());
+                        $("#txtDaysCount").val(days);
+                    }
+                }
+            });
+
+            $('#dtpDateOut').change(function (e) {
+                if ($(this).valid()) {
+
+                    if ($('#dtpDateIn').val().trim() !== "") {
+                       let days =  CalculateDays($(this).val().trim(), $('#dtpDateIn').val().trim());
+                        $("#txtDaysCount").val(days);
+                    }
+                }
+            });
+
+            $('#dtpDateIn_Edit').change(function (e) {
+
+                if ($(this).valid()) {
+
+                    //check claim duplicate
+                    DuplicateClaimOnLine($('#hdfappID_Edit').val(), $(this).val());
+
+                    if ($('#dtpDateOut_Edit').val().trim() !== "") {
+                        let days = CalculateDays($('#dtpDateOut_Edit').val().trim(), $(this).val().trim());
+                        $("#txtDaysCount_Edit").val(days);
+                    }
+                }
+            });
+
+            $('#dtpDateOut_Edit').change(function (e) {
+                if ($(this).valid()) {
+                    if ($('#dtpDateIn_Edit').val().trim() !== "") {
+                        let days = CalculateDays($(this).val().trim(), $('#dtpDateIn_Edit').val().trim());
+                        $("#txtDaysCount_Edit").val(days);
+                    }
+                }
+            });
+
+            $('#ddlClaimAdmitType').change(function (e) {
+                if ($(this).valid()) {
+
+                    $('#lblWarningCheckDate').text('');
+                    //ถ้าเป็น OPD อุบัติเหตุ, IPD อุบัติเหตุ, Death Claim อุบัติเหตุ เคลมได้เลยไม่ต้องรอ 06958 2022-10-06
+                    var ClaimAdmitTypeCode = $('#ddlClaimAdmitType').val();
+
+                    if (statusIdByAppId == arrstatusAppId[0] || statusIdByAppId == arrstatusAppId[1] || statusIdByAppId == arrstatusAppId[2] || statusIdByAppId == arrstatusAppId[3]) {
+                        if ((ClaimAdmitTypeCode != arrClaimTypeIdIsPass[0]) && (ClaimAdmitTypeCode != arrClaimTypeIdIsPass[1]) && (ClaimAdmitTypeCode != arrClaimTypeIdIsPass[2]) && (ClaimAdmitTypeCode != arrClaimTypeIdIsPass[3]) && (ClaimAdmitTypeCode != arrClaimTypeIdIsPass[4])) {
+                            //Check Date 30, 120
+                            CheckDate();
+                        }
+                    } else {
+                        //Check Date 30, 120
+                        CheckDate();
+                    }
+
+                     GetOPDRemain($('#hdfappID').val(), $('#dtpDateHappen').val());
+                    //CheckClaimAdmit();
+
+                    const val = $(this).val();
+                    //ipd & ipdชดเชย
+                    if (val === "1000" || val === "1002") {
+                        $('#divDateIn').show();
+                        $('#divDateOut').show();
+                        $('#divDaysCount').show();
+                    } else if (val === "2000") {
+                        $('#divDateIn').show();
+                        $('#divDateOut').hide();
+                        $('#dtpDateOut').val(null);
+                        $('#divDaysCount').hide();
+                    } else if (val === "2002") {
+                        $('#divDateIn').show();
+                        $('#divDateOut').hide();
+                        $('#dtpDateOut').val(null);
+                        $('#divDaysCount').hide();
+                    } else {
+                        $('#divDateIn').hide();
+                        $('#dtpDateIn').val(null);
+                        $('#divDateOut').hide();
+                        $('#dtpDateOut').val(null);
+                        $('#divDaysCount').hide();
+                    }
+                }
+            });
+
+            $('#ddlClaimAdmitType_Edit').change(function (e) {
+                if ($(this).valid()) {
+                    $('#lblWarningCheckDate_Edit').text('');
+
+                    //ถ้าเป็น OPD อุบัติเหตุ, IPD อุบัติเหตุ, Death Claim อุบัติเหตุ เคลมได้เลยไม่ต้องรอ 06958 2022-10-06
+                    var ClaimAdmitTypeCode = $('#ddlClaimAdmitType_Edit').val();
+
+                    if (statusIdByAppId == arrstatusAppId[0] || statusIdByAppId == arrstatusAppId[1] || statusIdByAppId == arrstatusAppId[2] || statusIdByAppId == arrstatusAppId[3]) {
+                        if ((ClaimAdmitTypeCode != arrClaimTypeIdIsPass[0]) && (ClaimAdmitTypeCode != arrClaimTypeIdIsPass[1]) && (ClaimAdmitTypeCode != arrClaimTypeIdIsPass[2]) && (ClaimAdmitTypeCode != arrClaimTypeIdIsPass[3]) && (ClaimAdmitTypeCode != arrClaimTypeIdIsPass[4])) {
+                            //Check Date 30, 120
+                            CheckDate();
+                        }
+                    } else {
+                        //Check Date 30, 120
+                        CheckDate();
+                    }
+
+                    GetOPDRemainForEdit($('#hdfappID_Edit').val(), $('#dtpDateHappen_Edit').val());
+                    //CheckClaimAdmitForEdit();
+
+                    const val = $(this).val();
+                    //ipd & ipdชดเชย
+                    if (val === "1000" || val === "1002") {
+                        $('#divDateIn_Edit').show();
+                        $('#divDateOut_Edit').show();
+                        $('#divDaysCount_Edit').show();
+                    } else if (val === "2000") {
+                        $('#divDateIn_Edit').show();
+                        $('#divDateOut_Edit').hide();
+                        $('#dtpDateOut_Edit').val(null);
+                        $('#divDaysCount_Edit').hide();
+                    } else if (val === "2002") {
+                        $('#divDateIn_Edit').show();
+                        $('#divDateOut_Edit').hide();
+                        $('#dtpDateOut_Edit').val(null);
+                        $('#divDaysCount_Edit').hide();
+                    } else {
+                        $('#divDateIn_Edit').hide();
+                        $('#dtpDateIn_Edit').val(null);
+                        $('#divDateOut_Edit').hide();
+                        $('#dtpDateOut_Edit').val(null);
+                        $('#divDaysCount_Edit').hide();
+                    }
+                }
+            });
+
+            $('#ddlProvinceHospital').change(function (e) {
+                $(this).valid();
+            });
+
+            $('#ddlProvinceHospital_Edit').change(function (e) {
+                $(this).valid();
+            });
+
+            $('#ddlHospitalName').change(function (e) {
+                $(this).valid();
+            });
+
+            $('#ddlStatusClaim').change(function (e) {
+                $(this).valid();
+            });
+
+            $('#ddlCancelCause').change(function (e) {
+                $(this).valid();
+            });
+
+            $('#txtAmount').change(function (e) {
+                $(this).valid();
+            });
+
+            $('#ddlBank').change(function (e) {
+                $(this).valid();
+            });
+
+            $('#txtBankAccountNo').change(function (e) {
+                $(this).valid();
+            });
+
+            $('#txtBankAccountName').change(function (e) {
+                $(this).valid();
+            });
+
+            $('.js-search-person').select2({
+                ajax: {
+                    type: 'GET',
+                    url: '@Url.Action("GetEmployee", "ClaimOnLine")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,// search term
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, search) {
+                        //params.page = params.page || 1;
+                        return {
+                            results: $.map(data, function (item) {
+                                return {
+                                    id: item.EmployeeCode,
+                                    text: item.EmployeeCode + ' - ' + item.FirstName + ' ' + item.LastName
+                                }
+                            })
+                        };
+                    },
+                    cache: true
+                },
+                templateResult: function (item) {
+                    if (item.loading) return item.text;
+                    return item.text;
+                },
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 4,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 4 ตัวอักษร'; } }
+            });
+
+            $('.js-search-person-1').select2({
+                ajax: {
+                    type: 'GET',
+                    url: '@Url.Action("GetZebraCar", "ClaimOnLine")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,// search term
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, search) {
+                        //params.page = params.page || 1;
+                        return {
+                            results: $.map(data, function (item) {
+                                return {
+                                    id: item.EmployeeCode,
+                                    text: item.Detail
+                                }
+                            })
+                        };
+                    },
+                    cache: true
+                },
+                templateResult: function (item) {
+                    if (item.loading) return item.text;
+                    return item.text;
+                },
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 4,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 4 ตัวอักษร'; } }
+            });
+
+            $('.js-search-icdten').select2({
+                ajax: {
+                    type: 'GET',
+                    url: '@Url.Action("GetICDTen", "Claim")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,// search term
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, search) {
+                        //params.page = params.page || 1;
+                        return {
+                            results: $.map(data, function (item) {
+                                return {
+                                    id: item.Code,
+                                    text: item.Expr1
+                                }
+                            })
+                        };
+                    },
+                    cache: true
+                },
+                templateResult: function (item) {
+                    if (item.loading) return item.text;
+                    return item.text;
+                },
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 2,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 3 ตัวอักษร'; } }
+            });
+
+        });
+        //-------------------------------------//
+        function nextTab(elem) {
+            $(elem).next().find('a[data-toggle="tab"]').click();
+        }
+        function prevTab(elem) {
+            $(elem).prev().find('a[data-toggle="tab"]').click();
+        }
+
+        /*------PH------*/
+         const GetApplicationPHDetail = () => {
+            $('#dtMain').empty();
+            let t = $('#dtMain').DataTable({
+             pageLength: 5,
+             processing: true,
+             serverSide: true,
+             responsive: true,
+             searching: false,
+             destroy: true,
+             ajax: {
+                 url: '@Url.Action("GetApplicationPHDetail", "Claim")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.appCode = $('#txtSearchApplication').val().trim();
+                        d.firstName = $('#txtSearchFirstName').val().trim();
+                        d.lastName = $('#txtSearchLastName').val().trim();
+                        d.cardID = $('#txtSearchIDCard').val().trim();
+                    }
+                },
+                columns: [
+                    { title: 'ApplicationID', data: 'Application_ID' },
+                    { title: 'แผน', data: 'Product' },
+                    { title: 'ชื่อ-สกุลผู้เอาประกัน', data: 'FullName' },
+                    { title: 'เลขบัตรประชาชน', data: 'ZCard_id' },
+                    { title: 'สถานะ', data: 'Status' },
+                    {
+                        title: 'วันที่เริ่มคุ้มครอง', data: 'StartCoverDate', className: 'dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'วันที่ยกเลิก', data: 'CancelDate', className: 'dt-center',
+                        mRender: function (data) {
+                            if (data) {
+                                moment.locale('th');
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                            } else {
+                                return '-';
+                            }
+
+                        }
+                    }
+                ],
+                rowCallback: function (row, data) {
+                    //ยกเลิก ยกเลิกก่อน dcr มีกำหนดยกเลิก
+                    if (data.Status_id === '3090' || data.Status_id === '3091' || data.Status_id === '3092' ) {
+                        $(row).addClass('text-red');
+                    }
+                },
+                bLengthChange: false
+            });
+
+            $('#dtMain tbody').on('click', 'tr', function () {
+                if ($(this).hasClass('selected')) {
+                    $(this).removeClass('selected');
+                    hasClassSelected = false;
+                }
+                else {
+                    t.$('tr.selected').removeClass('selected');
+                    $(this).addClass('selected');
+                    hasClassSelected = true;
+                }
+
+               DoClearApplicationDetail();
+               //DoClearInputSaveClaim();
+
+                t.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+                    var data = this.data();
+                    //... do something with data(), or this.node(), etc
+                    let appId = data.Application_ID;
+                    let productId = data.ProductID;
+                    $('#hdfProductId').val(productId);
+                    $('#hdfappID').val(appId);
+
+                    GetApplicationByAppID(appId);
+                    GetOPDRemain($('#hdfappID').val(), $('#dtpDateHappen').val());
+                    GetOPDByProductCode(productId);
+                    ClaimHistory(appId);
+                    $('#ddlICD10').empty();
+                });
+            });
+        }
+
+         const GetApplicationByAppID = (appId) => {
+            $.get("@Url.Action("GetApplicationByAppID", "Claim")", { applicationID: appId },
+                function (data, textStatus, jqXHR) {
+                    if (textStatus == "success") {
+                        $('#lblApplicationID').text(data.Application_ID);
+                        $('#lblCustFullName').text(data.FullName);
+
+                        let startCoverDate = moment(data.StartCoverDate).add(543, 'years').format("DD/MM/YYYY");
+                        let startCoverDate2 = moment(data.StartCoverDate).add(543, 'years').format("MM/DD/YYYY");
+                        $('#lblStartCoverDate').text(startCoverDate);
+                        $('#hdflblStartCoverDate').text(startCoverDate2);
+                        $('#lblStatus').text(data.Status);
+                        statusIdByAppId = data.Status_id;
+                        $('#lnkDetail').attr("href", data.URLOpenlink);
+                        $('#lnkDetail').attr("target", "_blank");
+                    }
+                }
+            );
+        }
+
+        const GetApplicationByAppIDForEdit = (appId) => {
+            $.ajax({
+                type: 'GET',
+                url: "@Url.Action("GetApplicationByAppID", "Claim")",
+                data: {
+                    applicationID: appId
+                },
+                dataType: 'json',
+                async: false,
+                success: function (data, textStatus, jqXHR) {
+                    if (textStatus == "success") {
+                        $('#lblApplicationID_Edit').text(data.Application_ID);
+                        $('#lblCustFullName_Edit').text(data.FullName);
+
+                        let startCoverDate = moment(data.StartCoverDate).add(543, 'years').format("DD/MM/YYYY");
+                        let startCoverDate2 = moment(data.StartCoverDate).add(543, 'years').format("MM/DD/YYYY");
+                        $('#lblStartCoverDate_Edit').text(startCoverDate);
+                        $('#hdflblStartCoverDate_Edit').text(startCoverDate2);
+                        $('#lblStatus_Edit').text(data.Status);
+                    }
+                }
+            });
+        }
+
+        const GetOPDByProductCode = (productId) => {
+            $.get("@Url.Action("OPDByProductCode", "Claim")",
+                { productId: productId },
+                (data) =>{
+                    IsOPDByProductCode = data;
+                }
+            );
+        }
+
+        const GetOPDByProductCodeForEdit = (productId) => {
+           $.ajax({
+              type: 'GET',
+              url: "@Url.Action("OPDByProductCode", "Claim")",
+              data: {
+                  productId: productId
+              },
+              dataType: 'json',
+              async: false,
+              success: function (data) {
+                  IsOPDByProductCodeForEdit = data;
+                 }
+            });
+        }
+
+        const GetClaimAdmitTypeDetail = () => {
+            $('#ddlClaimAdmitType').empty();
+            //2000 เคลมลูกค้า
+            $.get("@Url.Action("GetClaimAdmitTypeDetail", "Claim")", { claimTypeID:'2000' },
+                (data, textStatus, jqXHR) => {
+                    $('#ddlClaimAdmitType').append("<option value='-1'>--โปรดระบุ--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        let code = data[i].Code;
+                        let detail = data[i].Detail;
+                        $('#ddlClaimAdmitType').append("<option value='" + code + "'>" + detail + "</option>");
+                    }
+                }
+            );
+        }
+
+        const GetClaimAdmitTypeDetailForEdit = () => {
+            $('#ddlClaimAdmitType_Edit').empty();
+            //2000 เคลมลูกค้า
+            $.get("@Url.Action("GetClaimAdmitTypeDetail", "Claim")", { claimTypeID:'2000' },
+                (data, textStatus, jqXHR) => {
+                    $('#ddlClaimAdmitType_Edit').append("<option value='-1'>--โปรดระบุ--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        let code = data[i].Code;
+                        let detail = data[i].Detail;
+                        $('#ddlClaimAdmitType_Edit').append("<option value='" + code + "'>" + detail + "</option>");
+                    }
+                    $('#ddlClaimAdmitType_Edit').select2({ dropdownParent: $("#myModalEdit")});
+                }
+            );
+        }
+
+        const GetHospitalNameDetail = () => {
+            $("#ddlHospitalName").select2({
+                ajax: {
+                    url: '@Url.Action("GetHospitalNameForPHDetail", "Claim")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+
+                        return {
+                            q: params.term, // search term
+                            provinceId: $("#ddlProvinceHospital").val(),
+                            page: params.page
+                        };
+                    },
+                    processResults: processDataHospitalName,
+                    cache: true
+                },
+                placeholder: 'ค้นหารายการ',
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 3,
+                //templateResult: formatRepo,
+                templateSelection: formatRepoSelectionHospitalName,
+                selectOnClose: true,
+                language: {
+                    inputTooShort: function () {
+                        if ($('#ddlProvinceHospital').val() == "-1") {
+                            return 'กรุณาเลือกจังหวัดสถานพยาบาล';
+                        } else {
+                            return 'กรอกข้อมูลอย่างน้อย 3 ตัวอักษร';
+                        }
+                    }
+                }
+            });
+        }
+
+        const GetICDTenforEdit = () => {
+            $("#ddlICD10_Edit").select2({
+                dropdownParent: $("#myModalEdit"),
+                ajax: {
+                    url: '@Url.Action("GetICDTen", "Claim")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+
+                        return {
+                            q: params.term, // search term
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, search) {
+                        //params.page = params.page || 1;
+                        return {
+                            results: $.map(data, function (item) {
+                                return {
+                                    id: item.Code,
+                                    text: item.Expr1
+                                }
+                            })
+                        };
+                    },
+                    cache: true
+                },
+                templateResult: function (item) {
+                    if (item.loading) return item.text;
+                    return item.text;
+                },
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 2,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 3 ตัวอักษร'; } }
+            });
+        }
+
+        const GetHospitalNameDetailForEdit = () => {
+            $("#ddlHospitalName_Edit").select2({
+                dropdownParent: $("#myModalEdit"),
+                ajax: {
+                    url: '@Url.Action("GetHospitalNameForPHDetail", "Claim")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+
+                        return {
+                            q: params.term, // search term
+                            provinceId: $("#ddlProvinceHospital_Edit").val(),
+                            page: params.page
+                        };
+                    },
+                    processResults: processDataHospitalName,
+                    cache: true
+                },
+                placeholder: 'ค้นหารายการ',
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 3,
+                //templateResult: formatRepo,
+                templateSelection: formatRepoSelectionHospitalName,
+                selectOnClose: true,
+                language: {
+                    inputTooShort: function () {
+                        if ($('#ddlProvinceHospital_Edit').val() == "-1") {
+                            return 'กรุณาเลือกจังหวัดสถานพยาบาล';
+                        } else {
+                            return 'กรอกข้อมูลอย่างน้อย 3 ตัวอักษร';
+                        }
+                    }
+                }
+            });
+        }
+
+       const processDataHospitalName = (data) => {
+            var mapdata = $.map(data, function (obj) {
+                obj.id = obj.Code;
+                obj.text = obj.Detail;
+                return obj;
+            });
+            return { results: mapdata };
+        }
+
+        const formatRepoSelectionHospitalName = (repo) => {
+            return repo.Detail || repo.text;
+        }
+
+        const DoClearApplicationDetail = () => {
+            $('#lblApplicationID').text('');
+            $('#lblCustFullName').text('');
+            $('#lblStartCoverDate').text('');
+            $('#hdflblStartCoverDate').text('');
+            $('#lblOPDCount').text('');
+            $('#lblStatus').text('');
+            $('#lnkDetail').removeAttr("href");
+            $('#lnkDetail').removeAttr("target");
+        }
+
+        const DoClearInputSaveClaim = () => {
+            var date = new Date();
+            var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+            $('.dpk').datepicker({
+                format: 'dd/mm/yyyy',
+                autoclose: true,
+                endDate: today + 1
+            });
+
+            $('#dtpDateHappen').datepicker('setDate', today);
+            $('#dtpNoticeDate').datepicker('setDate', today);
+
+            $('#hdfappID').val('');
+            $('#txtAmount').val('');
+
+            $('#ddlClaimAdmitType').select2().val("-1").trigger("change.select2");
+            $('#ddlProvinceHospital').select2().val("-1").trigger("change.select2");
+            $('#ddlHospitalName').empty().trigger('change');
+            $('#txtClaimRemark').val('');
+            $('#ddlICD10').val('');
+        }
+        /*------END PH-------*/
+        //UUID
+        const uuidv4 = () => {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        //delete
+        const deleteClaim = (uuid) => {
+            //alert ยืนยัน
+            swal_confirm("ลบข้อมูลรายการนี้หรือไม่?", "", function (e) {
+                //ยืนยันการลบข้อมูล
+                const index = arrCL.findIndex(v => v.uuid === uuid);
+                arrCL.splice(index, index >= 0 ? 1 : 0);
+                //โหลด dt
+                ClaimDT(arrCL);
+
+                //check
+                if (arrCL.length === 0) {
+
+                    $('#btn_addclaim').show();
+                    $('#btnNextAcc').hide();
+                    $('#btn_prev2').show();
+                }
+
+                swal_success(function () {
+                    swal.close();
+                });
+            });
+
+        }
+
+        //Load Edit
+        const LoadEditClaim = (uuid) => {
+
+            const index = arrCL.findIndex(v => v.uuid === uuid);
+            let appId = arrCL[index].appid;
+            let arrDateHappen = arrCL[index].datehappen.split('/');
+            let dateHappen = new Date(parseInt(arrDateHappen[2]) - 543, parseInt(arrDateHappen[1]) - 1, parseInt(arrDateHappen[0]));
+            let arrDateNotice = arrCL[index].noticedate.split('/');
+            let dateNotice = new Date(parseInt(arrDateNotice[2]) - 543, parseInt(arrDateNotice[1]) - 1, parseInt(arrDateNotice[0]));
+            let productId = arrCL[index].productid;
+            GetApplicationByAppIDForEdit(appId);
+            GetOPDByProductCodeForEdit(productId);
+            $('#hdfuuId_Edit').val(uuid);
+            $('#hdfappID_Edit').val(appId);
+
+            $('#dtpDateHappen_Edit').datepicker("setDate", dateHappen).datepicker('update').trigger('change');
+            $('#dtpNoticeDate_Edit').datepicker("setDate", dateNotice).datepicker('update').trigger('change');
+
+            if (arrCL[index].datein.trim() !== "") {
+                let arrDateIn = arrCL[index].datein.split('/');
+                let dateIn = new Date(parseInt(arrDateIn[2]) - 543, parseInt(arrDateIn[1]) - 1, parseInt(arrDateIn[0]));
+
+                $('#dtpDateIn_Edit').datepicker("setDate", dateIn).datepicker('update').trigger('change');
+            }
+
+            if (arrCL[index].dateout.trim() !== "") {
+                let arrDateOut = arrCL[index].dateout.split('/');
+                let dateOut = new Date(parseInt(arrDateOut[2]) - 543, parseInt(arrDateOut[1]) - 1, parseInt(arrDateOut[0]));
+
+                $('#dtpDateOut_Edit').datepicker("setDate", dateOut).datepicker('update').trigger('change');
+            }
+
+            $('#ddlClaimAdmitType_Edit').val(arrCL[index].claimadmidtypeid).trigger('change');
+
+            //load autocomplete select2
+            $('#ddlHospitalName_Edit').empty().append('<option value="' + arrCL[index].hospitalid + '">' + arrCL[index].hospital + '</option>')
+                .val(arrCL[index].hospitalid).trigger('change');
+
+            $('#ddlICD10_Edit').empty().append('<option value="' + arrCL[index].claimicdtenid + '">' + arrCL[index].claimicdten + '</option>')
+                .val(arrCL[index].claimicdtenid).trigger('change');
+
+            $('#txtAmount_Edit').val(arrCL[index].amount);
+            $('#txtClaimRemark_Edit').val(arrCL[index].claimremark);
+            $('#ddlProvinceHospital_Edit').val(arrCL[index].provinceid).trigger('change');
+
+            $('#lblWarningCheckDate_Edit').text("");
+
+            $('#myModalEdit').modal('show');
+
+        }
+
+        const SaveEdit = () => {
+            let uuid = $('#hdfuuId_Edit').val();
+            const index = arrCL.findIndex(v => v.uuid === uuid);
+
+            arrCL[index].datehappen = $('#dtpDateHappen_Edit').val();
+            arrCL[index].noticedate = $('#dtpNoticeDate_Edit').val();
+            arrCL[index].datein = $('#dtpDateIn_Edit').val();
+            arrCL[index].dateout = $('#dtpDateOut_Edit').val();
+            arrCL[index].datecount = $('#txtDaysCount_Edit').val();
+
+            arrCL[index].claimadmidtype = $('#ddlClaimAdmitType_Edit option:selected').text();
+            arrCL[index].claimadmidtypeid = $('#ddlClaimAdmitType_Edit').val();
+            arrCL[index].province = $('#ddlProvinceHospital_Edit option:selected').text();
+            arrCL[index].provinceid = $('#ddlProvinceHospital_Edit').val();
+            arrCL[index].hospital = $('#ddlHospitalName_Edit option:selected').text();
+            arrCL[index].hospitalid = $('#ddlHospitalName_Edit').val();
+            arrCL[index].opdcount = $('#lblOPDCount_Edit').text();
+            arrCL[index].amount = $('#txtAmount_Edit').val().trim();
+            arrCL[index].claimremark = $('#txtClaimRemark_Edit').val().trim();
+
+            arrCL[index].claimicdten = $('#ddlICD10_Edit option:selected').text();
+            arrCL[index].claimicdtenid =  $('#ddlICD10_Edit').val();
+
+            $('#ddlClaimAdmitType').val($('#ddlClaimAdmitType_Edit').val());
+            $('#ddlICD10').val($('#ddlICD10_Edit').val());
+
+            swal_success(function (e) {
+                //hide modal
+                $('#myModalEdit').modal('hide');
+                //load datatables
+                ClaimDT(arrCL);
+            });
+        }
+
+        //load dt
+        const ClaimDT = (data) => {
+            $('#dtClaim').empty();
+            $('#dtClaim').DataTable({
+                data: data,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: false,
+                info: false,
+                paging:false,
+                columns: [
+                    { title: 'ชื่อผู้เอาประกัน', data: 'custname' },
+                    { title: 'ยอดเงิน', data: 'amount', className:'dt-right'},
+                    {
+                        title: 'ดำเนินการ',
+                        data: null,
+                        render: function (data) {
+                            return `<a class="btn btn-warning" width="5px" onclick="LoadEditClaim('${data.uuid}')"><i class="fa fa-pencil"></i></a> <a class="btn btn-danger" width="5px" onclick="deleteClaim('${data.uuid}')"><i class="fa fa-trash"></i></a>`;
+                        }
+                    },
+                ],
+                footerCallback: function (row, data, start, end, display) {
+                    var api = this.api(), data;
+                    // Remove the formatting to get integer data for summation
+                    var intVal = function (i) {
+                        return typeof i === 'string' ?
+                            i.replace(/[\$,]/g, '') * 1 :
+                            typeof i === 'number' ?
+                                i : 0;
+                    };
+
+                    // Total over this page
+                    total = api
+                        .column(1)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    $('#dtClaim tfoot').empty();
+                    $('#dtClaim').append(`<tfoot><tr><th  style="text-align:right">Total:</th><th style="text-align:right">${numberWithCommas(total.toFixed(2))}</th></tr></tfoot>`);
+                }
+            });
+        }
+
+        const GetBankAccount = () => {
+            $.get("@Url.Action("GetBankAccount", "Claim")", { productGroupId: 2, appCode: arrCL[0].appid},
+                (data) => {
+
+                    if (data[0].BankId != null && data[0].BankId != "") {
+
+                        for (var i = 0; i < data.length; i++) {
+
+                            let bankId = data[i].BankId;
+                            let bankName = data[i].BankName;
+                            let accountNo = data[i].AccountNo;
+                            let accountName = data[i].AccountName;
+                            currentAccountNo = accountNo;
+
+                            if (arrBankAccount.length > 0) {
+                                const index = arrBankAccount.findIndex(v => v.bankaccountno === accountNo);
+
+                                if (!(index >= 0)) {
+                                    const objBankAccount = new BankAccount(bankId, bankName, accountNo, accountName);
+                                    arrBankAccount.push(objBankAccount);
+                                }
+
+                            } else {
+                                const objBankAccount = new BankAccount(bankId, bankName, accountNo, accountName);
+                                arrBankAccount.push(objBankAccount);
+                            }
+                            LoadBankAccount(arrBankAccount);
+                        }
+                    }
+
+                }
+            );
+        }
+
+        const LoadBankAccount = (arr) => {
+            $('#banklist').empty();
+            for (let i = 0; i < arr.length; i++) {
+                let bankId = arr[i].bankid;
+                let bankName = arr[i].bankname;
+                let accountNo = arr[i].bankaccountno;
+                let accountName = arr[i].bankaccountname;
+
+                $('#banklist').append(`<li style="position:relative"><label><input style="position: absolute;top: 40%;margin-left: 10px;" type="radio" id="bankaccount${accountNo}" name="bankaccount" value="${accountNo}">
+                   <span id="bankdetail${bankId}" style="padding-left: 40px;font-size:1.2em">${bankName}</span>
+                   <br /><span id="bankaccountno" style="padding-left: 40px;font-size:1.2em">${accountNo}</span>
+                   <br /><span id="bankaccountname" style="padding-left: 40px;font-size:1.2em">${accountName}</span></label></li>`);
+            }
+        }
+
+        const GetPersonContact = () => {
+            $.get("@Url.Action("GetPersonContactPH", "Claim")", { appCode: arrCL[0].appid},
+                (data) => {
+
+                    if (data[0].PersonContactTypeId != null && data[0].PersonContactTypeId != "") {
+
+                        for (var i = 0; i < data.length; i++) {
+
+                            let contacttypeid = data[i].PersonContactTypeId;
+                            let contacttype = data[i].PersonContactType;
+                            let contactname = data[i].PersonContactName;
+                            let contactphone = data[i].PersonContactPhoneNo;
+
+                            if (arrContact.length > 0) {
+                                const index = arrContact.findIndex(v => v.contactphone === contactphone);
+
+                                if (!(index >= 0)) {
+                                    const objContact = new Contact(contacttypeid,contacttype,contactname,contactphone);
+                                    arrContact.push(objContact);
+                                }
+
+                            } else {
+                                const objContact = new Contact(contacttypeid, contacttype, contactname, contactphone);
+                                arrContact.push(objContact);
+                            }
+
+                            LoadPersonContact(arrContact);
+                        }
+                    }
+                }
+            );
+        }
+
+        const LoadPersonContact = (arr) => {
+            $('#contactlist').empty();
+            for (let i = 0; i < arr.length; i++) {
+                let contacttypeid = arr[i].contacttypeid;
+                let contacttype = arr[i].contacttype;
+                let contactname = arr[i].contactname;
+                let contactphone = arr[i].contactphone;
+                let contactother = arr[i].contactother;
+
+                if (!contactother) {
+                    $('#contactlist').append(`<li style="position:relative"><label><input style="position: absolute;top: 40%;margin-left: 10px;" type="radio"  name="contact" value="${contactphone}">
+                   <span style="padding-left: 40px;font-size:1.2em">${contacttype}</span>
+                   <br /><span  style="padding-left: 40px;font-size:1.2em">${contactname}</span>
+                   <br /><span  style="padding-left: 40px;font-size:1.2em">${contactphone}</span></label></li>`);
+                } else {
+                    $('#contactlist').append(`<li style="position:relative"><label><input style="position: absolute;top: 40%;margin-left: 10px;" type="radio"  name="contact" value="${contactphone}">
+                   <span style="padding-left: 40px;font-size:1.2em">${contacttype}</span>
+                   <br /><span  style="padding-left: 40px;font-size:1.2em">${contactname}</span>
+                   <br /><span  style="padding-left: 40px;font-size:1.2em">${contactphone}</span>
+                   <br /><span  style="padding-left: 40px;font-size:1.2em">${contactother}</span></label></li>`);
+                }
+            }
+        }
+
+        //Document Insert
+        const DocumentInsert = (documentTypeId) => {
+           $.ajax({
+              type: 'POST',
+              url: "@Url.Action("DocumentInset", "Claim")",
+              data: {
+                  documentTypeId: documentTypeId
+              },
+              dataType: 'json',
+              async: false,
+               success: function (data) {
+                   arrDocCode = [];
+                     if (data.length > 0) {
+                         for (var i = 0; i < data.length; i++) {
+                             //เก็บCode28ไว้เช็ค
+                             if (data[i].DocumentTypeId === 28) objDoc.doc28 = data[i].DocumentCode;
+                             //push doccode to array
+                             arrDocCode.push(data[i].DocumentCode);
+                         }
+                         //load doc
+                         let str = arrDocCode.join();
+                         DocumentSelectByDocCode(str);
+
+                     } else {
+                         swal("เกิดข้อผิดพลาด", data.Msg, "error")
+                     }
+                 }
+            });
+        }
+
+        //Document Update
+        const DocumentUpdate = (documentCode, claimOnLineId) => {
+            $.ajax({
+              type: 'POST',
+              url: "@Url.Action("DocumentUpdate", "Claim")",
+              data: {
+                  documentCode: documentCode,
+                  claimOnLineId: claimOnLineId
+              },
+              dataType: 'json',
+              async: false,
+               success: function (data) {
+                   console.log(`update document - ${documentCode} : ${data.Result}`);
+                 }
+            });
+        }
+
+        //Document Select
+        const DocumentSelectByDocCode = (docCode) => {
+             $.get("@Url.Action("DocumentSelectByDocCode", "Claim")", { documentCode: docCode},
+                 (data) => {
+                    $('#dtDocument tbody').empty();
+                    data = data.filter(function (obj) {
+                        return obj.DocumentTypeId !== 29;
+                     }).sort(function (a, b) { return a.SortOrder - b.SortOrder });
+                    if (data.length > 0) {
+                        for (var i = 0; i < data.length; i++) {
+
+                                $('#dtDocument tbody').append(`<tr>
+                                                <td>${data[i].DocumentDetail}</td>
+                                                <td><a href="${data[i].UrlScan}" target="_blank" class="btn btn-block btn-default">แนบเอกสาร</a></td>
+                                                <td><a href="${data[i].UrlLinkOpen}" target="_blank" class="btn btn-block btn-default">ดูเอกสาร</a></td></tr>`)
+
+                        }
+
+                        var table = $('#dtDocument').DataTable({
+                            autoWidth: true,
+                            responsive: true,
+                            lengthChange: false,
+                            searching: false,
+                            info: false,
+                            paging: false,
+                            destroy: true,
+                            ordering: false
+                        });
+
+                    } else {
+                        $('#dtDocument').append(`<tbody><tr>
+                                                <td>No Document</td>
+                                                </tr></tbody>`)
+                     }
+
+                     window.onresize = function () {
+                         table.columns.adjust().responsive.recalc();
+                     };
+                }
+            );
+        }
+
+        //History
+        const ClaimHistory = (applicationCode) => {
+            $.get("@Url.Action("GetClaimPHHistory", "Claim")", { applicationCode: applicationCode},
+                (data) => {
+
+                    if (data.length > 0) {
+                        $('#bodyHistory').empty();
+                        for (var i = 0; i < data.length; i++) {
+                            $('#bodyHistory').append(`<tr>
+                                                <td>${data[i].ClaimCode}</td>
+                                                <td>${data[i].ClaimAdmitType}</td>
+                                                <td>${data[i].HospitalName}</td>
+                                                <td>${data[i].ChiefComplain}</td>
+                                                <td>${data[i].Diagnosis}</td>
+                                                <td>${moment(data[i].DateNotice).format("DD/MM/YYYY")}</td>
+                                                <td>${data[i].ClaimStatus}</td>
+                                                <td><a href="@ViewBag.LinkOverview${btoa(data[i].ClaimCode)}" target="_blank" class="btn btn-info"> <i class="fa fa-search"></i> เปิด</a></td></tr>`)
+                        }
+
+                        if ($.fn.dataTable.isDataTable('#dtHistory')) {
+                            table = $('#dtHistory').DataTable();
+                        }
+                        else {
+                            table = $('#example').DataTable({
+                                responsive: true
+                            });
+                        }
+
+                    } else {
+                        $('#bodyHistory').empty();
+                        $('#bodyHistory').append(`<tr><td>
+                                                No Data
+                                                </td></tr>`)
+                    }
+
+                }
+            );
+        }
+
+        //LOAD DATA TABLES
+        const LoadDTClaimList = () => {
+
+            $('#dtClaimList tbody').empty();
+
+            for (let i = 0; i < arrCL.length; i++) {
+                $('#dtClaimList tbody').append(`<tr>
+                                    <td>${arrCL[i].custname}</td>
+                                    <td>${numberWithCommas(arrCL[i].amount)}</td></tr>`)
+            }
+
+            // Remove the formatting to get integer data for summation
+            var intVal = function (i) {
+                return typeof i === 'string' ?
+                    i.replace(/[\$,]/g, '') * 1 :
+                    typeof i === 'number' ?
+                        i : 0;
+            };
+
+            let total = arrCL.reduce(function (a, b) {
+                return intVal(a) + intVal(b.amount);
+            }, 0);
+
+            $('#dtClaimList tbody').append(`<tr>
+                                    <td style="font-weight: bold;">Total :</td>
+                                    <td style="font-weight: bold;">${numberWithCommas(total.toFixed(2))}</td></tr>`)
+        }
+
+        const LoadDTBankAccountList = () => {
+
+            const bankaccountno = $("input[name='bankaccount']:checked").val();
+            const index = arrBankAccount.findIndex(v => v.bankaccountno === bankaccountno);
+
+            $('#dtBankAccountList tbody').empty();
+
+            $('#dtBankAccountList tbody').append(`<tr><td style="font-weight: bold;">ธนาคาร</td><td>${arrBankAccount[index].bankname}</td></tr>
+                                                    <tr><td style="font-weight: bold;">เลขบัญชี</td><td>${arrBankAccount[index].bankaccountno}</td></tr>
+                                                    <tr><td style="font-weight: bold;">ชื่อบัญชี</td><td>${arrBankAccount[index].bankaccountname}</td></tr>`)
+
+        }
+
+        const LoadDTContactList = () => {
+            const contactphone = $("input[name='contact']:checked").val();
+            const index = arrContact.findIndex(v => v.contactphone === contactphone);
+
+            $('#dtContactList tbody').empty();
+
+            $('#dtContactList tbody').append(`<tr><td style="font-weight: bold;">ประเภทผู้ติดต่อ</td><td>${arrContact[index].contacttype}</td></tr>
+                                                    <tr><td style="font-weight: bold;">ชื่อผู้ติดต่อ</td><td>${arrContact[index].contactname}</td></tr>
+                                                    <tr><td style="font-weight: bold;">เบอร์โทร</td><td>${arrContact[index].contactphone}</td></tr>
+                                                    <tr><td style="font-weight: bold;">อื่นๆ ระบุ</td><td>${typeof (arrContact[index].contactother) == 'undefined' ? '-' : arrContact[index].contactother}</td></tr>`)
+
+        }
+
+        const GetCancelCauseClaim = () => {
+            $('#ddlCancelCause').empty();
+            $.get("@Url.Action("GetCancelCauseClaimDetail", "Claim")",
+                (data, textStatus, jqXHR) => {
+                    $('#ddlCancelCause').append("<option value='-1'>--โปรดระบุ--</option>");
+                    for (var i = 0; i < data.length; i++) {
+
+                        let code = data[i].Code;
+                        let detail = data[i].Detail;
+
+                        $('#ddlCancelCause').append("<option value='" + code + "'>" + detail + "</option>");
+                    }
+
+                }
+            );
+        }
+
+        const SaveClaimOnLinePayAuto_Transaction = (COL_Id) => {
+            let result = false;
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("SaveClaimOnLinePayAuto_Transaction", "PayAuto")",
+                data: {
+                    _type: 1, //บันทึกลง table หลัก
+                    payAutoTypeId: 1, //ขออนุมัติ
+                    claimOnlineId: COL_Id
+                },
+                dataType: 'json',
+                async: false,
+                success: function (data) {
+                    if (data.IsSuccess) {
+                        result = true;
+                    }
+                }
+            });
+            return result;
+        }
+
+        //1
+        const SaveClaimOnLine = () => {
+            addLoaddingButton('#btnConfirm');
+            const bankaccountno = $("input[name='bankaccount']:checked").val();
+            const index = arrBankAccount.findIndex(v => v.bankaccountno === bankaccountno);
+
+            const contactphone = $("input[name='contact']:checked").val();
+            const indexContact = arrContact.findIndex(v => v.contactphone === contactphone);
+
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("ClaimOnLineInsert", "Claim")",
+                data: {
+                    productTypeId: objCOL.claimtypeId,
+                    serviceByUserId: objCOL.servicenameId,
+                    noticeByUserId: objCOL.servicenameId,
+                    noticeByEmpId: null,
+                    zebraCarOwnerByEmpId: objCOL.zebraCarOwnerId,
+                    detail: objCOL.remark,
+                    claimCount: arrCL.length,
+                    payeeTypeId: 4, //ส่ง 4
+                    payeeBankId: arrBankAccount[index].bankid,
+                    payeeAccountNo: arrBankAccount[index].bankaccountno,
+                    payeeAccountName: arrBankAccount[index].bankaccountname,
+                    personContactTypeId: arrContact[indexContact].contacttypeid,
+                    personContactName: arrContact[indexContact].contactname,
+                    personContactPhoneNo: arrContact[indexContact].contactphone,
+                    personContactTypeOther: arrContact[indexContact].contactother
+                },
+                dataType: 'json',
+                async: false,
+                success: function (data) {
+                    if (data.IsResult) {
+                        let count = 0;
+                        let COL_Code = data.Result;
+                        let COL_Id = data.ReferenceCode;
+                        $('#hdfCOL_CODE').val(COL_Code);
+                        $('#hdfCOL_ID').val(COL_Id);
+
+                        for (var i = 0; i < arrCL.length; i++) {
+                            let result = SaveClaimHeaderPH(i, arrBankAccount[index].bankaccountname, arrCL[i].appid, arrCL[i].hospitalid, "2000", arrCL[i].claimadmidtypeid, arrCL[i].datehappen, arrCL[i].noticedate, arrCL[i].datein, arrCL[i].dateout, arrCL[i].datecount, arrCL[i].chiefcomplaintid, arrCL[i].statusclaimid, COL_Code, COL_Id, arrCL[i].denycauseid, objCOL.servicenameId, arrCL[i].claimremark,arrCL[i].claimicdtenid)
+                            var Amount = arrCL[i].amount;
+                            console.log(`save claim header ${result} amount : ${Amount}`);
+
+                            if (result) {
+                                count++
+                            } else {
+                                break
+                            };
+                        }
+
+                        //hide modal
+                        $(".modal").modal("hide");
+
+                        if (count === arrCL.length) {
+                            //update
+                            let r = UpdateIsActive(COL_Id);
+
+                            if (r) {
+                                //เก็บประวัติการทำรายการ
+                                SaveClaimOnLinePayAuto_Transaction(COL_Id);
+                                //เช็คว่าเป็นบัญชีใหม่ -Update Document 28 หน้าบัญชี
+                                if (CheckNewBankAccount()) {
+                                    let str = arrDocCode.join();
+                                    //Update
+                                    DocumentUpdate(str, COL_Id);
+                                } else {
+                                    //ไม่อัพเดต 28
+                                    const index = arrDocCode.indexOf(objDoc.doc28);
+                                    if (index > -1) {
+                                        arrDocCode.splice(index, 1);
+                                        let str = arrDocCode.join();
+
+                                        //Update
+                                        DocumentUpdate(str, COL_Id);
+                                    }
+                                }
+
+                                console.log("amount : ", Amount);
+                                // ยิงไป claim ai
+                                SendClaimAI(index, arrCL[0].hospitalid, Amount);
+                            } else {
+                                swal("เกิดข้อผิดพลาด", `Update IsActive ไม่สำเร็จ`, 'error')
+                            }
+
+                        } else {
+                            swal("เกิดข้อผิดพลาด", `บันทึก ClaimHeader ไม่สำเร็จ`, 'error')
+                        }
+
+                    } else {
+                        swal(`เกิดข้อผิดพลาด !`, `ClaimOnLine Insert Fail - ${data.Msg}`, `error`);
+                    }
+                }
+            });
+        }
+
+        //2
+        const SaveClaimHeaderPH = (index, payerName, applicationID, hospitalID, claimTypeID, claimAdmitTypeID, dateHappen, dateNotice, dateIn, dateOut, dateCount, chiefComplainID, statusID, claimOnLineCode, claimOnLineId, denyCauseID, claimPayCode, remark, claimicdtenid) => {
+            let result = false;
+            const Id = claimOnLineId;
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("SaveCliamHeaderForPHCancel", "Claim")",
+                data: {
+                    applicationID: applicationID,
+                    hospitalID: hospitalID,
+                    claimTypeID: claimTypeID, //2000
+                    claimAdmitTypeID: claimAdmitTypeID,
+                    dateHappen: dateHappen,
+                    dateNotice: dateNotice,
+                    dateIn: dateIn,
+                    dateOut: dateOut,
+                    dayCount: dateCount,
+                    chiefComplainID: chiefComplainID,
+                    statusID: statusID,
+                    claimOnLineCode: claimOnLineCode,
+                    denyCauseID: denyCauseID,
+                    claimPayCode: claimPayCode,
+                    remark: remark,
+                    claimicdtenid: claimicdtenid
+                },
+                dataType: 'json',
+                async: false,
+                success: function (data) {
+
+                    const CL_Code = data.Result;
+                    ClaimCode = CL_Code;
+                    if (data.IsResult) {
+                        result = SaveClaimOnLineTmpt(Id, CL_Code, arrCL[index].appid, null, arrCL[index].custname, payerName, arrCL[index].startcoverdate, null, arrCL[index].status, arrCL[index].datein, arrCL[index].dateout, arrCL[index].claimadmidtype, arrCL[index].province, arrCL[index].hospital, arrCL[index].statusclaim, arrCL[index].amount, arrCL[index].claimremark, arrCL[index].provinceid, arrCL[index].province, arrCL[index].hospitalid)
+                    } else {
+                        swal("เกิดข้อผิดพลาด", `บันทึก ClaimHeader ไม่สำเร็จ - ${data.Msg}`, 'error')
+                        //console.log(`บันทึก ClaimHeader ไม่สำเร็จ -  ${data[2]}`);
+                    }
+                }
+            });
+
+            return result;
+        }
+
+        //3
+        const SaveClaimOnLineTmpt = (claimOnLineId, claimCode, appId, schoolName, customerName, payerName, startcoverdate, endcoverdate, appStatus, dateIn, dateOut, claimAdmitType, hospitalProvince, hospitalname, claimStatus, claimAmount, claimRemark, provinceid, province, hospitalid) => {
+            //debuger
+            let result = false;
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("ClaimOnLineTmpInsert", "Claim")",
+                data: {
+                    claimOnLineId: claimOnLineId,
+                    claimCode: claimCode,
+                    applicationCode: appId,
+                    schoolName: schoolName,
+                    customerName: customerName,
+                    payerName: payerName,
+                    startCoverDate: startcoverdate,
+                    endCoverDate: endcoverdate,
+                    appStatus: appStatus,
+                    dateIn: dateIn,
+                    dateOut: dateOut,
+                    claimAdmitType: claimAdmitType,
+                    hospitalProvince: hospitalProvince,
+                    hospitalName: hospitalname,
+                    claimStatus: claimStatus,
+                    claimAmount: claimAmount,
+                    claimRemark: claimRemark,
+                    provinceid: provinceid,
+                    province: province,
+                    hospitalid: hospitalid
+                },
+                dataType: 'json',
+                async: false,
+                success: function (data) {
+                    if (data.IsResult) {
+                        result = data.IsResult;
+                    } else {
+                        swal("เกิดข้อผิดพลาด", `บันทึก ClaimOnLineTmp ไม่สำเร็จ - ${data.Msg}`, 'error')
+                    }
+                }
+            });
+            return result;
+        }
+
+        //PH Validate
+        const ValidatePH = (appId, hospitalId, claimTypeId, claimAdmitTypeId, dateHappen, dateNotice, dateIn, dateOut) => {
+
+            let result = {};
+            $.ajax({
+                type: 'GET',
+                url: "@Url.Action("ClaimHeaderForPH_Validate", "Claim")",
+                data: {
+                    appId: appId,
+                    hospitalId: hospitalId,
+                    claimTypeId: claimTypeId,
+                    claimAdmitTypeId: claimAdmitTypeId,
+                    dateHappen: dateHappen,
+                    dateNotice: dateNotice,
+                    dateIn: dateIn,
+                    dateOut: dateOut
+                },
+                dataType: 'json',
+                async: false,
+                success: function (data) {
+                    result.IsResult = data.IsResult;
+                    result.Msg = data.Msg;
+                }
+            });
+            return result;
+        }
+
+        //validate amount
+        const ValidateAmount = (typeCode) => {
+
+            let result = { IsResult: true, Msg: "ok" };
+            const amount = $('#txtAmount').val().replace(',', '');
+
+            switch (typeCode) {
+                case "2000": //ทั่วไป
+                    if (parseFloat(amount) <= parseFloat(OPDPricePerUnit)) {
+                        result.IsResult = true;
+                        result.Msg = "ok";
+                    } else {
+                        result.IsResult = false;
+                        result.Msg = "กรุณาตรวจสอบยอดเงิน";
+                    }
+                    break;
+                case "2002": //อุบัติเหตุ
+                    if (parseFloat(amount) <= parseFloat(OPDAccidentPricePerUnit)) {
+                        result.IsResult = true;
+                        result.Msg = "ok";
+                    } else {
+                        result.IsResult = false;
+                        result.Msg = "กรุณาตรวจสอบยอดเงิน";
+                    }
+                    break;
+                default:
+            }
+
+            return result;
+        }
+
+        //validate amount for edit
+        const ValidateAmountForEdit = (typeCode) => {
+
+            let result = { IsResult: true, Msg: "ok" };
+            const amount = $('#txtAmount_Edit').val().replace(',', '');
+
+            switch (typeCode) {
+                case "2000": //ทั่วไป
+                    if (parseFloat(amount) <= parseFloat(OPDPricePerUnitForEdit)) {
+                        result.IsResult = true;
+                        result.Msg = "ok";
+                    } else {
+                        result.IsResult = false;
+                        result.Msg = "กรุณาตรวจสอบยอดเงิน";
+                    }
+                    break;
+                case "2002": //อุบัติเหตุ
+                    if (parseFloat(amount) <= parseFloat(OPDAccidentPricePerUnitForEdit)) {
+                        result.IsResult = true;
+                        result.Msg = "ok";
+                    } else {
+                        result.IsResult = false;
+                        result.Msg = "กรุณาตรวจสอบยอดเงิน";
+                    }
+                    break;
+                default:
+            }
+
+            return result;
+        }
+
+        //Document Validate
+        const ValidateDocument = (documentCode) => {
+
+            let result = [IsResult = false ,  Msg = "" ];
+            $.ajax({
+                type: 'GET',
+                url: "@Url.Action("DocumentValidate", "Claim")",
+                data: {
+                    documentCode: documentCode
+                },
+                dataType: 'json',
+                async: false,
+                success: function (data) {
+                    result.IsResult = data.IsResult;
+                    result.Msg = data.Msg;
+                }
+            });
+            return result;
+        }
+
+        //Update
+        const UpdateIsActive = (claimOnLineId) => {
+
+            let result = false;
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("ClaimOnLineIsActiveUpdate", "Claim")",
+                data: {
+                    claimOnLineId: claimOnLineId
+                },
+                dataType: 'json',
+                async: false,
+                success: function (data) {
+                    result = data.IsResult;
+                }
+            });
+            return result;
+        }
+
+        //check date happend / notice
+        const CheckDateHappenDateNotice = () => {
+
+            let result = false;
+            let dateHappen = $('#dtpDateHappen').datepicker('getDate');
+            let dateNotice = $('#dtpNoticeDate').datepicker('getDate');
+            if (dateHappen <= dateNotice) {
+                result = true;
+            }
+
+            return result;
+        }
+
+        //check date happend / notice for Edit
+        const CheckDateHappenDateNoticeForEdit = () => {
+
+            let result = false;
+            let dateHappen = $('#dtpDateHappen_Edit').datepicker('getDate');
+            let dateNotice = $('#dtpNoticeDate_Edit').datepicker('getDate');
+            if (dateHappen <= dateNotice) {
+                result = true;
+            }
+
+            return result;
+        }
+
+        //clear bank , contact
+        const ClearBankAndContactList = () => {
+            arrBankAccount = [];
+            arrContact = [];
+            $('#banklist').empty();
+            $('#contactlist').empty();
+        }
+
+        //check new bankaccount
+        const CheckNewBankAccount = () => {
+
+            result = false;
+            const selected_bankaccount = $("input[name='bankaccount']:checked").val();
+
+            if (selected_bankaccount !== currentAccountNo) {
+                result = true;
+            }
+            return result;
+        }
+
+        //CHECK 120
+        const CheckDate120 = () => {
+            var st = $('#hdflblStartCoverDate').text();
+            var d = moment(st).toDate();
+            var dStart = new Date(d.getFullYear() - 543, d.getMonth(), d.getDate());
+            var d120 = new Date(dStart);
+            d120.setDate((dStart.getDate() - 1) + 120);
+
+            var dHappen = $('#dtpDateHappen').datepicker("getDate");
+
+            if (dHappen >= dStart && dHappen <= d120) {
+                swal('แจ้งเตือน!','ผู้เอาประกันอยู่ในระยะรอคอย 120 วัน','warning')
+                $('#lblWarningCheckDate').text('*ผู้เอาประกันอยู่ในระยะรอคอย 120 วัน');
+            } else {
+                $('#lblWarningCheckDate').text('');
+            }
+        }
+
+        //CHECK 120 FOR EDIT
+        //const CheckDate120ForEdit = () => {
+        //    var st = $('#hdflblStartCoverDate_Edit').text();
+        //    var d = moment(st).toDate();
+        //    var dStart = new Date(d.getFullYear() - 543, d.getMonth(), d.getDate());
+        //    var d120 = new Date(dStart);
+        //    d120.setDate((dStart.getDate() - 1) + 120);
+
+        //    var dHappen = $('#dtpDateHappen_Edit').datepicker("getDate");
+
+        //    if (dHappen >= dStart && dHappen <= d120) {
+
+        //        //GET OPD REMAIN
+        //        swal_warning('ผู้เอาประกันอยู่ในระยะรอคอย 120 วัน', function (e) {
+        //            GetOPDRemainForEdit($('#hdfappID_Edit').val(), $('#dtpDateHappen_Edit').val());
+        //        });
+
+        //       // swal('แจ้งเตือน!', 'ผู้เอาประกันอยู่ในระยะรอคอย 120 วัน', 'warning');
+
+        //        $('#lblWarningCheckDate_Edit').text('*ผู้เอาประกันอยู่ในระยะรอคอย 120 วัน');
+        //    } else {
+
+        //        $('#lblWarningCheckDate_Edit').text('');
+        //    }
+        //}
+
+        //CHECK 30
+        function CheckDate() {
+
+            let st = $('#hdflblStartCoverDate').text();
+            let d = moment(st).toDate();
+            let dStart = new Date(d.getFullYear() - 543, d.getMonth(), d.getDate());
+            let d30 = new Date(dStart);
+            d30.setDate((dStart.getDate() - 1) + 30);
+
+            let dHappen = $('#dtpDateHappen').datepicker("getDate");
+
+            if (dHappen >= dStart && dHappen <= d30) {
+                IsCheckDate30 = true;
+                $('#lblTextBenefit').text("ไม่คุ้มครอง OPD โรคทั่วไป เนื่องจากผู้เอาประกันอยู่ในระยะรอคอย 30 วัน").addClass("text-red");
+                swal('แจ้งเตือน!', 'ผู้เอาประกันอยู่ในระยะรอคอย 30 วัน', 'warning')
+                $('#lblWarningCheckDate').text('*ผู้เอาประกันอยู่ในระยะรอคอย 30 วัน');
+            } else {
+                IsCheckDate30 = false;
+                $('#lblTextBenefit').text('');
+                $('#lblWarningCheckDate').text('');
+                //GET OPD REMAIN
+                //GetOPDRemain($('#hdfappID').val(), $('#dtpDateHappen').val());
+            }
+
+            //ถ้าไม่อยู่ในระยะ30วัน ให้เช็คระยะ 120 วัน
+            if (!IsCheckDate30) {
+                CheckDate120();
+            }
+
+            //GET OPD REMAIN
+            GetOPDRemain($('#hdfappID').val(), $('#dtpDateHappen').val());
+        }
+
+        //CHECK 30 FOR EDIT
+        function CheckDateForEdit() {
+
+                var st = $('#hdflblStartCoverDate_Edit').text();
+                var d = moment(st).toDate();
+                var dStart = new Date(d.getFullYear() - 543, d.getMonth(), d.getDate());
+
+                //ถ้าไม่อยู่ในระยะ30วัน ให้เช็คระยะ 30 วัน
+                var d30 = new Date(dStart);
+                d30.setDate((dStart.getDate() - 1) + 30);
+
+                //ถ้าไม่อยู่ในระยะ30วัน ให้เช็คระยะ 120 วัน
+                var d120 = new Date(dStart);
+                d120.setDate((dStart.getDate() - 1) + 120);
+
+                var dHappen = $('#dtpDateHappen_Edit').datepicker("getDate");
+
+                if (dHappen >= dStart && dHappen <= d30) {
+                    IsCheckDate30ForEdit = true;
+                    $('#lblTextBenefit_Edit').text("ไม่คุ้มครอง OPD โรคทั่วไป เนื่องจากผู้เอาประกันอยู่ในระยะรอคอย 30 วัน").addClass("text-red");
+
+                    swal_warning('ผู้เอาประกันอยู่ในระยะรอคอย 30 วัน', function (e) {
+                        $('#lblWarningCheckDate_Edit').text('*ผู้เอาประกันอยู่ในระยะรอคอย 30 วัน');
+                        //GET OPD REMAIN
+                        GetOPDRemainForEdit($('#hdfappID_Edit').val(), $('#dtpDateHappen_Edit').val());
+                        $('#btnEdit').prop('disabled', true);
+
+                    });
+
+                } else if (dHappen >= dStart && dHappen <= d120) {
+                    IsCheckDate30ForEdit = false;
+
+                    swal_warning('ผู้เอาประกันอยู่ในระยะรอคอย 120 วัน', function (e) {
+                        $('#lblWarningCheckDate_Edit').text('*ผู้เอาประกันอยู่ในระยะรอคอย 120 วัน');
+                        //GET OPD REMAIN
+                        GetOPDRemainForEdit($('#hdfappID_Edit').val(), $('#dtpDateHappen_Edit').val());
+                        $('#btnEdit').prop('disabled', true);
+                    });
+
+                } else {
+                    $('#lblWarningCheckDate_Edit').text('');
+                }
+        }
+
+        //GET OPD REMAIN
+        function GetOPDRemain(appId, dtHappen) {
+            $.ajax({
+                type: "GET",
+                async:false,
+                url: "@Url.Action("GetOPDRemain")?appId=" + appId + "&dtHappen=" + dtHappen,
+                success: function (response) {
+
+                    if (response.OPD_Remain <= 0 || response.OPD_Remain == null ) {
+                        $('#lblTextBenefit').text(`OPD โรคทั่วไป ครั้งละไม่เกิน 0 บาท`).addClass("text-red");
+                        $('#lblOPDCount').text("คงเหลือ :  OPD เต็มสิทธิ์").addClass("text-red");
+                        OPDCount = 0;
+                        OPDPricePerUnit = 0;
+                    } else {
+                        $('#lblTextBenefit').text(`OPD โรคทั่วไป ครั้งละไม่เกิน ${response.OPD_PricePerUnit} บาท`).removeClass("text-red");
+                        $('#lblOPDCount').text(`คงเหลือ : ${response.OPD_Remain} ครั้ง`).removeClass("text-red");
+                        OPDCount = response.OPD_Remain;
+                        OPDPricePerUnit = response.OPD_PricePerUnit;
+                    }
+
+                    if (response.Accident_PricePerUnit <= 0 || response.Accident_PricePerUnit == null ) {
+                        $('#lblTextBenefitAccident').text('OPD อุบัติเหตุ ครั้งละไม่เกิน 0 บาท').addClass("text-red");
+                        OPDAccidentPricePerUnit = 0;
+                    } else {
+                        $('#lblTextBenefitAccident').text(`OPD อุบัติเหตุ ครั้งละไม่เกิน ${response.Accident_PricePerUnit} บาท`).removeClass("text-red");
+                        OPDAccidentPricePerUnit = response.Accident_PricePerUnit;
+                    }
+
+                    $('#hdfOpd').val(response.OPD_Remain);;
+
+                    //Check Claim Admit
+                    CheckClaimAdmit();
+                }
+            });
+        }
+
+        //GET OPD REMAIN FOR EDIT
+        function GetOPDRemainForEdit(appId, dtHappen) {
+            $.ajax({
+                type: "GET",
+                async:false,
+                url: "@Url.Action("GetOPDRemain")?appId=" + appId + "&dtHappen=" + dtHappen,
+                success: function (response) {
+
+                    if (response.OPD_Remain <= 0 || response.OPD_Remain == null ) {
+                        $('#lblTextBenefit_Edit').text(`OPD โรคทั่วไป ครั้งละไม่เกิน 0 บาท`).addClass("text-red");
+                        $('#lblOPDCount_Edit').text("คงเหลือ :  OPD เต็มสิทธิ์").addClass("text-red");
+                        OPDCountForEdit = 0;
+                        OPDPricePerUnitForEdit = 0;
+
+                    } else {
+                        $('#lblTextBenefit_Edit').text(`OPD โรคทั่วไป ครั้งละไม่เกิน ${response.OPD_PricePerUnit} บาท`).removeClass("text-red");
+                        $('#lblOPDCount_Edit').text(`คงเหลือ : ${response.OPD_Remain} ครั้ง`).removeClass("text-red");
+                        OPDCountForEdit = response.OPD_Remain;
+                        OPDPricePerUnitForEdit = response.OPD_PricePerUnit;
+                    }
+
+                    if (response.Accident_PricePerUnit <= 0 || response.Accident_PricePerUnit == null ) {
+                        $('#lblTextBenefitAccident_Edit').text('OPD อุบัติเหตุ ครั้งละไม่เกิน 0 บาท').addClass("text-red");
+                        OPDAccidentPricePerUnitForEdit = 0;
+                    } else {
+                        $('#lblTextBenefitAccident_Edit').text(`OPD อุบัติเหตุ ครั้งละไม่เกิน ${response.Accident_PricePerUnit} บาท`).removeClass("text-red");
+                        OPDAccidentPricePerUnitForEdit = response.Accident_PricePerUnit;
+                    }
+
+                    $('#hdfOpd_Edit').val(response.OPD_Remain);
+
+                    //Check Claim Admit
+                    CheckClaimAdmitForEdit();
+                }
+            });
+        }
+
+        /*check claim admit*/
+        const CheckClaimAdmitForEdit = () => {
+
+            const type = $('#ddlClaimAdmitType_Edit').val();
+            switch (type) {
+                case "2000": //ทั่วไป
+                    //check 901 902
+                    if (IsOPDByProductCodeForEdit) {
+                        //check 30
+                        if (!IsCheckDate30ForEdit) {
+                            if ((OPDCountForEdit > 0)) {
+                                $('#btnEdit').prop('disabled', false);
+                            } else {
+                                $('#btnEdit').prop('disabled', true);
+                            }
+                        } else {
+                            $('#btnEdit').prop('disabled', true);
+                        }
+                    }else{
+                        $('#btnEdit').prop('disabled', true);
+                        $('#lblOPDCount_Edit').text("ไม่มีความคุ้มครอง OPD โรคทั่วไป").addClass("text-red");
+                    }
+                    break;
+                case "2002" : //อุบัติเหตุ
+                    if (IsOPDByProductCodeForEdit) {
+                        //2002 ไม่ต้องเช็ค30
+                        if ((OPDAccidentPricePerUnitForEdit > 0)) {
+                            if ($('#hdfProductId_Edit').val() === 'P30') {
+                                $('#btnEdit').prop('disabled', false);
+                                $('#lblOPDCount_Edit').text("ไม่มีความคุ้มครอง OPD โรคทั่วไป").addClass("text-red");
+                            } else {
+                                $('#btnEdit').prop('disabled', false);
+                            }
+                        } else {
+                            $('#btnEdit').prop('disabled', true);
+                        }
+                    }else{
+                        $('#btnEdit').prop('disabled',false);
+                        $('#lblOPDCount_Edit').text("ไม่มีความคุ้มครอง OPD โรคทั่วไป").addClass("text-red");
+                    }
+                    break;
+                default:
+                    $('#btnEdit').prop('disabled', false);
+                    $('#lblOPDCount_Edit').text("-").addClass("text-red");
+                    break;
+            }
+        }
+
+        /*check claim admit*/
+        const CheckClaimAdmit = () => {
+            const type = $('#ddlClaimAdmitType').val();
+            switch (type) {
+                case "2000": //ทั่วไป
+                    //check 901 902
+                    if (IsOPDByProductCode) {
+                        //check 30
+                        if (!IsCheckDate30) {
+                            if ((OPDCount > 0)) {
+                                $('#btnNext2').prop('disabled', false);
+                            } else {
+                                $('#btnNext2').prop('disabled', true);
+                            }
+                        } else {
+                            $('#btnNext2').prop('disabled', true);
+                        }
+                    } else {
+                        $('#btnNext2').prop('disabled', true);
+                        $('#lblOPDCount').text("ไม่มีความคุ้มครอง OPD โรคทั่วไป").addClass("text-red");
+                    }
+                    break;
+                case "2002": //อุบัติเหตุ
+                    if (IsOPDByProductCode) {
+                        //2002 ไม่ต้องเช็ค 30
+                       if ((OPDAccidentPricePerUnit > 0)) {
+                           if ($('#hdfProductId').val() === 'P30') {
+                               $('#btnNext2').prop('disabled', false);
+                               $('#lblOPDCount').text("ไม่มีความคุ้มครอง OPD โรคทั่วไป").addClass("text-red");
+                           } else {
+                               $('#btnNext2').prop('disabled', false);
+                           }
+                       } else {
+                           $('#btnNext2').prop('disabled', true);
+                       }
+                    } else {
+                        $('#btnNext2').prop('disabled', false);
+                        $('#lblOPDCount').text("ไม่มีความคุ้มครอง OPD โรคทั่วไป").addClass("text-red");
+                    }
+                    break;
+                default:
+                    $('#btnNext2').prop('disabled', false);
+                    $('#lblOPDCount').text("-").addClass("text-red");
+                    break;
+            }
+        }
+
+        const CalculateDays = (future,now) => {
+            var dateStringNow = now;
+            var dateStringFuture = future;
+
+            var datePartsNow = dateStringNow.split("/");
+            var datePartsFuture = dateStringFuture.split("/");
+
+            // month is 0-based, that's why we need dataParts[1] - 1
+            var dateObjectNow = new Date(+datePartsNow[2] - 543, datePartsNow[1] - 1, +datePartsNow[0]);
+            var dateObjectFuture = new Date(+datePartsFuture[2] - 543, datePartsFuture[1] - 1, +datePartsFuture[0]);
+
+            var days = CalcDays(dateObjectFuture, dateObjectNow);
+            return days;
+        }
+
+        //CHECK Duplicate ClaimOnLine
+        const DuplicateClaimOnLine = (appId, date) => {
+
+            $.get('@Url.Action("DuplicateClaimOnLine","ClaimOnline")', { productGroup: "PH", appId: appId, date: date},
+                function (response) {
+
+                    if (response.IsResult === true) {
+                        if (response.Count >0) {
+                            //Count Claim
+                            swal_info("แจ้งเตือน! วันที่รักษาซ้ำ", "โปรดตรวจสอบว่าเป็นเคลมเดียวกันหรือไม่", "รับทราบ")
+                        }
+                    } else {
+                        swal("เกิดข้อผิดพลาด!", response.Msg, 'error');
+                    }
+                })
+        }
+
+        const SendClaimAI = (index, hospitalID ,Amount) => {
+            //console.log("ApplicationCode:", $('#hdfappID').val());
+            //console.log("BankId:", arrBankAccount[index].bankid);
+            //console.log("AccountNo:", arrBankAccount[index].bankaccountno);
+            //console.log("ClaimAdmitType:", arrCL[0].claimadmidtypeid);
+            //console.log("EmployeeCode:", objCOL.servicenameId);
+            //console.log("ClaimCode:", ClaimCode);
+            console.log("Amount in AI:", Amount);
+            let COL_Code = $('#hdfCOL_CODE').val();
+            let COL_Id = $('#hdfCOL_ID').val();
+            payeeBankId = arrBankAccount[index].bankid;
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("ValidateForPostClaimAI", "ClaimOnLine")",
+                data: {
+                    ApplicationCode: $('#hdfappID').val(),
+                    BankId: payeeBankId,
+                    AccountNo: arrBankAccount[index].bankaccountno,
+                    ClaimAdmitType: arrCL[0].claimadmidtypeid,
+                    EmployeeCode: objCOL.servicenameId,
+                    ClaimCode: ClaimCode,
+                    ClaimOnLineId: COL_Id,
+                    hospitalId: hospitalID,
+                    Amount: Amount
+                },
+                dataType: 'json',
+                async: false,
+                success: function (data) {
+                    if (data.IsSuccess) {
+                        ValidateTransferPremium();
+                    } else {
+                        clearLoaddingButton('#btnConfirm');
+                        swal({
+                            title: "บันทึกข้อมูลเรียบร้อย",
+                            text: `เลขที่ COL : ${COL_Code}`,
+                            type: "success",
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            allowEscapeKey: false,
+                            allowOutsideClick: false,
+                            html: false
+                        }, function (e) {
+                            window.open("@Url.Action("ClaimDetailMonitoring","Claim")", "_self");
+                        });
+                    }
+                }
+            });
+        }
+
+        const ValidateTransferPremium = () => {
+            let COL_Id = $('#hdfCOL_ID').val();
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("ValidateClaimOnlineTransferVersion3", "ClaimOnLine")",
+                data: {
+                    claimonLineId: COL_Id,
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    if (data.IsSuccess == 1) {
+                        SaveTmpClaimOnlineTransfer(data.Data.PersonContactPhoneNo, payeeBankId, data.Data.PayeeAccountNo, data.Data.PayeeAccountName);
+                    } else {
+                        clearLoaddingButton('#btnConfirm');
+                        swal({
+                            title: "บันทึกข้อมูลเรียบร้อย",
+                            text: `เลขที่ COL : ${COL_Code}`,
+                            type: "success",
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            allowEscapeKey: false,
+                            allowOutsideClick: false,
+                            html: false
+                        }, function (e) {
+                            window.open("@Url.Action("ClaimDetailMonitoring","Claim")", "_self");
+                        });
+                    }
+                }
+            });
+        }
+
+        const SaveTmpClaimOnlineTransfer = (_PersonContactPhoneNo, _payeeBankId, _PayeeAccountNo, _PayeeAccountName) => {
+            let COL_Code = $('#hdfCOL_CODE').val();
+            let COL_Id = $('#hdfCOL_ID').val();
+            //console.log("COL_Code:", COL_Code);
+            //console.log("COL_Id:", COL_Id);
+            //console.log("arrCL[0].amount:", arrCL[0].amount);
+
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("SaveTmpClaimOnlineTransfer", "ClaimOnLine")",
+                data: {
+                    claimonLineId: COL_Id,
+                    transferTypeID: 3,
+                    payerTypeId: 2,
+                    payeeTypeId: 4,
+                    reference: "",
+                    transferAmountTotal: arrCL[0].amount,
+                    remark: "",
+                    personContactPhoneNo: _PersonContactPhoneNo,
+                    payeeAccountName: _PayeeAccountName,
+                    payeeAccountNo: _PayeeAccountNo,
+                    payeeBankId: _payeeBankId,
+                    transferFromMenu: 1, //1 บันทึกการโอนเงิน, 2 โอนเพิ่ม,
+                    payAutoTypeId: 2, //อนุมัติ
+                    claimOnLineCode: COL_Code,
+                    isClaimAI: true
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    clearLoaddingButton('#btnConfirm');
+                    swal({
+                        title: "บันทึกข้อมูลเรียบร้อย",
+                        text: `เลขที่ COL : ${COL_Code}`,
+                        type: "success",
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        allowEscapeKey: false,
+                        allowOutsideClick: false,
+                        html: false
+                    }, function (e) {
+                        window.open("@Url.Action("ClaimDetailMonitoring","Claim")", "_self");
+                    });
+
+                }
+            });
+        }
+
+
+    </script>
+}

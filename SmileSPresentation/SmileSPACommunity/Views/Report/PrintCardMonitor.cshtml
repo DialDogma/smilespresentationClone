@@ -1,0 +1,150 @@
+﻿@{
+    ViewBag.Title = "พิมพ์บัตรประกัน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div class="box box-primary box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหากรมธรรม์</h3>
+                    <!-- /.box-tools -->
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-3 col-xs-offset-1">
+                            <div class="form-group">
+                                <label>สาขา :</label>
+                                <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlbranch">
+
+                                    @{
+
+                                        var rolelist = ViewBag.Role;
+
+                                        foreach (var item in rolelist)
+                                        {
+                                            if (item == "Developer" || item == "PACommunity_PAUnderwrite")
+                                            {
+                                                <option value="-1">--ทั้งหมด--</option>
+                                            }
+                                        }
+                                    }
+
+                                    @{foreach (var item in ViewBag.Branchs)
+                                        {
+                                            <option value="@item.BranchID">@item.Branch</option>
+                                        } }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-xs-5">
+                            <label>ระบุชื่อกรมธรรม์ หรือ เลขApplication :</label>
+                            <input type="text" class="form-control" placeholder="ค้นหารายการ ..." id="txtKeyword">
+                        </div>
+                        <div class="col-xs-2" style="padding-top:25px">
+                            <button type="button" class="btn btn-primary" style="width:100%" id="btnSearch">ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+
+            <div class="box box-primary box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียด</h3>
+                    <!-- /.box-tools -->
+                </div>
+
+                <div class="box-body">
+                    <div class="col-xs-12">
+                        <table id="dtMain" class="table table-bordered table-hover dataTable" role="grid" width="100"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('.select2').select2();
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                LoadData();
+            });
+        });
+
+        const LoadData = () => {
+            $('#dtMain').empty();
+            let t = $('#dtMain').DataTable({
+             pageLength: 10,
+             processing: true,
+             serverSide: true,
+             responsive: true,
+                destroy: true,
+             "bLengthChange": false,
+            "searching": false,
+            "autoWidth": false,
+             ajax: {
+                 url: '@Url.Action("GetApplicationTicketHerder", "Report")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $('#txtKeyword').val();
+                        d.branchId = $('#ddlbranch').val();
+
+                    }
+                },
+                columns: [
+                    { title: 'ApplicationCode', data: 'ApplicationCode', orderable: false, width: '15%' },
+                    { title: 'ชื่อกรมธรรม์', data: 'ApplicationName', orderable: false, width: '40%' },
+                    { title: 'จังหวัด', data: 'Province', orderable: false, width: '15%' },
+                    {
+                        title: 'วันที่เริ่มคุ้มครอง', data: 'ApplicationStartCoverDate', orderable: false, width:'15%',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                        }
+                    },
+                    { title: 'แผน', data: 'Product', orderable: false, width: '15%' },
+                    { title: 'สถานะกรมธรรม์', data: 'ApplicationStatus', orderable: false, width: '15%' },
+                    { title: 'เลขกรมธรรม์', data: 'PolicyNo', orderable: false, width: '15%' },
+                    {
+                        data: null,
+                        mRender: (data, type, full) =>
+                        {
+                            let en_AppID = window.btoa(data.ApplicationId);
+                            return '<a href="@Url.Action("PACommunityDetail", "PACommunity")?applicationID=' + en_AppID +'" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-fw fa-desktop"></i> รายละเอียด </a>';
+                        }, width: '5%'
+                    },
+                    {
+                        data: null,
+                        mRender: (data, type, full) =>
+                        {
+                            let en_AppID = window.btoa(data.ApplicationId);
+                            return '<a href="@Url.Action("PrintCardDetail", "Report")?applicationId=' + en_AppID +'" class="btn btn-success btn-sm" target="_blank"><i class="fa fa-fw  fa-print"></i> พิมพ์บัตรประกัน </a>';
+                        }, width: '5%'
+                    },
+
+                ],
+                bLengthChange: false,
+                //'columnDefs': [
+                //              {
+                //                  "targets": [ 3,4], // your case first column
+                //                  "className": "text-center",
+                //             }],
+
+            });
+        }
+    </script>
+}

@@ -1,0 +1,118 @@
+﻿@{
+    ViewBag.Title = "คิวงานมีประเด็น";
+}
+<style>
+
+    .table {
+        font-size: 14px;
+    }
+</style>
+<div class="row">
+    @* search form *@
+    <div id="Search_form" class="col-sm-12 col-md-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">ค้นหา</h3>
+            </div>
+            <div class="box-body">
+                <div class="form-group row">
+                    <div class="col-sm-12 col-md-4">
+                        <label class="control-label" for="">ประเภทคิว :</label>
+                        <select class="form-control" id="select_queueType">
+                            <option value="-1">----ทั้งหมด----</option>
+                            @foreach(var itm in ViewBag.QueueType)
+                            {
+                                <option value="@itm.QueueTypeId">@itm.QueueTypeDetail</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label class="control-label" for="">ผู้รับผิดชอบ :</label>
+                        <select class="form-control" id="select_employee">
+                            @foreach(var item in ViewBag.Emp)
+                            {
+                                <option value="@item.UserId">@item.EmployeeCode  @item.FullName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-2" style="margin-top: 25px">
+                        <button class="btn btn-block btn-info" type="button" id="btnSearch" onclick="GetIssuedQueueDT()"><i class="fa fa-search"></i> ค้นหา</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* DT form *@
+    <div id="dt_form" class="col-sm-12 col-md-12">
+        <div class="box box-warning">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <table id="dtIssuedQueue" name="dtIssuedQueue" class="table table-bordered table-striped display responsive" style="width: 100%">
+                            <tbody>
+                                <tr style="text-align: center"><td>ไม่พบข้อมูล</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end form *@
+</div>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            GetIssuedQueueDT();
+        });
+
+        const GetIssuedQueueDT = () => {
+            $('#dtIssuedQueue').empty();
+            var tbl = $('#dtIssuedQueue').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                ajax: {
+                    url: '@Url.Action("IssuedQueue_DT","IssuedQueue")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.queueTypeId = $('#select_queueType').val();
+                        d.userId = $('#select_employee').val();
+                    }
+                },
+                columns: [
+                    { title: 'ชื่อโรงเรียน', data: 'SchoolName' },
+                    { title: 'ที่อยู่', data: 'SchoolAddress' },
+                    { title: 'ประเภทคิวงาน', data: 'QueueTypeDetail' },
+                    { title: 'ผู้รับผิดชอบ', data: 'AssignToUserName' },
+                    {
+                        title: 'บันทึกการโทร', data:null,
+                        render: function (data) {
+                            return '<a href="@Url.Action("IssuedQueuePAUnderwriteCall","IssuedQueue")?queueId='+data.QueueId+'" ' +
+                                    ' class="btn btn-block btn-warning"><i class="fa fa-phone"></i></a>';
+                        }
+                    }
+                ]
+            });
+
+            window.onresize = function () {
+                tbl.columns.adjust().responsive.recalc();
+            };
+        }
+    </script>
+}

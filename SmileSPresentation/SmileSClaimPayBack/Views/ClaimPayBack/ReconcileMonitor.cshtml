@@ -1,0 +1,159 @@
+﻿@{
+    ViewBag.Title = "รายการกระทบยอดเคลม";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title"><strong> ค้นหารายงาน</strong></h3>
+            </div>
+            <div class="box-body">
+                <div class="box-group">
+                    <div class="row">
+                        <div class="col-xs-12 col-md-9" style="margin-top: 2.5rem; margin-bottom: 2.5rem;">
+                            <div class="row">
+                                <div class="col-xs-12 col-md-2">
+                                    <label> ค้นหาจาก :</label>
+                                    <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" id="searchFrom" name="searchFrom">
+                                        <option value="1"> วันที่โอน</option>
+                                        <option value="2"> วันที่สร้างรายการ</option>
+
+                                    </select>
+                                </div>
+                                <div class="col-xs-12 col-md-3">
+                                    <label>วันที่ :</label>
+                                    <div class="input-group date">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
+                                        <input type="text" class="form-control pull-right" id="searchDateFrom" data-date-language="th-th">
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 col-md-3">
+                                    <label> ถึงวันที่ :</label>
+                                    <div class="input-group date">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
+                                        <input type="text" class="form-control pull-right" id="searchDateTo" data-date-language="th-th">
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 col-md-2">
+                                    <label> ประเภทเคลม :</label>
+                                    <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" id="ddlClaimType" name="ddlClaimType">
+                                        @*<option value="0">---ทั้งหมด---</option>*@
+                                        @{
+                                            foreach (var item in ViewBag.ClaimGroupType)
+                                            {
+                                                <option @(item.ClaimGroupTypeId != 4 ? "disabled=\"disabled\"" : "")  value="@item.ClaimGroupTypeId">@item.ClaimGroupType</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-xs-12 col-sm-12 col-md-2" style="margin-top:25px">
+                                    <input type="button" class="btn btn-block btn-success" id="btnExportExcel" name="btnExportExcel" value="Export To Excel" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+
+        var date = new Date();
+        var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+        $(function () {
+
+            $('.select2').select2();
+
+            //Date picker
+            $('#searchDateFrom').datepicker({
+                format: 'dd/mm/yyyy',
+                autoclose: true,
+                endDate: today
+            }).datepicker('setDate', new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1));
+
+            $('#searchDateTo').datepicker({
+                format: 'dd/mm/yyyy',
+                autoclose: true,
+                endDate: today
+            }).datepicker('setDate', today);
+
+            // validate datepicker
+            $("#searchDateFrom").on("change", function () {
+                var dateEndString = $('#searchDateTo').val();
+                var [day, month, year] = dateEndString.split("/");
+                var dateEnd = new Date(`${year}-${month}-${day}`);
+
+                var dateStartString = $('#searchDateFrom').val();
+                var [day, month, year] = dateStartString.split("/");
+                var dateStart = new Date(`${year}-${month}-${day}`);
+
+                if (dateEnd < dateStart) {
+                    swal('เกิดข้อผิดพลาด!', "วันที่ไม่ถูกต้อง", 'error');
+                    $('#searchDateTo').val($('#searchDateFrom').val());
+                }
+            });
+
+            $("#searchDateTo").on("change", function () {
+                var dateEndString = $('#searchDateFrom').val();
+                var [day, month, year] = dateEndString.split("/");
+                var dateEnd = new Date(`${year}-${month}-${day}`);
+
+                var dateStartString = $('#searchDateTo').val();
+                var [day, month, year] = dateStartString.split("/");
+                var dateStart = new Date(`${year}-${month}-${day}`);
+
+                if (dateEnd > dateStart) {
+                    swal('เกิดข้อผิดพลาด!', "วันที่ไม่ถูกต้อง", 'error');
+                    $('#searchDateFrom').val($('#searchDateTo').val());
+                }
+            });
+
+
+            // btn export excel
+            $("#btnExportExcel").click(() => {
+                loadingSpinner('fadeIn');
+                $.ajax(
+                    {
+                        type: "POST",
+                        url: "/ClaimPayBack/ExportExcelReconciles",
+                        data: {
+                            searchFrom: $('#searchFrom').val(),
+                            StartDate: $('#searchDateFrom').val(),
+                            endDate: $('#searchDateTo').val(),
+                            claimTypeId: $('#ddlClaimType').val()
+                        },
+                        success: function (response) {
+                            if (response.isError == true) {
+                                loadingSpinner('fadeOut');
+                                window.location.href = "/ClaimPayBack/ExportExcelReconcilesDownload?claimTypeName=" + $("#ddlClaimType").find(":selected").text() + "&startDate=" + $("#searchDateFrom").val() + "&endDate=" + $("#searchDateTo").val();
+                                
+                            } else {
+                                loadingSpinner('fadeOut');
+                                swal("แจ้งเตือน!", response.message, "warning");
+                               
+                            }
+                        }
+                    });
+            });
+        });
+
+
+    </script>
+}
+
+

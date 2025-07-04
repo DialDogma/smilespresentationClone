@@ -1,0 +1,526 @@
+﻿
+@{
+    ViewBag.Title = "คิวงานพิจารณาจากการ QC";
+    Layout = "~/Views/Shared/_LayoutForTopMotor.cshtml";
+}
+
+<style>
+
+    .table {
+        font-size: 14px;
+    }
+
+    .toolbar {
+        float: left;
+    }
+
+    .dropzone .dz-preview .dz-details .dz-filename:not(:hover) {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        height: auto;
+        display: block;
+        width: 150px;
+    }
+
+    img {
+        border: 1px solid #ddd; /* Gray border */
+        border-radius: 4px; /* Rounded border */
+        padding: 5px; /* Some padding */
+        width: 150px; /* Set a small width */
+    }
+</style>
+<div class="box box-header bg-aqua">
+    <center><span style="font-size:large;">ประกันรถยนต์</span></center>
+</div>
+<legend style="text-align: center; background: #0a5769; color: white; font-size: 18px; ">คิวงานพิจารณาจากการ QC</legend>
+<div class="row" style="margin-top: 25px">
+    <div class="col-sm-12 col-md-12">
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs nav-justified">
+                <li class="active"><a style="font-size: larger" href="#tab1" data-toggle="tab" aria-expanded="True">รอพิจารณา</a></li>
+                <li><a style="font-size: larger" href="#tab2" data-toggle="tab" aria-expanded="True">พิจารณาแล้ว</a></li>
+            </ul>
+            <div class="tab-content">
+
+                @* Tab รอพิจารณา *@
+                <div class="tab-pane active" id="tab1">
+                    <div id="Search_form">
+                        <div class="box box-warning">
+                            <div class="box-body">
+                                <div class="form-group row" style="padding-top:20px">
+                                    <div class="col-xs-2 col-lg-offset-1" style="padding-left:50px">
+                                        <label>ค้นหาข้อมูลจาก :</label>
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <label>เลข App</label>
+                                        <input type="text" class="form-control" id="txtApp_Wait" />
+                                    </div>
+
+                                </div>
+                                <div class="row" style="padding-top:6px">
+                                    <div class="col-xs-3 col-xs-offset-3">
+                                        <label>ชื่อผู้เอาประกัน</label>
+                                        <input type="text" class="form-control" id="txtInsuredName_Wait" />
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <label>ชื่อผู้ชำระเบี้ย</label>
+                                        <input type="text" class="form-control" id="txtPayerName_Wait" />
+                                    </div>
+                                    <div class="col-xs-2" style="padding-top:25px">
+                                        <button type="button" class="btn btn-info" id="btnSearch_Wait">ค้นหา</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="box-group">
+                        <div class="row" style="padding-top:7px">
+                            <div class="col-xs-12">
+                                <table id="dtConsidered_Wait" class="table table-bordered table-hover dataTable" style="width:100%;"></table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="box-group">
+                        <div style="text-align:center">
+                            @*<button type="button" id="btnClosedQueueAll" class="btn btn-danger">ปิดคิวงานทั้งหมด</button>*@
+                        </div>
+                    </div>
+                </div>
+
+                @* Tab คิวงานที่ถูกพิจารณาแล้ว *@
+                <div class="tab-pane" id="tab2">
+                    <div id="SearchComplete_form">
+                        <div class="box box-success">
+                            <div class="box-body">
+                                <div class="form-group row">
+                                    <div class="row" style="padding-top:20px">
+                                        <div class="col-xs-2" style="padding-left:50px">
+                                            <label>ค้นหาข้อมูลจาก :</label>
+                                        </div>
+                                        <div class="col-xs-3">
+                                            <label>เลข App</label>
+                                            <input type="text" class="form-control" id="txtApp_Complete" />
+                                        </div>
+                                        <div class="col-xs-3">
+                                            <label>รอบการตรวจสอบ</label>
+                                            <select class="form-control" id="dtpc_period">
+
+                                                @foreach (var itm in ViewBag.PeriodList)
+                                                {
+                                                    if (itm.Value.ToString("dd-MM-yyyy") == ViewBag.Today)
+                                                    {
+                                                        <option value="@itm.Value.ToString("dd-MM-yyyy")" selected> @itm.Value.ToString("MMM yy")</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@itm.Value.ToString("dd-MM-yyyy")"> @itm.Value.ToString("MMM yy")</option>
+                                                    }
+
+                                                }
+                                            </select>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="row" style="padding-top:6px">
+                                        <div class="col-xs-3 col-xs-offset-2">
+                                            <label>ชื่อผู้เอาประกัน</label>
+                                            <input type="text" class="form-control" id="txtInsuredName_Complete" />
+                                        </div>
+                                        <div class="col-xs-3">
+                                            <label>ชื่อผู้ชำระเบี้ย</label>
+                                            <input type="text" class="form-control" id="txtPayerName_Complete" />
+                                        </div>
+                                        <div class="col-xs-2">
+                                            <label>ผลการพิจารณา</label>
+                                            <div class="form-group">
+                                                <select class="form-control" id="AuditInsureConsiderStatus_Complete" name="AuditInsureConsiderStatus_Complete">
+                                                    <option value="-1">ทั้งหมด</option>
+                                                    @foreach (var item in ViewBag.AuditInsureConsiderStatus)
+                                                    {
+                                                        <option value="@item.AuditInsureConsiderStatusId">@item.AuditInsureConsiderStatusDetail</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-2" style="padding-top:25px">
+                                            <button type="button" class="btn btn-info" id="btnSearch_Complete">ค้นหา</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-group">
+                        <div class="row" style="padding-top:7px">
+                            <div class="col-xs-12">
+                                <table id="dtConsidered_Complete" class="table table-bordered table-hover dataTable" style="width:100%;"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            //var date = new Date();
+
+            /*start signalR*/
+            // Reference the auto-generated proxy for the hub.
+            var chat = $.connection.chatHub;
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                //join group
+                chat.server.joinGroup('@ViewBag.UserId');
+            });
+            //Show public message to client
+            chat.client.receiveGroupNotice = function (message) {
+                /*full msg*/
+                const fullMessage = message;
+                /*new date*/
+                const date = new Date();
+                /*set str*/
+                const str = date.getFullYear() +
+                    "-" +
+                    (date.getMonth() + 1) +
+                    "-" +
+                    date.getDate() +
+                    " " +
+                    date.getHours() +
+                    ":" +
+                    date.getMinutes() +
+                    ":" +
+                    date.getSeconds();
+                /*alert toastr*/
+                window.toastr["success"](`อัพเดตครั้งล่าสุด : ${str}`, fullMessage);
+                /*Load Datatables*/
+                DoShowGrid();
+                DoShowGridConsidered();
+            };
+
+            window.toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+            /*end signalR*/
+
+            DoShowGrid();
+
+            $('#btnSearch_Wait').click(function (e) {
+                e.preventDefault();
+                DoShowGrid();
+            });
+
+            $('#btnSearch_Complete').click(function (e) {
+                e.preventDefault();
+                DoShowGridConsidered();
+            });
+
+        });
+
+        //หน้ารอพิจารณา tab 1
+        function DoShowGrid() {
+            $('#dtConsidered_Wait').empty();
+            let t = $('#dtConsidered_Wait').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                order: [[4,'asc']],
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                     url: '@Url.Action("QueueMotorAuditInsureV2", "MotorQueue")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.auditInsureStatusId = 2;
+                        d.applicationCode = $("#txtApp_Wait").val();
+                        d.insuredName = $("#txtInsuredName_Wait").val();
+                        d.payerName = $("#txtPayerName_Wait").val();
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ',
+                        data: null,
+                        width: '5%',
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        title: 'เลข App',
+                        data: 'ApplicationCode',
+                        width: '8%',
+                    },
+                    {
+                        title: 'ชื่อผู้เอาประกัน',
+                        data: 'InsuredName',
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'เบอร์โทรผู้เอาประกัน',
+                        data: 'InsuredPhone',
+                        width: '10%',
+                    },
+                    {
+                        title: 'ชื่อผู้ชำระเบี้ย',
+                        data: 'PayerName',
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'เบอร์โทรผู้ชำระเบี้ย',
+                        data: 'PayerPhone',
+                        width: '10%',
+                    },
+                    {
+                        title: 'บัตรประชาชนผู้ชำระเบี้ย',
+                        data: 'PayerIdentityCard',
+                        width: '10%',
+                    },
+                    {
+                        title: 'วันที่ทำรายการ', data: 'AuditQCUpdatedDate',
+                        render: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:SS", "LLLL");
+                            }
+
+                        }
+
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        orderable: false,
+                        width: '10%',
+                        render: function (data) {
+                            return `<button type="button" class="btn btn-info" onclick="openViewDetailCall(${data.QueueAuditId})">ดูรายละเอียด</button>`;
+
+                        }
+                    }],
+                //LengthChange: false,
+                'columnDefs': [
+                    {
+                        "targets": "_all", // your case first column
+                        "className": "text-center",
+                    }]
+            });
+            window.onresize = function () {
+                t.columns.adjust().responsive.recalc();
+            };
+        }
+
+        //หน้าพิจารณาแล้ว
+        function DoShowGridConsidered() {
+            $('#dtConsidered_Complete').empty();
+            let t = $('#dtConsidered_Complete').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("QueueMotorAuditInsureCompleteV2", "MotorQueue")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.auditInsureStatusId = 3;
+                        d.applicationCode = $("#txtApp_Complete").val().trim();
+                        d.insuredName = $("#txtInsuredName_Complete").val().trim();
+                        d.payerName = $("#txtPayerName_Complete").val().trim();
+                        d.c_period = $('#dtpc_period').val() == "" ? null : $('#dtpc_period').val();
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.auditInsureConsiderStatusIdList = $('#AuditInsureConsiderStatus_Complete').val();
+                    }
+                },
+                columns: [
+                    {
+                        title: 'เลข App',
+                        data: 'ApplicationCode',
+                        width: '8%',
+                    },
+                    {
+                        title: 'วันที่เริ่มคุ้มครอง', data: 'StartCoverDate', width: '10%',
+                        render: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY");
+                            }
+
+                        }
+
+                    },
+                    {
+                        title: 'ชื่อผู้เอาประกัน',
+                        data: 'InsuredName',
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'เบอร์โทรผู้เอาประกัน',
+                        data: 'InsuredPhone',
+                        width: '10%',
+                    },
+                    {
+                        title: 'ชื่อผู้ชำระเบี้ย',
+                        data: 'PayerName',
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'เบอร์โทรผู้ชำระเบี้ย',
+                        data: 'PayerPhone',
+                        width: '10%',
+                    },
+                    {
+                        title: 'บัตรประชาชนผู้ชำระเบี้ย',
+                        data: 'PayerIdentityCard',
+                        width: '10%',
+                    },
+                    {
+                        title: 'ผลการพิจารณา',
+                        data: null,
+                        className: 'h-dt-center',
+                        render: function (data) {
+                            switch (data.AuditInsureConsiderStatusId) {
+                                case 2:
+
+                                    return `<i class="fa fa-circle" style="color: #129F5E;"><span style="color: #129F5E;margin-left:10px">${data.AuditInsureConsiderStatusDetail}</span></i>`;
+                                    break;
+                                case 3:
+                                    return `<i class="fa fa-circle" style="color: #FE923B;"><span style="color: #FE923B ;margin-left:10px">${data.AuditInsureConsiderStatusDetail}</span></i>`;
+                                    break;
+                                case 4:
+                                    return `<i class="fa fa-circle" style="color: red;"><span style="color: red;margin-left:10px ">${data.AuditInsureConsiderStatusDetail}</span></i>`;;
+
+                                    break;
+                                default:
+                                    return " ";
+                                    break;
+                            }
+                        }
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        orderable: false,
+                        render: function (data) {
+                                return `<button type="button" class="btn btn-info" onclick="openViewDetailConsider(${data.QueueAuditId})">ดูรายละเอียด</button>`;
+                        }
+                    },
+                    {
+                        title: 'จัดการ',
+                        data: null,
+                        orderable: false,
+                        render: function (data) {
+                            return `<button type="button" class="btn btn-warning" onclick="DoEditQueue(${data.QueueAuditId})">แก้ไข</button>`;
+                         @*   var periodDate = getMotorPeriodQueueAuditLot();
+                            var startCover = moment(data.Period).format("DD/MM/YYYY", "LLLL");
+                            var periodString = periodDate;
+                            if (startCover == periodString) {
+                                return `<button type="button" class="btn btn-warning" onclick="DoEditQueue(${data.QueueAuditId})">แก้ไข</button>`;
+                            }
+                            else {
+                                return " ";
+                            }*@
+                        }
+                    },
+                ],
+                //bLengthChange: false,
+                'columnDefs': [
+                    {
+                        "targets": "_all", // your case first column
+                        "className": "text-center",
+                    }]
+
+            });
+            window.onresize = function () {
+                t.columns.adjust().responsive.recalc();
+            };
+        }
+
+
+        const getMotorPeriodQueueAuditLot = () => {
+            let period;
+
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("getMotorPeriodQueueAuditLot")",
+                //data: "name=John&location=Boston",
+                dataType: "json",
+                async: false,
+                success: function (response) {
+                    
+                    period = moment(response).format("DD/MM/YYYY");
+                }
+            });
+            return period;
+        }
+
+        const openViewDetailCall = (motorQueueAuditId) => {
+            let c_queueAutditID = window.btoa(motorQueueAuditId);
+            window.open(`@Url.Action("MotorAuditIndexV2", "MotorAudit")?motorQueueAuditId=${c_queueAutditID}`, '_blank');
+        }
+
+        const openViewDetailConsider = (motorQueueAuditId) => {
+            let c_queueAutditID = window.btoa(motorQueueAuditId);
+            window.open(`@Url.Action("MotorAuditViewV2", "MotorAudit")?motorQueueAuditId=${c_queueAutditID}`, '_blank');
+
+        }
+        //เปิดหน้าแก้ไขผลการพิจารณา
+        const DoEditQueue = (motorQueueAuditId) => {
+            let c_queueAutditID = window.btoa(motorQueueAuditId);
+            window.open(`@Url.Action("MotorAuditIndexV2", "MotorAudit")?motorQueueAuditId=${c_queueAutditID}`, '_blank');
+        }
+    </script>
+}

@@ -1,0 +1,67 @@
+﻿﻿@{
+    ViewBag.Title = "Manage Role";
+}
+
+@if (!String.IsNullOrEmpty(ViewBag.ErrorText))
+{
+    <div class="alert alert-danger alert-dismissible">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+        <h4><i class="icon fa fa-ban"></i> Alert!</h4>
+        @ViewBag.ErrorText
+    </div>
+}
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+            <div class="box-header">
+                <a href="@Url.Action("Add")" class="btn btn-success" style="float: right; width: 100px;">+ Add Role</a>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <table id="datatable1" class="table table-bordered table-striped"></table>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+    <!-- /.box -->
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+            debugger;
+            //Load Datatable
+            $('#datatable1').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '@Url.Action("GetDatatable")',
+                    method:'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    {
+                        title: '',
+                        data: 'Id',
+                        width: 100,
+                        className: 'dt-right',
+                        render: function (data) {
+                            return '<a href="@Url.Action("Edit")?id=' + data +'" class="btn btn-success" title="Reset Password" style="margin: 2px;">Edit</a>';
+                        }
+                    }
+                    ,{ title: 'Name', data: 'Name' }
+                ]
+            });
+        });
+    </script>
+}

@@ -1,0 +1,563 @@
+﻿
+@{
+    ViewBag.Title = "ManageClaimOnline";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*<h2>ManageClaimOnline</h2>*@
+
+<style>
+    .modal-dialog {
+        margin-top: 0;
+        margin-bottom: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .modal.fade .modal-dialog {
+        transform: translate(0, -100%);
+    }
+
+    .modal.in .modal-dialog {
+        transform: translate(0, 0);
+    }
+
+    row_selected {
+        background-color: whitesmoke !important;
+    }
+
+    /*.modal-body {
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }*/
+
+    .ui-datepicker {
+        position: relative !important;
+        top: -290px !important;
+        left: 0 !important;
+    }
+
+    #events {
+        margin-bottom: 1em;
+        padding: 1em;
+        background-color: #f6f6f6;
+        border: 1px solid #999;
+        border-radius: 3px;
+        height: 100px;
+        overflow: auto;
+    }
+
+    td.selected {
+        font-weight: bold;
+        background-color: #8EDCF8;
+    }
+</style>
+
+
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-sm-12">
+
+            @* Seacrh *@
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">ค้นหาข้อมูล</h3>
+                </div>
+
+                <div class="box-body">
+
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <div class="col-sm-3">
+                                <label class="control-label">รหัส COL :</label>
+                                <input class="form-control" type="text" placeholder="COL..." id="txtclaimCode">
+                            </div>
+                            <div class="col-sm-3" style="padding-top:27px;">
+                                <button type="button" class="btn btn-block btn-primary" id="btnSearch">ค้นหา</button>
+                            </div>
+                            <div class="col-sm-3">
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Detail ClaimOnline *@
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">รายละเอียด ClaimOnline</h3>
+                </div>
+
+
+                <div class="box-body">
+
+                    <div class="form-group">
+                        <div class="col-sm-12">
+
+                            @* datatable *@
+                            <table id="dtClaimOnline" class="table table-bordered table-striped display" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            @* ClaimOnLineTransfer *@
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">รายละเอียด ClaimOnlineTransfer</h3>
+                </div>
+
+
+                <div class="box-body">
+
+                    <div class="form-group">
+                        <div class="col-sm-12">
+
+                            @* datatable *@
+                            <table id="dtTransfer" class="table table-bordered table-striped display" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            @* ClaimOnLineTransferItem *@
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">รายละเอียด ClaimOnlineTransferItem</h3>
+                </div>
+
+
+                <div class="box-body">
+
+                    <div class="form-group">
+                        <div class="col-sm-12">
+
+                            @* datatable *@
+                            <table id="dtTransferItem" class="table table-bordered table-striped display" style="width: 100%"></table>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <input id="hdfClaimID" type="hidden" />
+        </div>
+    </div>
+
+
+    @* Modal Transfer Log *@
+    <div class="modal fade bd-example-modal-lg" id="modal-TransferLog" style="display: none;" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" style="width:150vh">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title">ClaimOnLineAccountTransaction</h4>
+                </div>
+                <div class="modal-body" style="width:100%">
+
+                    <table id="dtTransferTransactionLog" class="table table-bordered table-striped display" style="width: 100%"></table>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-right" data-dismiss="modal" id="btncloseLog">Close</button>
+                    @*<button type="button" class="btn btn-primary">Save changes</button>*@
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
+</form>
+
+
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                GetClaimOnlineId();
+                GetMonitorClaimOnLine();
+                GetClaimOnlineTransfer();
+                GetClaimOnlineTransferItem();
+            });
+
+        })
+
+        function GetClaimOnlineId()
+        {
+             
+            $.ajax({
+
+                type: 'GET',
+                url: '@Url.Action("GetClaimOnLineId", "Manage")',
+                dataType: 'json',
+                data: { claimCode: $('#txtclaimCode').val() },
+                async: false,
+                success: function (data) {
+                    
+                    $('#hdfClaimID').val(data);
+
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail');
+                }
+
+            });
+        }
+
+
+
+         function GetMonitorClaimOnLine() {
+            
+            $('#dtClaimOnline').empty();
+            var table = $('#dtClaimOnline').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                async: false,
+                info: false,
+                paging: false,
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetMonitorClaimOnLine", "Manage")',
+                    type: 'POST',
+                    data: function (d) {
+                        
+                        d.ClaimOnLineId = $('#hdfClaimID').val()
+                    }
+                },
+
+                columns: [
+
+                    { title: 'ClaimOnLineId', data: 'ClaimOnLineId' },
+                    { title: 'COLCode', data: 'ClaimOnLineCode' },
+                    { title: 'ประเภทเคลม', data: 'ProductType' },
+                    { title: 'รายละเอียด', data: 'Detail' },
+                    { title: 'สาขา', data: 'Branch' },
+                    //{ title: 'โซน', data: 'Zone' },
+                    { title: 'สถานะ', data: 'ClaimOnLineStatus' },
+                    {
+                        title: 'วันที่ทำรายการล่าสุด',
+                        data: 'CreateDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'จำนวนเงินโอน',
+                        data: 'AmountTotal',
+                        className: 'dt-center',
+
+                        render: function (data, type, row, meta) {
+                            $.fn.dataTable.render.number(',', '.', 0);
+                            if (data != null) {
+
+                                return data;
+
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+
+                    {
+                        title: 'วันที่โอนเงินล่าสุด',
+                        data: 'TransferDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'ReturnAmountTotal',
+                        data: 'ReturnAmountTotal',
+                        className: 'dt-center',
+
+                        render: function (data, type, row, meta) {
+                            $.fn.dataTable.render.number(',', '.', 0);
+                            if (data != null) {
+
+                                return data;
+
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+
+                    {
+                        title: 'ReturnDateLatest',
+                        data: 'ReturnDateLatest',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    { title: 'IsActive', data: 'IsActive' }
+
+
+
+
+                ],
+                //bLengthChange: false,
+                //createdRow: function (row, data, index) {
+                //    if (data.ClaimOnLineStatusId == 3) {
+                //        $('td', row).addClass('selected');
+                //    }
+                //},
+
+
+            });
+        }
+
+         function GetClaimOnLineTransferTransaction(ClaimOnLineTransferId)
+         {
+              
+              $('#dtTransferTransactionLog').empty();
+              var table = $('#dtTransferTransactionLog').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                async: false,
+                info: false,
+                paging: false,
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetClaimOnlineAccountTransaction", "Manage")',
+                    type: 'POST',
+                    data: function (d) {
+                        
+                        d.ClaimOnLineTransferId = ClaimOnLineTransferId
+                    }
+                },
+
+                columns: [
+                    
+                    { title: 'ClaimOnLineAccountTransactionId', data: 'ClaimOnLineAccountTransactionId' },
+                    { title: 'Deposit', data: 'Deposit' },
+                    { title: 'Withdraw', data: 'Withdraw' },
+                    { title: 'Balance', data: 'Balance' },
+                   
+                    
+                    {
+                        title: 'TransactionDate',
+                        data: 'TransactionDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    { title: 'IsActive', data: 'IsActive' },
+                ],
+
+            });
+         }
+
+         function GetClaimOnlineTransfer()
+         {
+              
+              $('#dtTransfer').empty();
+            var table = $('#dtTransfer').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                async: false,
+                info: false,
+                paging: false,
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetClaimOnlineTransfer", "Manage")',
+                    type: 'POST',
+                    data: function (d) {
+                        
+                        d.ClaimOnLineId = $('#hdfClaimID').val()
+                    }
+                },
+
+                columns: [
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        data: null,
+                        title: 'Action',
+                        mRender: function (data) {
+                            return '<a href="" onclick="GetClaimOnLineTransferTransaction(\'' + data.ClaimOnLineTransferId + '\')" ;return false;"  data-toggle="modal" data-target=".bd-example-modal-lg" class="btn btn-primary"> แสดง </a>';
+
+
+
+                        }
+                    },
+                    { title: 'ClaimOnLineTransferId', data: 'ClaimOnLineTransferId' },
+                    { title: 'COLCode', data: 'ClaimOnLineCode' },
+                    { title: 'TransferType', data: 'TransferType' },
+                    { title: 'FromBank', data: 'FromBank' },
+                    { title: 'FromAccountNo', data: 'FromAccountNo', className: 'dt-center', },
+                    { title: 'FromAccountName', data: 'FromAccountName', className: 'dt-center', },
+                    { title: 'ToBank', data: 'ToBank', className: 'dt-center', },
+                    { title: 'ToAccountNo', data: 'ToAccountNo', className: 'dt-center', },
+                    { title: 'ToAccountName', data: 'ToAccountName', className: 'dt-center', },
+                    {
+                        title: 'TransferDate',
+                        data: 'TransferDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'Amount',
+                        data: 'Amount',
+                        className: 'dt-center',
+
+                        render: function (data, type, row, meta) {
+                            $.fn.dataTable.render.number(',', '.', 0);
+
+                            if (data != null) {
+
+                                return data;
+
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+
+                    { title: 'IsActive', data: 'IsActive' },
+                ],
+
+            });
+         }
+
+        function GetClaimOnlineTransferItem()
+         {
+              
+              $('#dtTransferItem').empty();
+              var table = $('#dtTransferItem').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                async: false,
+                info: false,
+                paging: false,
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetClaimOnlineTransferItem", "Manage")',
+                    type: 'POST',
+                    data: function (d) {
+                        
+                        d.ClaimOnLineCode = $('#txtclaimCode').val()
+                    }
+                },
+
+                columns: [
+                    { title: 'ClaimOnLineTransferItemId', data: 'ClaimOnLineTransferItemId' },
+                    { title: 'COLCode', data: 'ClaimOnLineCode' },
+                    { title: 'Detail', data: 'Detail' },
+                    { title: 'ClaimHeaderGroupCode', data: 'ClaimHeaderGroupCode' },
+                    { title: 'Pay', data: 'Pay', className: 'dt-center' },
+                    { title: 'UnPay', data: 'UnPay', className: 'dt-center', },
+                    {
+                        title: 'ReturnDateFinal',
+                        data: 'ReturnDateFinal',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'TransferDate',
+                        data: 'TransferDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY hh:mm');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+
+                    { title: 'IsActive', data: 'IsActive', className: 'dt-center', },
+                    { title: 'UpdateByUserId', data: 'UpdateByUserId', className: 'dt-center', },
+                    {
+                        title: 'UpdateDate',
+                        data: 'UpdateDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY hh:mm');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+
+                ],
+
+            });
+         }
+
+
+    </script>
+}

@@ -1,0 +1,165 @@
+﻿@{
+    ViewBag.Title = "PDPAConfirmData";
+    Layout = "~/Views/Shared/_LayoutForPDPA.cshtml";
+}
+
+<form>
+    <div class="row" style="font-family: 'Kanit', sans-serif;">
+        <div class="col-xs-12" id="divConfirmData" style="display:block">
+
+            <div class="row">
+                <div class="col-xs-12" style="text-align:center;font-size:18px">
+                    <span>กรุณากรอกข้อมูลเพื่อเข้าทำรายการ</span>
+                </div>
+            </div>
+
+            <div class="row" style="padding-top:10px;">
+                <div class="col-xs-12">
+                    <span>ชื่อ - นามสกุล :</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <label id="lblFullName"></label>
+                </div>
+            </div>
+            <div class="row" style="padding-top:10px;">
+                <div class="col-xs-12">
+                    <span>เลขบัตรประจำตัวประชาชน :</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <label id="lblidCard"></label> <input type="number" id="txtVerifyIdCard" class="form-control input-sm" required="required" placeholder="ระบุ 4 ตัวท้าย" style="width:50%;display:initial" maxlength="4" />
+                </div>
+            </div>
+
+            <div class="row" style="padding-top:15px">
+                <div class="col-xs-12" style="text-align:center">
+                    <button class="btn-next" type="button" style="" id="btnConfirmData">ยืนยัน</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xs-12" id="divErrorDetail" style="display:none">
+            <div>
+                <div class="row" style="text-align:center">
+                    <div style="">
+                        <span class="warning-icon" style=""><span class="glyphicon glyphicon glyphicon-alert"></span></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12" style="text-align: center; font-size:14px">
+                        <span id="spnErr"> <br /> </span> <div> <span>กรุณาติดต่อ Call Center 1434</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" style="padding-top:15px">
+                <div class="col-xs-12" style="text-align:center">
+                    <button class="btn-back-lineblue" type="button" style="border-radius:15px;" id="btnback">ย้อนกลับ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="hdfReference" value="@ViewBag.Reference" />
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            //Load Data
+            LoadData();
+
+            $('#btnConfirmData').click(function (e) {
+                e.preventDefault();
+                if (Isvalidate()) {
+                    ConfirmData();
+                }
+
+            });
+
+            $('#btnback').click(function (e) {
+                e.preventDefault();
+                $('#spnErr').text('');
+                $('#txtVerifyIdCard').val('');
+                $('#divConfirmData').css('display', 'block');
+                $('#divErrorDetail').css('display', 'none');
+            });
+
+        });
+
+        const LoadData = () => {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetCustomerData","PDPA")",
+                data: {
+                    reference: $('#hdfReference').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    $('#lblFullName').text(`${response.Title}${response.FirstName}  ${response.LastName}`);
+
+                    let verify = response.IdentityCardDisplay;
+
+                    let str = `${verify.substring(0, 1)}-${verify.substring(1, 5)}-${verify.substring(5, 11)}-`
+
+                    $('#lblidCard').text(str);
+                }
+            });
+        }
+
+        const ConfirmData = () => {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("ConfirmData", "PDPA")",
+                data: {
+                    reference: $('#hdfReference').val(),
+                    verifyIdCard: $('#txtVerifyIdCard').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    if (response.IsResult == true) {
+                        // redirect to pdpadetail
+                        let encode_reference = window.btoa($('#hdfReference').val())
+                        window.location.href = `@Url.Action("Detail")/${encode_reference}`;
+                    } else {
+                        $('#spnErr').text(response.Msg);
+                        $('#divConfirmData').css('display', 'none');
+                        $('#divErrorDetail').css('display', 'block');
+                    }
+                }
+            });
+        }
+
+        const Isvalidate = () => {
+
+            if ($('#txtVerifyIdCard').val() == "") {
+
+                swal("คำเตือน", "กรุณา ระบุ 4 ตัวท้าย", "error");
+                //swal({
+                //    title: "คำเตือน",
+                //    text: "กรุณา ระบุ 4 ตัวท้าย",
+                //    icon: "error",
+                //    className: "fontKanit",
+                //    button: "OK",
+                //});
+
+                return false;
+            }
+
+            if ($('#txtVerifyIdCard').val().length != 4) {
+                swal("คำเตือน", "ระบุเลขท้ายต้องไม่เกิน 4 ตัว", "error");
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+}

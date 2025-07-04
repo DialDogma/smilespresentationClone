@@ -1,0 +1,295 @@
+﻿﻿@{
+    ViewBag.Title = "Monitor Underwrite";
+    ViewBag.Description = "ตรวจสอบแอพ";
+}
+
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* search form *@
+        <div class="col-sm-12 col-md-12" id="Search_form">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-offset-1 col-md-3">
+                            <label class="control-label" for="">สาขา :</label>
+                            <select id="select_Branch" class="form-control">
+
+                                @foreach(var itm in ViewBag.branchList)
+                                {
+                                    if(itm.BranchId == 1)
+                                    {
+                                        <option value="0">---ทั้งหมด---</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@itm.BranchId">@itm.Branch</option>
+                                    }
+
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6 col-md-offset-1 col-md-3">
+                            <label class="control-label" for="">งวดความคุ้มครอง :</label>
+                            <input type="text" class="form-control pull-right" name="fromDate" id="fromDate"
+                                   data-date-language="th-th" data-provide="datepicker">
+                        </div>
+                        @*<div class="col-sm-6 col-md-offset-1 col-md-3">
+                                <label class="control-label" for="">ถึงวันที่คุ้มครอง :</label>
+                                <input type="text" class="form-control pull-right" name="toDate" id="toDate"
+                                       data-date-language="th-th" data-provide="datepicker">
+                            </div>*@
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-offset-1 col-md-3">
+                            <label class="control-label" for="">ค้นหา Application ID :</label>
+                            <input type="text" id="txtSearchAppCode" name="txtSearchAppCode" class="form-control input" placeholder="กรอก Application Id" />
+                        </div>
+                        <div class="col-sm-6 col-md-offset-1 col-md-3">
+                            <label class="control-label" for="">คำค้นหา :</label>
+                            <input type="text" id="txtSearch" name="txtSearch" class="form-control input" placeholder="กรอกคำค้นหา" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6 col-md-offset-3 col-md-2">
+                            <button class="btn btn-block btn-info" type="button" id="btnSearch" onclick=""><i class="fa fa-search"></i> ค้นหา</button>
+                        </div>
+                        <div class="col-sm-6 col-md-2">
+                            <button class="btn btn-block btn-primary" type="button" id="btnClear" onclick="">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end search *@
+        @* nav tabs *@
+        <div class="col-sm-12 col-md-12">
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs nav-justified">
+                    <li class="active"><a style="font-size: larger" href="#tab1" data-toggle="tab" aria-expanded="True">รอตรวจสอบ</a></li>
+                    <li><a style="font-size: larger" href="#tab2" data-toggle="tab" aria-expanded="True">ตรวจสอบแล้ว</a></li>
+                </ul>
+                @* tabs content *@
+                <div class="tab-content">
+                    @* tab รอตรวจสอบ *@
+                    <div class="tab-pane active" id="tab1">
+                        <table id="dtUnderwriteMonitor" name="dtUnderwriteMonitor" class="table table-bordered table-striped" style="width: 100%"></table>
+                    </div>
+                    @* tab ตรวจสอบแล้ว *@
+                    <div class="tab-pane" id="tab2">
+                        <table id="dtCheckedMonitor" name="dtCheckedMonitor" class="table table-bordered table-striped" style="width: 100%"></table>
+                    </div>
+                </div>
+                @* end tabs *@
+            </div>
+        </div>
+        @* end navs *@
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            //select datepicker from dcr
+            $('#fromDate').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" ,autoclose: true }).datepicker("setDate", new Date("@ViewBag.dcrDate"));
+            //select datepicker to dcr
+            //$('#toDate').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker("setDate", new Date());
+
+            $('#btnClear').click(() => {
+                //clear value
+                $('#txtSearch').val('');
+                $('#txtSearchAppCode').val('');
+                $('#select_Branch').val(0);
+
+                //select datepicker from dcr
+                $('#fromDate').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months",autoclose: true  }).datepicker("setDate", new Date("@ViewBag.dcrDate"));
+                //select datepicker to dcr
+                //$('#toDate').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker("setDate", new Date());
+            });
+
+            $('#btnSearch').click(() => {
+                GetUncheck_DT();
+                GetChecked_DT();
+            });
+        });
+
+        const GetUncheck_DT = () => {
+            //get datepicker fromDate value and convert
+            var fromDate = $('#fromDate').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker('getDate');
+            var addfirstFromDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), 1);
+            var fromDateConvert = moment(addfirstFromDate).format('DD-MM-YYYY');
+            //get datepicker toDate value and convert
+            //var toDate = $('#toDate').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker('getDate');
+            //var addfirsttoDate = new Date(toDate.getFullYear(), toDate.getMonth(), 1);
+            //var toDateConvert = moment(addfirsttoDate).format('DD-MM-YYYY');
+            //get select branch value
+            var branchId = $('#select_Branch').val();
+            //get app code
+            var appCode = $('#txtSearchAppCode').val();
+            //get search value
+            var search = $('#txtSearch').val();
+
+            //call api
+            $('#dtUnderwriteMonitor').empty();
+            var appTable = $('#dtUnderwriteMonitor').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetMonitorApplication","Monitor")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchDetail = search;
+                        d.branchId = branchId;
+                        d.startCoverDate = fromDateConvert;
+                        d.appCode = appCode;
+                        d.cancelDate = null;
+                        d.endCoverDate = null;
+                        d.appStatusIdList = '3';
+                        d.userId = null;
+                        d.appUdwStatusIdList = '2,6';
+                    }
+                },
+                columns: [
+                     {
+                        title: 'วันที่คุ้มครอง', data: 'StartCoverDate',
+                        render: function (data) {
+                            if (data != null) {
+                                 let startCoverDate = moment(data)._d;
+                                let yearBE = startCoverDate.getFullYear() + 543;
+                                let startCoverDateBE = moment(startCoverDate.setFullYear(yearBE)).format("DD/MM/YYYY");
+                                return startCoverDateBE;
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    { title: 'AppID', data: 'ApplicationCode' },
+                    { title: 'กรมธรรม์', data: 'CurrentPolicyNo' },
+                    { title: 'ผู้เอาประกัน', data: 'CustName' },
+                    { title: 'แผนประกัน', data: 'Product' },
+                    { title: 'เบี้ย', data: 'PremiumPerPolicy' },
+                    { title: 'ตัวแทน', data: 'S1EmployeeName' },
+                    { title: 'สถานะกรมธรรม์', data: 'ApplicationStatus' },
+                    { title: 'ผลการพิจารณา', data: 'ApplicationUnderwriteStatus' },
+                    {
+                        title: 'จัดการ',
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        mRender: function (data) {
+                                return '<a type="button" class="btn btn-block btn-warning" id="btnEdit_' + data.ApplicationId
+                                    + '" onclick="See(\'' + data.ApplicationCode + '\')" ><i class="fa fa-edit"></i>ดู</a>' +
+                                    '<a type="button" class="btn btn-block btn-success" id="btnPlay_' + data.ApplicationId
+                                    + '" onclick="Underwrite(\'' + data.ApplicationCode + '\')">ตรวจสอบ <i class="fa fa-arrow-right"></i></a>';
+                        }
+                    }
+                ]
+            });
+        }
+
+        const GetChecked_DT = () => {
+            //get datepicker fromDate value and convert
+            var fromDate = $('#fromDate').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker('getDate');
+            var addfirstFromDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), 1);
+            var fromDateConvert = moment(addfirstFromDate).format('DD-MM-YYYY');
+            //get datepicker toDate value and convert
+            //var toDate = $('#toDate').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker('getDate');
+            //var addfirsttoDate = new Date(toDate.getFullYear(), toDate.getMonth(), 1);
+            //var toDateConvert = moment(addfirsttoDate).format('DD-MM-YYYY');
+            //get select branch value
+            var branchId = $('#select_Branch').val();
+            //get search value
+            var search = $('#txtSearch').val();
+
+            //call api
+            $('#dtCheckedMonitor').empty();
+            var appTable = $('#dtCheckedMonitor').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetMonitorApplication","Monitor")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchDetail = search;
+                        d.branchId = branchId;
+                        d.startCoverDate = fromDateConvert;
+                        d.cancelDate = null;
+                        d.endCoverDate = null;
+                        d.appStatusIdList = '3,4,6,8';
+                        d.userId = null;
+                        d.appUdwStatusIdList = '4,5';
+                        d.appCode = $('#txtSearchAppCode').val();
+                    }
+                },
+                columns: [
+                    {
+                        title: 'วันที่คุ้มครอง', data: 'StartCoverDate',
+                        render: function (data) {
+                            if (data != null) {
+                                 let startCoverDate = moment(data)._d;
+                                let yearBE = startCoverDate.getFullYear() + 543;
+                                let startCoverDateBE = moment(startCoverDate.setFullYear(yearBE)).format("DD/MM/YYYY");
+                                return startCoverDateBE;
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    { title: 'AppID', data: 'ApplicationCode' },
+                    { title: 'กรมธรรม์', data: 'CurrentPolicyNo' },
+                    { title: 'ผู้เอาประกัน', data: 'CustName' },
+                    { title: 'แผนประกัน', data: 'Product' },
+                    { title: 'เบี้ย', data: 'PremiumPerPolicy' },
+                    { title: 'ตัวแทน', data: 'S1EmployeeName' },
+                    { title: 'สถานะกรมธรรม์', data: 'ApplicationStatus' },
+                    { title: 'ผลการพิจารณา', data: 'ApplicationUnderwriteStatus' },
+                    {
+                        title: 'จัดการ',
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        mRender: function (data) {
+                                return '<a type="button" class="btn btn-block btn-success" id="btnSee_' + data.ApplicationId
+                                    + '" onclick="See(\'' + data.ApplicationCode + '\')">ดู <i class="fa fa-arrow-right"></i></a>';
+                        }
+                    }
+                ]
+            });
+        }
+
+        const See = (appCode) => {
+            var enc = btoa(appCode);
+            window.open('@Url.Action("DetailApp","Application")?appCode='+enc);
+        }
+
+        const Underwrite = (appCode) => {
+            var enc = btoa(appCode);
+            window.open('@Url.Action("Underwrite","Monitor")?appCode=' + enc);
+        }
+    </script>
+}

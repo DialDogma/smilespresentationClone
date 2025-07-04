@@ -1,0 +1,2 @@
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="ddlOwnerType.ascx.cs" Inherits="SmileMotorV1.Modules.Motor.UserControls.DropdownUserControls.ddlOwnerType" %>
+<asp:DropDownList ID="ddlApplicationOwnerType" runat="server"></asp:DropDownList>

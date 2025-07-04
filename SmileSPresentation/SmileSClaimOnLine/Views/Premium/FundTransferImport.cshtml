@@ -1,0 +1,569 @@
+﻿
+@{
+    ViewBag.Title = "ตัดรับชำระเคลมคงค้าง";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>ตัดรับชำระเคลมคงค้าง</title>
+    <style>
+        table.dataTable thead {
+            background-color: #F4C771;
+            color: black;
+        }
+
+        /*.separator--line {
+            border: 0;
+            width: 0;
+            animation: separator-width 1s ease-out forwards;
+        }*/
+        @@keyframes separator-width {
+            0% {
+                width: 0;
+            }
+
+            100% {
+                width: 100%;
+            }
+        }
+
+        @@keyframes slideup {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #rowImport {
+            animation: slideup ease-in 0.5s;
+        }
+
+        #rowValidate {
+            animation: slideup ease-in 0.6s;
+        }
+
+        #hrslide {
+            animation: separator-width 0.5s ease-out forwards;
+        }
+
+        #btnImportValidation.loading::before {
+            content: "";
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            margin-right: 0.5em;
+            border: 3px solid white;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @@keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="box box-primary" style="margin-top:0.8%;border-color:#65aadb">
+        <div class="box-body">
+            <div class=" form-group">
+                <div class=" row" id="rowImport">
+                    <div class="col-xs-12">
+                        <div class="panel panel-primary">
+                            <div class="panel-heading">
+                                <i class="panel-title glyphicon glyphicon-copy"> </i> เลือกไฟล์นำเข้า
+                            </div>
+                            <div class="panel-body">
+                                <div class="col-xs-12 ">
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <label>วันที่จ่ายเงิน :</label>
+                                            <div class="input-group">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" name="dphPayDate" data-date-language="th-th" data-provide="datepicker" class="form-control" id="dphPayDate" style="width:100%">
+                                                @*<input id="dphBillingDate" type="text" style="width: 100%" class="form-control" data-inputmask="'alias': 'dd/mm/yyyy'" data-mask="">*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label>เลือกไฟล์นำเข้า <font color="red">*</font> :</label>
+                                            <div class="input-group">
+                                                <div class=" form-control" style="width: 100%">
+                                                    <input type="file" id="ImportFile" name="ImportFile" style="width:100%;" accept=".xls, .xlsx">
+                                                    @*<input type="text" id="txtFileName" class="form-control" disabled>*@
+                                                </div>
+                                                <span class="input-group-btn">
+                                                    <button class="btn bg-primary" id="btnImportValidation" disabled>
+                                                        <i class="glyphicon glyphicon-open" id="upIcon"></i>อัปโหลด
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 ">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" id="rowValidate">
+                    <div class="col-xs-12">
+                        <div class="panel panel-primary">
+                            <div class="panel-heading">
+                                <i class="panel-title glyphicon glyphicon-copy"> </i> ผลการตรวจสอบไฟล์นำเข้า
+                            </div>
+                            <div class="panel-body">
+                                <table class="table-responsive" style="width:100%">
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div style="width: auto; text-align: left; vertical-align: baseline;">
+                                                    <label class="control-label">
+                                                        จำนวนรายการที่นำเข้า :
+                                                    </label>
+                                                    <label id="lblBOHOinFileCount">-</label>
+
+                                                </div>
+                                            </td>
+                                            <td style=" text-align : right ">
+                                                <button class="btn bg-olive" id="btnExportToExcel" style="border-radius: 10px;" disabled>
+                                                    Export to Excel  &nbsp;<i class="fa fa-file-excel-o"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div style="width: auto; text-align: left; vertical-align: baseline;">
+                                                    @*<label>จำนวนรายการที่ <font style="color:red;"> Error: </font> </label>*@
+                                                    <label class="control-label" for="inputError">
+                                                        <font color="red">จำนวนรายการที่ Error :</font>
+                                                    </label>
+                                                    <label id="lblErrorinFileCount" style="color: red;">-</label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4">
+                                                <div id="divReport" hidden>
+                                                    <hr id="hrslide" />
+                                                    <table id="dtReport" class="table table-bordered dataTable table-hover"></table>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <table class="table-responsive" style="width:100%;">
+                    <tbody>
+                        <tr>
+                            <td style="width:40%; padding:2px">&nbsp;</td>
+                            <td style="width:10%; padding:2px">
+                                <div id="divConfirm" style="display: none;">
+                                    <button class="btn btn-block bg-primary" id="btnConfirm" style="color:#ffffff" type="button">ยืนยันการนำเข้า</button>
+                                </div>
+                            </td>
+                            <td style="width: 10%; padding: 2px">
+                                <div id="divCancelConfirm" style="display: none;">
+                                    <button class="btn btn-block bg-primary" id="btnCancelConfirm" style="color: #367FA9; border-color: #367FA9; background-color: white; " type="button">ยกเลิก</button>
+                                </div>
+                            </td>
+                            <td style="width:40%; padding:2px">&nbsp;</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="hdfTmpCode" />
+</body>
+</html>
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+
+
+        $(function () {
+
+            $('.select2').select2();
+            $("#dphPayDate").prop("disabled", true);
+
+            var date = new Date();
+            var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            date.setDate(date.getDate() - 1);
+
+            var dateDefault = {
+                format: 'dd/mm/yyyy',
+                autoclose: true
+            }
+
+            $('#dphPayDate').datepicker(dateDefault);
+            $('#dphPayDate').datepicker('setDate', today);
+
+        })
+
+
+        //------------------------------------- Event --------------------------------
+
+        $('#ImportFile').change(function (e) {
+            var filePath = $(this).val();
+            if (filePath != "") {
+                $('#btnImportValidation').prop('disabled', false);
+            }
+        });
+
+
+        $('#btnConfirm').click(function (e) {
+            e.preventDefault()
+            swal({
+                title: "ยืนยัน ?",
+                text: "ยืนยันการทำรายการ ?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "ตกลง",
+                cancelButtonText: "ยกเลิก",
+                closeOnConfirm: false,
+                showLoaderOnConfirm: true
+            },
+                function () {
+                    setTimeout(function () {
+                        DoConfirmImport();
+                    }, 1000)
+                }
+            )
+        });
+
+        $('#btnCancelConfirm').click(function (e) {
+            e.preventDefault();
+            DoClear();
+        });
+
+        $('#btnImportValidation').click(function (e) {
+            e.preventDefault();
+            if (isValidate()) {
+                $('#btnImportValidation').addClass("loading");
+                $('#upIcon').removeClass("glyphicon glyphicon-open");
+                setTimeout(function () {
+                    DoUploadFile();
+                }, 500);
+                $('#btnImportValidation').prop('disabled', true);
+            }
+            $('#btnImportValidation').prop('disabled', false);
+        });
+
+        $('#btnExportToExcel').click(function (e) {
+            e.preventDefault();
+            ExportValidateResponseToExcel();
+        });
+
+        //------------------------------------- Validate --------------------------------//
+
+        isValidate = () => {
+
+            if ($('#dphPayDate').val() == "") {
+                swal('ตรวจสอบ', 'กรุณาระบุวันที่ส่งวางบิล', 'warning');
+                return false;
+            }
+            return true;
+        }
+
+        //------------------------------------- Method --------------------------------//
+        const DoUploadFile = () => {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("FundTransferImportFile", "Premium")',
+                data: function () {
+                    var data = new FormData();
+                    data.append("file", jQuery("#ImportFile").get(0).files[0]);
+                    data.append("payDate", $('#dphPayDate').val());
+                    return data;
+                }(),
+                contentType: false,
+                processData: false,
+                async: false,
+                dataType: "json",
+                success: function (response) {
+                    //count Error/Import
+                    DoCountImportFundTransferTmpCode(response[3]);
+                    $('#hdfTmpCode').val(response[3]);
+                    if (response == false) {
+                        //alert("กรุณาตรวจสอบไฟล์");
+                        swal("", "กรุณาตรวจสอบไฟล์นำเข้า", "warning");
+                        $('#btnImportValidation').prop('disabled', false);
+                        $('#ImportFile').prop('disabled', false);
+                    }
+                    else {
+                        //ไม่มี error ไม่แสดงตารางเหลือง ปุ่ม Export excel disable
+                        if (response[0] == "True" && response[1] == 1) {
+                            $('#hdfTmpCode').val(response[3]);
+
+                            //Get Table Data
+                            $('#divReport').hide();
+
+                            //Disable Button Excel
+                            $('#btnExportToExcel').attr("disabled", true);
+
+                            //Show Button
+                            $('#divConfirm').show();
+                            $('#divCancelConfirm').show();
+
+
+                            //Enabled Button
+                            $('#btnConfirm').attr("disabled", false);
+                        }
+                        else if (response[0] == "True" && response[1] == 0)
+                        {
+                            $('#hdfTmpCode').val(response[3]);
+                            $('#divReport').show();
+
+                            //มี error แสดงตารางเหลือง ปุ่ม Export excel Enable ยืนยันการนำเข้า disable
+                            //Enable Button Excel
+                            $('#btnExportToExcel').attr("disabled", false);
+
+                            //Get Table Data
+                            GetImportFundTransferOverView(response[3]);
+
+                            //Show Button
+                            $('#divConfirm').show();
+                            $('#divCancelConfirm').show();
+
+                            //Enabled Button
+                            $('#btnConfirm').attr("disabled", true);
+                        }
+                    }
+                    $('#btnImportValidation').removeClass("loading");
+                    $('#upIcon').addClass("glyphicon glyphicon-open");
+                }
+            });
+        }
+
+        const DoClear = () => {
+            swal({
+                title: "ยืนยัน ?",
+                text: "ยืนยันการยกเลิกรายการ ?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "ตกลง",
+                cancelButtonText: "ยกเลิก",
+                closeOnConfirm: false,
+                showLoaderOnConfirm: true
+            },
+                function () {
+                    setTimeout(function () {
+                        location.reload(true);
+                    }, 1000)
+                }
+            )
+        }
+
+        const GetImportFundTransferOverView = (tmpCode) => {
+        $('#dtReport').empty();
+        var table = $('#dtReport').DataTable({
+            pageLength: 10,
+            processing: true,
+            serverSide: true,
+            autoWidth: false,
+            responsive: true,
+            destroy: true,
+            "order": [[0, "desc"]],
+            searching: false,
+                ajax: {
+                    url: '@Url.Action("GetTmpFundTransferImportOverView", "Premium")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.tmpCode = tmpCode;
+                    }
+                },
+                columns: [
+
+                    {
+                        title: 'ลำดับ',
+                        data: null,
+                        className: 'text-center',
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        title: 'สาขา',
+                        data: 'BranchName',
+                        className: 'text-center',
+                    },
+                    {
+                        title: 'เลข บ.ส.',
+                        data: 'ClaimHeaderGroupCode',
+                        className: 'text-center',
+                    },
+                    {
+                        title: 'Product',
+                        data: 'ProductGroup',
+                        className: 'text-center',
+                    },
+                    {
+                        title: 'จำนวนราย',
+                        data: 'TotalClaim',
+                        className: 'text-center',
+                    },
+                    {
+                        title: 'ยอดเงินตาม บ.ส.',
+                        data: 'Amount',
+                        className: 'text-right',
+                        mRender: function (data) {
+                            if (data == null)
+                                data = 0;
+                            return numberWithCommas(data);
+                        }
+                    },
+                    {
+                        title: 'วันที่การเงินจ่าย',
+                        data: 'PayDate',
+                        className: 'text-center',
+                        render: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:ss", "LLLL");
+                            }
+                        }
+                    },
+                    {
+                        title: 'Error Message',
+                        data: 'ValidateResult',
+                        className: 'text-left',
+                    },
+                ],
+        });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        const ExportValidateResponseToExcel = () => {
+            loadingSpinner('fadeIn');
+            $.ajax({
+                url: "@Url.Action("ExportFundTransferImportValidateToExcel", "Premium")",
+                type: "POST",
+                data: {
+                    tmpID: $('#hdfTmpCode').val()
+                },
+                success: function (response) {
+                    if (response.IsSuccess) {
+                        window.location = "@Url.Action("DownloadFundTransferImportValidate")";
+                        loadingSpinner('fadeOut');
+                    } else {
+                        swal('เกิดข้อผิดพลาด !', response.Message, 'error');
+                        loadingSpinner('fadeOut')
+                    }
+                },
+                 error: function (jqXHR, exception) {
+                     checkXHRStatus(jqXHR.status);
+                     loadingSpinner('fadeOut');
+                 }
+            });
+        }
+
+        const DoConfirmImport = () => {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("SaveFundTransferImport", "Premium")',
+                data: function () {
+                    var data = new FormData();
+                    data.append("tmpCode", $('#hdfTmpCode').val());
+                    return data;
+                }(),
+                contentType: false,
+                processData: false,
+                async: false,
+                dataType: "json",
+                success: function (response) {
+                    if (response[0] == "True" && response[1] == "Success") {
+                            //ให้ hdfTmpCode ว่าง
+                            $('#hdfTmpCode').val('');
+
+                            swal_success(function () {
+                                swal.close();
+                                location.reload();
+                                $('#btnConfirm').attr("disabled", true);
+                            });
+                        //return View();
+                    } else {
+                        window.swal({
+                            title: 'ทำรายการไม่สำเร็จ',
+                            type: 'error',
+                            text: response[2],
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false,
+                            className: "text"
+                        }, function () {
+
+                            //Closed button
+                            $('#btnConfirm').attr("disabled", true);
+                        });
+                    }
+                }
+            })
+        }
+
+        const DoCountImportFundTransferTmpCode = (tmpCode) => {
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("GetImportFundTransferTmpCodeCount", "Premium")",
+            data: {
+                tmpCode: tmpCode
+            },
+            async: false,
+            dataType: "json",
+            success: function (response) {
+                $('#lblBOHOinFileCount').text(response.ImportCount);
+                $('#lblErrorinFileCount').text(response.ErrorCount);
+            }
+        });
+        }
+        function checkXHRStatus(xhrStatus) {
+            var msg = '';
+            if (xhrStatus === 0) {
+                msg = 'Not connect.\n Verify Network.';
+            } else if (jqXHR.status == 404) {
+                msg = 'Requested page not found. [404]';
+            } else if (jqXHR.status == 500) {
+                msg = 'Internal Server Error [500].';
+            } else if (exception === 'parsererror') {
+                msg = 'Requested JSON parse failed.';
+            } else if (exception === 'timeout') {
+                msg = 'Time out error.';
+            } else if (exception === 'abort') {
+                msg = 'Ajax request aborted.';
+            } else {
+                msg = 'Uncaught Error.\n' + jqXHR.responseText;
+            }
+            swal("ไม่สำเร็จ", msg, "error");
+        }
+    </script>
+}
+

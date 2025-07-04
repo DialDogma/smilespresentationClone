@@ -1,0 +1,180 @@
+﻿@model List<SmileSUnderwrite.Models.QueueImportRow>
+@{
+    ViewBag.Title = "ImportQueue";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Header = "นำเข้าข้อมูล";
+}
+
+<form class="form-horizontal" id="form1" name="form1" action="@Url.Action("ImportQueue")" method="post" enctype="multipart/form-data">
+
+    <div class="row">
+        <div class="col-sm-12">
+
+            @*@if (!String.IsNullOrEmpty(ViewBag.ErrorText))
+                {
+                    <div id="form1_msg" class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h4><i class="icon fa fa-ban"></i> เตือน!</h4>
+                        @ViewBag.ErrorText
+                    </div>
+                }*@
+
+            @if(!String.IsNullOrEmpty(ViewBag.Message))
+            {
+                <div id="form1_msg" class="alert alert-danger alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                    <h4><i class="icon fa fa-ban"></i> เตือน!</h4>
+                    @ViewBag.Message
+                </div>
+            }
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ไฟล์ที่ต้องการ Import</h3>
+                </div>
+                <div class="box-body">
+
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <label for="lblQueueGroup" class="control-label">ปีการศึกษา :</label>
+                            <select class="form-control select2" name="ddlYear" id="ddlYear" style="width: 100%;">
+                                <option value="-1">--โปรดระบุ--</option>
+                                @foreach (var item in ViewBag.PaYear)
+                                {
+                                    <option value="@item.Detail">@item.Detail</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <label for="lblQueueGroup" class="control-label">กลุ่มคิว :</label>
+                            <select class="form-control select2" name="ddlQueueGroup" id="ddlQueueGroup" style="width: 100%;">
+                                <option value="-1">--โปรดระบุ--</option>
+                                @foreach(var item in ViewBag.QueueGroup)
+                                {
+                                    <option value="@item.QueueGroupId">@item.QueueGroup</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="QueueType" class="control-label">ประเภทคิว :</label>
+                            <select class="form-control select2" name="ddlQueueType" id="ddlQueueType" style="width: 100%;">
+                                <option value="-1">--โปรดระบุ--</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+
+                        <div class="col-sm-3">
+
+                            @*@Html.ActionLink("Download ไฟล์ตัวอย่าง", "ExportExcel", new {  queueType = "2" })*@
+
+                            @*@Html.ActionLink("Download ไฟล์ตัวอย่าง", "ExportExcel",new { queueType = "" } )*@
+                            <a href="" id="aDownload" name="aDownload" onclick="DownloadTemplate();">Download ไฟล์ตัวอย่าง</a>
+
+                            <input type="file" name="file" id="exampleInputFile">
+                        </div>
+
+                        <div class="col-sm-3" style="padding-top: 8px;">
+                            <button type="submit" class="btn btn-primary" style="width:35%" onclick="waitingDialog.show('กำลัง Upload กรุณารอสักครู่');setTimeout(function () {waitingDialog.hide();}, 1000000);">Upload ...</button>
+                        </div>
+                    </div>
+                </div>
+
+                <input id="hdfQueueType" name="hdfQueueType" type="hidden" />
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+
+            //var hdfQueueType;
+
+            $('.select2').select2();
+
+            GetDropdownList();
+
+            $("#ddlQueueGroup").change(function () {
+                //alert("The text has been changed.");
+
+                GetDropdownList()
+            });
+
+            $("#ddlQueueType").change(function (e) {
+
+            });
+
+            $("#aDownload").click(function () {
+                if ($("#ddlQueueType").val() == null) {
+                    alert("กรุณาเลือกประเภทคิว");
+                } else {
+                    Template($("#ddlQueueType").val());
+                }
+
+            });
+
+        });
+
+        function IsValidate()
+        {
+
+            var result = '';
+            var val = $("#exampleInputFile").val();
+
+            if ($("#ddlQueueGroup").val == -1) {
+                result = 'กรุณาเลือกกลุ่มคิว';
+            }
+
+            if (val == '') {
+
+                //console.log("1234");
+                result = 'กรุณาเลือกไฟล์ที่ต้องการ Import';
+            }
+            return result;
+        }
+
+        function GetDropdownList()
+        {
+            if ($("#ddlQueueGroup").val() == -1) {
+                $('#ddlQueueType').empty();
+                $('#ddlQueueType').prop('disabled', true);
+            } else {
+                $('#ddlQueueType').empty();
+                $('#ddlQueueType').prop('disabled', false);
+                GetQueueType($("#ddlQueueGroup").val());
+            }
+        }
+
+        function GetQueueType(queueGroup)
+        {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetQueueTypesByQueueGroup")',
+                data: { queueGroupId: queueGroup },
+                success: function (data) {
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#ddlQueueType').append('<option value=' + data[i].QueueTypeId + '>' + data[i].QueueTypeDetail + '</option>');
+                    }
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail');
+                }
+
+            });
+        }
+
+        function Template(q)
+        {
+            window.open("@Url.Action("ExportExcel","Import")?queueType="+ q);
+        }
+    </script>
+}

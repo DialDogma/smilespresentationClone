@@ -1,0 +1,238 @@
+﻿
+@{
+    ViewBag.Title = "QueueIssueSuccess";
+}
+<style>
+    table.dataTable thead {
+        background-color: #337AB7;
+        color: azure;
+    }
+</style>
+<div class="box-header">
+    <h4 class="box-title">คิวงานมีประเด็นดำเนินการแล้ว</h4>
+</div>
+<form action="" method="post" id="fmCreateQueue">
+    <div class="row">
+        <div class="col-sm-12 col-md-12">
+            @* search form *@
+            <div id="Create_form">
+                <div class="box box-info">
+                    <div class="box-header">
+                        <h3 class="box-title">ค้นหารายการ</h3>
+                    </div>
+                    <div class="box-body">
+                        <div class="row" style="padding-top:6px">
+                            <div class="col-xs-12  col-md-3 col-lg-3">
+                                <label>DCR ยกเลิก</label>
+                                <div class="input-group date ">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpDCR" data-date-language="th-th" data-provide="datepicker" value="" />
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-md-3 col-lg-3">
+                                <label>สาขาผู้ชำระเบี้ย</label>
+                                <select class="form-control" id="branchId">
+                                    <option value="-1">ทั้งหมด</option>
+                                    @{
+                                        foreach (var item in ViewBag.Branch)
+                                        {
+                                            <option value="@item.Branch_ID">@item.BranchDetail</option>
+                                        }
+                                    }
+
+                                </select>
+                            </div>
+                            <div class="col-xs-12  col-md-3 col-lg-3">
+                                <label>ชื่อผู้ชำระเบี้ย</label>
+                                <div class="input-group date  col-xs-12  col-md-12 col-lg-12 ">
+                                    <input type="text" class="form-control" id="payerName" placeholder="ชื่อผู้ชำระเบี้ย" />
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-md-2 col-lg-2" style="padding-top:25px">
+                                <button type="button" class="btn btn-info" id="btnSearch"><i class="fa fa-search" aria-hidden="true"></i>ค้นหา</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* end form *@
+        </div>
+        <div class="col-sm-12 col-md-12 col-xs-12">
+            @* DT form *@
+            <div id="dt_form">
+                <div class="box box-warning">
+                    <div class="box-header">
+                        <h4 class="box-title">รายละเอียดรายการ</h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <table id="dtQueueIssueComplete" name="dtQueueIssueComplete" class="table table-bordered table-hover dataTable" style="width: 100%">
+                                    <tbody>
+                                        <tr style="text-align: center"><td>ไม่พบข้อมูล</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* end form *@
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        $(function () {
+            //todo
+
+          if (`@ViewBag.DCR` == "") {
+                $('#dtpDCR').datepicker({
+                    autoclose: true,
+                    todayHighlight: true,
+                    minViewMode: "months",
+                    format: "dd/mm/yyyy",
+                }).datepicker('update', new Date(moment().set('date', 1).add('month', -2)));
+                } else {
+                 $('#dtpDCR').datepicker({
+                    autoclose: true,
+                    todayHighlight: true,
+                    minViewMode: "months",
+                    format: "dd/mm/yyyy",
+                }).datepicker('update', new Date(moment().set('date', 1).set('month', @ViewBag.month).set('year',@ViewBag.year).add('month', -1).add('year', -543)));
+
+            }
+            DataTableQueueIssueComplete();
+
+           $('#btnSearch').click(function (e) {
+                e.preventDefault();
+               DataTableQueueIssueComplete();
+            });
+        });
+
+        function DataTableQueueIssueComplete() {
+            $('#dtQueueIssueComplete').empty();
+            let t = $('#dtQueueIssueComplete').DataTable({
+                 pageLength: 10,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                destroy: true,
+                searching: false,
+                 ajax: {
+                     url: '@Url.Action("GetQueueIssueComplete", "QueueManageAssign")',
+                        type: 'POST',
+                     data: function (d) {
+                            d.draw = d.draw;
+                            d.pageSize = d.length;
+                            d.indexStart = d.start;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.period = $('#dtpDCR').val();
+                            d.payerName = $('#payerName').val().trim();
+                            d.branchId = $('#branchId').val();
+                        }
+                },
+                columns: [
+                    {
+                        title: 'ลำดับที่',
+                        data: null,
+                        className: "th-center",
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        title: 'ชื่อผู้ชำระเบี้ย',
+                        data: "PayerName",
+                         orderable: true,
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'เลขบัตรประชาชน / Passport',
+                        data: "PayerIdCardNo",
+                        orderable: true,
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'เบอร์โทรผู้ชำระเบี้ย',
+                        data: "PayerPhone",
+                        orderable: true,
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'จำนวนผู้เอาประกัน',
+                        data: "QueueDetailAllCount",
+                        orderable: true,
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'สาขาผู้ชำระเบี้ย',
+                        data: "BranchDetail",
+                        orderable: true,
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'DCR ยกเลิก',
+                        data: "Period",
+                        orderable: true,
+                        render: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'วันที่ปิดคิวงานมีประเด็น', data: 'UpdatedDate',
+                        orderable: true,
+                        render: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:ss", "LLLL");
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'ผู้ปิดคิวงานมีประเด็น',
+                        data: "UpdatedByPersonName",
+                        orderable: true,
+                        className: 'h-dt-center'
+                    },
+                     {
+                            title: 'ประเด็น',
+                         data: null,
+                         orderable: false,
+                            width: '10%',
+                            render: function (data) {
+                                return `<button type="button" class="btn btn-info" onclick="openDetailCall(${data.QueueId})">ดู</button>`;
+
+                            }
+                     }
+                    ],
+                bLengthChange: false,
+                'columnDefs': [
+                    {
+                        "targets": [0],
+                        "visible": false
+                    },
+                    {
+                        "targets": "_all", // your case first column
+                        "className": "text-center",
+                    }]
+                });
+        }
+        const openDetailCall = (QueueId) => {
+            let c_QueueId = window.btoa(QueueId);
+            window.open(`@Url.Action("CloseIssuedQueue", "IssuedQueue")?QueueId=${c_QueueId}`, '_blank');
+        }
+    </script>
+}
+

@@ -1,0 +1,80 @@
+﻿@*
+    Parameters: ViewBag.payerId
+    Functions:
+*@
+
+@using SmileSCriticalIllness.Models
+
+@{
+    using (var db = new CriticalIllnessEntities())
+    {
+        int payerId = ViewBag.payerId;
+        usp_PersonRelatedApplication_Select_Result payerDetail = db.usp_PersonRelatedApplication_Select(payerId, null, null, 99, null, null, null).FirstOrDefault();
+
+        List<usp_AddressDetail_Select_Result> payerAddressList = db.usp_AddressDetail_Select(null, payerDetail.PersonRelateApplicationId, null, 99, null, null, null).ToList();
+
+        var PayerAddress1 = payerAddressList.FirstOrDefault(x => x.AddressTypeId == 3)?.FullAddress;
+        var PayerAddress2 = payerAddressList.FirstOrDefault(x => x.AddressTypeId == 4)?.FullAddress;
+
+        <div id="Payer_form">
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ข้อมูลผู้ชำระเบี้ย</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">คำนำหน้า:</label> <span id="txtPayer_Title">@payerDetail.Title</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">ชื่อ:</label> <span id="txtPayer_fName">@payerDetail.FirstName</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">สกุล:</label> <span id="txtPayer_lName">@payerDetail.LastName</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">เลขที่บัตรประชาชน:</label> <span id="txtPayer_idCard">@payerDetail.IdentityCardNo</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">เลขที่ Passport:</label> <span id="txtPayer_Passport">@payerDetail.PassportNo</span>
+                        </div>
+                        @*<div class="col-sm-3 col-md-4">
+                                <label class="control-label">วันเกิด:</label> <i id="txtPayer_bDate">@(ViewBag.payer.BirthDate != null ? ViewBag.payer.BirthDate.ToString("dd/MM/yyyy") : "")</i>
+                            </div>*@
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">อาชีพ:</label> <span id="txtPayer_Job">@payerDetail.Occupation</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">ระดับอาชีพ:</label> <span id="txtPayer_JobClass">@payerDetail.OccupationLevel</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">เบอร์โทรศัพท์มือถือ:</label> <span id="txtPayer_Tel">@payerDetail.MobilePhoneNumber</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">อีเมล:</label> <span id="txtPayer_Email">@payerDetail.Email</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-12">
+                            <label class="control-label">ที่อยู่ตามบัตรประชาชน:</label> <span id="txtPayer_IdAddress">@PayerAddress1</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-12">
+                            <label class="control-label">ที่อยู่ที่ทำงาน:</label> <span id="txtPayer_OfficeAddress">@PayerAddress2</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}

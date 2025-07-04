@@ -1,0 +1,122 @@
+﻿@*
+    Parameters: ViewBag.AppId
+    Functions: GetPremiumReceive_dt(appId)
+*@
+
+@using SmileSMiscellaneous.Models;
+
+@{
+    using (var db = new MiscellaneousDBContext())
+    {
+        int appID = ViewBag.AppId;
+        usp_Application_Select_Result obj = db.usp_Application_Select(appID, null, 0, 9999, null, null, null).SingleOrDefault();
+
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box box-primary box-solid">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">การรับชำระ</h3>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                        <!-- /.box-tools -->
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <div class="form-group">
+                            <div class="col-xs-3 col-xs-offset-2">
+                                <label>สถานะ :</label>
+                                @if (@obj.PaymentStatusId == 2)
+                                {
+                                    <span style="background-color:red;  color:white;">@obj.PaymentStatus</span>
+                                }
+                                else if (@obj.PaymentStatusId == 3)
+                                {
+                                    <span style="background-color:limegreen;  color:white;">@obj.PaymentStatus</span>
+                                }
+                                else
+                                {
+                                    <span style="background-color:gold">@obj.PaymentStatus</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-xs-12" style="padding-top:6px">
+                                <table id="dtPremiumReceive" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.box-body -->
+                </div>
+            </div>
+        </div>
+
+    }
+}
+<script type="text/javascript">
+    const GetPremiumReceive_dt = (appId) => {
+        $('#dtPremiumReceive').empty();
+        var appTable = $('#dtPremiumReceive').DataTable({
+            lengthChange: false,
+            info: false,
+            paging: false,
+            searching: false,
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            destroy: true,
+            ajax: {
+                url: '@Url.Action("GetPremiumReceiveList", "PartialView")',
+                method: 'POST',
+                data: function (d) {
+                    d.draw = d.draw;
+                    d.pageSize = 999;
+                    d.indexStart = d.start;
+                    d.sortField = d.columns[d.order[0].column].data;
+                    d.orderType = d.order[0].dir;
+                    d.search = d.search;
+                    d.appId = appId;
+                }
+            },
+            columns: [
+                { title: 'รหัสรายการ', data: 'ReceiveDetailCode', className: 'h-dt-center' },
+                { title: 'เลขที่ Match', data: 'MatchHeaderCode', className: 'h-dt-center' },
+                {
+                    title: 'วันที่โอน', data: 'TransactionDatetime', className: 'h-dt-center',
+                    mRender: function (data) {
+                    moment.locale('th');
+                        return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                    }
+                },
+                {
+                    title: 'เบี้ย', data: 'Premium', className: 'h-dt-center',
+                    mRender: function (data) {
+                        return numberWithCommas(data);
+                    }
+                },
+                { title: 'ผู้บันทึก', data: 'CreatedName', className: 'h-dt-center'},
+                {
+                    title: 'วันที่บันทึก', data: 'CreatedDate', className: 'h-dt-center',
+                    mRender: function (data) {
+                        moment.locale('th');
+                        return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                    }
+                },
+            ],
+            'columnDefs': [
+                {
+                    "targets": [3], // your case first column
+                    "className": "text-right",
+                },
+                {
+                    "targets": [2, 5], // your case first column
+                    "className": "text-center",
+                }]
+        });
+    }
+    function numberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+</script>

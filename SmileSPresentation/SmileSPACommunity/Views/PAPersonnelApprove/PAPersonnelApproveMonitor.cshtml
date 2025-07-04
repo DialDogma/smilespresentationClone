@@ -1,0 +1,321 @@
+﻿
+
+@{
+    ViewBag.Title = "รออนุมัติกรมธรรม์";
+}
+
+<form class="form-horizontal">
+
+    <div class="row">
+        <div class="col-sm-12">
+
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+                </div>
+
+
+                <div class="box-body">
+                    <div class="row " style="padding-left:2%;padding-top:1%">
+
+                        <div class="col-sm-3">
+                            <label>สาขา :</label>
+                            <select type="text" class="form-control select2" id="ddlBranch">
+                                <option value="-1">---ทั้งหมด---</option>
+                                @foreach (var item in ViewBag.Branch)
+                                {
+                                    <option value="@item.BranchID">  @item.Branch</option>
+                                }
+                        </select>
+                    </div>
+                    <div class="col-sm-4">
+                        <label>สถานะ :</label>
+                        <select class="form-control select2 leaderMultiSelctdropdown" name="ddlAppRoundStatus" id="ddlAppRoundStatus" style="width: 100%;" multiple="">
+
+                            @foreach (var item in ViewBag.AppRoundStatus)
+                            {
+                                if (item.PersonnelApplicationRoundStatusId == 3 || item.PersonnelApplicationRoundStatusId == 6)
+                                {
+                                    <option value="@item.PersonnelApplicationRoundStatusId" selected="selected">@item.PersonnelApplicationRoundStatusName</option>
+                                }
+                                else
+                                {
+
+                                    <option value="@item.PersonnelApplicationRoundStatusId">@item.PersonnelApplicationRoundStatusName</option>
+
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row " style="padding-left:2%;padding-top:1%">
+
+                    <div class="col-sm-3">
+                        <label>ปีการศึกษา :</label>
+                        <select type="text" class="form-control select2" id="ddlYear">
+                            @foreach (var item in ViewBag.PolicyYear)
+                            {
+                                <option value="@item.Code"> @item.Detail</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm-4">
+                        <label>ค้นหาจากเลข App PA ยิ้มแฉ่ง หรือ ชื่อสถานศึกษา :</label>
+                        <input type="text" id="txtSearch" class="form-control" />
+                    </div>
+
+                    <div class="col-sm-1" style="padding-top:2%;padding-bottom:2%">
+                        <button id="btnSearch" type="button" class="btn btn-primary btn-block">ค้นหา</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">รายละเอียดรายการ</h3>
+            </div>
+
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-sm-10"></div>
+                    <div class="col-sm-2">
+                        <button id="btnExport" type="button" class="btn btn-success btn-block">
+                            <i class="fa fa-file-excel"></i> Export
+                        </button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label style="font-size:16px">ไม่ตรงเงื่อนไข : <span id="lblCountAppRound" class="text-red"> </span></label>
+                        <table id="dtApplicationRound" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            var chat = $.connection.myHub;
+
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                chat.server.joinGroup(@ViewBag.userID);
+            });
+
+            //Show addNewNotice to client
+            chat.client.sendNoticeResult = function (Str1, Str2) {
+                DoloadApplicationRound();
+            };
+        });
+
+        $(function () {
+            $('.select2').select2();
+        });
+
+         //btnExport event
+        $('#btnExport').click(function (e) {
+            e.preventDefault();
+            loadingSpinner('fadeIn');
+            ExportExcel();
+        });
+
+        //btnSearch event
+        $('#btnSearch').click(function (e) {
+            e.preventDefault();
+            DoloadApplicationRound()
+        });
+
+            $.fn.select2.amd.require([
+                'select2/utils',
+                'select2/dropdown',
+                'select2/dropdown/attachBody'
+            ], function (Utils, Dropdown, AttachBody) {
+                function SelectAll() { }
+
+                SelectAll.prototype.render = function (decorated) {
+                    var $rendered = decorated.call(this);
+                    var self = this;
+
+                    var $selectAll = $(
+                        '<button type="button" class="btn btn-xs btn-default" style="margin-left:6px;">&#9744; Select All</button>'
+                    );
+
+                    $unselectAll = $(
+                        '<button class="btn btn-xs btn-default" type="button" style="margin-left:6px;">&#9744; Unselect All</button>'
+                    ),
+                        $btnContainer = $('<div style="margin-top:3px;">').append($selectAll).append($unselectAll);
+                    if (!this.$element.prop("multiple")) {
+                        // this isn't a multi-select -> don't add the buttons!
+                        return $rendered;
+                    }
+
+                    $rendered.find('.select2-dropdown').prepend($btnContainer);
+
+                    $selectAll.on('click', function (e) {
+                        var $results = $rendered.find('.select2-results__option[aria-selected=false]');
+
+                        // Get all results that aren't selected
+                        $results.each(function () {
+                            var $result = $(this);
+
+                            // Get the data object for it
+                            var data = $result.data('data');
+
+                            // Trigger the select event
+                            self.trigger('select', {
+                                data: data
+                            });
+                        });
+
+                        self.trigger('close');
+                    });
+
+                    $unselectAll.on('click', function (e) {
+                        var $results = $rendered.find('.select2-results__option[aria-selected=true]');
+                        $results.each(function () {
+                            self.trigger('unselect', {
+                                data: $(this).data('data')
+                            });
+                        });
+                        self.trigger('close');
+                    });
+
+                    return $rendered;
+                };
+
+                $("#ddlAppRoundStatus").select2({
+                    placeholder: " ---โปรดระบุ--- ",
+                    dropdownAdapter: Utils.Decorate(
+                        Utils.Decorate(
+                            Dropdown,
+                            AttachBody
+                        ),
+                        SelectAll
+
+                    ),
+                });
+            });
+
+
+         //load dataTable
+        const DoloadApplicationRound = () => {
+            $('#dtApplicationRound').empty();
+            var table = $('#dtApplicationRound').DataTable({
+                pageLength: 5,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetApplicationRoundMonitor", "PAPersonnelApprove")',
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchDetail = $('#txtSearch').val();
+                        d.appRoundId = null;
+                        d.branchId = $('#ddlBranch').val() == -1 ? null : $('#ddlBranch').val();
+                        d.appRoundStatusIdList = $('.leaderMultiSelctdropdown').val().join(",");
+                        d.year = $('#ddlYear').val();
+                    },
+                },
+                columns:  [
+                           { title: 'App ID', data: 'PersonnelApplicationCode', className: 'h-dt-center d-dt-center', },
+                           { title: 'สถานศึกษา', data: 'PersonnelApplicationName', className: 'h-dt-center d-dt-center' , width: '10%'},
+                           { title: 'สถานะ', data: 'PersonnelApplicationRoundStatusName', className: 'h-dt-center d-dt-center', width: '10%'},
+                            {
+                                title: 'ทุนประกัน PA นักเรียน', data: 'StandardCoverage'
+                                , className: 'h-dt-center d-dt-center',
+                                mRender: function (data) {
+                                    return commaSeparateNumber(data);
+                                }
+                            },
+                           { title: 'แผนประกัน', data: 'Product', className: 'h-dt-center d-dt-center', },
+                           { title: 'จำนวนผู้เอาประกัน', data: 'CustomerCount', className: 'h-dt-center d-dt-center', },
+                           {
+                               title: 'วันเริ่มคุ้มครอง', data: 'StartCoverDate', className: 'h-dt-center d-dt-center',
+                               mRender: function (data) {
+                                   moment.locale('th');
+                                   return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                               }
+                           },
+                           { title: 'หมายเหตุ', data: 'ValidateRemark', className: 'h-dt-center d-dt-center', },
+                           {
+                               title: 'วันที่ทำรายการครั้งแรก', data: 'FirstExportDate', className: 'h-dt-center d-dt-center',width:'12%',
+                               mRender: function (data) {
+                                   moment.locale('th');
+                                   if (data != null) {
+                                       return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                                   } else {
+                                       return "";
+                                   }
+
+                               }
+                           },
+
+                           {
+                               data: null,
+                               className: 'h-dt-center d-dt-center',
+                               mRender: (data, type, full) =>
+                               {
+                                   let encode_appRoundId = window.btoa(data.PersonnelApplicationRoundId);
+
+                                   if (data.PersonnelApplicationRoundStatusId == "3" || data.PersonnelApplicationRoundStatusId == "6") {
+                                       return `<a href="@Url.Action("PAPersonnelApprove", "PAPersonnelApprove")?appRoundId=${encode_appRoundId}" class="btn btn-warning " target="_blank"><i class="fa fa-desktop"></i> ตรวจสอบ </a>`;
+                                   } else {
+                                       let encode_appId = window.btoa(data.PersonnelApplicationId);
+                                       return `<a  class="btn btn-primary" href="@Url.Action("PAPersonnelDetail", "PAPersonnel")?appId=${encode_appId}" target="_blank"><i class="fa fa-pen"></i> ดูรายละเอียด </a>`;
+                                   }
+
+
+                               }
+
+                           },
+                       ],
+                bLengthChange: false,
+            })
+
+            $('#lblCountAppRound').text(table.page.info().recordsTotal)
+
+        }
+
+        const ExportExcel = () => {
+
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("ExportApplicationRoundReport", "PAPersonnelApprove")",
+                data: {
+                    branchId: $('#ddlBranch').val() == -1 ? null : $('#ddlBranch').val(),
+                    year: $('#ddlYear').val(),
+                    appRoundStatusIdList: $('.leaderMultiSelctdropdown').val().join(","),
+                    searchDetail: $('#txtSearch').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+                    window.location.href = `@Url.Action("ExportApplicationRoundReportDownload", "PAPersonnelApprove")`
+                    loadingSpinner('fadeOut');
+                }
+            });
+
+        }
+
+
+
+    </script>
+}

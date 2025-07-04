@@ -1,0 +1,180 @@
+﻿
+@{
+    ViewBag.Title = "รายงานแก้ไขผู้ให้บริการ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*<h2>ClaimOnLineRemarkReport</h2>*@
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div class="box box-primary box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายงานแก้ไขผู้ให้บริการ</h3>
+
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="box-group">
+                       
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <label class="control-label">โซน :</label>
+                                <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlZone" name="ddlZone">
+
+                                    <option value="-1"> ทั้งหมด </option>
+
+                                    @foreach (var item in @ViewBag.Zone)
+                                    {
+                                        <option value=@item.ZoneId>  @item.Zone </option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-xs-3">
+                                <label class="control-label">สาขา :</label>
+                                <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlBranch" name="ddlBranch">
+                                </select>
+                            </div>
+
+
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <label>จากวันที่ :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpDateFrom" data-provide="datepicker" data-date-language="th-th">
+                                </div>
+                            </div>
+
+                            <div class="col-xs-3">
+                                <label>ถึงวันที่ :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpDateTo" data-provide="datepicker" data-date-language="th-th">
+                                </div>
+                            </div>
+
+                            <div class="col-xs-3" style="padding-top:27px;">
+                                <button type="button" class="btn btn-warning" id="btnExportToExcel">ExportToExcel</button>
+                            </div>
+                        </div>
+
+
+
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+            //Select2
+            $('.select2').select2();
+
+            var d1 = new Date();
+            $('#dtpDateFrom').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date(d1.getFullYear(),0,1));
+            $('#dtpDateTo').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+
+            GetZoneByEmployeeId();
+
+            $('#ddlZone').change(function (e) {
+                e.preventDefault();
+                $('#ddlBranch').empty();
+                GetBranchByZoneId($('#ddlZone').val());
+            });
+
+
+            $('#btnExportToExcel').click(function (e) { 
+                e.preventDefault();
+
+                let dateFrom = $('#dtpDateFrom').val();
+                let dateTo = $('#dtpDateTo').val();
+                let branchID = $('#ddlBranch').val();
+                let zoneID = $('#ddlZone').val();
+
+                 window.location = `@Url.Action("ClaimOnLineAddRemarkReportExport", "Report")?dateFrom=${dateFrom}&dateTo=${dateTo}&branchId=${branchID}&zoneId=${zoneID}`;
+
+            });
+
+
+        });
+
+
+         function GetZoneByEmployeeId()
+        {
+            
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetZoneByEmployee", "ClaimOnLine")',
+                //data: { zoneId: ZoneId },
+                success: function (data) {
+                    if (data == 0) {
+                        //$('#ddlZone').val("-1");
+                        
+                        $('#ddlZone').select2().val("-1").trigger('change.select2');
+
+                        GetBranchByZoneId($("#ddlZone").val());
+                        GetMonitorClaimOnLine();
+                    } else {
+                        //$('#ddlZone').select2().select2("val", data);
+
+                        //$('#ddlZone>option[value="' + data + '"]').prop('selected', true);
+
+                        $('#ddlZone').select2().val(data).trigger('change.select2');
+
+                        GetBranchByZoneId($("#ddlZone").val());
+                        GetMonitorClaimOnLine();
+
+                    }
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail1');
+                }
+
+            });
+        }
+
+
+        function GetBranchByZoneId(ZoneId)
+        {
+            //if (ZoneId == -1) {
+
+            //    ZoneId = null;
+            //}
+            
+            $('#ddlBranch').empty();
+             $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetBranchByZoneId" ,"ClaimOnLine")',
+                data: { zoneId: ZoneId },
+                success: function (data) {
+                    $('#ddlBranch').append('<option value=-1>---ทั้งหมด---</option>');
+                    for (var i = 0; i < data.length; i++) {
+                        $('#ddlBranch').append('<option value=' + data[i].Branch_ID + '>' + data[i].BranchDetail + '</option>');
+                    }
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail2');
+                }
+
+            });
+
+        }
+
+    </script>
+}

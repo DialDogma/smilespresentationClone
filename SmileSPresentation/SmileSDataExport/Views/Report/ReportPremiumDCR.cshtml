@@ -1,0 +1,134 @@
+﻿
+@{
+    ViewBag.Title = " รายงานเบี้ยตามรอบ DCR";
+}
+
+
+<div class="row">
+    <div class="col-sm-12">
+
+        <div class="box box-primary">
+            <div class="box-body">
+                <div class="row" style="margin-left:1%;margin-bottom:2%;margin-top:1%">
+                    <div class="col-sm-3">
+                        <label>รอบความคุ้มครอง</label>
+                        <div class="input-group date">
+                            <div class="input-group-addon">
+                                <i class="fa fa-calendar" style="color:Highlight"></i>
+                            </div>
+                            <input class="form-control text-blue" data-date-language="th-th" id="periodDate" style="background-color:white;font-weight:600;font-size:16px" name="roundDate" type="text"  data-provide="datepicker" placeholder="dd/mm/yyyy" readonly="readonly" />
+                        </div>
+                    </div>
+                    <div class="col-sm-2" style="margin-top:25px">
+                        <button class="btn bg-olive btn-block " id="btnExport" style="font-size:14px">
+                            <i class="fa fa-cloud-download"></i> Export
+                        </button>
+
+                    </div>
+                    <div class="col-sm-2" style="margin-top:25px">
+                        <button class="btn bg-purple btn-block " id="btnGenReport" style="font-size:14px">
+                            <i class="fa fa-file-text-o"></i> สร้างรายงาน
+                        </button>
+                    </div>
+                    <div class="col-sm-5" id="successGenReportShow" style="margin-top:27px;font-size:16px;display:none" >
+                            <i class="fa fa-check fa-2x" style="color:limegreen"></i>
+                            <span class="text-green">สร้างรายงานรอบความคุ้มครอง <b id="periodShow" class="text-blue"></b> เรียบร้อยแล้ว</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+
+            var date = new Date();
+
+            $('#periodDate').datepicker({
+                format: "dd/mm/yyyy",
+                startDate: `01/01/${date.getFullYear() - 1}`,
+                endDate: '+0date',
+                autoclose: true,
+                beforeShowDay: function (date) {
+                    switch (date.getDate()) {
+                        case 1:
+                            return true;
+                        default:
+                            return false;
+                    }
+                }
+            }).datepicker("setDate", new Date(`${date.getMonth() + 1}/01/${date.getFullYear()}`));
+
+            $('#btnExport').click(function (e) {
+                e.preventDefault();
+                ExportPremiumDCR()
+            });
+
+            $('#btnGenReport').click(function (e) {
+                e.preventDefault();
+                GenerateReportPremiumDCR()
+            });
+
+        });
+
+        function ExportPremiumDCR() {
+
+            var datePeriod = $('#periodDate').val();
+
+           loadingSpinner('fadeIn');
+            $.ajax({
+                url: "@Url.Action("ExportPremiumDCR", "Report")",
+                type: "GET",
+                data: {
+                    period: datePeriod,
+                },
+                success: function (data) {
+                    window.location = "@Url.Action("ExportPremiumDCRDownload", "Report")";
+                    swal('สำเร็จ', 'ดาวโหลดไฟล์สำเร็จ', 'success');
+                    loadingSpinner('fadeOut');
+                },
+                 error: function (jqXHR, exception) {
+                    checkXHRStatus(jqXHR.status);
+                 }
+            });
+
+        }
+
+        function GenerateReportPremiumDCR() {
+
+            var datePeriod = $('#periodDate').val();
+
+           loadingSpinner('fadeIn');
+            $.ajax({
+                url: "@Url.Action("GenerateReportPremiumDCR", "Report")",
+                type: "GET",
+                data: {
+                    period: datePeriod,
+                },
+                success: function (data) {
+                    if (data == true) {
+
+                        swal('สำเร็จ', 'สร้างรายงานสำเร็จ', 'success');
+                        $('#successGenReportShow').css('display', '');
+                        $('#periodShow').text(datePeriod);
+
+                    } else {
+
+                        swal('ไม่สำเร็จ', 'ไม่สามารถสร้างรายงานได้', 'error');
+                    }
+                   
+                    loadingSpinner('fadeOut');
+                },
+                 error: function (jqXHR, exception) {
+                    checkXHRStatus(jqXHR.status);
+                 }
+            });
+
+        }
+
+    </script>
+}

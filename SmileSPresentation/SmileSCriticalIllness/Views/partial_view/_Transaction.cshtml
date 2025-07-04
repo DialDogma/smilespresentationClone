@@ -1,0 +1,67 @@
+﻿@*
+    Parameters: 
+    Functions:GetTransaction_dt(appId)
+*@
+@{
+    <div id="transaction_Form">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">ประวัติการทำรายการ</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-sm-12 col-md-12">
+                    <table id="dtTransaction" name="dtTransaction" class="table table-bordered table-striped" style="width: 100%"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+         const GetTransaction_dt = (appId) => {
+        $('#dtTransaction').empty();
+        var appTable = $('#dtTransaction').DataTable({
+            lengthChange: false,
+            info: false,
+            paging: false,
+            searching: false,
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            destroy: true,
+            ajax: {
+                url: '@Url.Action("TransactionSelect_dt","Monitor")',
+                method: 'POST',
+                data: function (d) {
+                    d.draw = d.draw;
+                    d.pageSize = 999;
+                    d.indexStart = d.start;
+                    d.sortField = d.columns[d.order[0].column].data;
+                    d.orderType = d.order[0].dir;
+                    d.search = d.search;
+                    d.appId = appId;
+                }
+            },
+            columns: [
+                { title: 'Transaction Code', data: 'ApplicationTransactionCode' },
+                {
+                    title: 'วันที่ทำรายการ', data: 'CreatedDate', render: function (data) {
+                        if (data != null) {
+                             let startCoverDate = moment(data)._d;
+                                let yearBE = startCoverDate.getFullYear() + 543;
+                                let startCoverDateBE = moment(startCoverDate.setFullYear(yearBE)).format("DD/MM/YYYY HH:mm");
+                                return startCoverDateBE;
+                        } else {
+                            return '';
+                        }
+                    }
+                },
+                { title: 'ประวัติการทำรายการ', data: 'TransactionType' },
+                { title: 'โดย', data: 'CreatedByName' }
+
+            ]
+        });
+    }
+    </script>
+}

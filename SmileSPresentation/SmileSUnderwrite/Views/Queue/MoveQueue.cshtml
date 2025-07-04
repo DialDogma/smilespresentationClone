@@ -1,0 +1,327 @@
+﻿@{
+    ViewBag.Title = "จัดการผู้ดูแลคิว";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Header = "โยกคิวงาน";
+}
+
+<div class="row">
+    <div class="col-sm-12">
+
+        <form class="form-horizontal" id="form1" action="" method="post" enctype="multipart/form-data">
+
+            @* จัดการคิวงาน *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">จัดการคิวงาน</h3>
+                </div>
+
+                <div class="box-body">
+
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <label for="ddlEmp_From" class="control-label">ชื่อพนักงาน:</label>
+                            <select class="form-control select2" name="ddlEmp_From" id="ddlEmp_From" style="width: 100%;">
+                                <option value="-1">--โปรดระบุ--</option>
+                                @foreach(var item in ViewBag.FromEmp)
+                                {
+                                    <option value="@item.UserId">@item.EmployeeCode  @item.FullName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-sm-3 hidden-xs" style="text-align:center">
+                            <span class="glyphicon glyphicon-menu-right" style="margin-top: 26px;display: inline-block; text-align: center;font-size: x-large;"></span>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="ddlEmp_To" class="control-label">ชื่อพนักงาน:</label>
+                            <select class="form-control select2" name="ddlEmp_To" id="ddlEmp_To" style="width: 100%;">
+                                <option value="-1">--โปรดระบุ--</option>
+                                @foreach(var item in ViewBag.ToEmp)
+                                {
+                                    <option value="@item.UserId">@item.EmployeeCode  @item.FullName</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+
+                        <div class="col-sm-3">
+                            <label for="ddlQueueType" class="control-label">ประเภทคิว:</label>
+                            <select class="form-control select2" name="ddlQueueType" id="ddlQueueType" style="width: 100%;">
+                                <option value="-1">ทั้งหมด</option>
+                                @foreach(var item in ViewBag.QueueTypes)
+                                {
+                                    <option value="@item.QueueTypeId">@item.QueueTypeDetail</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+
+                        <div class="col-sm-3">
+                            <button type="button" class="btn btn-block btn-primary" id="btnShow" name="btnShow">แสดงคิวงาน</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* คิวงาน *@
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">คิวงาน</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="form-group">
+                        <div class="col-sm-6">
+                            <table id="dtQueue" class="table table-bordered table-striped"></table>
+                        </div>
+                        <div class="col-sm-6">
+                            <table id="dtQueueEmp" class="table table-bordered table-striped"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-12">
+                <div class="col-sm-2 col-sm-offset-10">
+                    <div style="text-align:right">
+                        <button type="button" class="btn btn-block btn-success" id="btnSubmit">บันทึก</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section ViewSpecificJavascript{
+
+    <script>
+
+        $(function () {
+            $('.select2').select2();
+
+            $('#btnShow').click(function () {
+                //alert("miw");
+                if (ValidateForSearch() != '') {
+
+                    alert(ValidateForSearch());
+                    return false;
+                }
+                else
+                {
+                    GetDatatableQueue();
+                }
+
+            });
+
+            $('#ddlEmp_To').change(function () {
+                //alert("123456");
+                GetDatatableQueueEmployee();
+            });
+
+            $('#btnSubmit').click(function (e) {
+                
+                if (ValidateForMoveQueue() != '') {
+                    alert(ValidateForMoveQueue());
+                    return false;
+                }
+                else
+                {
+                    
+                    window.swal({
+                        title: 'ยืนยันการทำรายการหรือไม่?',
+                        type: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#277020',
+                        confirmButtonText: 'ตกลง',
+                        cancelButtonText: 'ยกเลิก',
+                        closeOnConfirm: false,
+                        closeOnEsc: false,
+                        closeOnCancel: true
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+                            
+                            var queueList = [];
+                            var emp = $('#ddlEmp_To').val();
+                            $('.chk-row-select:checkbox:checked').each(function () {
+                                queueList.push($(this).val());
+
+                            });
+                            MoveQueue(queueList, emp, -1);
+
+                        }
+                    });
+
+                }
+
+            });
+
+        });
+
+        function ValidateForSearch()
+        {
+            var result = '';
+
+            if ($('#ddlEmp_From').val() == -1) {
+                result = 'กรุณาเลือกพนักงาน';
+                return result;
+            }
+
+            return result;
+        }
+
+        function ValidateForMoveQueue() {
+
+            var result = '';
+
+            if ($('#ddlEmp_To').val() == -1) {
+                result = 'กรุณาเลือกพนักงานที่ต้องการโยกคิวงานให้';
+                return result;
+            }
+
+            if ($('#ddlEmp_From').val() == $('#ddlEmp_To').val()) {
+                result = 'กรุณาตรวจสอบพนักงาน';
+                return result;
+            }
+
+            if ($('.chk-row-select:checkbox:checked').length <= 0) {
+                result = 'กรุณาเลือกคิวงานที่ต้องการโยก';
+                return result;
+            }
+
+            return result;
+        }
+
+        function MoveQueue(queueList, emp, createdBy)
+        {
+             $.ajax({
+                type: 'POST',
+                url: '@Url.Action("MoveQueue", "Queue")',
+                data: {
+                    queueId: queueList,
+                    assignToUserId: emp,
+                    createByUserId: createdBy
+                },
+                success: function (response) {
+                    if (response == true) {
+                        window.swal({
+                            title: 'ทำรายการสำเร็จ',
+                            type: 'success',
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            GetDatatableQueue();
+                            GetDatatableQueueEmployee();
+                        });
+                    } else {
+                        window.swal({
+                            title: 'เกิดข้อผิดพลาด!',
+                            type: 'error',
+                            text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            window.location = "@Url.Action("InternalServerError","Error")";
+                        });
+                    }
+                }
+            });
+        }
+
+        //GetDatatableQueue
+        function GetDatatableQueue() {
+            $('#dtQueue').empty();
+            
+            var table = $('#dtQueue').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetDatatableQueueDetail")',
+
+                            data: function (d) {
+                                d.draw = d.draw;
+                                d.pageSize = d.length;
+                                d.pageStart = d.start;
+                                d.sortField = d.columns[d.order[0].column].data;
+                                d.orderType = d.order[0].dir;
+                                d.search = d.search.value;
+                                d.queueType = $("#ddlQueueType").val();
+                                d.empCode = $("#ddlEmp_From").val();
+                                d.status = 2; //คิวงานใหม่
+                            }
+                        },
+                        columns: [
+                            {
+                                searchable: false,
+                                orderable: false,
+                                className: 'dt-center',
+                                data: 'QueueId',
+                                title: '<input id="chk-select-all" type="checkbox" />',
+                                render: function (data) {
+                                    return '<input type="checkbox" class="chk-row-select" name="chkdtrow_'+data+'" value="'+data+'">';
+                                }
+                            },
+                            { title: 'ชื่อโรงเรียน', data: 'Detail1' },
+                            { title: 'ที่อยู่', data: 'Detail2' },
+                            { title: 'ประเภทคิว', data: 'QueueTypeDetail' },
+                            { title: 'สถานะคิว', data: 'QueueStatus' }
+
+                        ]
+            });
+
+            $('#chk-select-all').change(function (e) {
+                e.preventDefault();
+                var rows = table.rows({ 'search': 'applied' }).nodes();
+                
+                $('input[class="chk-row-select"]', rows).prop('checked', this.checked);
+
+            });
+
+        }
+
+        //GetDatatableQueueEmployee
+        function GetDatatableQueueEmployee() {
+            $('#dtQueueEmp').empty();
+            var table = $('#dtQueueEmp').DataTable({
+                        pageLength: 10,
+                        processing: true,
+                        serverSide: true,
+                        responsive: true,
+                        destroy: true,
+                        ajax: {
+                            url: '@Url.Action("GetDatatableQueueDetail")',
+                            data: function (d) {
+                                d.draw = d.draw;
+                                d.pageSize = d.length;
+                                d.pageStart = d.start;
+                                d.sortField = d.columns[d.order[0].column].data;
+                                d.orderType = d.order[0].dir;
+                                d.search = d.search.value;
+                                d.empCode = $("#ddlEmp_To").val();
+                                d.status = 2; //คิวงานใหม่
+                            }
+                        },
+                        columns: [
+
+                            { title: 'ชื่อโรงเรียน', data: 'Detail1' },
+                            { title: 'ที่อยู่', data: 'Detail2' },
+                            { title: 'ประเภทคิว', data: 'QueueTypeDetail' },
+                            { title: 'สถานะคิว', data: 'QueueStatus' }
+
+                        ]
+            });
+        }
+    </script>
+
+}

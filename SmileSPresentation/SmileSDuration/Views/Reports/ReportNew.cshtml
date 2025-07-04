@@ -1,0 +1,226 @@
+﻿@{
+    ViewBag.Title = "รายงานการส่งข้อความ";
+}
+
+<form id="formDurationV2" action="@Url.Action("ReportSMS_New")" method="post" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box">
+                <div class="box-body" style="padding: 10px 10px 0px 10px;">
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="title1">วันเริ่มต้น :</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control datepicker" id="date_start" name="date_start" data-provide="datepicker" data-date-language="th-th" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="title1">วันสิ้นสุด :</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control datepicker" id="date_end" name="date_end" data-provide="datepicker" data-date-language="th-th" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <label class="title1">ประเภทข้อความ :</label>
+                            <select id="select_type" name="select_type" class="form-control select2" style="width: 100%;">
+                                <option value="-1">--ทั้งหมด--</option>
+                                @foreach (var i in @ViewBag.ComunicateType)
+                                {
+                                    <option value="@i.ComunicateTypeID">@i.ComunicateTypeName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="title1">คำค้น :</label>
+                                <div class="input-group">
+                                    <input id="input_textsearch" name="input_textsearch" type="text" class="form-control">
+                                    <span class="input-group-btn">
+                                        <button id="button_search" name="button_search" type="button" class="btn btn-primary"><i class="fa fa-search"></i> ค้นหา</button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-offset-3 col-sm-2 hidden-xs" style="margin-top: 25px">
+                            <button id="button_excel" name="button_excel" type="submit" class="btn btn-success" style="float:right"><i class="fa fa-file"></i> Excel</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="padding:10px">
+                    <div class="col-sm-12">
+                        <table id="datatable_detail" class="table table-bordered table-striped display responsive" style="width: 100%"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+            /*load*/
+            $('[data-toggle="tooltip"]').tooltip();
+
+            $('#date_start').datepicker('setDate', new Date());
+            $('#date_end').datepicker('setDate', new Date());
+
+            $('#button_search').click(function () {
+                var table = $('#datatable_detail').DataTable();
+                table.draw();
+            });
+
+            var table = $('#datatable_detail').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                lengthChange: false,
+                autoWidth: false,
+                responsive: true,
+                ajax: {
+                    url: '@Url.Action("GetDatatable_ReportNew")',
+                    method: "POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $('#input_textsearch').val();
+                        d.smsType = $('#select_type').val();
+                        d.dateStart = $('#date_start').val();
+                        d.dateEnd = $('#date_end').val();
+                    }
+                },
+
+                columns: [
+                    {
+                        title: 'AppID',
+                        data: 'AppID',
+                    },
+                    {
+                        title: 'เบอร์',
+                        data: 'MobilePhoneNo',
+                    },
+                    {
+                        title: 'ผู้เอาประกัน',
+                        data: 'CustomerName',
+                    },
+                    {
+                        title: 'ผู้ชำระเบี้ย',
+                        data: 'PayerName'
+                    },
+                    {
+                        title: 'เปิดเอกสาร',
+                        data: null,
+                        className: 'nowrap',
+                        render: function (data) {
+                            if (data.ViewCount > 0) {
+                                let first = "-";
+                                let latest = "-";
+
+                                if (data.FirstView != null) first = moment(data.FirstView).format('DD/MM/YYYY HH:mm:ss');
+                                if (data.LatestView != null) latest = moment(data.LatestView).format('DD/MM/YYYY HH:mm:ss');
+
+                                return `<div class="td-hover" data-toggle="tooltip" title="คลิกดูรายละเอียด!" onclick='ViewDocDetail("${data.MobilePhoneNo}","${first}","${latest}")' style="cursor: pointer;text-align: center;width:100%"><a>${data.ViewCount}</a></div>`;
+                            } else {
+                                return `<div style="cursor: not-allowed;text-align: center;width:100%">${data.ViewCount}</div>`;
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'วันที่ส่ง',
+                        data: 'CreatedDate',
+                        className: 'nowrap',
+                        render: function (data) {
+                            return moment(data).format('DD/MM/YYYY HH:mm');
+                        }
+                    },
+                    {
+                        title: 'ประเภท',
+                        className: 'nowrap',
+                        data: 'ComunicateTypeName'
+                    },
+                    {
+                        title: 'สถานะการส่ง',
+                        data: null,
+                        className: 'nowrap',
+                        render: function (data) {
+                            if (data.Success == null && data.Fail == null && data.Block == null && data.Expired == null && data.Processing == null && data.Unknown == null) return `<div onclick='ViewAllDetail("${data.MobilePhoneNo}","${data.CustomerName}","${data.PayerName}","${data.Message}","${data.TransactionStatusDetail}","${data.Success}","${data.Fail}","${data.Block}","${data.Expired}","${data.Processing}","${data.Unknown}")' class="form-group td-hover" style="width:100%; text-align: center; cursor: pointer;"><i class="fa fa-info-circle" style="color:#ff8f00;font-size:20px"></i><br><span>กำลังดำเนินการ</span></div>`;
+                            if (data.Success > 0) return `<div onclick='ViewAllDetail("${data.MobilePhoneNo}","${data.CustomerName}","${data.PayerName}","${data.Message}","${data.TransactionStatusDetail}","${data.Success}","${data.Fail}","${data.Block}","${data.Expired}","${data.Processing}","${data.Unknown}")' class="form-group td-hover" style="width:100%; text-align: center; cursor: pointer;"><i class="fa fa-check-circle" style="color:green;font-size:20px"></i><br><span>ส่งถึงมือถือแล้ว</span></div>`;
+                            if (data.Processing > 0) return `<div onclick='ViewAllDetail("${data.MobilePhoneNo}","${data.CustomerName}","${data.PayerName}","${data.Message}","${data.TransactionStatusDetail}","${data.Success}","${data.Fail}","${data.Block}","${data.Expired}","${data.Processing}","${data.Unknown}")' class="form-group td-hover" style="width:100%; text-align: center; cursor: pointer;"><i class="fa fa-info-circle" style="color:#ff8f00;font-size:20px"></i><br><span>กำลังดำเนินการ</span></div>`;
+                            return `<div onclick='ViewAllDetail("${data.MobilePhoneNo}","${data.CustomerName}","${data.PayerName}","${data.Message}","${data.TransactionStatusDetail}","${data.Success}","${data.Fail}","${data.Block}","${data.Expired}","${data.Processing}","${data.Unknown}")' class="form-group td-hover" style="width:100%; text-align: center; cursor: pointer;"><i class="fa fa-times-circle" style="color:red;font-size:20px"></i><br><span>ส่งไม่ถึงมือถือ</span></div>`;
+                        }
+                    },
+                ]
+            });
+        });
+
+        window.onresize = function () {
+            table.columns.adjust().responsive.recalc();
+        }
+
+        const ViewDocDetail = (phone, first, latest) => {
+            $.alert({
+                title: `การเข้าดูเอกสาร ${phone}`,
+                backgroundDismiss: true,
+                animation: 'zoom',
+                closeAnimation: 'scale',
+                content: `<br><strong>เข้าชมครั้งแรก : </strong> &nbsp&nbsp${first} <br><strong>เข้าชมล่าสุด : </strong>&nbsp&nbsp${latest}`,
+            });
+        }
+
+        const ViewAllDetail = (phone, customer, payer, msg, transaction, success, fail, block, expired, processing, unknown) => {
+            $.alert({
+                title: `รายละเอียด ${phone}`,
+                backgroundDismiss: true,
+                animation: 'zoom',
+                closeAnimation: 'scale',
+                content: `<strong>ผู้เอาประกัน : </strong> &nbsp&nbsp${customer} <br>` +
+                    `<strong>ผู้ชำระเบี้ย : </strong>&nbsp&nbsp${payer}<br>` +
+                    `<strong>ข้อความ :</strong>&nbsp&nbsp${msg}<br>` +
+                    `<strong>Transaction :</strong>&nbsp&nbsp${transaction}<br>` +
+                    `<div><table class="table table-bordered table-striped" style="margin-bottom:0px">` +
+                    `<thead style="font-size:11px">` +
+                    `<tr>` +
+                    `<th>Success</th>` +
+                    `<th>Fail</th>` +
+                    `<th>Block</th>` +
+                    `<th>Expired</th>` +
+                    `<th>Processing</th>` +
+                    `<th>Unknown</th>` +
+                    `</tr>` +
+                    `</thead>` +
+                    `<tbody>` +
+                    `<tr>` +
+                    `<td class="d-dt-center" style="color:green">${success}</td>` +
+                    `<td class="d-dt-center" style="color:red">${fail}</td>` +
+                    `<td class="d-dt-center" style="color:red">${block}</td>` +
+                    `<td class="d-dt-center" style="color:red">${expired}</td>` +
+                    `<td class="d-dt-center" style="color:#ff8f00">${processing}</td>` +
+                    `<td class="d-dt-center">${unknown}</td>` +
+                    `</tr>` +
+                    `</tbody>` +
+                    `</table></div>`
+            });
+        }
+    </script>
+}

@@ -1,0 +1,446 @@
+﻿
+@{
+    ViewBag.Title = "ตรวจสอบขอยกเลิกกรมธรรม์";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+            @*ข้อมูลกรมธรรม์*@
+            <div class="box box-danger">
+                <div class="box-header with-border" style="background-color:#dd4b39  ; color:white">
+                    <h3 class="box-title">ข้อมูลกรมธรรม์</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <label>Application ID :</label>
+                            <input type="text" class="form-control" id="txtApplicationId" disabled />
+                        </div>
+                        <div class="col-xs-6">
+                            <label>ชื่อกรมธรรม์ :</label>
+                            <input type="text" class="form-control" id="txtapplicationName" disabled />
+                        </div>
+                        <div class="col-xs-3">
+                            <label>สถานะ :</label>
+                            <input type="text" class="form-control" id="txtapplicationStatus" disabled />
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top:5px">
+                        <div class="col-xs-3">
+                            <label>วันเริ่มสัญญา :</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right" id="dtpStartCoverDate" disabled>
+                            </div>
+                        </div>
+                        <div class="col-xs-3">
+                            <label>วันสิ้นสุดสัญญา :</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right" id="dtpEndCoverDate" disabled>
+                            </div>
+                        </div>
+                        <div class="col-xs-2" style="padding-top:27px">
+                            <button type="button" class="btn btn-primary btn-sm" style="vertical-align:bottom" id="btnOpenAppDetail"><i class="fa fa-fw fa-desktop"></i> รายละเอียด </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* รายละเอียดการยกเลิก *@
+            <div class="box box-danger">
+                <div class="box-header with-border " style="background-color:#dd4b39  ; color:white">
+                    <h3 class="box-title">รายละเอียดการยกเลิก</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <label>สาเหตุการยกเลิก :</label>
+                            <input type="text" class="form-control" id="txtCancelCauseDetail" disabled />
+                        </div>
+                        <div class="col-xs-8">
+                            <label>หมายเหตุ :</label>
+                            <input type="text" class="form-control" id="txtRemark" disabled />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* รายการเอกสาร *@
+            <div class="box box-danger">
+                <div class="box-header with-border " style="background-color:#dd4b39  ; color:white">
+                    <h3 class="box-title">รายการเอกสาร</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <table id="dtDocument" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xs-12" style="text-align:center" id="divbutton">
+                    @if (ViewBag.Role == "Allow")
+                    {
+                        <button type="button" class="btn btn-danger" id="btnUnApprove"><i class="glyphicon glyphicon-remove-sign"></i> ไม่อนุมัติยกเลิกกรมธรรรม์</button>
+                        <button type="button" class="btn btn-success" id="btnApprove"><i class="glyphicon glyphicon-ok-sign"></i> อนุมัติยกเลิกกรมธรรม์</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Modal Cause UnApprove *@
+    <div class="modal fade in" id="modal-CauseUnApprove" style="display: none; ">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title">สาเหตุการไม่อนุมัติยกเลิกกรมธรรม์</h4>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-10 col-xs-offset-1">
+                            <label>สาเหตุการไม่อนุมัติ :</label>
+                            <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlUnApproveCause" name="ddlUnApproveCause">
+                                <option value="-1">--โปรดระบุ--</option>
+                                @{
+                                    foreach (var item in ViewBag.ApproveCause)
+                                    {
+                                        <option value="@item.ApproveCauseId">@item.ApproveCause</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-xs-10 col-xs-offset-1">
+                            <label>หมายเหตุ :</label>
+                            <textarea rows="3" class="form-control" id="txtUnApproveRemark"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="btnUpdateUnApprove" name="btnUpdateUnApprove">บันทึก</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <input type="hidden" id="hdfApplicationID" hidden />
+    <input type="hidden" id="hdfRequestCancelApplicationId" hidden value="@ViewBag.RequestCancelApplicationID" />
+
+</form>
+@section ViewSpecificJavascript
+{
+    <script>
+        $(document).ready(function () {
+            var chat = $.connection.myHub;
+
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                const ApproveCancelApplication = () => {
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.Action("DoApproveRequestCancelApplication", "PAPersonnelApprove")",
+                        data: {
+                            requestCancelApplicationId: $('#hdfRequestCancelApplicationId').val(),
+                            approveStatusId: 3 //อนุมัติ
+                        },
+                        async: false,
+                        dataType: "json",
+                        success: function (d) {
+                            debugger;
+                            if (d[0] == "True") {
+                                chat.server.sendNotice("", "");
+                                window.swal({
+                                    title: d[2],
+                                    type: 'success',
+                                    showCancelButton: false,
+                                    confirmButtonColor: '#26A65B',
+                                    confirmButtonText: 'ตกลง',
+                                    closeOnEsc: false
+                                }, function () {
+                                    window.close();
+                                }, setTimeout(1500));
+                            }
+                            else {
+                                swal("", d[2], "error");
+                            }
+                        }
+                    });
+                }
+
+                const UnApproveCancelApplication = () => {
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.Action("DoApproveRequestCancelApplication", "PAPersonnelApprove")",
+                        data: {
+                            requestCancelApplicationId: $('#hdfRequestCancelApplicationId').val(),
+                            approveStatusId: 4, //ไม่อนุมัติ
+                            approveCauseId: $('#ddlUnApproveCause').val(),
+                            approveRemark: $('#txtUnApproveRemark').val()
+                        },
+                        async: false,
+                        dataType: "json",
+                        success: function (d) {
+                            debugger;
+                            if (d[0] == "True")
+                            {
+                                chat.server.sendNotice("", "");
+                                window.swal({
+                                    title: d[2],
+                                    type: 'success',
+                                    showCancelButton: false,
+                                    confirmButtonColor: '#26A65B',
+                                    confirmButtonText: 'ตกลง',
+                                    closeOnEsc: false
+                                }, function () {
+                                    window.close();
+                                }, setTimeout(1500));
+                            }
+                            else
+                            {
+                                swal("", d[2], "error");
+                            }
+                        }
+                    });
+                }
+                debugger;
+                chat.server.joinGroup(@ViewBag.userID);
+
+                $('#btnApprove').click(function (e) {
+                    e.preventDefault();
+                    swal({
+                        title: "ยืนยันการอนุมัติยกเลิกกรมธรรม์",
+                        text: `"${$('#txtapplicationName').val()}" หรือไม่ ?`,
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonClass: "btn-danger",
+                        confirmButtonText: "ตกลง",
+                        cancelButtonText: "ยกเลิก",
+                        closeOnConfirm: false,
+                        closeOnCancel: false
+                    },
+                        function (isConfirm) {
+                            if (isConfirm) {
+                                ApproveCancelApplication();
+                            } else {
+                                swal("ยกเลิกทำรายการ", "", "error");
+                            }
+                        }
+                    );
+                });
+
+                $('#btnUpdateUnApprove').click(function (e) {
+                    e.preventDefault();
+
+                    if (IsValidateForUnApprove()) {
+                        swal({
+                            title: "ยืนยันการไม่อนุมัติยกเลิกกรมธรรม์",
+                            text: `"${$('#txtapplicationName').val()}" หรือไม่ ?`,
+                            type: "warning",
+                            showCancelButton: true,
+                            confirmButtonClass: "btn-danger",
+                            confirmButtonText: "ตกลง",
+                            cancelButtonText: "ยกเลิก",
+                            closeOnConfirm: false,
+                            closeOnCancel: false
+                        },
+                            function (isConfirm) {
+                                if (isConfirm) {
+                                    UnApproveCancelApplication();
+                                } else {
+                                    swal("ยกเลิกทำรายการ", "", "error");
+                                }
+                            }
+                        );
+                    }
+                });
+            });
+        });
+
+        var AppId;
+        var IsShow = true;
+        $(function () {
+            $('.select2').select2();
+            GetRequestCancelPersonnelApplication();
+            GetDocumentRequestCancelDetail();
+        });
+
+       //---------------------------------Event-------------------------------------
+
+        $('#btnUnApprove').click(function (e) {
+            e.preventDefault();
+            $('#modal-CauseUnApprove').addClass('modal_itemcenter');
+            $('#modal-CauseUnApprove').modal('show');
+        });
+
+        $('#btnOpenAppDetail').click(function (e) {
+            let en_AppID = window.btoa($('#hdfApplicationID').val());
+            debugger;
+            window.open('@Url.Action("PAPersonnelDetail", "PAPersonnel")?appId=' + en_AppID, '_blank');
+        });
+
+        //---------------------------------Method-------------------------------------
+
+        //ข้อมูลกรมธรรม์
+        const GetApplicationDetailById = (PersonnelApplicationId) => {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("GetApplicationDetailById", "PAPersonnelApprove")',
+                data: { PersonnelApplicationId },
+                async: false,
+                dataType: "json",
+                async: false,
+                success: function (response) {
+                 debugger;
+                 if (response == null) {
+
+                 } else {
+                     $('#txtApplicationId').val(response.PersonnelApplicationCode);
+                     $('#txtapplicationName').val(response.PersonnelApplicationName);
+                     $('#txtapplicationStatus').val(response.PersonnelApplicationStatusName);
+
+                     let startCoverdate = moment(response.StartCoverDate).add(543, 'years').format('DD/MM/YYYY');
+                     let endCoverdate = moment(response.EndCoverDate).add(543, 'years').format('DD/MM/YYYY');
+                     $('#dtpStartCoverDate').val(startCoverdate);
+                     $('#dtpEndCoverDate').val(endCoverdate);
+
+                 }
+             }
+            });
+        }
+
+        //รายละเอียดการยกเลิก
+        const GetRequestCancelPersonnelApplication = () => {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetRequestCancelPersonnelApplication", "PAPersonnelApprove")",
+                data: {
+                    requestCancelApplicationId: $("#hdfRequestCancelApplicationId").val(),
+                },
+                async: false,
+                dataType: "json",
+                success: function (response) {
+                    $('#txtCancelCauseDetail').val(response.PersonnelApplicationCancelCauseName);
+                    $('#txtRemark').val(response.Remark);
+                    $('#hdfApplicationID').val(response.PersonnelApplicationId);
+
+                    if (response.PersonnelApplicationId != null) {
+                        GetApplicationDetailById(response.PersonnelApplicationId);
+
+                        if (response.PersonnelApproveStatusId != 2) {
+                            $('#btnUnApprove').hide();
+                            $('#btnApprove').hide();
+                        }
+                    }
+                }
+            });
+        }
+
+        //รายการเอกสาร
+        const GetDocumentRequestCancelDetail = () => {
+                $('#dtDocument').empty();
+
+                let t = $('#dtDocument').DataTable({
+                 pageLength: 5,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                 destroy: true,
+                 searching: false,
+                 async: false,
+                 ajax: {
+                     url: '@Url.Action("GetDocumentRequestCancelDetail", "PAPersonnelEndorse")',
+                        type: 'POST',
+                        data: function (d) {
+                            d.draw = d.draw;
+                            d.pageSize = d.length;
+                            d.pageStart = d.start;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.search = d.search;
+                            d.referenceId = $('#hdfRequestCancelApplicationId').val();
+                            d.documentTypeId = 43;
+                        }
+                    },
+                    columns: [
+                        { title: 'รหัสเอกสาร', data: 'DocumentCode', className: 'h-dt-center d-dt-center', width: '17%' },
+                        { title: 'ประเภทเอกสาร', data: 'DocumentType', className: 'h-dt-center '},
+                        {
+                            title: 'Action', data: null,
+                            className: 'h-dt-center d-dt-center',
+                            mRender: (data, type, full) =>
+                            {
+
+                                if ($('#hdfRequestCancelApplicationId').val() != "" && IsShow == true)
+                                {
+                                    return '<a href = "' + data.UrlLinkScan + '" target = "_blank" class="btn btn-warning btn-sm" disabled="disabled"> <i class="fa fa-fw fa-upload"></i> Scan</a> '
+                                        + '<a href="' + data.UrlLinkOpen + '" target="_blank" class="btn btn-info btn-sm" > <i class="fa fa-fw fa-file"></i> เอกสาร</a > ';
+                                } else
+                                {
+                                    return '<a href = "' + data.UrlLinkScan + '" target = "_blank" class="btn btn-warning btn-sm" > <i class="fa fa-fw fa-upload"></i> Scan</a> '
+                                        + '<a href="' + data.UrlLinkOpen + '" target="_blank" class="btn btn-info btn-sm" > <i class="fa fa-fw fa-file"></i> เอกสาร</a > ';
+                                }
+
+
+
+                            }, width: '20%'
+                        },
+
+                    ],
+                    bLengthChange: false,
+                });
+
+        }
+
+        const IsValidateForUnApprove = () => {
+
+            let rs = "";
+
+            if ($('#ddlUnApproveCause').val() == "-1") {
+                rs = "กรุณาเลือก สาเหตุการไม่อนุมัติ";
+                swal("ตรวจสอบรายการ", rs, "warning");
+                return false;
+            }
+
+            if ($("#txtUnApproveRemark").val() == "") {
+                rs = "กรุณากรอก หมายเหตุ";
+                swal("ตรวจสอบรายการ", rs, "warning");
+                return false;
+            }
+
+            return true;
+        }
+
+    </script>
+}
+

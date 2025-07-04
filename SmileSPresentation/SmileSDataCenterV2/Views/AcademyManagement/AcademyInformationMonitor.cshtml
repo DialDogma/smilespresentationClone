@@ -1,0 +1,234 @@
+﻿
+@{
+    ViewBag.Title = "การจัดการข้อมูลสถานศึกษา";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="row">
+        </div>
+        <div class="box box-primary" style="margin-top:0.8%">
+            <div class="box-body">
+                <div class="col-sm-3">
+                    <label>ประเภทหน่วยงาน</label>
+                    <select class="form-control select2" id="searchOrganizeType">
+                        <option vallue="-1">---ทั้งหมด---</option>
+                        @{
+                            foreach (var item in ViewBag.OrganizeType)
+                            {
+                                <option value="@item.OrganizeTypeId">@item.OrganizeType</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-sm-2">
+                    <label>จังหวัด</label>
+                    <select class="form-control select2" id="searchProvince">
+                        <option vallue="-1">---ทุกจังหวัด---</option>
+                        @{
+                            foreach (var item in ViewBag.Province)
+                            {
+                                <option value="@item.Province_ID">@item.ProvinceDetail</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-sm-3" style="padding-top:25px">
+                    <div class="form-group has-feedback">
+                        <input type="text" class="form-control" id="searchDetail" placeholder="พิมพ์คำค้นหา" />
+                        <i class="glyphicon glyphicon-search form-control-feedback" style="color:#b8afaf"></i>
+                    </div>
+
+                </div>
+                <div class="col-sm-2" style="padding-top:25px">
+                    <button class="btn btn-block bg-primary" id="btnSearch" style="color:white">ค้นหา</button>
+                </div>
+                <div class="col-sm-1"></div>
+                <div class="col-sm-1" style="padding-top:25px">
+                    <button class="btn bg-olive btn-block" id="btnExportExcel"><i class="fa fa-file-excel-o"></i></button>
+                </div>
+
+                <div class="col-sm-12">
+                    <table id="dtMonitor" class="table table-bordered dataTable"></table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+            $('.select2').select2();
+            debugger
+
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                DoloadMonitor();
+            });
+            $('#btnExportExcel').click(function (e) {
+                e.preventDefault();
+                ExportAcademy();
+            });
+
+        })
+
+          function DoloadMonitor() {
+
+               $('#dtMonitor').empty();
+              var t = $('#dtMonitor').dataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                "order": [[0, "desc"]],
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetAcademyOrganizeManagement", "AcademyManagement")',
+
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.organizeGroupId = 9;
+                        d.organizeTypeId = $('#searchOrganizeType').val();
+                        d.provinceId = $('#searchProvince').val();
+                        d.searchDetail = $('#searchDetail').val();
+
+                    }
+                },
+                columns: [
+                    { title: 'รหัสรายการ', data: 'Organize_ID', className: 'h-dt-center text-font-small', width: '8%' },
+                    { title: 'ประเภท', data: 'OrganizeTypeDetail', className: 'h-dt-center text-font-small', width: '8%' },
+                    { title: 'คำนำหน้า', data: 'TitleDetail', className: 'h-dt-center text-font-small', width: '8%' },
+                    { title: 'ชื่อสถานศึกษา', data: 'OrganizeDetail', className: 'h-dt-center text-font-small', width: '15%' },
+                    { title: 'ตำบล', data: 'SubDistrictDetail', className: 'h-dt-center text-font-small', width: '10%' },
+                    { title: 'อำเภอ', data: 'DistrictDetail', className: 'h-dt-center text-font-small', width: '10%' },
+                    { title: 'จังหวัด', data: 'ProvinceDetail', className: 'h-dt-center text-font-small', width: '15%' },
+                    {
+                        title: 'วันที่ทำรายการ', data: 'OrganizeUpdatedDate', className: 'h-dt-center', width: '10%',
+                        mRender: function (data) {
+                            if (data != null) {
+                                moment.locale('th');
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    {
+                        title: 'สถานะใช้งาน',
+                        data: null,
+                        className: 'h-dt-center d-dt-center text-font-small',
+                        width: '7%',
+                        mRender: (data, type, full) => {
+
+                            if (data.IsActive == true) {
+                                return 'ใช้งาน';
+                            } else {
+                                return 'ไม่ใช้งาน';
+                            }
+
+                        },
+                    },
+                    {
+                        title: 'เลือก',
+                        className: 'h-dt-center',
+                        data: null,
+                        width: '15%',
+                        mRender: (data, type, full) => {
+                            return (
+                                '<div class="btn-group">' +
+                                '<button type="button" class="btn btn-warning btn-sm" style="width:"10px""><i class="glyphicon glyphicon-cog"></i> เลือก</button>' +
+                                '<button type="button" class="btn btn-warning dropdown-toggle cc_pointer btn-sm" data-toggle="dropdown" aria-expanded="true">' +
+                                '<span class="caret"></span>' +
+                                '<span class="sr-only">Toggle Dropdown</span>' +
+                                '</button>' +
+                                '<ul class="dropdown-menu btn-sm" role="menu">' +
+                                    `<li><a onclick="GetDetailToNewTab(${data.Organize_ID});"><i class="glyphicon glyphicon-eye-open"></i> ดู</a></li>` +
+                                    `<li><a onclick="OpenEditTap(${data.Organize_ID});"><i class="glyphicon glyphicon-pencil"></i> แก้ไข</a></li>` +
+                                '</ul>' +
+                                '</div >'
+                            )
+                        }
+
+                    }
+                ],
+                bLengthChange: false,
+
+            });
+        }
+
+         function OpenEditTap( id ) {
+            let encode_id = window.btoa(id);
+
+             view = `@Url.Action("AcademyInformationManagement", "AcademyManagement")?organizeID=${encode_id}`;
+
+            window.open(view, '_blank');
+        }
+
+        const GetDetailToNewTab = (id) => {
+            //let organizeid = id;
+            //let view = '';
+            let encode_OrganizeId = window.btoa(id);
+            debugger
+
+            view = `@Url.Action("AcademyInformationDetail", "AcademyManagement")?organizeID=${encode_OrganizeId}`;
+
+
+            //var url = view
+            window.open(view, '_blank');
+        }
+
+        @*function ExportAcademy() {
+            var organizeTypeID = $('#searchOrganizeType').val();
+            var provinceID = $('#searchProvince').val();
+            var searchDetail = $('#searchDetail').val();
+
+            $.LoadingOverlay("show");
+            $.LoadingOverlay("hide");
+            window.location.href = `@Url.Action("ExportAcademyeMonitor", "AcademyManagement")?organizeTypeId=${organizeTypeID}&provinceId=${provinceID}&searchDetail=${searchDetail}`;
+        }*@
+
+        function ExportAcademy() {
+            //loadingSpinner('fadeIn', 999999);
+
+            $('#btnExportExcel').prop('disabled', true);
+            $("body").css("cursor", "progress");
+
+            $.ajax({
+                url: "@Url.Action("ExportOrganizeReport", "AcademyManagement")",
+                type: "GET",
+                data: {
+                    organizeTypeId: $('#searchOrganizeType').val(),
+                    provinceId: $('#searchProvince').val(),
+                    keyword: $('#searchDetail').val()
+                },
+                success: function (data) {
+                    window.location = "@Url.Action("DownloadExportOrganize", "AcademyManagement")";
+                    //loadingSpinner('fadeOut');
+                    $("body").css("cursor", "default");
+                    $('#btnExportExcel').prop('disabled', false);
+                },
+                 error: function (jqXHR, exception) {
+                     checkXHRStatus(jqXHR.status);
+                     //loadingSpinner('fadeOut');
+                 }
+            });
+        }
+
+    </script>
+
+}
+

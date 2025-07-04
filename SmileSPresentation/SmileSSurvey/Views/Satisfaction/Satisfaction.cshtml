@@ -1,0 +1,172 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutForSurvey.cshtml";
+}
+
+<div class="row">
+    <div class="col-xs-12 col-md-12">
+        <div style="margin:5px">
+            <i class="text-primary"><b>ทางบริษัทสยามสไมล์ขออนุญาตจัดเก็บข้อมูลเพื่อนำไปปรับปรุงและพัฒนาการบริการให้ดีขึ้น และตรงตามความต้องการของลูกค้ามากที่สุด</b></i>
+        </div>
+        <form id="formQuestion" action="@Url.Action("Question","Satisfaction")" method="post" enctype="multipart/form-data">
+            @{
+                int i = 0;
+                foreach (var item in ViewBag.SurveyQuestionAnswer)
+                {
+                    i = i + 1;
+
+                    //Sub Header For FormId = 6
+                    if (ViewBag.Survey.FormId == 6 && i == 1)
+                    {
+                        <div style="margin-top:12px;margin-bottom:5px;">
+                          <strong style="font-size:16px;color:#04b5f0">เจ้าหน้าที่ศูนย์ Call Center</strong>
+                        </div>
+                    }
+                    if (ViewBag.Survey.FormId == 6 && i == 4)
+                    {
+                        <div style="margin-top:12px;margin-bottom:5px;">
+                          <strong style="font-size:16px;color:#04b5f0">การบริการหลังการแจ้งอุบัติเหตุ</strong>
+                        </div>
+                    }
+
+                    <div class="box box-border box-default">
+                        <div class="box-header">
+                            <label style="font-size:1.5rem" class="box-title">@(i). @item.QuestionDetail</label>
+                        </div>
+                        <div class="box-body">
+                            @if (item.Answers.Count == 3)
+                            {
+                                <div class="col-xs-4 col-md-4">
+                                    <div style="text-align:center;">
+                                        <div class="satisfaction">
+                                            <img name="@item.SurveyQuestionId" id="@(item.Answers[0].SurveyAnswerId)_@(item.Answers[0].AnswerId)" src="~/Content/img/MASCOT_Survey/Icon blod – 3.png" class="img-top responsive choice" alt="Card Front">
+                                        </div>
+                                    </div>
+                                    <div style="text-align:center;">
+                                        <label style="cursor:pointer;color:#229954;white-space: nowrap;">@item.Answers[0].AnswerDetail</label>
+                                    </div>
+                                </div>
+                                <div class="col-xs-4 col-md-4">
+                                    <div style="text-align:center;">
+                                        <div class="satisfaction">
+                                            <img name="@item.SurveyQuestionId" id="@(item.Answers[1].SurveyAnswerId)_@(item.Answers[1].AnswerId)" src="~/Content/img/MASCOT_Survey/Icon blod – 4.png" class="img-top responsive choice" alt="Card Front">
+                                        </div>
+                                    </div>
+                                    <div style="text-align:center;">
+                                        <label style="cursor:pointer;color:#D4AC0D;white-space: nowrap;">@item.Answers[1].AnswerDetail</label>
+                                    </div>
+                                </div>
+                                <div class="col-xs-4 col-md-4">
+                                    <div style="text-align:center;">
+                                        <div class="satisfaction">
+                                            <img name="@item.SurveyQuestionId" id="@(item.Answers[2].SurveyAnswerId)_@(item.Answers[2].AnswerId)" src="~/Content/img/MASCOT_Survey/Icon blod – 5.png" class="img-top responsive choice" alt="Card Front">
+                                        </div>
+                                    </div>
+                                    <div style="text-align:center;">
+                                        <label style="cursor:pointer;color:#E74C3C;white-space: nowrap;">@item.Answers[2].AnswerDetail</label>
+                                    </div>
+                                </div>
+                                <div id="parent_suggest_@(item.SurveyQuestionId)_@(item.Answers[2].AnswerId)" class="col-xs-12 col-md-12 col-lg-12" style="display:none">
+                                    <label style="color: #E74C3C">ข้อเสนอแนะให้ปรับปรุง</label>
+                                    <div style="text-align:center;">
+                                        <textarea name="sub_suggest_@(item.SurveyQuestionId)" style="overflow:auto;resize:none;width:100%;height:4rem"></textarea>
+                                    </div>
+                                </div>
+                                <div id="parent_satisfaction_answer"></div>
+                            }
+                            else if (item.Answers.Count == 1)
+                            {
+                                //ข้อเสนอแนะเพิ่มเติม
+                                <div class="col-xs-12 col-md-12 col-lg-12">
+                                    <div style="text-align:center;">
+                                        <textarea name="suggest" style="overflow:auto;resize:none;width:100%;height:6rem"></textarea>
+                                        <input type="hidden" name="suggest_surveyquestion_id" value="@item.SurveyQuestionId" />
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            <div style="text-align:center;margin-bottom: 5rem;">
+                <button id="btnSubmit" class="form-control btn" style="width:100px;background-color:#047ed6;color:white">ส่ง</button>
+            </div>
+
+            <input type="hidden" name="survey_id" value="@ViewBag.Survey.SurveyId" />
+            <input type="hidden" name="viewlog_id" value="@ViewBag.ViewLog" />
+        </form>
+    </div>
+</div>
+
+@section ViewSpecificJavascript {
+    <script>
+        $(function () {
+
+            //Click
+            $('img').click(function () {
+                let name = (this).name;
+                let id = (this).id.split('_');
+
+                //remove class active
+                $(`img[name='${name}'].active`).removeClass('active');
+                //add class active
+                $(this).addClass('active');
+
+                //remove element
+                $(`#answer_${name}`).remove();
+                //create element
+                $('#parent_satisfaction_answer').append(`<input type="hidden" id="answer_${name}" name="answers" value="SQ${name}:SA${id[0]}:A${id[1]}" />`);
+
+                //check element answer id
+                if (id[1] === "3") {
+                    $(`#parent_suggest_${name}_3`).css('display', 'inline');
+                } else {
+                    $(`#parent_suggest_${name}_3`).css('display', 'none');
+                }
+            });
+
+            //Submit
+            $('#btnSubmit').click(function (e) {
+                e.preventDefault()
+               
+                //Validate
+                if (valid()) {
+                    $('#btnSubmit').attr('disabled', true);
+                    $('form').submit();
+                }
+            });
+        });
+
+        //Function Validate
+        function valid() {
+            if (!validImgActive()) {
+                swal("กรุณาเลือกระดับคะแนนความพึงพอใจ", "", "warning");
+                return false;
+            }
+
+            //if (!$('textarea[name="suggest"').val().length > 0) {
+            //    swal("กรุณาระบุข้อเสนอแนะเพิ่มเติม", "", "warning");
+            //    return false;
+            //}
+
+            return true;
+        }
+
+        //Function Validate Active Image
+        function validImgActive() {
+            let imgArray = $('img.choice');
+            var imgName = [];
+
+            for (let i = 0; i < imgArray.length; i++) {
+                let name = imgArray[i].name
+                if (imgName.indexOf(name) == -1) imgName.push(name)
+            }
+
+            for (var i = 0; i < imgName.length; i++) {
+                var active = $(`img[name='${imgName[i]}']`).hasClass('active')
+                if (!active) return false;
+            }
+
+            return true;
+        }
+    </script>
+}

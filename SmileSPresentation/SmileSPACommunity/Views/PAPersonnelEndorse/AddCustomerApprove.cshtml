@@ -1,0 +1,426 @@
+﻿
+@{
+    ViewBag.Title = "ตรวจสอบการขอเพิ่มรายชื่อ";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+            @*Header*@
+            <div class="box box-warning">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ข้อมูลกรมธรรม์</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <label>Application ID :</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon" style="background: #30bee6; color: white ">
+                                        <i class="fa fa-heartbeat"></i>
+                                    </div>
+                                    <input type="text" class="form-control" id="txtAppCode" disabled style="background: #30bee6; color: white ">
+                                </div>
+                            </div>
+                            <div class="col-xs-5">
+                                <label>ชื่อกรมธรรม์ :</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-laptop"></i>
+                                    </div>
+                                    <input type="text" class="form-control" id="txtPolicyName" disabled>
+                                </div>
+                            </div>
+                            <div class="col-xs-3">
+                                <label>วันที่มีผลบังคับ :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpEffectDate" disabled>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-2" style="padding-top:25px">
+                                <button type="button" style="text-decoration:none" class="btn btn-primary" id="btnDetail"><i class="fa fa-fw fa-desktop"></i> รายละเอียด</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* ตารางข้อมูล *@
+            <div class="box box-warning">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายชื่อผู้เอาประกันที่ขอเพิ่ม</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="box-group">
+                        <table id="dtNameList" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xs-12" style="text-align:center" id="divbutton">
+                    <button type="button" class="btn btn-danger" id="btnUnApprove"><i class="glyphicon glyphicon-remove-sign"></i> ไม่อนุมัติ</button>
+                    <button type="button" class="btn btn-success" id="btnApprove"><i class="glyphicon glyphicon-ok-sign"></i> อนุมัติ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="hdfAppId" value="" />
+    <input type="hidden" id="hdfRoundId" value="@ViewBag.RoundId" />
+    <input type="hidden" id="hdfRoundStatusId" value="" />
+
+</form>
+
+@* Modal Cause UnApprove *@
+<div class="modal fade in" id="modal-CauseUnApprove" style="display: none; ">
+
+    <div class="modal-dialog">
+        <div class="box box-danger box-solid">
+            <div class="box-header">
+
+                <h4 class="box-title">สาเหตุการไม่อนุมัติ</h4>
+            </div>
+
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-10 col-xs-offset-1">
+                        <label>สาเหตุการไม่อนุมัติ :</label>
+                        <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlUnApproveCause" name="ddlUnApproveCause">
+                            <option value="-1">--โปรดระบุ--</option>
+                            @{
+                                foreach (var item in ViewBag.ApproveCause)
+                                {
+                                    <option value="@item.ApproveCauseId">@item.ApproveCause</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row" style="padding-top: 5px;">
+                    <div class="col-xs-10 col-xs-offset-1">
+                        <label>หมายเหตุ :</label>
+                        <textarea rows="3" class="form-control" id="txtUnApproveRemark"></textarea>
+                    </div>
+                </div>
+
+                <div class="row" style="padding-top: 5px;">
+                    <div class="col-xs-12" style="text-align:center">
+                        <button type="button" class="btn btn-danger" id="btnCancelUnApprove"><i class="glyphicon glyphicon-remove"></i> ยกเลิก</button>
+                        <button type="button" class="btn btn-success" id="btnSaveUnApprove"><i class="glyphicon glyphicon-ok"></i> ตกลง</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+
+
+
+@section ViewSpecificJavascript {
+
+    <script type="text/javascript">
+
+        //-----------------------------------------------------------------Global Variables-----------------------------------------------------------------
+
+            var v_role = '@ViewBag.RoleList';
+            var arr = v_role.split(',');
+
+        $(function () {
+            var chat = $.connection.myHub;
+
+            //Start Connection
+            $.connection.hub.start().done(function () {
+
+                chat.server.joinGroup(@ViewBag.userID);
+
+                  //Save Approve
+        function SaveApproveAddCustomer() {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("DoUpdateApprovePersonnelApplication", "PAPersonnelEndorse")",
+                data: {
+                    appRoundId: $('#hdfRoundId').val(),
+                    roundStatusId: 4,
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    if (response.IsResult == 1) {
+                        chat.server.sendNotice("", "");
+                        swal({
+                            title: response.Msg,
+                            type: "success",
+                            showCancelButton: false,
+                            closeOnConfirm: false,
+                            showLoaderOnConfirm: true
+                        }, function () {
+                            setTimeout(function () {
+                                //swal("Ajax request finished!");
+                                window.close();
+                            }, 1000);
+                        });
+                    } else {
+                        swal("", response.Msg, "error");
+                    }
+                }
+            });
+                }
+
+                  // Save UnApprove
+        function SaveUnApproveAddCustomer() {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("DoUpdateApprovePersonnelApplication", "PAPersonnelEndorse")",
+                data: {
+                    appRoundId: $('#hdfRoundId').val(),
+                    roundStatusId: 5,
+                    approveCauseId: $('#ddlUnApproveCause').val(),
+                    approveRemark: $('#txtUnApproveRemark').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    if (response.IsResult == 1) {
+                        chat.server.sendNotice("", "");
+                        swal({
+                            title: response.Msg,
+                            type: "success",
+                            showCancelButton: false,
+                            closeOnConfirm: false,
+                            showLoaderOnConfirm: true
+                        }, function () {
+                            setTimeout(function () {
+                                //swal("Ajax request finished!");
+                                window.close();
+                            }, 1000);
+                        });
+                    } else {
+                        swal("", response.Msg, "error");
+                    }
+                }
+            });
+        }
+
+
+
+
+
+                @* Approve *@
+                $('#btnApprove').click(function (e) {
+                    e.preventDefault();
+                    window.swal({
+                        title: `ยืนยันการอนุมัติเพิ่มรายชื่อ "${$('#txtPolicyName').val()}" หรือไม่?`,
+                        type: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#277020',
+                        confirmButtonText: 'ตกลง',
+                        cancelButtonText: 'ยกเลิก',
+                        closeOnConfirm: false,
+                        closeOnEsc: false,
+                        closeOnCancel: true
+                    }, function (isconfirm) {
+
+                        if (isconfirm) {
+                            SaveApproveAddCustomer();
+                        }
+
+                    });
+                });
+
+                $('#btnSaveUnApprove').click(function (e) {
+                    e.preventDefault();
+                    if (IsvalidateForUnApprove()) {
+                        window.swal({
+                            title: 'ยืนยันการทำรายการหรือไม่?',
+                            type: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#277020',
+                            confirmButtonText: 'ตกลง',
+                            cancelButtonText: 'ยกเลิก',
+                            closeOnConfirm: false,
+                            closeOnEsc: false,
+                            closeOnCancel: true
+                        }, function (isconfirm) {
+
+                            if (isconfirm) {
+                                SaveUnApproveAddCustomer();
+                            }
+
+                        });
+                    }
+
+                });
+
+
+            });
+        })
+
+
+
+
+        //--------------------------------------Event------------------------------------
+
+        $(function () {
+
+
+
+            $('.select2').select2();
+
+            GetAppIdByRoundID();
+            GetHeaderDetail();
+            GetNameList();
+
+
+            if (jQuery.inArray("Developer", arr) !== -1 || jQuery.inArray("PAPersonnel_PAUnderwrite", arr) !== -1) {
+                $('#divbutton').show()
+
+                if ($('#hdfRoundStatusId').val() != 3) {
+                    $('#divbutton').hide()
+                }
+            } else {
+                $('#divbutton').hide()
+            }
+
+            @*เปิดรายละเอียด*@
+            $('#btnDetail').click(function (e) {
+                e.preventDefault();
+                var encode = window.btoa($('#hdfAppId').val());
+                var view = `@Url.Action("PAPersonnelDetail", "PAPersonnel")?appID=` + encode;
+                window.open(view, '_blank');
+            })
+
+            @*UnApprove*@
+            $('#btnUnApprove').click(function (e) {
+                e.preventDefault();
+                $('#modal-CauseUnApprove').modal('show');
+            });
+
+            $('#btnCancelUnApprove').click(function (e) {
+                e.preventDefault();
+                DoClearinputCause();
+                $('#modal-CauseUnApprove').modal('hide');
+
+            });
+
+        })
+
+        //-------------------------------------Method-------------------------------------
+
+        //Get ApplicationID
+        function GetAppIdByRoundID() {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetPAPersonnelAppIDByRoundID", "PAPersonnelEndorse")",
+                data: { appRoundId: $('#hdfRoundId').val(),},
+                dataType: "json",
+                async: false,
+                success: function (response) {
+                    var appId = response.PersonnelApplicationId;
+                    var effectiveDate = response.RoundEffectiveDate;
+                    var roundStatus = response.PersonnelApplicationRoundStatusId
+                    debugger
+                    $('#hdfAppId').val(appId);
+                    $('#dtpEffectDate').val(moment(effectiveDate).add(543, 'years').format("DD/MM/YYYY"));
+                    $('#hdfRoundStatusId').val(roundStatus);
+                }
+            });
+        }
+
+
+
+        function GetHeaderDetail() {
+           $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetApplicationHeaderByAppId", "PAPersonnelEndorse")",
+                data: {
+                    appId: $('#hdfAppId').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    $('#txtAppCode').val(response.PersonnelApplicationCode);
+                    $('#txtPolicyName').val(response.PersonnelApplicationName);
+
+                }
+            });
+        }
+
+        function GetNameList() {
+
+            $('#dtNameList').empty();
+
+            let t = $('#dtNameList').DataTable({
+                 pageLength: 5,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                 destroy: true,
+                 searching: false,
+                 ajax: {
+                     url: '@Url.Action("GetPersonnelCustomerDetail", "PAPersonnelEndorse")',
+                        type: 'POST',
+                        data: function (d) {
+                            d.appId = $('#hdfAppId').val();
+                            d.roundId = $('#hdfRoundId').val();
+                            d.draw = d.draw;
+                            d.pageSize = d.length;
+                            d.indexStart = d.start;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.searchDetail = "";
+                        }
+                    },
+                    columns: [
+                        { title: 'Member ID', data: 'PersonnelCustomerDetailCode', className: 'h-dt-center d-dt-center', width: '17%' },
+                        { title: 'ขื่อนามสกุล', data: 'PersonnelCustomerName', className: 'h-dt-center '},
+                        { title: 'รหัสประจำประชาชน', data: 'IdCardNumber', className: 'h-dt-center '},
+                        { title: 'Passport/อื่นๆ', data: 'PassPortNumber', className: 'h-dt-center '},
+                        { title: 'ตำแหน่ง', data: 'Position', className: 'h-dt-center '},
+                        { title: 'เบอร์โทร', data: 'MobileNumber', className: 'h-dt-center '},
+
+                    ],
+                    bLengthChange: false,
+                });
+
+        }
+        //Clear UnApprove Input
+        function DoClearinputCause() {
+            $('#ddlUnApproveCause').val('-1').select2().trigger('change.select2');
+            $('#txtUnApproveRemark').val('');
+        }
+
+
+        //--------------------------------------Validate---------------------------------
+
+        function IsvalidateForUnApprove() {
+            if ($('#ddlUnApproveCause').val() == '-1') {
+                swal("ตรวจสอบข้อมูล", "กรุณาเลือก สาเหตุการไม่อนุมัติ", "warning");
+                return false;
+            }
+
+            if ($("#txtUnApproveRemark").val() == "") {
+                swal("ตรวจสอบข้อมูล", "กรุณากรอก หมายเหตุ", "warning");
+                return false;
+            }
+
+            return true;
+        }
+
+    </script>
+
+}

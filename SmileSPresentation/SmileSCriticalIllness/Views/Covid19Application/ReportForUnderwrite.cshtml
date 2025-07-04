@@ -1,0 +1,89 @@
+﻿@{
+    /**/
+
+    ViewBag.Title = "ReportForUnderwrite";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .table {
+        font-size: 14px;
+    }
+
+    .toolbar {
+        float: left;
+    }
+</style>
+<div class="row">
+    @* DT form *@
+    <div id="dt_form" class="col-sm-12 col-md-12">
+        <div class="box box-default">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <table id="dtUdwReport" name="dtUdwReport" class="table table-bordered table-striped" style="width: 100%"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end form *@
+</div>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function() {
+            GetMonitorUdw();
+        });
+
+        const GetMonitorUdw = () => {
+            //call api
+            $('#dtUdwReport').empty();
+            var appTable = $('#dtUdwReport').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetUdwReport","Covid19Application")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchDetail = d.search;
+                    }
+                },
+                columns: [
+                    { title: 'รหัสรายงาน', data: '' },
+                    {
+                        title: 'วันที่ออกรายงาน', data: '',
+                        render: function (data) {
+                            if (data != null) {
+                                let startCoverDate = moment(data)._d;
+                                let yearBE = startCoverDate.getFullYear() + 543;
+                                let startCoverDateBE = moment(startCoverDate.setFullYear(yearBE)).format("DD/MM/YYYY");
+                                return startCoverDateBE;
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    { title: 'จำนวน Application', data: '' },
+                    {
+                        title: 'Download',
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        mRender: function (data) {
+                            return '<a target="_blank" href="#" class="btn btn-block btn-danger"> Download</a>';
+                        }
+                    }
+                ]
+            });
+        }
+    </script>
+}

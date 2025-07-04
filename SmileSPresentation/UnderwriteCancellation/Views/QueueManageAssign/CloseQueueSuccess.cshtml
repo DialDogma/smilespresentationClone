@@ -1,0 +1,270 @@
+﻿@{
+    ViewBag.Title = "ปิดคิวงานสำเร็จ";
+}
+<style>
+    table.dataTable thead {
+        background-color: #337AB7;
+        color: azure;
+    }
+</style>
+<form action="" method="post" id="fmCreateQueue">
+    <div style="padding-bottom:10px">
+        <h3 class="box-title">ปิดคิวงานสำเร็จ</h3>
+    </div>
+    <div class="row">
+        <div class="col-sm-12 col-md-12">
+            @* search form *@
+            <div id="Create_form">
+                <div class="box box-info">
+                    <div class="box-header">
+                        <h3 class="box-title">ค้นหารายการ</h3>
+                    </div>
+                    <div class="box-body">
+                        <div class="row" style="padding-top:6px">
+                            <div class="col-xs-12  col-md-3 col-lg-3">
+                                <label>DCR ยกเลิก</label>
+                                <div class="input-group date ">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpDCR" data-date-language="th-th" data-provide="datepicker" value="" />
+                                </div>
+                            </div>
+                            <div class="col-xs-12  col-md-3 col-lg-3">
+                                <label>สถานะ</label>
+                                <select class="form-control" id="queueStatusId">
+                                    <option value="null">ทั้งหมด</option>
+                                    @{ if (ViewBag.QueueStatusId != null)
+                                        {
+                                            foreach (var item in ViewBag.QueueStatus)
+                                            {
+
+                                                <option value="@item.QueueStatusId" @((item.QueueStatusId == ViewBag.QueueStatusId) ? "selected" : "")>@item.QueueStatusDetail</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row" style="padding-top:6px">
+                            <div class="col-xs-12  col-md-3 col-lg-3">
+                                <label>ชื่อผู้ชำระเบี้ย</label>
+                                <div class="input-group date col-xs-12  col-md-12 col-lg-12">
+                                    <input type="text" class="form-control" id="payerName" placeholder="ชื่อผู้ชำระเบี้ย" />
+                                </div>
+                            </div>
+                            <div class="col-xs-12  col-md-3 col-lg-3">
+                                <label>เลขบัตรประชาชน/Passport</label>
+                                <div class="input-group date  col-xs-12  col-md-12 col-lg-12">
+                                    <input type="text" class="form-control" id="payerIdCard" placeholder="เลขบัตรประชาชน/Passport" />
+                                </div>
+                            </div>
+                            <div class="col-xs-12  col-md-3 col-lg-3">
+                                <label>เบอร์โทรผู้ชำระเบี้ย</label>
+                                <div class="input-group date  col-xs-12  col-md-12 col-lg-12">
+                                    <input type="text" class="form-control" id="payerPhone" placeholder="เบอร์โทรผู้ชำระเบี้ย" />
+                                </div>
+                            </div>
+
+                            <div class="col-xs-12  col-md-2 col-lg-2" style="padding-top:25px">
+                                <button type="button" class="btn btn-info" id="btnSearch_Complete"><i class="fa fa-search" aria-hidden="true"></i>ค้นหา</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* end form *@
+        </div>
+        <div class="col-sm-12 col-md-12 col-xs-12">
+            @* DT form *@
+            <div id="dt_form">
+                <div class="box box-warning">
+                    <div class="box-header">
+                        <h4 class="box-title">รายละเอียดรายการ</h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <table id="dtCloseQueueSuccess" name="dtCloseQueueSuccess" class="table table-bordered table-hover dataTable" style="width: 100%">
+                                    <tbody>
+                                        <tr style="text-align: center"><td>ไม่พบข้อมูล</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* end form *@
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript{
+    <script type="text/javascript">
+        $(function () {
+            //todo
+             if (`@ViewBag.DCR` == "") {
+                $('#dtpDCR').datepicker({
+                    autoclose: true,
+                    todayHighlight: true,
+                    minViewMode: "months",
+                    format: "dd/mm/yyyy",
+                }).datepicker('update', new Date(moment().set('date', 1).add('month', -2)));
+                } else {
+                 $('#dtpDCR').datepicker({
+                    autoclose: true,
+                    todayHighlight: true,
+                    minViewMode: "months",
+                    format: "dd/mm/yyyy",
+                }).datepicker('update', new Date(moment().set('date', 1).set('month', @ViewBag.month).set('year',@ViewBag.year).add('month', -1).add('year', -543)));
+
+            }
+
+            DataTableCloseQueueSuccess();
+
+            $('#btnSearch_Complete').click(function (e) {
+                e.preventDefault();
+                DataTableCloseQueueSuccess();
+            });
+        });
+
+  function DataTableCloseQueueSuccess() {
+            $('#dtCloseQueueSuccess').empty();
+            let t = $('#dtCloseQueueSuccess').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                 ajax: {
+                     url: '@Url.Action("GeDataTableCloseQueueSuccess", "QueueManageAssign")',
+                        type: 'POST',
+                     data: function (d) {
+                         d.draw = d.draw;
+                         d.pageSize = d.length;
+                         d.pageStart = d.start;
+                         d.sortField = d.columns[d.order[0].column].data;
+                         d.orderType = d.order[0].dir;
+                         d.search = d.search.value;
+                         d.period = $('#dtpDCR').val();
+                         d.queueStatusId = $('#queueStatusId').val();
+                         d.payerName = $('#payerName').val();
+                         d.payerIdCard = $('#payerIdCard').val();
+                         d.payerPhone = $('#payerPhone').val();
+                     },
+                },
+                columns: [
+                    {
+                        title: 'ลำดับที่',
+                        data: null,
+                        className: "th-center",
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        title: 'ชื่อผู้ชำระเบี้ย',
+                        data: "PayerName",
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'เลขบัตรประชาชน/Passport',
+                        data: "PayerIdCardNo",
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'เบอร์โทรผู้ชำระเบี้ย',
+                        data: "PayerPhone",
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'จำนวนผู้เอาประกัน',
+                        data: "QueueDetailAllCount",
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: "QueueStatusDetail",
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'DCR ยกเลิก',
+                        data: "Period",
+                        render: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY");
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'วันที่ทำรายการ',
+                        data: "UpdatedDate",
+                        render: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:ss");
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        width: '10%',
+                        orderable: false,
+                        render: function (data) {
+                            return `<button type="button" class="btn btn-info" onclick="selectToSeeDetail(${data.QueueId})">ดู</button>`;
+
+                        }
+                    },
+                    {
+                        title: 'แก้ไข',
+                        data: null,
+                        width: '10%',
+                        orderable: false,
+                        render: function (data) {
+                            if (data.QueueStatusId == 4) {
+                                return `<button type="button" class="btn btn-info" disabled>แก้ไข</button>`;
+                            } else if ((data.QueueStatusId == 2 || data.QueueStatusId == 3) && data.IsIssue == true) {
+                                return `<button type="button" class="btn btn-info" disabled>แก้ไข</button>`;
+                            } else {
+                                return `<button type="button" class="btn btn-info" onclick="selectToEdite(${data.QueueId})">แก้ไข</button>`;
+                            }
+                        }
+                    },
+
+                ],
+                bLengthChange: false,
+                'columnDefs': [
+                    {
+                        "targets": [0],
+                        "visible": false
+                    },
+                    {
+                        "targets": "_all", // your case first column
+                        "className": "text-center",
+                    }]
+
+                });
+        }
+        const selectToSeeDetail = (QueueId) => {
+            let c_QueueId = window.btoa(QueueId);
+            window.open(`@Url.Action("UnderwriteCancelView", "CustomerCheckInfo")?QueueId=${c_QueueId}`, '_blank');
+        }
+        const selectToEdite = (QueueId) => {
+             let c_QueueId = window.btoa(QueueId);
+            window.open(`@Url.Action("UnderwriteCancelIndex", "CustomerCheckInfo")?QueueId=${c_QueueId}`, '_blank');
+        }
+    </script>
+}

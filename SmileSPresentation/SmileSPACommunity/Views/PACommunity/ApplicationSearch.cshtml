@@ -1,0 +1,274 @@
+﻿
+@{
+    ViewBag.Title = "ค้นหาข้อมูลชุมชน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div class="tab" role="tabpanel">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a href="#pnlSearchPACommunity" aria-controls="home" role="tab" data-toggle="tab">ค้นหาข้อมูลชุมชน</a></li>
+                    <li role="presentation"><a href="#pnlSearchCustomer" aria-controls="profile" role="tab" data-toggle="tab">ค้นหาผู้เอาประกัน</a></li>
+                </ul>
+
+                <div class="tab-content tabs">
+
+                    <div role="tabpanel" class="tab-pane fade in active" id="pnlSearchPACommunity">
+
+                        <div class="box box-primary">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">ค้นหาข้อมูลชุมชน</h3>
+
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                        <i class="fa fa-minus"></i>
+                                    </button>
+
+                                </div>
+                            </div>
+                            <!-- /.box-header -->
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-xs-6 col-xs-offset-2">
+                                        <label>ระบุคำค้น</label>
+                                        <input type="text" class="form-control" placeholder="ชื่อชุมชนหรือ ApplicationCode" id="txtkeywordApplication" />
+                                    </div>
+                                    <div class="col-xs-2" style="padding-top:27px">
+                                        <button type="button" id="btnSearchApplication" class="btn btn-primary">ค้นหา</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <table id="dtMonitorApplication" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                                </div>
+                            </div>
+                            <!-- /.box-body -->
+                        </div>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane fade" id="pnlSearchCustomer">
+
+                        <div class="box box-warning">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">ค้นหาผู้เอาประกัน</h3>
+
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                        <i class="fa fa-minus"></i>
+                                    </button>
+
+                                </div>
+                            </div>
+                            <!-- /.box-header -->
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-xs-6 col-xs-offset-2">
+                                        <label>ค้นหาจากชื่อ นามสกุล</label>
+                                        <input type="text" class="form-control" placeholder="" id="txtnameCustomer" />
+                                    </div>
+
+                                </div>
+                                <div class="row" style="padding-top:7px;">
+                                    <div class="col-xs-6 col-xs-offset-2">
+                                        <label>ค้นหาจากเลขบัตรประชาชน หรือ Passport</label>
+                                        <input type="text" class="form-control" placeholder="" id="txtidCardorPassport" />
+                                    </div>
+                                    <div class="col-xs-2" style="padding-top:27px">
+                                        <button type="button" id="btnSearchCustomer" class="btn btn-primary">ค้นหา</button>
+                                    </div>
+
+                                </div>
+                                <div>
+                                    <table id="dtMonitorCustomer" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                                </div>
+                            </div>
+                            <!-- /.box-body -->
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript {
+
+    <script type="text/javascript">
+
+        $(function () {
+            $('#btnSearchApplication').click(function (e) {
+                e.preventDefault();
+                if (IsValidateForSearchApplication()) {
+                    GetDataApplication();
+                }
+
+            });
+
+            $('#btnSearchCustomer').click(function (e) {
+                e.preventDefault();
+                if (IsValidateForSearchCustomer()) {
+
+                    GetDataCustomer();
+                }
+                
+            });
+
+
+        });
+
+
+        const IsValidateForSearchApplication = () => {
+
+            let rs = "";
+
+            if ($('#txtkeywordApplication').val() == "") {
+                rs = "กรุณากรอก คำค้น";
+                swal("ตรวจสอบรายการ", rs, "warning");
+                return false;
+            }
+
+            return true;
+        }
+
+        const IsValidateForSearchCustomer = () => {
+            let rs = "";
+
+            if ($('#txtnameCustomer').val() == "" && $('#txtidCardorPassport').val() == "") {
+                rs = "กรุณาเลือกกรอก อย่างใดอย่างหนึ่ง";
+                swal("ตรวจสอบรายการ", rs, "warning");
+                return false;
+            }
+
+            return true;
+        }
+
+        const GetDataCustomer = () => {
+            $('#dtMonitorCustomer').empty();
+
+            let t = $('#dtMonitorCustomer').DataTable({
+                pageLength: 5,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetCustomerDetailByName", "PACommunity")',
+                        type: 'POST',
+                        data: function (d) {
+                            d.draw = d.draw;
+                            d.pageSize = d.length;
+                            d.pageStart = d.start;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.search = d.search;
+                            d.customerName = $('#txtnameCustomer').val();
+                            d.idCardOrPassport = $('#txtidCardorPassport').val()
+                        }
+                    },
+                    columns: [
+                        { title: 'MemberID', data: 'CustomerDetailCode', className: 'h-dt-center d-dt-center', width: '17%' },
+                        { title: 'ชื่อ นามสกุล', data: 'CustomerName', className: 'h-dt-center ' },
+                        { title: 'AppID', data: 'ApplicationCode', className: 'h-dt-center ' },
+                        { title: 'ชื่อกรมธรรม์', data: 'ApplicationName', className: 'h-dt-center ' },
+                        { title: 'เลขที่บัตรประชาชน', data: 'IdCardNumber', className: 'h-dt-center ' },
+                        { title: 'Passport', data: 'PassPortNumber', className: 'h-dt-center ' },
+                        
+                        {
+                            title: 'วันเกิด', data: 'BirthDate', className: 'h-dt-center '
+                            , mRender: function (data) {
+                                moment.locale('th');
+                                //return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                                var d = moment(data);
+                                return `${d.format("DD/MM")}/${d.year() + 543}`;
+                            }
+                        },
+                        { title: 'สถานะผู้เอาประกัน', data: 'CustomerDetailStatus', className: 'h-dt-center ' },
+
+                        {
+                            data: null,
+                            mRender: (data, type, full) =>
+                            {
+                                let en_AppID = window.btoa(data.ApplicationId);
+                                return '<a href="@Url.Action("PACommunityDetail", "PACommunity")?applicationID=' + en_AppID +'" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-fw fa-desktop"></i> รายละเอียด </a>';
+                            }, width: '5%'
+                        },
+
+                    ],
+                    bLengthChange: false,
+                });
+        }
+
+        const GetDataApplication = () => {
+            $('#dtMonitorApplication').empty();
+
+            let t = $('#dtMonitorApplication').DataTable({
+                pageLength: 5,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetApplicationDetailMonitor", "PACommunity")',
+                        type: 'POST',
+                        data: function (d) {
+                            d.draw = d.draw;
+                            d.pageSize = d.length;
+                            d.pageStart = d.start;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.search = $('#txtkeywordApplication').val();
+                        }
+                    },
+                    columns: [
+                        { title: 'AppId', data: 'ApplicationCode', className: 'h-dt-center d-dt-center', width: '17%' },
+                        { title: 'ชื่อกรมธรรม์', data: 'ApplicationName', className: 'h-dt-center ' },
+                        {
+                            title: 'วันเริ่มคุ้มครอง', data: 'StartCoverDate', className: 'h-dt-center '
+                            , mRender: function (data) {
+                                moment.locale('th');
+                                var d = moment(data);
+                                return `${d.format("DD/MM")}/${d.year() + 543}`;
+                            }
+                        },
+                        {
+                            title: 'วันสิ้นสุด', data: 'EndCoverDate', className: 'h-dt-center '
+                            , mRender: function (data) {
+                                moment.locale('th');
+                                var d = moment(data);
+                                return `${d.format("DD/MM")}/${d.year() + 543}`;
+                            }
+                        },
+
+                        { title: 'สถานะกรมธรรม์', data: 'ApplicationStatus', className: 'h-dt-center ' },
+
+                        {
+                            data: null,
+                            mRender: (data, type, full) =>
+                            {
+                                let en_AppID = window.btoa(data.ApplicationId);
+                                return '<a href="@Url.Action("PACommunityDetail", "PACommunity")?applicationID=' + en_AppID +'" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-fw fa-desktop"></i> รายละเอียด </a>';
+                            }, width: '5%'
+                        },
+
+                    ],
+                    bLengthChange: false,
+                });
+        }
+
+
+
+    </script>
+}
+

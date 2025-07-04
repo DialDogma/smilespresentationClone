@@ -1,0 +1,173 @@
+﻿
+@{
+    ViewBag.Title = "บันทึกขอเพิ่มรายชื่อผู้เอาประกัน";
+}
+
+
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+                </div>
+                @*ค้นหา*@
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-xs-2">
+                                <label>สาขา :</label>
+                                <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlBranch" disabled>
+                                    @{
+                                        foreach (var item in ViewBag.Role)
+                                        {
+                                            if (item == "Developer" || item == "PAPersonnel_PAUnderwrite")
+                                            {
+                                                <option value="-1">--ทั้งหมด--</option>
+                                            }
+                                        }
+                                    }
+                                    @{
+                                        foreach (var item in ViewBag.Branch)
+                                        {
+                                                <option value="@item.BranchID">@item.Branch</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-xs-2">
+                                <label>ปีการศึกษา :</label>
+                                <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlStudyYear">
+                                    @{
+                                        foreach (var item in ViewBag.PolicyYear)
+                                        {
+                                            <option value="@item.Code">@item.Detail</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-xs-6">
+                                <label>ค้นหาจากรายการ App PA ยิ้มแฉ่ง หรือ ชื่อสถานศึกษา :</label>
+                                <input class="form-control" id="txtSearch" placeholder="">
+                            </div>
+                            <div class="col-xs-2" style="padding-top:25px">
+                                <button type="button" style="text-decoration:none" class="btn btn-primary" id="btnSearch"><i class="fa fa-fw fa-search"></i> ค้นหา</button>
+                            </div>
+                        </div>
+                    </div>
+                    @* ตารางข้อมูล *@
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <table id="dtMonitor" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+@section ViewSpecificJavascript
+    {
+    <script>
+
+        //-------------------------------------------------Event----------------------------------------------
+
+        $(function () {
+            $('.select2').select2();
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+
+                if ($('#ddlStudyYear').val() == "-1") {
+                    swal("ตรวจสอบข้อมูล", "กรุณาเลือกปีการศึกษา", "warning");
+                    $('#dtMonitor').empty();
+                }
+                else {
+                    GetMonitorCustomerManage();
+                }
+
+            });
+        })
+
+        //-------------------------------------------------Method-------------------------------------------------------
+
+        function GetMonitorCustomerManage() {
+            $('#dtMonitor').empty();
+
+            var t = $('#dtMonitor').dataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                async: false,
+                ajax: {
+                    url: '@Url.Action("GetMonitorCustomer", "PAPersonnelEndorse")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.branchId = $('#ddlBranch').val() == -1 ? null : $('#ddlBranch').val();
+                        d.year = $('#ddlStudyYear').val();
+                        d.search = $('#txtSearch').val();
+                        d.appStatusId = "4";
+
+                    }
+                },
+                columns: [
+                    { title: 'AppID', data: 'PersonnelApplicationCode' },
+                    { title: 'สถานศึกษา', data: 'PersonnelApplicationName' },
+                    //{ title: 'จำนวนผู้เอาประกัน', data: '' },
+                    { title: 'สถานะ', data: 'PersonnelApplicationStatusName' },
+                    {
+                        title: 'วันที่เริ่มคุ้มครอง', data: 'StartCoverDate', className: 'dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'วันที่สิ้นสุดคุ้มครอง', data: 'EndCoverDate', className: 'dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                    {
+                        data: null,
+                        className: 'h-dt-center',
+                        mRender: (data, type, full) =>
+                        {
+                            let en_code = window.btoa(data.PersonnelApplicationId);
+
+                            return '<a href="@Url.Action("PAPersonnelDetail", "PAPersonnel")?appID=' + en_code +'" class="btn btn-primary btn-sm" target="_blank"> <i class="fa fa-fw fa-desktop"></i> รายละเอียด </a>';
+                        }, width: '10%'
+                    },
+
+                    {
+                        data: null,
+                        mRender: (data, type, full) =>
+                        {
+                            let en_code = window.btoa(data.PersonnelApplicationId);
+
+                            return '<a href="@Url.Action("PAPersonnelAddImportCustomer", "PAPersonnelEndorse")?appID=' + en_code + '" class="btn btn-warning btn-sm"><i class="fa fa-fw fa-plus-circle"></i> เพิ่มรายชื่อ </a>';
+                        }, width: '5%'
+                    },
+
+                ],
+                bLengthChange: false,
+            })
+        }
+
+
+
+
+    </script>
+}
+

@@ -1,0 +1,120 @@
+﻿@using SmileUnderwriteBranch.SSOService;
+@{
+    var userDetail = SmileUnderwriteBranch.Helper.GlobalFunction.GetLoginDetail(this.Context);
+    var userRole = new SSOServiceClient().GetRoleByUserName(userDetail.UserName);
+    var rolesDev = new[] { "Developer" };
+    var rolesAdmin = new[] { "SmileCall_Admin" };
+    var rolesAdvisor = new[] { "SmileUnderwriteBranch_Advisor" };
+    var rolesUnderwrite = new[] { "SmileCall_Underwrite" };
+    //var rolesDirectorAndCM = new[] { "SmileUnderwriteBranch_CM", "SmileUnderwriteBranch_Director" };
+}
+<header class="main-header">
+    <nav class="navbar navbar-static-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a href="@Url.Action("Index", "Home")" class="navbar-brand"><b>Smile</b>Call</a>
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse">
+                    <i class="fa fa-bars"></i>
+                </button>
+            </div>
+
+            @if (userRole != null)
+            {
+                var listUserRole = userRole.Split(',').ToList();
+                var countDev = rolesDev.Intersect(listUserRole).Count();
+                var countRoleAdmin = rolesAdmin.Intersect(listUserRole).Count();
+                var countRoleUnderwrite = rolesUnderwrite.Intersect(listUserRole).Count();
+                var countRoleAdvisor = rolesAdvisor.Intersect(listUserRole).Count();
+                //var countDirectorAndCM = rolesDirectorAndCM.Intersect(listUserRole).Count();
+
+                <!-- Collect the nav links, forms, and other content for toggling -->
+                <div class="collapse navbar-collapse pull-left" id="navbar-collapse">
+                    <ul class="nav navbar-nav">
+                        @if (countDev > 0)
+                        {
+                            <li><a href="@Url.Action("MonitorSupervisor", "Monitor")">Supervisor Monitor</a></li>
+                            <li><a href="@Url.Action("AdminConfig", "Monitor")">Admin Config</a></li>
+                            <li><a href="@Url.Action("AssignConfig", "Monitor")">Assign Config</a></li>
+                            <li><a href="@Url.Action("AdminConsult", "Monitor")">Consult</a></li>
+                            <li><a href="@Url.Action("CMConfig", "Monitor")">จัดการประธานสาขา</a></li>
+                        }
+                        else if (countRoleAdmin > 0)
+                        {
+                            <li><a href="@Url.Action("MonitorSupervisor", "Monitor")">Supervisor Monitor</a></li>
+                            <li><a href="@Url.Action("AdminConfig", "Monitor")">Admin Config</a></li>
+                            <li><a href="@Url.Action("AssignConfig", "Monitor")">Assign Config</a></li>
+                            <li><a href="@Url.Action("CMConfig", "Monitor")">จัดการประธานสาขา</a></li>
+                            @*<li><a href="#">MENU 2</a></li>
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Dropdown <span class="caret"></span></a>
+                                    <ul class="dropdown-menu" role="menu">
+                                        <li><a href="#">dropdown-menu 1</a></li>
+                                        <li><a href="#">dropdown-menu 2</a></li>
+                                        <li class="divider"></li>
+                                        <li><a href="#">dropdown-menu 3</a></li>
+                                        <li class="divider"></li>
+                                        <li><a href="#">dropdown-menu 4</a></li>
+                                    </ul>
+                                </li>*@
+                        }
+                        else if (countRoleUnderwrite > 0)
+                        {
+                            <li><a href="@Url.Action("MonitorSupervisor", "Monitor")">Supervisor Monitor</a></li>
+                        }
+                        else if (countRoleAdvisor > 0)
+                        {
+                            <li><a href="@Url.Action("AdminConsult", "Monitor")">Consult</a></li>
+                        }
+                        @*else if (countDirectorAndCM == 2)
+                            {
+                                <li><a href="@Url.Action("IndexDirector", "Home")">ผอ.สาขา</a></li>
+                                <li><a href="@Url.Action("IndexCM", "Home")">ประธานสาขา</a></li>
+                            }*@
+                    </ul>
+                </div>
+
+            }
+
+            <!-- /.navbar-collapse -->
+            <!-- Navbar Right Menu -->
+            <div class="navbar-custom-menu">
+                <ul class="nav navbar-nav">
+
+                    <!-- User Account Menu -->
+                    <li class="dropdown user user-menu">
+                        <!-- Menu Toggle Button -->
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <!-- The user image in the navbar-->
+                            @*<img src="#" class="user-image" alt="User Image">*@
+                            <!-- hidden-xs hides the username on small devices so only the image appears. -->
+                            <span class="hidden-sm hidden-md hidden-lg user-image"><i class="fa fa-user-circle"></i></span>
+                            <span class="hidden-xs">[@userDetail.UserName] @(userDetail.FirstName) @userDetail.LastName</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <!-- The user image in the menu -->
+                            <li class="user-header" style="height: auto !important">
+                                @*<img src="#" class="img-circle" alt="User Image">*@
+                                <p>
+                                    @userDetail.EmployeePositionDetail
+                                    <br />
+                                    @userDetail.DepartmentDetail
+                                </p>
+                            </li>
+                            <!-- Menu Footer-->
+                            <li class="user-footer">
+                                <div class="pull-left">
+                                    <a href="@SmileUnderwriteBranch.Properties.Settings.Default.ChangePasswordURL" class="btn btn-default btn-flat" target="_blank">เปลี่ยนรหัสผ่าน</a>
+                                </div>
+                                <div class="pull-right">
+                                    <a href="@Url.Action("Logout", "Auth")" class="btn btn-default btn-flat">ออกจากระบบ</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-custom-menu -->
+        </div>
+        <!-- /.container-fluid -->
+    </nav>
+</header>

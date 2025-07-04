@@ -1,0 +1,685 @@
+﻿
+@{
+    ViewBag.Title = "บันทึก PA ยิ้มแฉ่ง";
+}
+
+<style>
+    .swal-wide {
+        width: 35% !important
+    }
+</style>
+<form class="form-horizontal">
+    <input type="hidden" value="@ViewBag.AppID" id="hdfAppID" />
+    <input type="hidden" value="@ViewBag.BranchID" id="hdfBranchID" />
+    <input type="hidden" value="" id="hdfPlanID" />
+    <input type="hidden" value="" id="hdfOrganizeId" />
+    <input type="hidden" value="" id="hdfSchoolName" />
+    <input type="hidden" value="" id="hdfStatusId" />
+
+    <div class="row">
+        <div class="col-xs-12">
+
+            @* ApplicationID *@
+            <div class="col-md-4 col-sm-8 col-xs-12">
+                <div class="info-box">
+                    <span class="info-box-icon bg-aqua bs-glyphicons"><i class="fa fa-fw fa-heartbeat"></i></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Application ID</span>
+                        <span class="info-box-number"><label id="txtApplicationID"></label></span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+                <!-- /.info-box -->
+            </div>
+
+            @* เลขที่กรมธรรม์ *@
+            <div class="col-md-4 col-sm-8 col-xs-12">
+                <div class="info-box">
+                    <span class="info-box-icon bg-yellow"><span class="glyphicon glyphicon-tasks"></span></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">เลขที่กรมธรรม์</span>
+                        <span class="info-box-number"><label id="txtPolicyNo"></label></span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+                <!-- /.info-box -->
+            </div>
+
+            @* สถานะกรรมธรรม์ *@
+            <div class="col-md-4 col-sm-8 col-xs-12">
+                <div class="info-box">
+                    <span class="info-box-icon bg-green"><span class="glyphicon glyphicon-lock"></span></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">สถานะกรมธรรม์</span>
+                        <span class="info-box-number"><label id="txtPolicyStatus"></label></span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+                <!-- /.info-box -->
+            </div>
+        </div>
+    </div>
+    <div class="row" hidden id="lblWarningNotNewApp">
+        <div class="col-xs-12">
+            <div class="callout callout-warning">
+                <h4>คำเตือน !!</h4>
+                <p>
+                    สถานะกรมธรรม์ของ PA ยิ้มแฉ่ง ไม่เป็นสถานะบันทึกลูกค้าใหม่
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="callout callout-danger" id="lblWarning">
+                <h4>คำเตือน !!</h4>
+                <p>
+                    สถานะกรมธรรม์ของ PAนักเรียน ต้องเป็นอนุมัติกรมธรรม์เท่านั้น
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div class="box box-primary box-solid">
+                <div class="box-header with-border" style="background-color:#3987b4; color:white; margin-bottom:1%">
+                    <h3 class="box-title">ข้อมูลกรมธรรม์</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="box-body" style="">
+                    <div class="box-group">
+                        <div class="row">
+                            @* ปีการศึกษา *@
+                            <div class="col-xs-4">
+                                <label>ปีการศึกษา:</label>
+                                <select class="form-control select2 select2-hidden-accessible" id="ddlStudyYear" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true">
+                                    @{ foreach (var item in ViewBag.PolicyYear)
+                                        {
+                                            <option value="@item.Code">@item.Detail</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            @* จังหวัด *@
+                            <div class="col-xs-4">
+                                <label>จังหวัด:</label>
+                                <select class="form-control select2 select2-hidden-accessible" id="ddlProvince" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true">
+                                    <option value="-1">--โปรดระบุ--</option>
+                                    @{
+                                        foreach (var item in ViewBag.Province)
+                                        {
+                                            <option value="@item.ProvinceId">@item.ProvinceName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            @* สาขา *@
+                            <div class="col-xs-4">
+                                <label>สาขา: </label>
+                                <input type="text" class="form-control" placeholder="สาขา" disabled value="@ViewBag.Branch" id="txtBranch">
+                            </div>
+                        </div>
+                        <div class="row" style="padding-top:1%">
+                            @* ค้นหาสถานศึกษา *@
+                            <div class="col-xs-6">
+                                <label>ค้นหาสถานศึกษา หรือ เลขที่ App ID ของ PAนักเรียน:</label>
+                                <select class="form-control select2 select2-hidden-accessible" id="ddlSchoolName" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true">
+                                </select>
+                            </div>
+                            <div class="clearfix visible-xs-block"></div>
+                        </div>
+                        @* สถานะกรมธรรม์ *@
+                        <div class="row" style="padding-top:1%">
+                            <div class="col-xs-4">
+                                <label>สถานะกรมธรรม์ PAนักเรียน:</label>
+                                <span id="lblPAPersonnelStatus" style="color: #3bb6f7"></span>
+                            </div>
+                            <div class="col-xs-4">
+                                <label>เลข APP PAนักเรียน:</label>
+                                <a href="" id="urlPA" target="_blank"><u id="lblPAPersonnelAppId" style="color: #3bb6f7"></u></a>
+                            </div>
+                            <div class="clearfix visible-xs-block"></div>
+                        </div>
+
+                        @* วันที่คุ้มครอง / มีผลบังคับ / สิ้นสุดคุ้มครอง *@
+                        <div class="row" style="padding-top:1%">
+                            <div class="col-xs-4">
+                                <label>วันที่คุ้มครอง:</label>
+                                <span id="lblCoverDate" style="color: #3bb6f7"></span>
+                            </div>
+                            <div class="col-xs-4">
+                                <label>วันที่มีผลบังคับ:</label>
+                                <span id="lblEffectiveDate" style="color: #3bb6f7"></span>
+                            </div>
+                            <div class="col-xs-4">
+                                <label>วันที่สิ้นสุดคุ้มครอง:</label>
+                                <span id="lblEndCoverDate" style="color: #3bb6f7"></span>
+                            </div>
+                        </div>
+                        @* แผนประกัน / ทุนประกัน *@
+                        <div class="row" style="padding-top:1%">
+                            <div class="col-xs-4">
+                                <label>แผนประกัน PAนักเรียน:</label>
+                                <span id="lblPAStudentPlan" style="color: #3bb6f7"></span>
+                            </div>
+                            <div class="col-xs-4">
+                                <label>ทุนประกัน PAนักเรียน:</label>
+                                <span id="lblPAStudentInsurance" style="color: #3bb6f7"></span>
+                            </div>
+                            <div class="col-xs-4">
+                                <label>จำนวน นักเรียน/ครูฟรี/ครูซื้อ:</label>
+                                <span id="lblStudentCount" style="color: #3bb6f7">0</span>
+                                <span style="color: #3bb6f7">/</span>
+                                <span id="lblFreeTeacherCount" style="color: #3bb6f7">0</span>
+                                <span style="color: #3bb6f7">/</span>
+                                <span id="lblBuyerTeacherCount" style="color: #3bb6f7">0</span>
+                            </div>
+                        </div>
+                        @* เลือกแผนประกัน *@
+                        <div class="row" style="padding-top:1%">
+                            <div class="col-xs-4">
+                                <label>เลือกแผนประกัน PA ยิ้มแฉ่ง:</label>
+                                <select class="form-control select2 select2-hidden-accessible" id="ddlPlanPAYimChang" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true">
+                                    <option value="-1">--โปรดระบุ--</option>
+                                    @{
+                                        foreach (var item in ViewBag.PlanID)
+                                        {
+                                            <option value="@item.ProductId">@item.ProductName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-xs-4">
+                                <label>ทุนประกัน PA ยิ้มแฉ่ง: </label>
+                                <input type="text" class="form-control" placeholder="0.00" disabled value="" id="txtInsurance">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row"></div>
+                    <div class="box-body" style="padding-top:2%">
+                        <div class="box-group" style="text-align:center">
+                            <button class="btn btn-success" id="btnSavePAPersonnel" name="btnSavePAPersonnel" type="button">บันทึกข้อมูลกรมธรรม์</button>
+                            <button class="btn btn-primary" id="btnEditPAPersonnel" name="btnEditPAPersonnel" type="button">บันทึกแก้ไขข้อมูลแผน</button>
+                            <button class="btn btn-success" id="btnImportName" name="btnImportName" type="button">
+                                <i class="fa fa-fw fa-plus-circle"></i>
+                                นำเข้ารายชื่อ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+    <input type="hidden" id="hdfPAStudentStatusId" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+            $(function () {
+                $('.select2').select2()
+
+                if ($('#hdfAppID').val() == "") {
+                    $('#btnSavePAPersonnel').show()
+                    $('#btnImportName').hide()
+                    $('#btnEditPAPersonnel').hide()
+
+                } else {
+                    $('#lblWarning').hide()
+                    $('#ddlStudyYear').prop('disabled', true);
+                    $('#ddlProvince').prop('disabled', true);
+                    $('#ddlSchoolName').prop('disabled', true);
+                    $('#btnSavePAPersonnel').hide()
+                    $('#btnEditPAPersonnel').prop('disabled', true).show();
+                    $('#btnImportName').show()
+
+                    GetAppDetail();
+                    if ($('#hdfStatusId').val() != 2) {
+                        $('#lblWarningNotNewApp').show()
+                        $('#ddlPlanPAYimChang').prop('disabled', true);
+                        $('#btnEditPAPersonnel').prop('disabled', true).show();
+                        $('#btnImportName').prop('disabled', true).show();
+                    }
+                }
+
+                //------------------------------------------------Event----------------------------------------------------
+                $('#ddlProvince').change(function (e) {
+                    e.preventDefault();
+                    ClearDetailWhenChange()
+                })
+
+                $('#ddlSchoolName').change(function (e) {
+                    e.preventDefault();
+                    if ($('#ddlSchoolName').val() != null) {
+                        GetSchoolDetail();
+                        GetInsurancePAByPlanID();
+                    }
+                    
+                })
+
+                $('#btnSavePAPersonnel').click(function (e) {
+                    e.preventDefault();
+                    if (IsValidateSave()) {
+                        swal({
+                            title: "กรุณาตรวจสอบเงื่อนไขการรับประกัน",
+                            text: "1. โรงเรียนที่ทำทุนประกันน้อยกว่า 80,000 เลือกแผน 1 (ทุน 50,000)\n" +
+                                "2. โรงเรียนที่ทำทุนประกัน 80,000 เป็นต้นไป เลือกแผน 2 (ทุน 100,000) \n" +
+                                "3. กรณีรับสิทธิ์บุคลากร 10 : 1 ของ PA นักเรียนแล้ว จะไม่ได้รับสิทธิ์ PA ยิ้มแฉ่ง",
+                            type: "warning",
+                            customClass: "swal-wide",
+                            showCancelButton: true,
+                            confirmButtonText: "ยืนยัน",
+                            cancelButtonText: "ยกเลิก",
+                            closeOnConfirm: false,
+                            showLoaderOnConfirm: true
+                        },
+                            function () {
+                                setTimeout(function () {
+                                    SavePAPersonnel();
+                                }, 1000)
+                            }
+                        )
+                    }
+                })
+
+                $('#ddlPlanPAYimChang').change(function (e) {
+                    e.preventDefault();
+                    GetInsurancePAByPlanID()
+                    if ($('#ddlPlanPAYimChang').val() != $('#hdfPlanID').val()) {
+                        $('#btnEditPAPersonnel').prop('disabled', false);
+                    } else {
+                        $('#btnEditPAPersonnel').prop('disabled', true)
+                    }
+                })
+
+                $('#btnEditPAPersonnel').click(function (e) {
+                    if (IsValidateEdit()) {
+                        swal({
+                            title: "กรุณาตรวจสอบเงื่อนไขการรับประกัน",
+                            text: "1. โรงเรียนที่ทำทุนประกันน้อยกว่า 80,000 เลือกแผน 1 (ทุน 50,000)\n" +
+                                "2. โรงเรียนที่ทำทุนประกัน 80,000 เป็นต้นไป เลือกแผน 2 (ทุน 100,000) \n" +
+                                "3. กรณีรับสิทธิ์บุคลากร 10 : 1 ของ PA นักเรียนแล้ว จะไม่ได้รับสิทธิ์ PA ยิ้มแฉ่ง",
+                            type: "warning",
+                            showCancelButton: true,
+                            confirmButtonClass: "btn-danger",
+                            confirmButtonText: "ยืนยัน",
+                            cancelButtonText: "ยกเลิก",
+                            closeOnConfirm: false,
+                            showLoaderOnConfirm: true
+                        },
+                            function () {
+                                setTimeout(function () {
+                                    UpdatePlanPAPersonnel();
+                                }, 1000)
+                            })
+                    }
+                })
+                // ช่องกรอก ค้นหาสถานศึกษา โดยกรอกชื่อ อ้างอิงจาก ปีการศึกษาและจังหวัด ถ้ามีข้อมูล จะแสดงข้อมูลที่ตัวเลิอก
+                $('#ddlSchoolName').select2({
+                    ajax: {
+                        url: '@Url.Action("GetSchool", "PAPersonnel")',
+                        dataType: 'json',
+                        delay: 250,
+
+                        data: function (params) {
+                            return {
+                                q: params.term, // search term
+                                policyYear: $("#ddlStudyYear").val(),
+                                provinceId: $("#ddlProvince").val(),
+                                page: params.page
+                            };
+                        },
+                        processResults: processData,
+                        cache: true
+                    },
+                    placeholder: 'ค้นหารายการ',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 4,
+                    //templateResult: formatRepo,
+                    templateSelection: formatRepoSelection,
+                    selectOnClose: true,
+                    language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 4 ตัวอักษร'; } }
+                });
+
+                $('#btnImportName').click(function (e) {
+                    e.preventDefault()
+                    var en_appId = window.btoa($('#hdfAppID').val());
+                    window.location.href = "@Url.Action("PAPersonnelImportCustomer", "PAPersonnel")?appId=" + en_appId;
+                })
+            })
+
+            //--------------------------------------Functions-------------------------------------------
+
+            //บันทึกข้อมูล PA ยิ้มแฉ่ง
+        function SavePAPersonnel() {
+            debugger
+
+            var branchId = @ViewBag.BranchID
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("DoSaveNewApp", "PAPersonnel")',
+                    data: {
+                        PAYear: $('#ddlStudyYear').val(),
+                        PersonnelAppName: $('#hdfSchoolName').val(),
+                        RefAppCode: $('#lblPAPersonnelAppId').text().trim(),
+                        RefOrganizeId: $('#hdfOrganizeId').val(),
+                        ProductId: $('#ddlPlanPAYimChang').val(),
+                        BranchId: branchId,
+                        StartCoverDate: $('#lblCoverDate').text().trim(),
+                        EffectiveDate: $('#lblEffectiveDate').text().trim(),
+                        EndCoverDate: $('#lblEndCoverDate').text().trim()
+                    },
+                    async: false,
+                    dataType: "json",
+                    success: function (response) {
+
+                        if (response.IsResult == true) {
+                            swal({
+                                title: "บันทึกข้อมูลสำเร็จ",
+                                text: "",
+                                type: "success",
+                                confirmButtonText: "ไปหน้านำเข้ารายชื่อ",
+                            },
+                                function () {
+                                    var en_appId = window.btoa(response.Result);
+                                    // Redirect หน้าไปนำเข้าข้อมูล
+                                        window.location.href ="@Url.Action("PAPersonnelImportCustomer", "PAPersonnel")?appId=" + en_appId;
+                                })
+
+                        } else {
+                            swal("ไม่สามารถทำรายการได้",response.Msg,"error")
+                        }
+
+
+                    }
+                });
+            }
+
+            // update แผนหลังจากเข้ามาแก้ไขข้อมูลแผน
+            function UpdatePlanPAPersonnel() {
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("DoUpdateByAppId", "PAPersonnel")",
+                    data: {
+                        PersonnelAppID: $('#hdfAppID').val(),
+                        ProductID: $('#ddlPlanPAYimChang').val()
+                    },
+                    dataType: "json",
+                    async: false,
+                    success: function (response) {
+                        if (response.IsResult == true) {
+
+                            swal({
+                                title: "บันทึกข้อมูลสำเร็จ",
+                                text: response.Msg,
+                                type: "success",
+                                confirmButtonText: "ไปหน้านำเข้ารายชื่อ",
+                            },
+                                function () {
+                                    var en_appId = window.btoa($('#hdfAppID').val());
+                                window.location.href = "@Url.Action("PAPersonnelImportCustomer", "PAPersonnel")?appId=" + en_appId;
+                            })
+
+                        } else {
+                            swal("พบข้อผิดพลาด",response.Msg,"error")
+                        }
+
+                    }
+                });
+            }
+
+            //แสดงข้อมูล Text ของโรงเรียน หลังคลิกเลือกข้อมูล
+        function formatRepoSelection(repo) {
+                let PersonnelApplicationName = repo.SchoolTitle + repo.SchoolName
+                return PersonnelApplicationName || repo.text;
+            }
+
+            //เมื่อกรอก Text ลงในช่อง ค้นหาสถานศึกษา ให้ Return ข้อมูล id = ...
+            function processData(data) {
+                var mapdata = $.map(data, function (obj) {
+                    obj.id = obj.ApplicationCode;
+                    obj.text = obj.Detail;
+                    return obj;
+                });
+                return { results: mapdata };
+            }
+
+            //รับข้อมูล ทุนประกัน PA ยิ้มแฉ่ง
+        function GetInsurancePAByPlanID() {
+
+                $.ajax({
+                    type: "GET",
+                    url: "@Url.Action("GetPersonnelByPlanId", "PAPersonnel")",
+                    data: { productId: $('#ddlPlanPAYimChang').val()},
+                    dataType: "json",
+                    async: false,
+                    success: function (response) {
+
+                        let insurance_PA = response.MaxCover;
+
+                        if ($('#ddlPlanPAYimChang').val() != "-1") {
+                            $('#txtInsurance').val(commaSeparateNumber(insurance_PA));
+                        } else {
+                            $('#txtInsurance').val('');
+                        }
+
+                    }
+                })
+            }
+
+            //ดึงข้อมูล มา bind ลง label หลังเลือกสถานศึกษา
+        function GetSchoolDetail() {
+                debugger
+                $.ajax({
+                    type: "GET",
+                    url: "@Url.Action("GetSchoolDetail", "PAPersonnel")",
+                    data: { appCode: $('#ddlSchoolName').val() },
+                    dataType: "json",
+                    async: false,
+                    success: function (response) {
+
+                        let statusPolicy = response.ApplicationStatusName;
+                        let applicationCode = response.ApplicationCode;
+                        let schoolOrganizeId = response.SchoolOrganizeId;
+                        let startCoverDate = moment(response.StartCoverDate).add(543, 'years').format("DD/MM/YYYY");
+                        let effectiveDate = moment(response.EffectiveDate).add(543, 'years').format("DD/MM/YYYY");
+                        let endCoverDate = moment(response.EndCoverDate).add(543,'years').format("DD/MM/YYYY");
+                        let productName = response.ProductName;
+                        let standardCoverage = response.StandardCoverage;
+                        let studentCount = response.Student;
+                        let teacherFree = response.Free;
+                        let teacherBuy = response.Buy
+                        let urlPA = response.UrlPA;
+                        let schoolName = response.SchoolTitle + response.SchoolName;
+                        let ProvinceId = response.ProvinceCode;
+                        let PAStatusId = response.ApplicationStatusCode;
+
+                        if ($('#hdfAppID').val() != "") {
+                            $('#ddlProvince').select2().val(ProvinceId).trigger('change.select2');
+                        }
+
+                        $('#lblPAPersonnelStatus').text(statusPolicy);
+                        $('#lblPAPersonnelAppId').text(applicationCode);
+                        $('#lblCoverDate').text(startCoverDate);
+                        $('#lblEffectiveDate').text(effectiveDate);
+                        $('#lblEndCoverDate').text(endCoverDate);
+                        $('#lblPAStudentPlan').text(productName);
+                        $('#lblPAStudentInsurance').text(commaSeparateNumber(standardCoverage));
+
+                        
+                        $('#lblStudentCount').text(studentCount);
+                        $('#lblFreeTeacherCount').text(teacherFree);
+                        $('#lblBuyerTeacherCount').text(teacherBuy);
+                        $('#urlPA').attr('href', urlPA);
+                        $('#hdfOrganizeId').val(schoolOrganizeId);
+                        $('#hdfSchoolName').val(schoolName);
+
+                        $('#hdfPAStudentStatusId').val(PAStatusId);
+
+                        //ถ้าทุนประกันPAนร. มากกว่าเท่ากับ 80,000 เซ็ททุนประกัน ddlPlanPAYimChang เป็น 100,000 ถ้าไม่ใช่เป็นทุน 50,000
+                        if (standardCoverage >= 80000) {
+                            $('#ddlPlanPAYimChang').select2().val("308").trigger('change.select2');
+                        } else {
+                            $('#ddlPlanPAYimChang').select2().val("307").trigger('change.select2');
+                        }
+
+                        //ถ้าสถานะ เป็น อนุมัติกรมธรรม์ ให้ แสดงข้อมูลเป็น สีฟ้า แต่ถ้าไม่ใช่ ให้แสดงเป็น สีแดง
+                        if (PAStatusId == "3040") {
+                            $('#lblPAPersonnelStatus').prop('style', 'color: #3bb6f7');
+
+                            $('#lblPAPersonnelAppId').prop('style', 'color: #3bb6f7');
+                            $('#lblCoverDate').prop('style', 'color: #3bb6f7');
+                            $('#lblEffectiveDate').prop('style', 'color: #3bb6f7');
+                            $('#lblEndCoverDate').prop('style', 'color: #3bb6f7');
+                            $('#lblPAStudentPlan').prop('style', 'color: #3bb6f7');
+                            $('#lblPAStudentInsurance').prop('style', 'color: #3bb6f7');
+                            $('#lblStudentCount').prop('style', 'color: #3bb6f7');
+                            $('#lblFreeTeacherCount').prop('style', 'color: #3bb6f7');
+                            $('#lblBuyerTeacherCount').prop('style', 'color: #3bb6f7');
+
+
+                        } else {
+                            $('#lblPAPersonnelStatus').prop('style', 'color: #F50D1B');
+
+
+
+                            $('#lblPAPersonnelAppId').prop('style', 'color: #F50D1B');
+                            $('#lblCoverDate').prop('style', 'color: #F50D1B');
+                            $('#lblEffectiveDate').prop('style', 'color: #F50D1B');
+                            $('#lblEndCoverDate').prop('style', 'color: #F50D1B');
+                            $('#lblPAStudentPlan').prop('style', 'color: #F50D1B');
+                            $('#lblPAStudentInsurance').prop('style', 'color: #F50D1B');
+                            $('#lblStudentCount').prop('style', 'color: #F50D1B');
+                            $('#lblFreeTeacherCount').prop('style', 'color: #F50D1B');
+                            $('#lblBuyerTeacherCount').prop('style', 'color: #F50D1B');
+                        }
+
+
+
+                    }
+                });
+        }
+
+        // Clear ข้อมูลที่ทำการ bind ลงแล้ว หลังเปลี่ยนจังหวัด
+        function ClearDetailWhenChange() {
+
+            if ($('#ddlSchoolName').val() != null) {
+
+                $('#ddlSchoolName').empty().trigger('change');
+                $('#lblPAPersonnelStatus').text('');
+                $('#lblPAPersonnelAppId').text('');
+                $('#lblCoverDate').text('');
+                $('#lblEffectiveDate').text('');
+                $('#lblEndCoverDate').text('');
+                $('#lblPAStudentPlan').text('');
+                $('#lblPAStudentInsurance').text('');
+                $('#lblStudentCount').text('0');
+                $('#lblFreeTeacherCount').text('0');
+                $('#lblBuyerTeacherCount').text('0');
+                $('#txtInsurance').val('')
+                $('#ddlPlanPAYimChang').select2().val("-1").trigger('change.select2');
+            }
+
+        }
+        // ดึงข้อมูลหลังกด แก้ไข เข้ามา
+        function GetAppDetail() {
+            let ddl = $('#ddlSchoolName');
+                $.ajax({
+                    type: "GET",
+                    url: "@Url.Action("GetPAApplicationDetailByAppID", "PAPersonnel")",
+                    data: { appID: $('#hdfAppID').val()},
+                    dataType: "json",
+                    async: false,
+                    success: function (response) {
+
+                        let PAApplicationCode = response.PersonnelApplicationCode;
+                        let PAStatusApp = response.PersonnelApplicationStatusName;
+                        let PolicyNumber = response.PolicyNumber;
+                        let refApplicationCode = response.RefApplicationCode;
+                        let PAYears = response.PAYear;
+                        let branch = response.BranchName;
+                        let productId = response.ProductId;
+                        let applicationStatus = response.PersonnelApplicationStatusId;
+
+                        $('#hdfStatusId').val(applicationStatus);
+                        $('#ddlStudyYear').select2().val(PAYears).trigger('change.select2');
+                        $('#txtBranch').val(branch);
+
+                        debugger
+                        var option = new Option(response.PersonnelApplicationName, refApplicationCode, true, true);
+                        ddl.append(option).trigger('change.select2');
+                        GetSchoolDetail();
+
+                        $('#txtApplicationID').text(PAApplicationCode);
+                        $('#txtPolicyNo').text(PolicyNumber);
+                        $('#txtPolicyStatus').text(PAStatusApp);
+                        $('#hdfPlanID').val(productId);
+                        $('#ddlPlanPAYimChang').select2().val(productId).trigger('change.select2');
+                        GetInsurancePAByPlanID()
+
+
+
+                    }
+                });
+            }
+
+            //-----------------------------------------Validate---------------------------------------
+            function IsValidateSave() {
+
+                if ($('#ddlStudyYear').val() == "-1") {
+                    swal("ไม่สามารถทำรายการได้", "กรุณาเลือกปีการศึกษา", "error")
+                    return false
+                }
+
+                if ($('#ddlProvince').val() == "-1") {
+                    swal("ไม่สามารถทำรายการได้", "กรุณาเลือกจังหวัด", "error")
+                    return false
+                }
+
+                if ($('#ddlSchoolName').val() == null) {
+                    swal("ไม่สามารถทำรายการได้", "กรุณาเลือกสถานศึกษา", "error")
+                    return false
+                }
+
+
+                //ถ้าสถานะกรมธรรม์ของ PA นักเรียน ไม่ใช่ อนุมัติกรมธรรม์ ไม่สามารถบันทึกได้
+                if ($('#hdfPAStudentStatusId').val() !== "3040") {
+                    swal("ไม่สามารถทำรายการได้", "สถานะกรมธรรม์ PAนักเรียนต้องเป็นอนุมัติกรมธรรม์เท่านั้น", "error")
+                    return false
+                }
+
+
+                if ($('#ddlPlanPAYimChang').val() == "-1") {
+                    swal("ไม่สามารถทำรายการได้", "กรุณาเลือกแผน", "error")
+                    return false
+                }
+
+
+                return true
+            }
+            function IsValidateEdit() {
+                if ($('#ddlPlanPAYimChang').val() == "-1") {
+                    swal("ไม่สามารถทำรายการได้","กรุณาเลือกแผน","error")
+                    return false
+                }
+                return true
+            }
+
+    </script>
+
+}
+

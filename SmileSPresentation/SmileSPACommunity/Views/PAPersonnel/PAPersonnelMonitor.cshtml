@@ -1,0 +1,204 @@
+﻿
+
+@{
+    ViewBag.Title = "รายการ PA ยิ้มแฉ่ง";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+    <div class="row">
+        <div class="col-sm-12">
+
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียดรายการ</h3>
+                </div>
+
+
+                <div class="box-body">
+                    <div class="row " style="padding-left:2%">
+
+                        <div class="col-sm-3">
+                            <label>สาขา :</label>
+                            <select type="text" class="form-control select2" id="ddlBranch">
+                                @if (ViewBag.Branch.Count > 1)
+                                {
+                                    <option value="-1">---ทั้งหมด---</option>
+                                }
+
+                                @foreach (var item in ViewBag.Branch)
+                                {
+                                    <option value="@item.BranchID">@item.Branch</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-3">
+                            <label>สถานะ :</label>
+                            <select type="text" class="form-control select2" id="ddlAppStatus">
+                                <option value="-1">---ทั้งหมด---</option>
+                                @foreach (var item in ViewBag.Status)
+                                {
+                                    <option value="@item.PersonnelApplicationStatusId"> @item.PersonnelApplicationStatusName</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row " style="padding-left:2%;padding-top:1%">
+
+                        <div class="col-sm-3">
+                            <label>ปีการศึกษา :</label>
+                            <select type="text" class="form-control select2" id="ddlYear">
+                                @foreach (var item in ViewBag.PolicyYear)
+                                {
+                                    <option value="@item.Code"> @item.Detail</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-4">
+                            <label>ค้นหาจากเลข App PA ยิ้มแฉ่ง หรือ ชื่อสถานศึกษา :</label>
+                            <input type="text" placeholder="" id="txtSearch" class="form-control"/>
+                        </div>
+
+                        <div class="col-sm-1" style="padding-top:2%;padding-bottom:2%">
+                            <button id="btnSearch" type="button" class="btn btn-primary">ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียดรายการ</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtApplication" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-2">
+                            <button id="btnNewApp" type="button" class="btn btn-success btn-block">
+                                <i class="fa fa-plus-circle"></i> บันทึก New App
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+            $('.select2').select2();
+
+            //disabled branch for operation role
+            var branchList = @Html.Raw(Json.Encode(ViewBag.Branch));
+            if (branchList.length == 1) {
+                $('#ddlBranch').attr('disabled', true)
+            }
+
+
+            $('#btnNewApp').click(function (e) {
+                e.preventDefault();
+                window.open('@Url.Action("PAPersonnelNewApp", "PAPersonnel")');
+            });
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                DoloadApplicaton();
+            });
+
+
+        });
+
+
+
+        const DoloadApplicaton = () => {      
+             $('#dtApplication').empty();
+             let t = $('#dtApplication').DataTable({             
+             pageLength: 10,
+             processing: true,
+             serverSide: true,
+             responsive: true,
+             destroy: true,
+             searching: false,
+             
+                 ajax: {
+                    
+                 url: '@Url.Action("GetNewApplicationMonitor", "PAPersonnel")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $('#txtSearch').val();
+                        d.branchId = $('#ddlBranch').val() == -1 ? null : $('#ddlBranch').val();
+                        d.appStatusId = $('#ddlAppStatus').val() == -1 ? null : $('#ddlAppStatus').val();
+                        d.year = $('#ddlYear').val();
+                    }
+                },
+                columns: [
+                    { title: 'App ID', data: 'PersonnelApplicationCode', className: 'h-dt-center d-dt-center' },
+                    { title: 'สถานศึกษา', data: 'PersonnelApplicationName', className: 'h-dt-center '},
+                    { title: 'สถานะ', data: 'PersonnelApplicationStatusName', className: 'h-dt-center d-dt-center' },
+                    { title: 'แผนประกัน', data: 'Product', className: 'h-dt-center d-dt-center' },
+                    {
+                        title: 'วันเริ่มคุ้มครอง', data: 'StartCoverDate', className: 'h-dt-center d-dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'วันสิ้นสุดคุ้มครอง', data: 'EndCoverDate', className: 'h-dt-center d-dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                     {
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                         mRender: (data, type, full) => {
+                             debugger;
+                            var encode_appId = window.btoa(data.PersonnelApplicationId)
+                            if (data.PersonnelApplicationStatusId == 2) {
+
+                                return `<a  class="btn btn-warning" href="@Url.Action("PAPersonnelNewApp", "PAPersonnel")?appId=${encode_appId}" target="_blank"><i class="fa fa-pen"></i> แก้ไข </a>`;
+                            }
+                             ///// สถานะดำเนินการขอออกกรมธรรม์ ///
+                            else if (data.PersonnelApplicationStatusId == 3) {  
+                                if (data.CustomerCount == 0) {
+                                    return `<a  class="btn btn-warning" href="@Url.Action("PAPersonnelImportCustomer", "PAPersonnel")?appId=${encode_appId}" target="_blank"><i class="fa fa-pen"></i> นำเข้ารายชื่อ </a>`;
+                                }
+                                return ""
+                            }
+                            else {
+                                return ""
+                            }
+
+                        }
+                    },
+                    {
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) => {
+                                var encode_appId = window.btoa(data.PersonnelApplicationId)
+                                return `<a  class="btn btn-primary" href="@Url.Action("PAPersonnelDetail", "PAPersonnel")?appId=${encode_appId}" target="_blank"><i class="fa fa-fw fa-desktop"></i> รายละเอียด </a>`;
+                        }
+                    },
+                ],
+                bLengthChange: false,
+            });
+        }
+
+    </script>
+}

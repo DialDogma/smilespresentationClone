@@ -1,0 +1,80 @@
+﻿
+
+@{
+    ViewBag.Title = "รายละเอียดเคลม";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="col-sm">
+    <div class="box box-default" style="border-color:darkcyan">
+        <div class="box-body">
+            <div class="row" style="margin-top:1%">
+                <div class="col-sm-12">
+                    <table id="dtBSDetail" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+     $(function () {
+         DoloadBSDetail();
+
+     })
+
+        function DoloadBSDetail() {
+             $('#dtBSDetail').empty();
+             var t = $('#dtBSDetail').dataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                "order": [[0, "desc"]],
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetBSDetail", "ClaimPayBack")',
+
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchDetail = d.search;
+                        d.claimPayBackDetailId = '@ViewBag.ClaimPayBackDetailId';
+
+                    }
+                },
+                columns: [
+                    { title: 'เลขที่เคลม', data: 'ClaimCode', className: 'h-dt-center ', width: '10%'},
+                    { title: 'แผนประกัน', data: 'ProductName', className: 'h-dt-center ' },
+                    { title: 'ชื่อสถานพยาบาล', data: 'HospitalName', className: 'h-dt-center ' },
+                    { title: 'ประเภทการเข้ารับรักษา', data: 'ClaimAdmitType', className: 'h-dt-center ' },
+                    { title: 'อาการ', data: 'ChiefComplain', className: 'h-dt-center ' },
+                    { title: 'วินิจฉัย', data: 'ICD10', className: 'h-dt-center ' },
+                    {
+                        title: 'รายละเอียด',
+                        className: 'h-dt-center text-center',
+                        data: null,
+                        mRender: (data, type, full) => {
+                            return `<a  class="btn bg-blue" href="${data.URLLink}" target="_blank" > ดูรายละเอียดเคลม</a>`
+                        }
+                    },
+
+                ],
+                bLengthChange: false,
+
+            });
+        }
+
+    </script>
+
+}

@@ -1,0 +1,106 @@
+﻿@{
+    ViewBag.Title = "AccountDetailGroup";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <input id="hdfCode" type="hidden" value="@ViewBag.BankDirectDebitCode" />
+
+    <div class="row">
+        <div class="col-sm-12">
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียด</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-3 col-sm-offset-9">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-green"><i class="fa fa-flag-o"></i></span>
+
+                                <div class="info-box-content">
+                                    <span class="info-box-text">จำนวนรายการ</span>
+                                    <span class="info-box-number">@ViewBag.AccountCount</span>
+                                </div>
+                                <!-- /.info-box-content -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtAccDetailGroup" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="text-align:right">
+                        <div class="col-sm-3 col-sm-offset-9">
+                            <input id="btnPrint" type="button" value="พิมพ์" class="btn btn-success" style="width:100%" onclick="GetPrint()" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            GetDTDetail();
+        });
+
+        function GetPrint()
+        {
+            var win = window.open("/BankDirectDebit/DeliveryNote?delivernoteID=" + $('#hdfCode').val(), '_blank');
+            win.focus();
+        }
+
+        function GetDTDetail()
+        {
+            $('#dtAccDetailGroup').empty();
+            var table = $('#dtAccDetailGroup').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                //showing: false,
+                paging: false,
+                searching: false,
+                info: false,
+                ajax: {
+                    url: '@Url.Action("GetHeaderDetail")',
+                    type: 'POST',
+                    data: function (d) {
+                        //d.draw = d.draw;
+                        //d.pageSize = d.length;
+                        //d.indexStart = d.start;
+                        //d.sortField = d.columns[d.order[0].column].data;
+                        // d.orderType = d.order[0].dir;
+                        //d.search = d.search.value;
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.bankCoverId = $("#hdfCode").val();
+
+                    }
+                },
+                columns: [
+                    { title: 'เลขที่ใบคุมเอกสาร', data: 'HeaderCode' },
+                    { title: 'เลขที่บัญชี', data: 'AccountNo' },
+                    { title: 'ชื่อบัญชี', data: 'AccountName' }
+                    //{ title: 'เจ้าของผลงาน', data: '' },
+                    //{ title: 'ผลการตรวจสอบ', data: '' }
+
+                ]
+            });
+        }
+    </script>
+}

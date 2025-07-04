@@ -1,0 +1,301 @@
+﻿@{
+    ViewBag.Title = "รายการเบิก-จ่ายเงินสด";
+}
+<style>
+    .table {
+        font-size: 14px;
+    }
+
+    .toolbar {
+        float: left;
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* Dt form *@
+        <div class="col-sm-12" id="Detail_form">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-2 pull-right">
+                            <button type="button" class="btn btn-block btn-warning" id="btnAddPayment" onclick="GoToAddPayment()">บันทึกจ่าย</button>
+                        </div>
+                        <div class="col-sm-2 pull-right">
+                            <button type="button" class="btn btn-block btn-primary" id="btnAddTransaction" onclick="GoToAddTransaction()">บันทึกรับ</button>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            <!--<h5 class="text-bold">ยอดยกมา ณ วันที่ @ViewBag.updatedDate จำนวน @ViewBag.balance บาท เงินคงเหลือ <label id="lblTotal">0</label> บาท</h5>-->
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtShowDataSource" name="dtShowDataSource" class="table table-bordered table-striped"></table>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class=""></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* hidden *@
+    <input type="hidden" name="hd_pettyCashId" id="hd_pettyCashId" value="@ViewBag.pettyCashId" />
+    @* end hidden *@
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            chat = $.connection.chatHub;
+
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                //join group
+                chat.server.joinGroup('@ViewBag.UserId');
+            });
+
+            //Show group message to client
+            chat.client.receiveGroupMessage = function (name, message) {
+                var fullMessage = 'อัพเดตครั้งล่าสุด:' + message;
+                toastr["success"]("อัพเดตข้อมูล", fullMessage);
+
+                CallPettyCashDT($('#hd_pettyCashId').val());
+                setTimeout(function () { loopInputToTblInput(); }, 1500);
+            };
+
+            toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-bottom-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+            /*END SignalR*/
+
+            CallPettyCashDT($('#hd_pettyCashId').val());
+            setTimeout(function () { loopInputToTblInput(); }, 1500);
+
+            $('#dtShowDataSource tbody').on('click', 'td.details-control', function () {
+                const tr = $(this).closest('tr');
+                const row = $('#dtShowDataSource').DataTable().row(tr);
+
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                }
+                else {
+                    // Open this row
+                    row.child(format(row.data())).show();
+                    tr.addClass('shown');
+                }
+            });
+        });
+
+        const GoToAddTransaction = () => {
+            window.open("@Url.Action("AddTransaction","PettyCash")", "_blank");
+        }
+
+        const GoToAddPayment = () => {
+            window.open("@Url.Action("AddPayment","PettyCash")", "_blank");
+        }
+
+        //call data table
+        const CallPettyCashDT = (pettyCashId) => {
+            $('#dtShowDataSource').empty();
+            var table = $('#dtShowDataSource').DataTable({
+                dom: '<"toolbar">frtip<"footer">',
+                paging: false,
+                info: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: false,
+                destroy: true,
+                scrollX: true,
+                ajax: {
+                    url: '@Url.Action("GetPettyCashDT","PettyCash")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 999999;
+                        d.indexStart = null;
+                        d.sortField = null;
+                        d.orderType = null;
+                        d.search = d.search.value;
+                        d.pettyCashId = pettyCashId;
+                        d.pettyCashTransactionTypeStatusId = 2;
+                    }
+                },
+                order: [[1, 'desc']],
+                columns: [
+                    {
+                        className: 'details-control',
+                        orderable: false,
+                        data: null,
+                        defaultContent: '',
+                        width: '10px'
+                    },
+                    {
+                        title: 'Code',
+                        data: 'PettyCashTransactionCode',
+                        className: 'h-dt-center',
+                        width: '100px'
+                    },
+                    {
+                        title: 'วันที่สร้างรายการ',
+                        data: 'CreatedDate',
+                        className: 'h-dt-center',
+                        width: '150px',
+                        render: function (data) {
+                            if (data != null) {
+                                return `${moment(data).format('DD/MM/YYYY HH:mm')} น.`;
+                            } else {
+                                return '';
+
+                            }
+                        }
+                    },
+
+                    {
+                        title: 'ประเภท',
+                        data: 'PettyCashTransactionGroup',
+                        className: 'h-dt-center',
+                        width: '50px',
+                        render: function (data) {
+                            if (data == "บันทึกจ่าย") {
+                                return `<span style="color: #d10000;">${data}</span>`
+                            } else if (data == "บันทึกรับ") {
+                                return `<span style="color: #007c16;">${data}</span>`
+                            }
+
+                            return `<span>${data}</span>`
+                        }
+                    },
+                    {
+                        title: 'รายละเอียด/ประเภทค่าใช้จ่าย',
+                        data: 'PettyCashTransactionType',
+                        className: 'h-dt-center',
+                        width: '200px'
+                    },
+                    {
+                        title: 'รายละเอียดเพิ่มเติม',
+                        data: 'PettyCashTransactionTypeDescription',
+                        className: 'h-dt-center',
+                        width: '150px'
+                    },
+                    {
+                        title: 'จำนวนเงิน',
+                        data: null,
+                        className: 'h-dt-center d-dt-right',
+                        width: '70px',
+                        mRender: function (data) {
+                            if (data.PettyCashTransactionGroup == "บันทึกจ่าย") {
+                                return `<span style="color: #d10000;">${formatNumber(data.Amount)}</span>` + '<input class="m_result" type="hidden" id="hd_' + data.PettyCashTransactionCode + '" value="' + data.MultiplierResult + '">';
+
+                            } else if (data.PettyCashTransactionGroup == "บันทึกรับ") {
+                                return `<span style="color: #007c16;">${formatNumber(data.Amount)}</span>` + '<input class="m_result" type="hidden" id="hd_' + data.PettyCashTransactionCode + '" value="' + data.MultiplierResult + '">';
+                            }
+                            return `<span>${formatNumber(data.Amount)}</span>` + '<input class="m_result" type="hidden" id="hd_' + data.PettyCashTransactionCode + '" value="' + data.MultiplierResult + '">';
+
+                        }
+                    },
+                    {
+                        title: 'เลขที่ใบเสร็จ',
+                        data: 'BillBook',
+                        width: '80px',
+                        className: 'h-dt-center',
+                    },
+                    {
+                        title: 'เอกสาร',
+                        width: '50px',
+                        className: 'h-dt-center d-dt-center',
+                        data: null,
+                        mRender: function (data) {
+                            return '<a target="_blank" href="' + data.UrlLinkOpenSSSDoc + '" class="btn btn-block btn-default">จำนวนเอกสาร:' + data.DocumentFileCount + '</a>';
+                        }
+                    },
+                    {
+                        title: 'จัดการ',
+                        data: null,
+                        width: '50px',
+                        className: 'h-dt-center d-dt-center',
+                        mRender: function (data) {
+                            return '<div style="display: inline-flex;">' +
+                                '<button style="margin:2px" type="button" class="btn btn-warning" id="btnEdit_' + data.PettyCashTransactionId + '" onclick="Edit(' + data.PettyCashTransactionId + ',' + data.PettyCashTransactionGroupId + ')">E</button>' +
+                                '<button style="margin:2px" type="button" class="btn btn-danger" id="btnDelete_' + data.PettyCashTransactionId + '" onclick="Delete(' + data.PettyCashTransactionId + ')">D</button>' +
+                                '</div>';
+                        }
+
+                    }
+                ], drawCallback: function (d) {
+                    var api = this.api();
+                    var sum = 0;
+                    var d = api.rows({ page: 'current' }).data();
+                    for (var i = 0; i < d.length; i++) {
+                        sum += d[i].MultiplierResult
+                    }
+                    $("div.footer").html(`<h4 style="float: right" class="text-bold">ยอดรวมรายการเบิก รับ-จ่าย &nbsp&nbsp รวม: <span style="color:${negative(sum) ? "#d10000;" : "#007c16;"}">${formatNumber(sum)}</span> บาท</h4>`);
+                }
+            });
+
+            $("div.toolbar").html('<h4 style="margin-bottom:0" class="text-bold">ยอดยกมา ณ วันที่ @ViewBag.updatedDate จำนวน <span style="color:#0962e1;">@ViewBag.balance</span> บาท &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp เงินคงเหลือ <label style="color:#e24a09;" id="lblTotal">0</label> บาท</h4>');
+        }
+
+        //loop and send not null data to sp
+        const loopInputToTblInput = () => {
+            var result = 0;
+            //loop in class input
+            $('.m_result').each(function (index, data) {
+                //check if assign not null
+                if (data.value != "") {
+                    result += Number(data.value);
+                }
+            });
+            var balance = parseFloat("@ViewBag.balanceInt");
+            result += balance;
+            $('#lblTotal').text(result.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,"));
+        }
+
+        const format = (d) => {
+            return `<tr><td>ชื่อบริษัท :</td><td>${d.OrganizeShortName != null ? d.OrganizeShortName : "-"}</td></tr><tr><td>หมายเหตุ :</td><td>${d.Remark}</td></tr><tr><td>วันที่ใบเสร็จ :</td><td>${moment(d.BillDate).format('DD/MM/YYYY HH:mm:ss')}</td></tr>`;
+        }
+
+        const Edit = (pctId, pctTypeId) => {
+            if (pctTypeId == 2) {
+                window.open("@Url.Action("AddTransaction","PettyCash")?ptcTransactionId=" + pctId, "_blank");
+            } else if (pctTypeId == 3) {
+                window.open("@Url.Action("AddPayment","PettyCash")?ptcTransactionId=" + pctId, "_blank");
+            }
+        }
+
+        const Delete = (pctId) => {
+            swal_confirm("ยืนยันลบ", "ต้องการลบรายการนี้?", function () {
+                $.post('@Url.Action("DeleteTransaction","PettyCash")', { pctTranId: pctId },
+                    function (data) {
+                        if (data.IsResult) {
+                            swal_success(setTimeout(function () {
+                                window.location = ('@Url.Action("ManagePettyCashTransaction","PettyCash")');
+                                swal.close();
+                            }, 2000));
+                        } else {
+                            swal_fail(data.textResult, setTimeout(function () { swal.close(); }, 2000));
+                        }
+                    });
+            });
+        }
+    </script>
+}

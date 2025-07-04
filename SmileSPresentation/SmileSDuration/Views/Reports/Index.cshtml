@@ -1,0 +1,223 @@
+﻿@using OfficeOpenXml.FormulaParsing.Excel.Functions
+@{
+    ViewBag.Title = "รายงานการส่งข้อความ";
+    var userDetail = SmileSDuration.Helper.Authorization.GetLoginDetail(this.Context);
+}
+
+<form id="myFormDuration" action="@Url.Action("ReportSMS")" method="post" enctype="multipart/form-data">
+    <div class="row" id="divcontent">
+        <div class="col-xs-12">
+            <div class="box">
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="title1">วันเริ่มต้น :</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control datepicker" id="date_start" name="date_start" data-provide="datepicker" data-date-language="th-th" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="title1">วันสิ้นสุด :</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control datepicker" id="date_end" name="date_end" data-provide="datepicker" data-date-language="th-th" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label class="title1">ประเภทข้อความ :</label>
+                            <select id="select_type" name="select_type" class="form-control select2" style="width: 100%;">
+                                <option value="-1">--ทั้งหมด--</option>
+                                @foreach (var i in @ViewBag.SMSType)
+                                {
+                                    <option value="@i.SMSTypeID">@i.SMSTypeDetail</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-sm-3" style="margin-top: 25px">
+                            <button id="button_excel" name="button_excel" type="submit" class="btn btn-success btn-flat"><i class="fa fa-file"></i> ดาวน์โหลด Excel</button>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <label class="title1">TransactionStatus :</label>
+                            <select id="select_trStatus" name="select_trStatus" class="form-control select2" style="width: 100%;">
+                                <option value="-1">--ทั้งหมด--</option>
+                                @foreach (var i in @ViewBag.TransactionStatus)
+                                {
+                                    <option value="@i.TransactionStatusID">@i.TransactionStatusDetail</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="title1">TransactionStatusDetail :</label>
+                                <select id="select_trStatusDetail" name="select_trStatusDetail" class="form-control select2" style="width: 100%;">
+                                    <option value="-1">--ทั้งหมด--</option>
+                                    @foreach (var i in @ViewBag.TransactionDetailStatus)
+                                    {
+                                        <option value="@i.TransactionDetailStatusID">@i.TransactionDetailStatusDetail</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="title1">คำค้น :</label>
+                                <div class="input-group">
+                                    <input id="input_textsearch" name="input_textsearch" type="text" class="form-control">
+                                    <span class="input-group-btn">
+                                        <button id="button_search" name="button_search" type="button" class="btn btn-primary btn-flat"><i class="fa fa-search"></i> ค้นหา</button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="title1">รอสถานะการส่ง : <span id="amount_onprocess_getresult">@ViewBag.Amount</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-btn">
+                                        @if (userDetail.EmployeeTeam_ID == 9) //TEAM พัฒนาระบบ
+                                        {
+                                            <button id="button_get_result" name="button_get_result" type="button" class="btn btn-info btn-flat" style="width:100%"><i class="fa fa-refresh"></i>Get Result</button>
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <table id="datatable1" class="table table-bordered table-striped "></table>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+            $('#date_start').datepicker('setDate', new Date());
+            $('#date_end').datepicker('setDate', new Date());
+
+            $('#button_search').click(function () {
+                var table = $('#datatable1').DataTable();
+                table.draw();
+            });
+            $('#button_get_result').click(function () {
+                waitingDialog.show('กรุณารอสักครู่..');
+                $.get("@Url.Action("GetResult")",
+                    function (response) {
+                        waitingDialog.hide();
+                    }).done(() => {
+                        swal_success(function() {
+                            window.location.reload();
+                        });
+                    });
+            });
+            $('#datatable1').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                lengthChange: false,
+                responsive: true,
+                ajax: {
+                    url: '@Url.Action("GetDatatable")',
+                    method: "POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $('#input_textsearch').val();
+                        d.smsType = $('#select_type').val();
+                        d.trStatusId = $('#select_trStatus').val();
+                        d.trStatusDetailId = $('#select_trStatusDetail').val();
+                        d.dateStart = $('#date_start').val();
+                        d.dateEnd = $('#date_end').val();
+                    }
+                },
+
+                columns: [
+                    //{ title: 'ID', data: 'ComunicateCode' },
+                    { title: 'AppID', data: 'AppID' },
+                    { title: 'เบอร์', data: 'MobilePhoneNo' },
+                    { title: 'ผู้เอาประกัน', data: 'CustomerName' },
+                    { title: 'ผู้ชำระเบี้ย', data: 'PayerName' },
+                    //{ title: 'Amount', data: 'Amount' },
+                    //{ title: 'AmountTotal', data: 'AmountTotal' },
+                    { title: 'เข้าชม', data: 'ViewCount' },
+                    {
+                        title: 'ครั้งแรก',
+                        data: 'FirstView',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return data = "-";
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'ล่าสุด',
+                        data: 'LatestView',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return data = "-";
+                            }
+                        }
+                    },
+                    {
+                        title: 'วันที่',
+                        data: 'CreatedDate',
+                        render: function (data) {
+                            return moment(data).format('DD/MM/YYYY HH:mm');
+                        }
+                    },
+                    //{ title: 'SenderDetail', data: 'SenderDetail' },
+                    { title: 'ประเภท', data: 'SMSTypeDetail' },
+                    { title: 'สถานะ', data: 'TransactionStatusDetail' },
+                    {
+                        title: 'ผลลัพธ์',
+                        data: 'TransactionDetailStatusDetail',
+                        render: function (data) {
+                            if (data == "Success") {
+                                return '<span class="text-success">' + data + '</span>';
+                            } else if (data == "Fail") {
+                                return '<span class="text-danger">' + data + ' </span>';
+                            } else if (data == "Block") {
+                                return '<span class="text-dark">' + data + ' </span>';
+                            } else if (data == "Expired") {
+                                return '<span class="text-danger">' + data + ' </span>';
+                            } else if (data == "Processing") {
+                                return '<span class="text-warning">' + data + ' </span>';
+                            } else if (data == "Unknown") {
+                                return '<span class="text-dark">' + data + ' </span>';
+                            } else {
+                                return '<span class="text-info">NULL</span>';
+                            }
+                        }
+                    }
+                ]
+            });
+        });
+    </script>
+}

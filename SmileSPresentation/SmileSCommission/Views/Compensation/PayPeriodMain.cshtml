@@ -1,0 +1,430 @@
+﻿@{
+
+    ViewBag.Title = "จัดการรอบการคิดค่าตอบแทนของแต่ละ DCR";
+}
+<style>
+    .modal-dialog {
+        margin-top: 0;
+        margin-bottom: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .table {
+        font-size: 14px
+    }
+
+    .modal.fade .modal-dialog {
+        transform: translate(0, -100%);
+    }
+
+    .modal.in .modal-dialog {
+        transform: translate(0, 0);
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* Search form *@
+        <div class="col-sm-12" id="Search_form">
+            <div class="box box-default">
+                <div class="box-header">
+                    <h3 class="box-title">ค้นหา</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-offset-2 col-sm-3">
+                            <label for="" class="control-label">ประจำเดือน/ปี:</label>
+                            <input type="text" class="form-control pull-right" name="yearSelect" id="yearSelect"
+                                   data-date-language="th-th" data-provide="datepicker">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-offset-1 col-sm-1">
+                            <label class="control-label header pull-right" style="margin-top: 10px" for="">สถานะ :</label>
+                        </div>
+                        <div class=" col-sm-2 checkbox">
+                            <label style="padding-left: 0px">
+                                <input type="checkbox" checked="checked" name="chk_periodStatus" id="chk_periodStatus1" class="icheckbox_minimal-blue" /> รอประมวลผล
+                            </label>
+                        </div>
+                        <div class="col-sm-2 checkbox" style="margin-top: 10px">
+                            <label style="padding-left: 0px">
+                                <input type="checkbox" checked="checked" name="chk_periodStatus" id="chk_periodStatus2" class="icheckbox_minimal-blue" /> รอส่ง Payroll
+                            </label>
+                        </div>
+                        <div class="col-sm-2 checkbox" style="margin-top: 10px">
+                            <label>
+                                <input type="checkbox" checked="checked" name="chk_periodStatus" id="chk_periodStatus3" class="icheckbox_minimal-blue" /> เรียบร้อย
+                            </label>
+                        </div>
+                        <div class="col-sm-2 checkbox" style="margin-top: 10px">
+                            <label>
+                                <input type="checkbox" name="chk_periodStatus" id="chk_periodStatus4" class="icheckbox_minimal-blue" /> ยกเลิก
+                            </label>
+                        </div>
+                        <div class="col-sm-2">
+                            <button type="button" class="btn btn-block btn-info" id="btnShow">แสดงรายการ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* Result form *@
+        <div class="col-sm-12" id="Detail_form">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-offset-10 col-sm-2">
+                            <button type="button" class="btn btn-block btn-success" id="btnAdd" data-toggle="modal" data-target=".bd-example-modal-lg"><i class="fa fa-plus"></i> เพิ่ม</button>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtShowDetail" name="dtShowDetail" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade bd-example-modal-lg" id="addPeriodModal" tabindex="-1" role="dialog" aria-labelledby="addPeriodModal" aria-hidden="true">
+        <div class="modal-dialog  modal-md " role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">เพิ่มรอบการคิดค่าตอบแทน</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-3" style="text-align:right">
+                                วันที่ :
+                            </div>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control pull-right" name="periodSelect" id="periodSelect"
+                                       data-date-language="th-th" data-provide="datepicker">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-3" style="text-align:right">
+                                หมายเหตุ :
+                            </div>
+                            <div class="col-sm-8">
+                                <textarea rows="5" style="width: 100%" name="txtRemark" id="txtRemark"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row" id="cloneBox">
+                        <div class="col-sm-3">
+                            <label><input type="checkbox" id="chk_clone" value="1" name="chk_clone" /> ใช้ข้อมูลจาก:</label>
+                        </div>
+                        <div class="col-sm-6">
+                            <select class="form-control select2" tabindex="-1" aria-hidden="True" id="ddlClonePeriod" name="ddlClonePeriod"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-sm-offset-3 col-sm-3">
+                        <button type="button" class="btn btn-block btn-success" onclick="SubmitNewPeriod()">ตกลง</button>
+                    </div>
+                    <div class="col-sm-3">
+                        <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ยกเลิก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end modal *@
+    <!-- Modal edit -->
+    <div class="modal fade bd-edit-modal-lg" id="editPeriodModal" tabindex="-1" role="dialog" aria-labelledby="editPeriodModal" aria-hidden="true">
+        <div class="modal-dialog  modal-md " role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">แก้ไขรอบการคิดค่าตอบแทน</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-3" style="text-align:right">
+                                วันที่ :
+                            </div>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control pull-right" name="periodEditSelect" id="periodEditSelect"
+                                       data-date-language="th-th" data-provide="datepicker">
+                            </div>
+                            <input type="hidden" name="hd_periodId" id="hd_periodId" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-3" style="text-align:right">
+                                หมายเหตุ :
+                            </div>
+                            <div class="col-sm-8">
+                                <textarea rows="5" style="width: 100%" name="txtEditRemark" id="txtEditRemark"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-sm-offset-3 col-sm-3">
+                        <button type="button" class="btn btn-block btn-success" onclick="SubmitEditRemark()">ตกลง</button>
+                    </div>
+                    <div class="col-sm-3">
+                        <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ยกเลิก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end modal *@
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            setTimeout(GetDataDetail(),2000);
+
+            //select datepicker year
+            $('#yearSelect').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker("setDate", new Date());
+            //select datepicker fix day ( add period modal)
+            $('#periodSelect').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" })
+                .change(function () {
+                GetClonePeriod();
+            });
+
+            $('#cloneBox').hide();
+
+            $('#btnShow').click(function () {
+                GetDataDetail();
+            });
+        });
+
+        //call period clone
+        const GetClonePeriod = () => {
+            $('#ddlClonePeriod').empty();
+            $('#cloneBox').hide();
+            $('#chk_clone').iCheck('uncheck');
+             //get datepicker value
+            var periodDate = $('#periodSelect').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker('getDate');
+            var firstDate = new Date(periodDate.getFullYear(),periodDate.getMonth(),1);
+            var periodDateConvert = moment(firstDate).format('DD-MM-YYYY');
+            $.post("@Url.Action("GetPeriodCloneHistory","Compensation")", { payPeriod: periodDateConvert }, function (data) {
+                if (data != "") {
+                    $('#cloneBox').show();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#ddlClonePeriod').append($('<option>',
+                            {
+                                value: data[i].Id,
+                                text: data[i].Description + ' ' + moment(data[i].PayPeriod).format('DD-MM-YYYY')
+                            }));
+                    }
+                }
+            });
+
+        }
+
+        //get datatable period
+        const GetDataDetail = () => {
+            //get datepicker value
+            var periodDate = $('#yearSelect').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker('getDate');
+            var firstDate = new Date(periodDate.getFullYear(),periodDate.getMonth(),1);
+            var periodDateConvert = moment(firstDate).format('DD-MM-YYYY');
+            //get bool value
+            var isWaitProcess = $('#chk_periodStatus1').is(":checked");
+            var isSentPayroll =$('#chk_periodStatus2').is(":checked");
+            var isSuccess =$('#chk_periodStatus3').is(":checked");
+            var isCancel =$('#chk_periodStatus4').is(":checked");
+
+            $('#dtShowDetail').empty();
+            var table = $('#dtShowDetail').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetPeriodDCR_DT","Compensation")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.payPeriod = periodDateConvert;
+                        d.isWaitProcess = isWaitProcess;
+                        d.isSentPayroll = isSentPayroll;
+                        d.isSucess = isSuccess;
+                        d.isCancel = isCancel;
+                    }
+                },
+                columnDefs: [{
+                    searchable: false,
+                    orderable: false,
+                    targets: 0
+                }],
+                columns: [
+                    { title: 'ลำดับ' , data: null, orderable: false},
+                    {
+                        title: 'รอบการคิดค่าตอบแทน', data: 'PayPeriod',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    { title: 'หมายเหตุ', data: 'Description' },
+                    { title: 'ผู้แก้ไขข้อมูล', data: 'UpdatedByName' },
+                    {
+                        title: 'วันที่แก้ไขข้อมูล', data: 'UpdatedDate',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    { title: 'สถานะ', data: 'CommissionPeriodStatus' },
+                    { title: 'ผู้ดำเนินการ', data: 'CreatedByName' },
+                    {
+                        title: 'วันที่ดำเนินการ', data: 'CreatedDate',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    {
+                        title: 'ดำเนินการ',
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        mRender: function (data) {
+                            if (data.CommissionPeriodStatusId == 2||data.CommissionPeriodStatusId==3) {
+                                return '<a type="button" class="btn btn-block btn-warning" id="btnEdit_' + data.id
+                                    + '" onclick="EditPeriod(' + data.PayPeriodId + ')" data-toggle="modal" data-target=".bd-edit-modal-lg"><i class="fa fa-edit"></i>แก้ไข</a>' +
+                                    '<a type="button" class="btn btn-block btn-success" id="btnPlay_' + data.id
+                                    + '" onclick="PlayPeriod(' + data.PayPeriodId + ')">ดำเนินการต่อ <i class="fa fa-arrow-right"></i></a>';
+                            } else {
+                                return '<button type="button" class="btn btn-block btn-info" id="btnSee_' + data.payPeriodId
+                                    + '" onclick="SeePeriod(' + data.PayPeriodId + ')"><i class="fa  fa-eye"></i>ดูรายละเอียด</button>';
+                            }
+
+                        }
+                    }
+                ]
+            });
+
+            table.on('draw.dt', function () {
+                var PageInfo = $('#dtShowDetail').DataTable().page.info();
+                table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                });
+            });
+        }
+
+        //call period detail for edit
+        const EditPeriod = (periodId) => {
+            $('#hd_periodId').empty();
+            $('#periodEditSelect').empty();
+            $('#txtEditRemark').empty();
+
+            $.get("@Url.Action("GetPeriodDetail","Compensation")", { payPeriodId: periodId }, function (data) {
+                $('#hd_periodId').val(data.Id);
+                var dateString = moment(data.PayPeriod).format('MM/DD/YYYY');
+                var dateConvert = new Date(dateString);
+                $('#periodEditSelect').datepicker({format: 'MM yyyy', viewMode: "months", minViewMode: "months"}).datepicker("setDate",new Date(dateConvert) );
+                $('#periodEditSelect').attr('readonly', true).datepicker("destroy");
+                $('#periodEditSelect').unbind('focus');
+                $('#txtEditRemark').text(data.Description);
+            });
+        }
+
+        const PlayPeriod = (periodId) => {
+            window.open("@Url.Action("PayPeriodManage","Compensation")?periodId="+periodId,"_blank");
+        }
+
+        const SeePeriod = (periodId) => {
+            window.open("@Url.Action("PayPeriodManage","Compensation")?periodId="+periodId,"_blank");
+        }
+
+        const SubmitNewPeriod = () => {
+            //get datepicker value and convert
+            var periodDate = $('#periodSelect').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker('getDate');
+            var firstDate = new Date(periodDate.getFullYear(),periodDate.getMonth(),1);
+            var periodDateConvert = moment(firstDate).format('DD-MM-YYYY');
+            var checkClone = $('#chk_clone').is(":checked");
+            var clonePeriodId = $('#ddlClonePeriod').val();
+
+             // call function to execute
+            swal_confirm("ยืนยัน", "ยืนยันการสร้างรอบค่าตอบแทน?", function () {
+                //post to add period
+                $.post('@Url.Action("AddPeriod","Compensation")', { payPeriod: periodDateConvert, description: $('#txtRemark').val() },
+                    function (data) {
+                        //check if result not fail
+                        if (data.IsResult) {
+                            //check if clone period checked
+                            if (checkClone) {
+                                //post to clone period
+                                $.post('@Url.Action("ClonePeriod","Compensation")',
+                                    {
+                                        fPeriodId: clonePeriodId,
+                                        tPeriodId: data.Result
+                                    },
+                                    function (response) {
+                                        //check if clone not success
+                                        if (response.IsResult) {
+                                            swal_success(setTimeout(function () {
+                                                window.location = ('@Url.Action("PayPeriodMain","Compensation")');
+                                            }, 2000));
+                                        } else {
+                                            swal_fail(response.Msg);
+                                        }
+                                    });
+                            } else {
+                                swal_success(setTimeout(function () {
+                                    window.location = ('@Url.Action("PayPeriodMain","Compensation")');
+                                }, 2000));
+                            }
+                        } else {
+                            swal_fail(data.Msg);
+                        }
+
+                });
+
+            });
+        }
+
+        //submit edit
+        const SubmitEditRemark = () => {
+            swal_confirm("ยืนยัน", "ยืนยันการแก้ไข?", function () {
+
+                $.post('@Url.Action("UpdatePeriodRemark","Compensation")',
+                    {
+                        payPeriodId: $('#hd_periodId').val(),
+                        description: $('#txtEditRemark').val()
+                    }, function (data) {
+                        if (data.IsResult == true) {
+                            swal_success(setTimeout(function () {
+                                window.location = ('@Url.Action("PayPeriodMain","Compensation")');
+                            }, 2000));
+                        } else {
+                            swal_fail(data.Msg);
+                        }
+                    });
+
+            });
+        }
+    </script>
+}

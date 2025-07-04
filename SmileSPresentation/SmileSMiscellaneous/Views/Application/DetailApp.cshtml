@@ -1,0 +1,81 @@
+﻿
+@{
+    ViewBag.Title = "DetailApp";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-xs-12">
+        @Html.Partial("~/Views/PartialView/_ApplicationDetail.cshtml")
+
+        @Html.Partial("~/Views/PartialView/_DocumentDetail.cshtml")
+
+        @Html.Partial("~/Views/PartialView/_AssuredDetail.cshtml")
+
+        @Html.Partial("~/Views/PartialView/_PayerOrBeneficiaryDetail.cshtml")
+
+        @Html.Partial("~/Views/PartialView/_PDPADetail.cshtml")
+
+        @Html.Partial("~/Views/PartialView/_PremiumReceived.cshtml")
+
+        @Html.Partial("~/Views/PartialView/_TransactionDetail.cshtml")
+    </div>
+</div>
+
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+            let appId = '@ViewBag.AppId';
+            GetDocumentDT(appId);
+            GetHeir_dt(appId);
+            GetPremiumReceive_dt(appId)
+            GetTranHead_dt(appId);
+            Buttondisabled();
+
+            $('#btnPDPA').click(function (e) {     // Link ไป PDPD from
+                e.preventDefault();
+                AllMethod(appId, "view");
+            });
+
+        });
+
+        const Buttondisabled = () => {                  /// ปิดปุ่ม  
+            debugger;
+            var ObjValidate = GetPDPADetail();
+            if (ObjValidate.IsResult == false) {
+                document.getElementById("btnPDPA").disabled = true;
+            }
+            else {
+                if (ObjValidate.Result == false) {
+                    document.getElementById("btnPDPA").disabled = true;
+                }
+            }
+            
+        }
+
+        function GetPDPADetail() {               /// GetData Api PDPA
+            debugger;
+         var objPDPADetail;
+            $.ajax({
+            type: "GET",
+            url: "@Url.Action("GetPDPAByAppId", "Application")",
+            data: {
+
+                AppCode: $('#hdfAppCode').val()   //// valu by inputHiden from _ApplicationDetail.cshtml
+                },
+                async: false,
+            dataType: "json",
+            success: function (data) {
+                objPDPADetail =  data;
+            }
+          });
+            // ส่งdata ไป function
+            return objPDPADetail;
+        }
+
+    </script>
+
+}

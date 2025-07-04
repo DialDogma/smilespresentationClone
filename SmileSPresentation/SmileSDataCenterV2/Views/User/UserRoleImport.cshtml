@@ -1,0 +1,464 @@
+﻿@{
+    ViewBag.Title = "Users Roles Import";
+}
+
+<style>
+    .bd-circle-6 {
+        border-radius:6px;
+    }
+</style>
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-sm-12">
+
+            @*--------------Roles------------------*@
+            <div class="box box-solid box-primary" >
+                <div class="box-header">
+                    <span style="font-size:large;color:white">Roles</span>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus " style="color:white"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="row" style="margin-left:16px">
+
+                        <div class="col-sm-5">
+                            <div class="row" style="margin-bottom:4px;margin-top:8px;margin-left:1px">
+                                <div class="col-sm-1">
+                                   
+                                </div>
+                                <div class="col-sm-10 form-group has-feedback">
+                                    <input type="text" class="form-control bd-circle-6" id='myInput' onkeyup='Search();' placeholder="Search roles..." />
+                                    <i class="glyphicon glyphicon-search form-control-feedback" style="color:cornflowerblue"></i>
+                                </div>
+                            </div>
+
+                            <div class="row" style="margin-bottom:16px;">
+                                <div class="col-sm-12">
+                                    <ul id="myUl" style="list-style: none; width: 88%; height: 215px; overflow-y: scroll; scrollbar-darkshadow-color: white;">
+                                        @foreach (var item in ViewBag.Roles)
+                                        {
+                                            <li>
+                                                <cc class="search-items">
+                                                    <label  style="cursor:pointer;color:#125D98">
+                                                        <input type="checkbox" value="@item.Name" id="@item.Id" name="Check" />
+                                                        @item.Name
+                                                    </label>
+                                                </cc>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        @*--------------Show roles------------------*@
+                        <div class="col-sm-3" style="margin-top:8px;">
+                            <span class="badge bg-aqua" style="font-size:16px">Selected roles  : <b id="countRoles"></b> </span><br />
+                            <div class="bd-circle-6" style="list-style: none;margin-top:8px; width: 100%; height: 240px; overflow-y: scroll; scrollbar-darkshadow-color: white;background-color:#def6ff">
+                                <div style="margin-left:5%;margin-top:8px" id="ShowRoles"></div>
+                            </div>
+
+                        </div>
+
+                        @*--------------import------------------*@
+                        <div class="col-sm-3" style="margin-left:16px;margin-top:8px;">
+
+                            <div class="row">
+                                <div class="col-sm-12" style="margin-top:5px">
+                                    <b style="color:#74a36d"><i class="fa fa-cloud-upload"></i> Choose Excel File </b>
+                                    <input type="file" class="btn btn-block btn-default " style="border-color:darkolivegreen;margin-bottom:24px" id="xlsxFile" onchange="ReadExcelFile()" name="xlsxFile" />
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <div class="row" style="margin-left: 1%;">
+                                        <span class="bg-aqua badge" style="font-size:16px;">Users count  : <b id="person"> </b></span>
+                                    </div>
+                                   
+                                </div>
+                                <div class="col-sm-4">
+                                    <button style="border-color:darkred" class="btn btn-sm text-danger pull-right" id="btnCancel">Cancel</button>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <label>Remark</label>
+                                    <input type="text" class="form-control bd-circle-6" id="remark" />
+                                </div>
+                            </div>
+
+                            <div class="row" style="padding-top:14%">
+                                <div class="col-sm-4"></div>
+                                <div class="col-sm-8">
+                                    <button style="border-radius:8px;font-size:large;color:white;" class="btn btn-block bg-teal-active" id="btnSave"><i class="glyphicon glyphicon-save"></i><b> Save</b> </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @*--------------Table------------------*@
+    <div class="box box-solid box-primary">
+        <div class="box-header ">
+            <span style="font-size:large;color:white;">Management</span>
+        </div>
+        <div class="box-body">
+            <div class="row" style="margin-left:16px">
+                <div class="col-sm-12">
+                    <table id="transactionTable" class="table table-bordered table-hover display" style="width:100%"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+
+        $(function () {
+
+            GetRolesImportTransaction();
+
+            $('#countRoles').text(0);
+            $('#person').text(0);
+            $('#btnCancel').attr('disabled', true);
+
+            $('input').on('ifChanged', function () {
+                ChangeRole();
+            });
+
+            $('#btnCancel').click(function (e) {
+                e.preventDefault();
+                clearFile();
+
+            });
+
+            $('#btnSave').click(function (e) {
+                e.preventDefault();
+
+                if ($('#countRoles').text() == 0) {
+                    swal('ตรวจสอบ', 'กรุณาเลือกสิทธิ์ !', 'error')
+                }
+                else if ($('#person').text() == 0) {
+                    swal('ตรวจสอบ', 'กรุณาอัพโหลดไฟล์ Excel !', 'error')
+
+                }
+                else
+                {
+                    swal({
+                        title: "",
+                        text: "ยืนยันการนำเข้าข้อมูล",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonClass: "btn-danger",
+                        confirmButtonText: "ตกลง",
+                        cancelButtonText: "ยกเลิก",
+                        closeOnConfirm: false
+                    },
+                        function () {
+                                $.LoadingOverlay("show");
+                                SaveImport();
+                           
+                        });
+                }
+            });
+
+
+        });
+
+        function Search() {
+            var input = document.getElementById("myInput");
+            var filter = input.value.toUpperCase();
+            var ul = document.getElementById("myUl");
+            var li = ul.getElementsByTagName("li");
+
+            for (var i = 0; i < li.length; i++) {
+                var cc = li[i].getElementsByTagName("cc");
+                li[i].style.display = "none";
+                for (var i2 = 0; i2 < cc.length; i2++) {
+                    if (cc[i2].innerHTML.toUpperCase().indexOf(filter) > -1) {
+                        li[i].style.display = "";
+                        continue;
+
+                    }
+                }
+            }
+        }
+
+        function removeRole(id) {
+            debugger
+            event.preventDefault();
+            $('#' + id + '').removeAttr("checked").iCheck('update');
+            ChangeRole();
+        }
+
+        function ChangeRole() {
+            var array = [];
+            checkboxes = document.getElementsByName("Check");
+            selectedCboxes = Array.prototype.slice.call(checkboxes).filter(ch => ch.checked == true);
+            for (var i = 0; i < selectedCboxes.length; i++) {
+                array[i] = selectedCboxes[i].id + ':' + selectedCboxes[i].value + ';';
+                array.push[array[i]];
+            }
+            $('#countRoles').text(array.length);
+          
+            var name = '';
+            var id = ''
+            var button = [];
+
+            if (array.length !== 0) {
+                for (i = 0; i < array.length; i++) {
+                    name = array[i].split(':').pop().split(';')[0];
+                    id = array[i].substr(0, array[i].lastIndexOf(':'));
+                    button[i] = "<button class='btn' title='Click to Remove' data-toggle='tooltip'  style='margin-bottom:4px;background-color:#fffff5' id='" + id + "' onclick='removeRole(id)'><i class='glyphicon glyphicon-remove text-danger'></i>" + " " + name + "</button><br />";
+
+                }
+            }
+
+            $("#ShowRoles").html(button);
+        }
+
+        function ReadExcelFile() {
+
+            $('#xlsxFile').attr('disabled', true);
+            $.ajax({
+                type: "POST",
+                async: false,
+                url: '@Url.Action("ReadExcelFile")',
+                data: function () {
+                    var data = new window.FormData();
+                    data.append("file", jQuery("#xlsxFile").get(0).files[0]);
+                    return data;
+                }(),
+                contentType: false,
+                processData: false,
+                success: function (data) {
+                    if (data == 'Invalid') {
+                        swal('ไม่ถูกต้อง', 'ไฟล์นำเข้าไม่ถูกต้อง', 'error');
+                        clearFile();
+                    }
+                    else if (data == 'InvalidData') {
+                        swal('ข้อมูลไม่ถูกต้อง', 'รหัสพนักงานต้องมีความยาว 5 ตัวอักษร', 'error');
+                        clearFile();
+                    }
+                    else
+                    {
+                        $('#person').text(data);
+                        $('#btnCancel').attr('disabled', false);
+                    }
+
+                },
+                error: function (jqXHR, textStatus, error) {
+                    swal('ไม่ถูกต้อง', 'ไฟล์นำเข้าไม่ถูกต้อง', 'error');
+                    clearFile();
+                }
+            });
+
+        }
+
+        function SaveImport() {
+            var array = [];
+            checkboxes = document.getElementsByName("Check");
+            selectedCboxes = Array.prototype.slice.call(checkboxes).filter(ch => ch.checked == true);
+            for (var i = 0; i < selectedCboxes.length; i++) {
+                array[i] =  selectedCboxes[i].value;
+                array.push[array[i]];
+            }
+
+            $.ajax({
+                type: "POST",
+                async: true,
+                url: '@Url.Action("SaveImport")',
+                data: function () {
+                    var data = new window.FormData();
+                    data.append("file", jQuery("#xlsxFile").get(0).files[0]);
+                    data.append("remark", $('#remark').val());
+
+                    for (var i = 0; i < array.length; i++) {
+                        data.append("roles", array[i]);
+                    }
+
+                    return data;
+                }(),
+                contentType: false,
+                processData: false,
+                success: function (data) {
+                    if (data == 'Success') {
+                        $.LoadingOverlay("hide");
+
+                        swal({
+                            title: "สำเร็จ",
+                            text: "นำเข้าข้อมูลเรียบร้อยแล้ว",
+                            type: "success",
+                        }, function () {
+                                window.location.reload();
+                            
+                        });
+                    }
+                    else {
+                        swal('ไม่สำเร็จ', 'ไม่สามารถน้ำเข้าข้อมูลได้เนื่องจากพบข้อมูลผิดพลาด', 'error');
+                        window.location = "@Url.Action("DownloadError", "User")";
+                        $.LoadingOverlay("hide");
+                    }
+                },
+                error: function (jqXHR, textStatus, error) {
+                    $.LoadingOverlay("hide");
+                    swal('Fail', 'Import Failed', 'error');
+
+                }
+            });
+
+        }
+
+        function GetRolesImportTransaction() {
+
+            $('#transactionTable').empty();
+           
+
+            var t = $('#transactionTable').dataTable({
+                pageLength: 10,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                url: '@Url.Action("GetRolesImportTransaction")',
+                method: 'POST',
+                async: false,
+                    data: function (d) {
+                        d.indexStart = d.start;
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                    }
+                },
+                columns: [
+                    { title: 'ID', data: 'AspNetUserRolesTransactionId', width: '8%'},
+                    { title: 'Updated By', data: 'UpdatedBy', width: '25%' },
+                    {
+                        title: 'Updated Date', data: 'UpdatedDate', className: 'h-dt-left', width: '18%',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:ss", "LLLL");
+                        }
+                    },
+                    { title: 'Count Detail', data: 'CountDetail',width: '12%' },
+                    { title: 'Remark', data: 'Remark',width: '20%'},
+                     {
+                         title: '', data: null, orderable: false, width: '18%',
+                         bSortable: false,
+                         mRender: function (data, row)  {
+                             return ExpButton(data) + UndoButton(data);
+                             }
+                    }
+                ],
+                bLengthChange: false,
+            });
+        }
+
+        function ExpButton( data ) {
+            return '<div class="btn-group">' +
+                `<button onclick="exportClick(${data.AspNetUserRolesTransactionId},0)" type="button" class="btn bg-teal-active   btn-sm" style="width:"10px""><i class="fa fa-cloud-download"></i> Export </button>` +
+                '<button type="button" class="btn bg-teal-active  dropdown-toggle cc_pointer btn-sm" data-toggle="dropdown" aria-expanded="true">' +
+                '<span class="caret"></span>' +
+                '<span class="sr-only">Toggle Dropdown</span>' +
+                '</button>' +
+                '<ul class="dropdown-menu btn-sm" role="menu">' +
+                `<li><a onclick="exportClick(${data.AspNetUserRolesTransactionId},1)" class="btn btn-flat btn-sm">เดิมมีสิทธิ์อยู่แล้ว </a></li>` +
+                `<li><a onclick="exportClick(${data.AspNetUserRolesTransactionId},0)"  class="btn btn-flat btn-sm">ทั้งหมด</a></li>` +
+                '</ul>' +
+                '</div >';
+        }
+
+        function UndoButton( data ) {
+
+            switch (data.IsUndo) {
+                case true:
+                    return `<button onclick="undoImport(${data.AspNetUserRolesTransactionId})" class=" btn-sm btn btn-danger" style="margin-left:10px;" disabled>Undo</button>`;
+                case false:
+                   return  `<button onclick="undoImport(${data.AspNetUserRolesTransactionId})" class=" btn-sm btn btn-danger" style="margin-left:10px;" >Undo</button>`;
+            }
+            }
+
+        //-----Export Function------
+
+      
+        function exportClick(id, isUpdate) {
+            event.preventDefault();
+
+            $.LoadingOverlay("show");
+            $.LoadingOverlay("hide");
+            window.location.href = `@Url.Action("ExportRolesImportTransactionDetail", "User")?id=${id}&isUpdate=${isUpdate}`;
+
+        }
+        //-------------------------
+        
+        function undoImport(id) {
+            event.preventDefault();
+
+            swal({
+                title: "",
+                text: "คุณต้องการยกเลิกการนำเข้า id"+"  "+id +" ?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "ตกลง",
+                cancelButtonText: "ยกเลิก",
+                closeOnConfirm: false
+            },
+                function () {
+                $.LoadingOverlay("show");
+                $.ajax({
+                 type: "GET",
+                 url: "@Url.Action("UndoRolesImport", "User")",
+                 data: {id:id},
+                success: function (data) {
+                    $.LoadingOverlay("hide");
+                    swal({
+                        title: "สำเร็จ",
+                        text: "ยกเลิกการนำเข้าข้อมูลเรียบร้อยแล้ว",
+                        type: "success"
+                    }, function () {
+                        setTimeout(function () {
+                            //swal("Ajax request finished!");
+                            GetRolesImportTransaction();
+                        }, 300);
+                    });
+                           
+                },
+                error: function (jqXHR, textStatus, error) {
+                    $.LoadingOverlay("hide");
+                    swal('Fail', 'error');
+
+                }
+            });
+                }
+            );
+
+        }
+
+        function clearFile() {
+            $('#xlsxFile').val(null);
+            $('#person').text(0);
+            $('#xlsxFile').attr('disabled', false);
+            $('#btnCancel').attr('disabled', true);
+        }
+    </script>
+}

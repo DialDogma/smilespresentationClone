@@ -1,0 +1,155 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutNoTitle.cshtml";
+}
+
+<form>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box">
+                <div class="box-body">
+                    <div class="col-sm-12 col-md-12">
+                        <div class="box box-solid">
+                            <div class="row" style="background-color: #f7f7f7; text-align: left; padding: 5px 5px; margin-top: 0;">
+                                <div class="col-sm-12">
+                                    <h4 style="font-size: 20px; font-weight: bold;">ค้นหา</h4>
+                                    <hr />
+                                </div>
+                                <div class="form-group col-md-12 col-sm-12">
+                                    <div class="col-md-3">
+                                        <label class="title1"><span style="color: red">*</span>ประเภทข้อความ</label>
+                                        <select id="select_type" style="width: 100%" class="form form-control">
+                                            <option value="-1">--ทั้งหมด--</option>
+                                            @foreach (var i in @ViewBag.SMSType)
+                                            {
+                                                <option value="@i.SMSTypeID">@i.SMSTypeDetail</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="title1"><span style="color: red">*</span>เบอร์โทร</label>
+                                        <input id="input_textsearch" name="input_textsearch" type="text" class="form-control" required="required" maxlength="10" />
+                                    </div>
+                                    <div class="col-md-2" style="margin-top: 25px">
+                                        <button id="btn_search" style="width: 100%" class="btn  btn-primary"><i class="fa fa-search"></i>  ค้นหา</button>
+                                    </div>
+                                    <div class="col-md-offset-2 col-md-1" style="margin-top: 25px">
+                                        <button id="btn_getresult" name="btn_getresult" type="button" class="btn btn-info" style="width:100%"><i class="fa fa-refresh"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-12">
+                        <table id="datatable_detail" class="table table-bordered table-striped" style="width: 100%"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+            $('#btn_search').click(function (e) {
+                e.preventDefault();
+                if ($('form').valid()) {
+                    loadDataTable($('#input_textsearch').val(), $('#select_type').val());
+                }
+            });
+
+            $('#btn_getresult').click(function (e) {
+                e.preventDefault();
+                waitingDialog.show('กรุณารอสักครู่..');
+                $.get("@Url.Action("GetResult","Reports")",
+                    function (response) {
+                        if (response == true) {
+                            waitingDialog.hide();
+                            swal_success(function () {
+                                loadDataTable($('#input_textsearch').val(), $('#select_type').val());
+                            });
+                        } else {
+                            waitingDialog.hide();
+                            console.log(response);
+                        }
+                    });
+            });
+        });
+
+        const loadDataTable = (phoneNo, type) => {
+            $('#datatable_detail').empty();
+            $('#datatable_detail').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                lengthChange: false,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetDatatables_ComunicateSearchSMS")',
+                    type: "GET",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.mobilePhoneNo = phoneNo;
+                        d.smsTypeId = type;
+                    }
+                },
+
+                columns: [
+                    {
+                        title: 'เบอร์',
+                        data: 'MobilePhoneNo',
+                        className: 'h-dt-center',
+                        width: '10%'
+                    },
+                    {
+                        title: 'ข้อความ',
+                        data: 'Message',
+                        className: 'h-dt-center',
+                        width: '70%'
+                    },
+                    {
+                        title: 'วันที่ส่ง',
+                        data: 'CreatedDate',
+                        className: 'h-dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY HH:mm:ss');
+                            } else {
+                                return data = "-";
+                            }
+                        },
+                        width: '10%'
+                    },
+                    {
+                        title: 'ผลลัพธ์',
+                        data: 'TransactionDetailStatusDetail',
+                        render: function (data) {
+                            switch (data) {
+                                case "Success":
+                                    return `<span class="label label-success">${data}</span>`;
+                                case "Processing":
+                                    return `<span class="label label-warning">${data}</span>`;
+                                case "Fail":
+                                case "Expired":
+                                    return `<span class="label label-danger">${data}</span>`;
+                                case "Block":
+                                case "Unknown":
+                                    return `<span class="label label-default">${data}</span>`;
+                                default:
+                                    return `<span>รอข้อมูล</span>`;
+                            }
+                        },
+                        className: 'h-dt-center d-dt-center',
+                        width: '10%'
+                    }
+                ]
+            });
+        }
+    </script>
+}

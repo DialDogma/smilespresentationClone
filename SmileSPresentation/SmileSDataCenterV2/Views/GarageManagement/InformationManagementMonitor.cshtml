@@ -1,0 +1,244 @@
+﻿@{
+    ViewBag.Title = "จัดการข้อมูลอู่ซ่อมรถยนต์";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal" style="margin-top:10px">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-primary">
+                <div class="box-header">
+                    <div class="row">
+
+                        <div class="col-xs-2">
+                            <label>ประเภทอู่ซ่อมรถยนต์ :</label>
+                            <select id="ddlOrganizeType" class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true">
+                                <option value="-1">--ทั้งหมด--</option>
+                                @{
+                                    foreach (var item in ViewBag.OrganizeType)
+                                    {
+                                        <option value="@item.OrganizeTypeId">@item.OrganizeType</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-xs-2">
+                            <label>จังหวัด :</label>
+                            <select id="ddlProvince" class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true">
+                                <option value="-1">--ทั้งหมด--</option>
+                                @{
+                                    foreach (var item in ViewBag.ProvinceList)
+                                    {
+                                        <option value="@item.Province_ID">@item.ProvinceDetail</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-xs-4" style="padding-top:25px">
+                            <input type="text" class="form-control" id="txtSearch" placeholder="พิมพ์คำค้นหา">
+                        </div>
+                        <div class="col-xs-2" style="padding-top:25px">
+                            <button id="btnSearch" type="button" class="btn btn-block btn-primary">ค้นหา</button>
+                        </div>
+                        <div class="col-xs-1 col-xs-offset-1" style="padding-top:25px">
+                            <button id="btnExport" type="button" class="btn btn-block btn-success"><i class="fa fa-file-excel-o" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="box-body" style="margin-top:-10px">
+                    <div class="">
+                        <table id="dtMonitor" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var chat = $.connection.myHub;
+        var userID;
+
+        $(function () {
+            //DoLoadMonitor();
+
+            //Start Connection and Join Group
+            $.connection.hub.start().done(function () {
+                //Join Group Default
+                userID = @ViewBag.userID;
+                chat.server.joinGroup(userID);
+            });
+
+            //Show addNewNotice to client
+            chat.client.sendNoticeResult = function (Str1, Str2) {
+
+                $('#dtMonitor').DataTable().ajax.reload();
+            };
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                DoLoadMonitor();
+            });
+
+            $('#btnExport').click(function (e) {
+                e.preventDefault();
+                //Export to excel
+                Export();
+            });
+
+        });
+
+        //Load data to datatable
+        const DoLoadMonitor = () => {
+            $('#dtMonitor').empty();
+            var t = $('#dtMonitor').dataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                "order": [[7, "desc"]],
+                searching:false,
+                ajax: {
+                    url: '@Url.Action("GetGarageOrganizeManagement", "GarageManagement")',
+
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.keyword = $("#txtSearch").val();
+                        d.organizeTypeId = $('#ddlOrganizeType').val();
+                        d.provinceId = $('#ddlProvince').val();
+                    }
+                },
+                columns: [
+                    { title: 'รหัสรายการ', data: 'Organize_ID', className: 'h-dt-center text-font-small' },
+                    { title: 'ประเภท', data: 'OrganizeTypeDetail', className: 'h-dt-center text-font-small', width: '10%' },
+                    { title: 'ชื่ออู่ซ่อมรถยนต์', data: 'OrganizeDetail', className: 'h-dt-center text-font-small', width: '20%'},
+                    { title: 'ตำบล', data: 'SubDistrictDetail', className: 'h-dt-center text-font-small',  },
+                    { title: 'อำเภอ', data: 'DistrictDetail', className: 'h-dt-center text-font-small',  },
+                    { title: 'จังหวัด', data: 'ProvinceDetail', className: 'h-dt-center text-font-small',  },
+                    {
+                        title: 'คู่สัญญา', data: 'IsContract', className: 'h-dt-center',
+                        mRender: function (data) {
+                            switch (data) {
+                                case true:
+                                    // code block
+                                    return 'เป็น';
+                                    break;
+                                case false:
+                                    return 'ไม่เป็น';
+                                    break;
+                                default:
+                                // code block
+                                    return 'ไม่ระบุ';
+                            }
+                        }
+                    },
+                    {
+                        title: 'วันที่ทำรายการ', data: 'OrganizeUpdatedDate', className: 'h-dt-center', width: '10%',
+                        mRender: function (data) {
+                            if (data != null) {
+                                moment.locale('th');
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+
+                    {
+                        title: 'สถานะใช้งาน',
+                        data: null,
+                        className: 'h-dt-center d-dt-center text-font-small',
+                        mRender: (data, type, full) => {
+
+                            if (data.IsActive == true) {
+                                return 'ใช้งาน';
+                            } else {
+                                return 'ไม่ใช้งาน';
+                            }
+
+                        }, width: '5%'
+                    },
+                    {
+                        title: 'เลือก',
+                        className: 'h-dt-center',
+                        data: null,
+                        width: '8%',
+                        mRender: (data, type, full) => {
+                            return '<div class="btn-group">' +
+                                    '<button type="button" class="btn btn-warning btn-sm" style="width:"10px"">เลือก</button>' +
+                                    '<button type="button" class="btn btn-warning dropdown-toggle cc_pointer btn-sm" data-toggle="dropdown" aria-expanded="true">' +
+                                    '<span class="caret"></span>' +
+                                    '<span class="sr-only">Toggle Dropdown</span>' +
+                                    '</button>' +
+                                    '<ul class="dropdown-menu btn-sm" role="menu">' +
+                                ' <li><a  onclick="EditToNewTab(\'' + data.Organize_ID + '\');">แก้ไข</a></li>' +
+                                ' <li><a onclick="GetDetailToNewTab(\'' + data.Organize_ID + '\');">ดู</a></li>' +
+                                    '</ul>' +
+                                    '</div >';
+                        }
+
+                    }
+                ],
+                bLengthChange: false,
+            });
+        }
+
+        function Export() {
+            //loadingSpinner('fadeIn', 999999);
+
+            $('#btnExport').prop('disabled', true);
+            $("body").css("cursor", "progress");
+
+            $.ajax({
+                url: "@Url.Action("ExportOrganizeReport", "GarageManagement")",
+                type: "GET",
+                data: {
+                    organizeTypeId: $('#ddlOrganizeType_S').val(),
+                    provinceId: $('#ddlProvince_S').val(),
+                    keyword: $('#txtKeyWord').val()
+                },
+                success: function (data) {
+                    window.location = "@Url.Action("DownloadExportOrganize", "GarageManagement")";
+                    //loadingSpinner('fadeOut');
+                    $("body").css("cursor", "default");
+                    $('#btnExport').prop('disabled', false);
+                },
+                 error: function (jqXHR, exception) {
+                     checkXHRStatus(jqXHR.status);
+                     //loadingSpinner('fadeOut');
+                 }
+            });
+        }
+
+        const EditToNewTab = (id) => {
+            let organizeId = id;
+
+            let encode_organizeID = window.btoa(organizeId);
+            let encode_mode = window.btoa(1);
+
+            var url = `@Url.Action("InformationGarageManagement", "GarageManagement")?organizeID=${encode_organizeID}&mode=${encode_mode}`;
+            window.open(url, '_blank');
+
+        }
+
+        const GetDetailToNewTab = (id) => {
+            let organizeId = id;
+
+            let encode_organizeID = window.btoa(organizeId);
+            let encode_mode = window.btoa(2);
+
+            var url = `@Url.Action("InformationGarageManagement", "GarageManagement")?organizeID=${encode_organizeID}&mode=${encode_mode}`;
+            window.open(url, '_blank');
+        }
+    </script>
+}

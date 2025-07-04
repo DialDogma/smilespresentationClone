@@ -1,0 +1,282 @@
+﻿@{
+    ViewBag.Title = "Memo";
+    Layout = "~/Views/Shared/_MasterApplication.cshtml";
+}
+<style>
+    .bgButton {
+        text-align: center;
+        background-color: #337ab7;
+        cursor: pointer;
+        height: 69px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+    }
+
+    .btnNext {
+        padding: 15px;
+        font-size: 25px;
+        color: #fff;
+        background-color: #008000;
+        border-color: transparent;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+    }
+</style>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 bg-primary text-white">
+            <h3>บันทึกข้อความ</h3>
+        </div>
+    </div>
+    <br />
+
+    <form action="@Url.Action("Memo")" metho method="post" enctype="multipart/form-data" class="form-horizontal">
+        <fieldset>
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        @if (@ViewBag.message != null)
+                        {
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="form-group">
+                                        <div id="alertMsg" class="alert alert-danger alert-warning" style="display: none">
+                                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                            <h4><i class="icon fa fa-ban"></i> เตือน!</h4>
+                                            @ViewBag.message
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <div id="result"></div>
+
+                        @*                    <div class="form-group">*@
+                        @*                        <label class="col-sm-4 col-lg-4 control-label" id="lbl1"></label>*@
+                        @*                        <div class="col-sm-8 col-lg-8">*@
+                        @*                            <label id="lbl2" class="" style="font-size: smaller"></label>*@
+                        @*                        </div>*@
+                        @*                    </div>*@
+                    </div>
+                </div>
+
+                <br />
+                <a class="btn btn-primary" data-toggle="modal" id="btnModal-Memo" name="btnModal-Memo" href='#modal-id'>เพิ่มบันทึกข้อความ</a>
+            </div>
+            <br />
+
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 bg-primary text-white">
+                    <h3>Sent Queue</h3>
+                </div>
+            </div>
+            <br />
+
+            <div class="row">
+                <div class="col-sm-12 col-lg-12">
+                    <div class="form-group">
+                        <label class="col-sm-4 col-lg-4 control-label" for="">ส่ง Queue</label>
+                        <div class="col-sm-4 col-lg-4">
+                            @*<div class="col-sm-offset-4 col-lg-offset-4 col-sm-4 col-lg-4">*@
+                            <select name="sentBranch" id="sentBranch" class="form-control select2">
+
+                                @foreach (var item in ViewBag.BranchList)
+                                {
+                                    <option value="@item.tempcode" @(item.tempcode == ViewBag.obj.Branch_id ? "selected" : "")>@item.BranchDetail</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <br />
+        <br />
+        <br />
+        <br />
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 bgButton">
+                <button type="submit" name="btn-next" id="btn-next" class="btnNext" style="width: 100%">บันทึกและส่ง Queue</button>
+            </div>
+        </div>
+        @*<div class="row">
+                <div class="col-sm-12 col-lg-12">
+                    <div class="form-group">
+                        <div class="col-sm-offset-4 col-lg-offset-4 col-sm-4 col-lg-4">
+
+                            <button type="submit" class="btn btn-success" style="width: 100%">บันทึกและส่ง Queue</button>
+                        </div>
+                    </div>
+                </div>
+            </div>*@
+
+        <input type="hidden" name="applicationId" id="applicationId" value="@ViewBag.obj.App_id" />
+        <input type="hidden" name="hidden_CreateById" id="hidden_CreateById" value="@ViewBag.obj.CreatedBy_id" />
+    </form>
+</div>
+
+<form class="form-horizontal" id="modal-memo" name="modal-memo">
+    <div class="modal fade" id="modal-id">
+        <div class="modal-dialog ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h3 class="modal-title">เพิ่มข้อความ</h3>
+                </div>
+                <div class="modal-body">
+                    <fieldset>
+                        <div class="row">
+                            <div class="col-sm-12 col-lg-12">
+                                <div class="form-group">
+                                    <label class="col-lg-3 control-label" for="ddlMemoType">ประเภทข้อความ</label>
+                                    <div class="col-lg-8">
+                                        <select name="ddlMemoType" id="ddlMemoType" class="form-control select2" style="width: 100%">
+                                            <option value="9540">ทั้วไป</option>
+                                            <option value="9502">การติดต่อจากลูกค้า</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12 col-lg-12">
+                                <div class="form-group">
+                                    <label class="col-lg-3 control-label" for="txtMemo">ข้อความ</label>
+                                    <div class="col-lg-8">
+                                        <input type="text" id="txtMemo" name="txtMemo" class="form-control" required="required"
+                                               placeholder="ข้อความ">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div class="modal-footer">
+                    <div class="clearfix "></div>
+                    <div class="row">
+                        <div class="col-sm-12 col-lg-12">
+                            <div class="form-group">
+                                <div class="col-xs-6 col-sm-6  col-md-6 col-lg-6  Asetmarginformcontrol">
+                                    @*<button type="submit" class="btn btn-primary" id="modal_save">Save</button>*@
+                                    <button type="button" class="btn btn-primary" name="modal_save" id="modal_save">Save</button>
+                                </div>
+                                <div class="col-xs-6 col-sm-6  col-md-6 col-lg-6  Asetmarginformcontrol setleftt">
+                                    <button type="button" class="btn btn-default" name="modal_close" id="modal_close" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@section scripts{
+    <script>
+        // debugger
+
+        $(function () {
+            GetMemo($('#applicationId').val());
+            debugger;
+
+            $('#modal-memo').validate();
+
+            //btnModalSave Click
+            $('#modal_save').click(function () {
+                debugger;
+                if ($("#modal-memo").valid() == true) {
+                    SetMemo($('#applicationId').val());
+                    $('#modal_close').click();
+                };
+            });
+
+        });
+
+        $('#btnModal-Memo').click(function () {
+            $('#txtMemo').val("");
+        });
+        //set address
+        function SetMemo(appId) {
+            // debugger;
+            $.ajax({
+
+                type: "POST",
+                url: "@ViewBag.APIUrlApplication/MobileApi/Mobile/SetMemo",
+                data: {
+                    "app_ID": appId,
+                    "memoType_ID": $('#ddlMemoType').val(),
+                    "memoText": $('#txtMemo').val(),
+                    "claim_ID": '',                                 //ท่านบูมบอก
+                    "createBy_ID": $('#hidden_CreateById').val()
+                },
+                success: function (response) {
+
+                    GetMemo(appId);
+
+                },
+                error: function (xhr, error) {
+                    alert(xhr.responseText);
+                }
+            });
+        }
+
+        function GetMemo(appId) {
+
+            // debugger;
+
+            $.ajax({
+                type: "GET",
+                url: "@ViewBag.APIUrlApplication/MobileApi/Mobile/Memo?applicationID=" + appId + "&memoGroupID=9500",
+                success: function (response) {
+
+                    $('#result').empty();
+
+                    for (let i = 0; i < response.length; i++) {
+
+                        //<div class="row">
+                        //    <div class="col-sm-12 col-lg-12">
+
+                        $('#result').append('<div class="row">' +
+
+                                                '<div class="col-sm-12 col-lg-12">' +
+                                                    '<div class="form-group">' +
+                                                        '<div>' +
+                                                            '<label class="col-sm-4 col-lg-4 control-label" id=t_' + response[i].code + '>ประเภทข้อความ: ' + response[i].memoType + '' + '</label>' +
+                                                        '</div>' +
+                                                        '<div class="col-sm-7 col-lg-7">' +
+                                                            '<input type="text" readonly="readonly" name=n_' + response[i].code + ' id="i_' + response[i].code + '" class="form-control" value="' + response[i].memoText + '">' +
+
+                                                          //  '<label class="" style="font-size: smaller" id=d_' + response[i].code + '>' + response[i].memoText + '</label>' +
+                                                        '</div>' +
+
+                                                            // col-xs-6 col-sm-6  col-md-6 col-lg-6
+                                                            '<div>' +
+                                                                '<label class="col-xs-4  col-sm-4 col-md-4  col-lg-4   control-label" id=t1_' + response[i].code + '> </label>' +
+                                                            '</div>' +
+
+                                                            '<div class="col-sm-6 col-lg-6">' +
+                                                                '<label class="" style="font-size: smaller" id=dt2_' + response[i].code + '>CreateBy: ' + response[i].createBy_id + ' / ' + response[i].createdDate + '</label>' +
+                                                            '</div>' +
+
+                                                    '</div>' +
+                                                '</div>' +
+                                            '</div>'
+
+                                            )
+
+                        ;
+
+                    }
+                }
+            });
+
+        }
+    </script>
+}

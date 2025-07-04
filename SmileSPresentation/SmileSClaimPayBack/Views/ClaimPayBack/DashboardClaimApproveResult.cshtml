@@ -1,0 +1,675 @@
+﻿
+@{
+    ViewBag.Title = "ผลอนุมัติเคลม (จาก บริษัทประกัน)";
+}
+
+<style>
+    .spanInsurance {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 12px;
+    }
+
+    .boxSumAmount {
+        margin-bottom: 0;
+        border-radius: 5px;
+        box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+    }
+
+    .boxSumAmountDetail {
+        border-radius: 5px;
+        margin: 5px 0px 10px 0px;
+        box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+    }
+
+    .box {
+        border-color: #65aadb;
+    }
+
+    @@keyframes fadeIn {
+        0% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .boxSumAmountContrainer {
+        animation: fadeIn 1s;
+    }
+
+    /*    td.dtTextColor {
+        color: #1087DD;
+    }*/
+
+    .colorSpan {
+        color: white;
+        border-radius: 4px;
+        display: inline-block;
+        width: 75px;
+    }
+    /*
+    table.dataTable thead {
+        background-color: #9DE1FF;
+        color: black;
+    }*/
+</style>
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title" style="color: #2B7ABA "><i class="glyphicon glyphicon-filter"></i> ค้นหาข้อมูล</h3>
+    </div>
+    <div class="box-body">
+        <div class="col-sm-12">
+            <div class="row">
+                <div class="form-group">
+                    <div class="col-xs-12 col-sm-6 col-md-2">
+                        <div class="form-group">
+                            <label>วันที่ส่งวางบิล :</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input class="form-control" id="dtpDateFrom" data-date-language="th-th" type="text" data-provide="datepicker" placeholder="dd/mm/yyyy" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-6 col-md-2">
+                        <div class="form-group">
+                            <label>ถึงวันที่ :</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input class="form-control" id="dtpDateTo" data-date-language="th-th" type="text" data-provide="datepicker" placeholder="dd/mm/yyyy" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-6 col-md-2">
+                        <div class="form-group">
+                            <label>ประเภทเคลม :</label>
+                            <select class="form-control select2" id="ddlClaimType">
+                                <option value="-1">---ทั้งหมด---</option>
+                                @foreach (var item in ViewBag.ClaimType)
+                                {
+                                    <option value="@item.Code">@item.Detail</option>
+                                }
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="col-xs-12 col-sm-6 col-md-2">
+                        <div class="form-group">
+                            <label>กลุ่มเคลม :</label>
+                            <select class="form-control select2" id="ddlClaimHeaderGroupType">
+                                <option value="-1">---ทั้งหมด---</option>
+                                @{
+                                    foreach (var item in ViewBag.ClaimHeaderGroupTypeId)
+                                    {
+                                        <option value="@item.ClaimHeaderGroupTypeId">@item.ClaimHeaderGroupTypeName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-6 col-md-2">
+                        <div class="form-group">
+                            <label>บริษัทประกัน :</label>
+                            <select class="form-control select2" id="ddlOrganizeId">
+                                <option value="-1">---ทั้งหมด---</option>
+                                @{
+                                    foreach (var item in ViewBag.InsuranceCompany)
+                                    {
+                                        <option value="@item.OrganizeId">@item.OrganizeDetail</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-12 col-md-2" style="margin-top:25px">
+                        <button id="btnSearch" class="btn btn-block btn-dropbox"><i class="fa fa-search"> ค้นหา</i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="box">
+    <div class="box-body boxSumAmountContrainer">
+        <div class="col-xs-12 col-md-6 col-lg-4">
+            <div class="info-box bg-light-blue boxSumAmount">
+                <span class="info-box-icon"><i class="fa fa-send"></i></span>
+                <div class="info-box-content">
+                    <div class="inner">
+                        <h5>ยอดวางบิลบริษัทประกัน</h5>
+                        <span class="info-box-number" id="spanBillingAmountTotal"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="boxSumAmountDetail" style="background-color: #7BC1EF">
+                <div class="col-md=12" style="margin-bottom:5px;padding:5px" id="divBillingAmountDetail"></div>
+            </div>
+        </div>
+        <div class="col-xs-12 col-md-6 col-lg-4">
+            <div class="info-box bg-yellow boxSumAmount">
+                <span class="info-box-icon"><i class="fa fa-warning"></i></span>
+                <div class="info-box-content">
+                    <div class="inner">
+                        <h5>ยอดคงค้างจากบริษัทประกัน</h5>
+                        <span class="info-box-number" id="spanOutstandingBalanceTotal"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="boxSumAmountDetail" style="background-color: #FFE097">
+                <div class="col-md=12" style="margin-bottom:5px;padding:5px" id="divOutstandingBalanceDetail"></div>
+            </div>
+        </div>
+        <div class="col-xs-12 col-md-6 col-lg-4">
+            <div class="info-box bg-green boxSumAmount">
+                <span class="info-box-icon"><i class="fa fa-dollar"></i></span>
+                <div class="info-box-content">
+                    <div class="inner">
+                        <h5>ยอดรับชำระจากบริษัทประกัน</h5>
+                        <span class="info-box-number" id="spanPaymentAmountTotal"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="boxSumAmountDetail" style="background-color: #82D196">
+                <div class="col-md=12" style="margin-bottom:5px;padding:5px" id="divPaymentAmountDetail"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xs-12 col-md-6 col-lg-6">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title" style="color: #2B7ABA; font-size:16px">จำนวนรายการเคลมทั้งหมด (รายการ)</h3>
+            </div>
+            <div class="box-body">
+                <table id="dtMonitor" class="table table-bordered dataTable table-hover" style="text-align: center; font-size:11.5px">
+                    <tfoot>
+                        <tr>
+                            <th>รวม</th>
+                            <th></th>
+                            <th style="color: #F39C12"></th>
+                            <th style="color: #3498DB"></th>
+                            <th style="color: #008D4C"></th>
+                            <th style="color: #D33724"></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-12 col-md-6 col-lg-6">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title" style="color: #2B7ABA; font-size: 16px">จำนวนเงินทั้งหมด (บาท)</h3>
+            </div>
+            <div class="box-body">
+                <table id="dtMonitor2" class="table table-bordered dataTable table-hover" style="text-align: center; font-size: 11.5px">
+                    <tfoot>
+                        <tr>
+                            <th>รวม</th>
+                            <th></th>
+                            <th style="color: #F39C12"></th>
+                            <th style="color: #3498DB"></th>
+                            <th style="color: #008D4C"></th>
+                            <th style="color: #EC7063"></th>
+                            <th style="color: #D33724"></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+
+        var dataBiliingTable;
+
+        $(function () {
+            $('.select2').select2();
+
+            //--------------------------------- Date -----------------------------------//
+            var date = new Date();
+            var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            dateTimeToday = new Date().toLocaleDateString('en-CA');
+
+            var dateDefault = {
+                format: 'dd/mm/yyyy',
+                autoclose: true,
+            }
+
+            $('#dtpDateFrom,#dtpDateTo').datepicker(dateDefault);
+            $('#dtpDateFrom,#dtpDateTo').datepicker('setDate', today);
+
+            DoLoadMonitor();
+            GetDashboardBillingAmountTotal_Detail();
+        });
+
+        //--------------------------------- Event -----------------------------------//
+        $("#dtpDateFrom").on("change", function () {
+            var dateEndString = $('#dtpDateTo').val();
+            var [day, month, year] = dateEndString.split("/");
+            var dateEnd = new Date(`${year}-${month}-${day}`);
+
+            var dateStartString = $('#dtpDateFrom').val();
+            var [day, month, year] = dateStartString.split("/");
+            var dateStart = new Date(`${year}-${month}-${day}`);
+
+            if (dateEnd < dateStart) {
+                $('#dtpDateTo').val($('#dtpDateFrom').val());
+            }
+        });
+
+        $("#btnSearch").click(function (e) {
+            e.preventDefault();
+            DoLoadMonitor();
+            GetDashboardBillingAmountTotal_Detail();
+        });
+
+        //--------------------------------- Method -----------------------------------//
+        //function checkXHRStatus(xhrStatus) {
+        //    var msg = '';
+        //    if (xhrStatus === 0) {
+        //        msg = 'Not connect.\n Verify Network.';
+        //    } else if (jqXHR.status == 404) {
+        //        msg = 'Requested page not found. [404]';
+        //    } else if (jqXHR.status == 500) {
+        //        msg = 'Internal Server Error [500].';
+        //    } else if (exception === 'parsererror') {
+        //        msg = 'Requested JSON parse failed.';
+        //    } else if (exception === 'timeout') {
+        //        msg = 'Time out error.';
+        //    } else if (exception === 'abort') {
+        //        msg = 'Ajax request aborted.';
+        //    } else {
+        //        msg = 'Uncaught Error.\n' + jqXHR.responseText;
+        //    }
+        //    swal("ไม่สำเร็จ", msg, "error");
+        //}
+
+        const DoLoadMonitor = () => {
+            $('#dtMonitor').dataTable({
+                paging: false,
+                info: false,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                "order": [[0, "desc"]],
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetDashboardClaimApproveResult")',
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.billingDateFrom = $('#dtpDateFrom').val();
+                        d.billingDateTo = $('#dtpDateTo').val();
+                        d.claimTypeId = $('#ddlClaimType').val();
+                        d.claimHeaderGroupType = $('#ddlClaimHeaderGroupType').val();
+                        d.organizeId = $('#ddlOrganizeId').val();
+                        d.draw = d.draw;
+                        d.indexStart = d.start;
+                        d.pageSize = d.length;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                    }
+                },
+                columns: [
+                    { title: 'บริษัทประกัน', data: 'InsuranceCompany', className: 'h-dt-center text-left dtTextColor'},
+                    {
+                        title: 'ทั้งหมด',
+                        data: 'AllCount',
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data) {
+                            return numberWithCommas(data);
+                        }
+                    },
+                    {
+                        title: 'รอพิจารณา',
+                        data: 'PendingCount',
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data) {
+                            return `<span class="colorSpan" style="background-color: #F39C12">${numberWithCommas(data)}</span>`;
+                        }
+                    },
+                    {
+                        title: 'อนุมัติ',
+                        data: 'ApprovedCount',
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data) {
+                            return `<span class="colorSpan" style="background-color: #3498DB">${numberWithCommas(data)}</span>`;
+                        }
+                    },
+                    {
+                        title: 'อนุมัติบางส่วน',
+                        data: 'PartiallyApprovedCount',
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data) {
+                            return `<span class="colorSpan" style="background-color: #008D4C">${numberWithCommas(data)}</span>`;
+                        }
+                    },
+                    {
+                        title: 'ปฏิเสธ',
+                        data: 'RejectCount',
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data) {
+                            return `<span class="colorSpan" style="background-color: #D33724">${numberWithCommas(data)}</span>`;
+                        }
+                    },
+                ],
+                footerCallback: function (row, data, start, end, display) {
+                    var api = this.api(), data;
+                    console.log("data", data);
+                    console.log("row", row);
+                    console.log("start", start);
+                    console.log("end", end);
+                    console.log("display", display);
+                    console.log("api", api);
+
+                    dataBiliingTable = data;
+
+                    // Remove the formatting to get integer data for summation
+                    var intVal = function (i) {
+                        return typeof i === 'string' ?
+                            i.replace(/[\$,]/g, '') * 1 :
+                            typeof i === 'number' ?
+                                i : 0;
+                    };
+
+                    // Total over all pages
+                    totalColumn1 = api
+                        .column(1)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+                    totalColumn2 = api
+                        .column(2)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+                    totalColumn3 = api
+                        .column(3)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+                    totalColumn4 = api
+                        .column(4)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+                    totalColumn5 = api
+                        .column(5)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    // Update footer
+                    $(api.column(1).footer()).html(
+                        numberWithCommas(totalColumn1)
+                    );
+                    $(api.column(2).footer()).html(
+                        numberWithCommas(totalColumn2)
+                    );
+                    $(api.column(3).footer()).html(
+                        numberWithCommas(totalColumn3)
+                    );
+                    $(api.column(4).footer()).html(
+                        numberWithCommas(totalColumn4)
+                    );
+                    $(api.column(5).footer()).html(
+                        numberWithCommas(totalColumn5)
+                    );
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    if (textStatus === 'timeout') {
+                        alert('The request timed out. Please try again later.');
+                        swal('เกิดข้อผิดพลาด', 'The request timed out. Please try again later.', 'error');
+                    } else {
+                        swal('เกิดข้อผิดพลาด', 'An error occurred: ' + xhr.status + ' ' + xhr.statusText + '. Please try again later.', 'error');
+                    }
+                },
+                bLengthChange: false,
+            });
+
+            DoLoadMonitor2(dataBiliingTable);
+        }
+
+        const DoLoadMonitor2 = (data) => {
+            $('#dtMonitor2').dataTable({
+                paging: false,
+                info: false,
+                lengthChange: false,
+                processing: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                "order": [[0, "desc"]],
+                data: data,
+                columns: [
+                    { title: 'บริษัทประกัน', data: 'InsuranceCompany', className: 'h-dt-center text-left dtTextColor' },
+                    {
+                        title: 'ทั้งหมด',
+                        data: 'AllAmountTotal',
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data) {
+                            return numberWithCommas(data.toFixed(2));
+                        }
+                    },
+                    {
+                        title: 'รอพิจารณา',
+                        data: 'PendingAmountTotal',
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data) {
+                            return `<span class="colorSpan" style="background-color: #F39C12">${numberWithCommas(data.toFixed(2))}</span>`;
+                        }
+                    },
+                    {
+                        title: 'อนุมัติ',
+                        data: 'ApprovedAmountTotal',
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data) {
+                            return `<span class="colorSpan" style="background-color: #3498DB">${numberWithCommas(data.toFixed(2))}</span>`;
+                        }
+                    },
+                    {
+                        title: 'อนุมัติบางส่วน',
+                        data: 'PartiallyApprovedAmountTotal',
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data) {
+                            return `<span class="colorSpan" style="background-color: #008D4C">${numberWithCommas(data.toFixed(2))}</span>`;
+                        }
+                    },
+                    {
+                        title: 'ปฏิเสธบางส่วน',
+                        data: 'PartiallyRejectAmountTotal',
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data) {
+                            return `<span class="colorSpan" style="background-color: #EC7063">${numberWithCommas(data.toFixed(2))}</span>`;
+                        }
+                    },
+                    {
+                        title: 'ปฏิเสธ',
+                        data: 'RejectAmountTotal',
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data) {
+                            return `<span class="colorSpan" style="background-color: #D33724">${numberWithCommas(data.toFixed(2))}</span>`;
+                        }
+                    },
+                ],
+                footerCallback: function (row, data, start, end, display) {
+                    var api = this.api(), data;
+
+                    // Remove the formatting to get integer data for summation
+                    var intVal = function (i) {
+                        return typeof i === 'string' ?
+                            i.replace(/[\$,]/g, '') * 1 :
+                            typeof i === 'number' ?
+                                i : 0;
+                    };
+
+                    // Total over all pages
+                    totalColumn1 = api
+                        .column(1)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+                    totalColumn2 = api
+                        .column(2)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+                    totalColumn3 = api
+                        .column(3)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+                    totalColumn4 = api
+                        .column(4)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+                    totalColumn5 = api
+                        .column(5)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+                    totalColumn6 = api
+                        .column(6)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    // Update footer
+                    $(api.column(1).footer()).html(
+                        numberWithCommas(totalColumn1.toFixed(2))
+                    );
+                    $(api.column(2).footer()).html(
+                        numberWithCommas(totalColumn2.toFixed(2))
+                    );
+                    $(api.column(3).footer()).html(
+                        numberWithCommas(totalColumn3.toFixed(2))
+                    );
+                    $(api.column(4).footer()).html(
+                        numberWithCommas(totalColumn4.toFixed(2))
+                    );
+                    $(api.column(5).footer()).html(
+                        numberWithCommas(totalColumn5.toFixed(2))
+                    );
+                    $(api.column(6).footer()).html(
+                        numberWithCommas(totalColumn6.toFixed(2))
+                    );
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    if (textStatus === 'timeout') {
+                        alert('The request timed out. Please try again later.');
+                        swal('เกิดข้อผิดพลาด', 'The request timed out. Please try again later.', 'error');
+                    } else {
+                        swal('เกิดข้อผิดพลาด', 'An error occurred: ' + xhr.status + ' ' + xhr.statusText + '. Please try again later.', 'error');
+                    }
+                },
+                bLengthChange: false,
+            });
+        }
+
+        function GetDashboardBillingAmountTotal_Detail() {
+            loadingSpinner('fadeIn', 999999);
+            $.ajax({
+                url: "@Url.Action("GetDashboardBillingAmountTotal_Detail")",
+                type: "POST",
+                data:{
+                    billingDateFrom: $('#dtpDateFrom').val(),
+                    billingDateTo: $('#dtpDateTo').val(),
+                    claimTypeId: $('#ddlClaimType').val(),
+                    claimHeaderGroupType: $('#ddlClaimHeaderGroupType').val(),
+                    organizeId: $('#ddlOrganizeId').val()
+                },
+                success: function (response) {
+                    // clear the div's contents
+                    $('#divBillingAmountDetail').empty();
+                    $('#divOutstandingBalanceDetail').empty();
+                    $('#divPaymentAmountDetail').empty();
+
+                    // assuming the response is an array of objects
+                    //ยอดวางบิลบริษัทประกัน
+                    $("#spanBillingAmountTotal").html(`${numberWithCommas(response.BillingAmountTotal.toFixed(2))} บาท`);
+                    response.BillingAmountList.forEach(function (data) {
+                        $('#divBillingAmountDetail').append(`<div style="margin:5px;display:flex"><span class="spanInsurance text-bold col-xs-5 col-sm-7 col-md-6 col-lg-7">${data.OrganizeDetail}</span>
+                        <span class="text-right col-xs-5 col-sm-3 col-md-4 col-lg-3" style="background-color: white; color: black; font-weight: bold; box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px; border-radius: 4px;font-size:12px" title="${numberWithCommas(data.TotalAmount.toFixed(2))}">${numberWithCommas(data.TotalAmount.toFixed(2))}</span>
+                        <span class="label" style="color: black; font-size: 12px; padding-left: 30px">บาท</span></div>`);
+                    });
+
+                    //ยอดคงค้างจากบริษัทประกัน
+                    $("#spanOutstandingBalanceTotal").html(`${numberWithCommas(response.OutstandingBalanceTotal.toFixed(2))} บาท`);
+                    response.OutstandingBalanceList.forEach(function (data) {
+                        $('#divOutstandingBalanceDetail').append(`<div style="margin:5px;display:flex"><span class="spanInsurance text-bold col-xs-5 col-sm-7 col-md-6 col-lg-7">${data.OrganizeDetail}</span>
+                        <span class="text-right col-xs-5 col-sm-3 col-md-4 col-lg-3" style="background-color: white; color: black; font-weight: bold; box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px; border-radius: 4px;font-size:12px" title="${numberWithCommas(data.TotalAmount.toFixed(2))}">${numberWithCommas(data.TotalAmount.toFixed(2))}</span>
+                        <span class="label" style="color: black; font-size: 12px; padding-left: 30px">บาท</span></div>`);
+                    });
+
+                    //ยอดรับชำระจากบริษัทประกัน
+                    $("#spanPaymentAmountTotal").html(`${numberWithCommas(response.PaymentAmountTotal.toFixed(2))} บาท`);
+                    response.PaymentAmountList.forEach(function (data) {
+                        $('#divPaymentAmountDetail').append(`<div style="margin:5px;display:flex"><span class="spanInsurance text-bold col-xs-5 col-sm-7 col-md-6 col-lg-7">${data.OrganizeDetail}</span>
+                        <span class="text-right col-xs-5 col-sm-3 col-md-4 col-lg-3" style="background-color: white; color: black; font-weight: bold; box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px; border-radius: 4px;font-size:12px" title="${numberWithCommas(data.TotalAmount.toFixed(2))}">${numberWithCommas(data.TotalAmount.toFixed(2))}</span>
+                        <span class="label" style="color: black; font-size: 12px; padding-left: 30px">บาท</span></div>`);
+                    });
+
+                    loadingSpinner('fadeOut', 999999);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    if (textStatus === 'timeout') {
+                        alert('The request timed out. Please try again later.');
+                        swal('เกิดข้อผิดพลาด', 'The request timed out. Please try again later.', 'error');
+                    } else {
+                        swal('เกิดข้อผิดพลาด', 'An error occurred: ' + xhr.status + ' ' + xhr.statusText + '. Please try again later.', 'error');
+                    }
+                }
+            });
+        }
+
+    </script>
+}

@@ -1,0 +1,299 @@
+﻿@{
+    ViewBag.Title = "แก้ไขผลการคัดกรอง";
+    Layout = "~/Views/Shared/_LayoutForTopIndexMotor.cshtml";
+}
+<style>
+    .table {
+        font-size: 14px;
+    }
+
+    .header {
+        margin: 15px;
+    }
+
+    .select2-container .select2-selection--single {
+        box-sizing: border-box;
+        cursor: pointer;
+        display: block;
+        height: 34px !important;
+        border-radius: 0px !important;
+        -webkit-user-select: none;
+    }
+
+    .select2 {
+        width: 100% !important;
+    }
+</style>
+<div class="box box-header bg-aqua">
+    <center><span style="font-size:large;">ประกันรถยนต์</span></center>
+</div>
+<div class="box box-warning">
+    <div class="box-body">
+        <legend style="text-align: center; background: rgb(255, 165, 0); color: white">แก้ไขผลการคัดกรอง</legend>
+        <div class="form-group ali">
+            <form class="form-horizontal">
+                <div class="form-group">
+                    <div class="col-sm-1">
+                    </div>
+                    <div class="col-sm-3">
+                        <label for="txtAppCode">เลข App</label>
+                        <input id="txtAppCode" name="txtAppCode" class="form-control select2" placeholder="เลข App" />
+                    </div>
+                    <div class="col-sm-3">
+                        <label for="txtCusName">ชื่อ-สกุล ผู้เอาประกัน</label>
+                        <input id="txtCusName" name="txtCusName" class="form-control select2" placeholder="ชื่อ-สกุล ผู้เอาประกัน" />
+                    </div>
+                    <div class="col-sm-3">
+                        <label for="txtPayerName">ชื่อ-สกุล ผู้ชำระเบี้ย</label>
+                        <input id="txtPayerName" name="txtPayerName" type="text" class="form-control" placeholder="ชื่อ-สกุล ผู้ชำระเบี้ย" />
+                    </div>
+                    <div class="col-sm-1 btnSearch">
+                        <br />
+                        <button type="button" class="btn btn-primary" id="btnSearch" style="cursor:pointer">ค้นหา</button>
+                    </div>
+                </div>
+            </form>
+            <div class="box-body" style="margin-top:15px">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <table id="tableQueueEdit" class="table table-bordered table-striped display responsive" style="width: 100%;">
+                            @*<tbody>
+                                    <tr style="text-align:center"><td>ไม่พบข้อมูล</td></tr>
+                                </tbody>*@
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="userId" value="@ViewBag.UserId" />
+<input type="hidden" id="hd_branchId" value="@ViewBag.branchId" />
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        $(function () {
+
+                /*start signalR*/
+                // Reference the auto-generated proxy for the hub.
+                var chat = $.connection.chatHub;
+                //Start Connection
+                $.connection.hub.start().done(function () {
+                    //join group
+                    chat.server.joinGroup($('#userId').val());
+                });
+                //Show public message to client
+                chat.client.receiveGroupNotice = function (message) {
+                    /*full msg*/
+                    const fullMessage = message;
+                    /*new date*/
+                    const date = new Date();
+                    /*set str*/
+                    const str = date.getFullYear() +
+                        "-" +
+                        (date.getMonth() + 1) +
+                        "-" +
+                        date.getDate() +
+                        " " +
+                        date.getHours() +
+                        ":" +
+                        date.getMinutes() +
+                        ":" +
+                        date.getSeconds();
+                    /*alert toastr*/
+                    window.toastr["success"](`อัพเดตครั้งล่าสุด : ${str}`, fullMessage);
+                    /*Load Datatables*/
+                    GetQueueEdit();
+                };
+
+                window.toastr.options = {
+                    "closeButton": false,
+                    "debug": false,
+                    "newestOnTop": false,
+                    "progressBar": false,
+                    "positionClass": "toast-top-right",
+                    "preventDuplicates": false,
+                    "onclick": null,
+                    "showDuration": "300",
+                    "hideDuration": "1000",
+                    "timeOut": "5000",
+                    "extendedTimeOut": "1000",
+                    "showEasing": "swing",
+                    "hideEasing": "linear",
+                    "showMethod": "fadeIn",
+                    "hideMethod": "fadeOut"
+                };
+                /*end signalR*/
+
+                //LOAD DEFAULT
+               @* GetQueueEdit();*@
+                //Event
+            $('#btnSearch').on('click', function (e) {
+                e.preventDefault();
+                //load datatable
+                if ($('#txtAppCode').val() != "" || $('#txtCusName').val() != "" || $('#txtPayerName').val() != "") {
+                    //load datatable
+                    GetQueueEdit();
+                } else {
+                    swal("กรุณากรอกคำค้นหา", "", "warning");
+                }
+            });
+            });
+
+        //mockup คัดกรองแล้ว
+        const GetQueueEdit = (startCoverDate) => {
+            $('#tableQueueEdit').empty();
+            var table = $('#tableQueueEdit').DataTable({
+                  pageLength: 10,
+                  lengthChange: true,
+                  processing: true,
+                  serverSide: true,
+                  destroy: true,
+                  searching: false,
+                  ordering: true,
+                  info: true,
+                  paging: true,
+                  autoWidth: false,
+                  responsive: true,
+                    language: {
+                        url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                    },
+                    ajax: {
+                        url: '@Url.Action("QueueMotorEdit_DT")',
+                        method: 'POST',
+                        data: function (d) {
+                            d.draw = d.draw;
+                            d.pageSize = d.length;
+                            d.indexStart = d.start;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.searchDetail1 = $("#txtAppCode").val();
+                            d.searchDetail2 = $("#txtCusName").val();
+                            d.searchDetail3 = $("#txtPayerName").val();
+                        },
+                },
+
+                    columns: [
+                        {
+                            title: 'ลำดับ',
+                            data: null,
+                            orderable: false,
+                            className: "th-center td-center"
+                        },
+
+                        {
+                            title: 'เลข App',
+                            data: 'ApplicationCode',
+                            className: "th-center"
+                        },
+                        {
+                            title: 'ชื่อผู้เอาประกัน',
+                            data: 'InsuredName',
+                            className: "th-center"
+                        },
+                        {
+                            title: 'ชื่อผู้ชำระเบี้ย',
+                            data: 'PayerName',
+                            className: "th-center"
+                        },
+                        {
+                            title: 'ชื่อ ผอ.บล.',
+                            data: 'DirectorName',
+                            className: "th-center"
+                        },
+                        {
+                            title: 'สาขา',
+                            data: 'DirectorBranch',
+                            className: "th-center"
+                        },
+                        {
+                            title: 'วันเริ่มคุ้มครอง',
+                            data: 'StartCoverDate',
+                            className: "th-center",
+                            render: function (data) {
+                                return moment(data).format("DD/MM/YYYY HH:mm:ss");
+                            }
+                        },
+                        {
+                            title: 'รายละเอียด',
+                            width: "200px",
+                            orderable: false,
+                            data: null,
+                            className: "th-center td-center",
+                            render: function (data) {
+
+                                var nowDate = Date.now();
+                                var NowDay = moment(nowDate).format("DD");
+                                var NowMonth = moment(nowDate).format("MM");
+                                var NowYear = moment(nowDate).format("YYYY");
+                                var AppStartCoverDateMonth = moment(data.StartCoverDate).format("MM");
+                                var AppStartCoverDateYear = moment(data.StartCoverDate).format("YYYY");
+                                var PeriodListForCheckDCR = (`@ViewBag.PeriodListForCheckDCR`).split("/");
+                                var nowTimeOpen = moment(nowDate).format("HH.ss");
+                                var a = parseInt(AppStartCoverDateMonth);
+                                var b = parseInt(PeriodListForCheckDCR[1]);
+
+                                var c = parseInt(AppStartCoverDateYear);
+                                var d = parseInt(PeriodListForCheckDCR[2])-543;
+
+                                var e = parseInt(NowDay);
+                                var f = parseFloat(nowTimeOpen);
+
+                                var OPen = (`@ViewBag.MortorOpenDate`).split(",");
+                                var dateOpen = parseInt(OPen[0]);
+                                var timeOpen = parseFloat(OPen[1]);
+
+                                var Close = (`@ViewBag.MotorCloseDate`).split(",");
+                                var dateClose = parseInt(Close[0]);
+                                var timeClose = parseFloat(Close[1]);
+                                  if (c == d) {
+                                      if (a == b && (e >= dateOpen)) {
+                                          if (f >= timeOpen) {
+                                              return `<button type="button" class="btn btn-info pull-left" onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>
+                                                    <button type="button" class="btn btn-warning" onclick="OpenNewIndexPage(${data.QueueId});"><i class="fa fa-edit" ></i>แก้ไข</button>`
+                                          } else {
+                                              return `<button type="button" class="btn btn-info pull-left" onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>`;
+                                          }
+
+                                      } else if (a == b && (e <= dateClose)) {
+                                          if (timeClose >= f) {
+                                              return `<button type="button" class="btn btn-info pull-left" onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>
+                                                    <button type="button" class="btn btn-warning" onclick="OpenNewIndexPage(${data.QueueId});"><i class="fa fa-edit" ></i>แก้ไข</button>`
+                                          } else {
+                                              return `<button type="button" class="btn btn-info pull-left" onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>`;
+                                          }
+                                      } else {
+                                          return `<button type="button" class="btn btn-info pull-left" onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>`;}
+                                } else {
+                                      return `<button type="button" class="btn btn-info pull-left" onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>`;;
+                                }
+
+                               @* return `<div class="row">
+                                        <div><button onclick="OpenNewViewPage(${data.QueueId});" class="btn btn-info" style="margin-bottom:5px"><i class="fa fa-search"></i>ดูรายละเอียด</button></div>
+                                        <div><button onclick="OpenNewIndexPage(${data.QueueId});" class="btn btn-warning" style="width:87%"><i class="fa fa-edit" ></i> แก้ไข</button></div>
+                                        </div>`;*@
+
+                            }
+                        }
+                    ]
+                });
+                table.on('draw.dt', function () {
+                    var PageInfo = table.page.info();
+                    table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                        cell.innerHTML = i + 1 + PageInfo.start;
+                    });
+                });
+                window.onresize = function () {
+                    table.columns.adjust().responsive.recalc();
+                };
+        }
+        const OpenNewViewPage = (queueId) => {
+                let encodeId = btoa(queueId);
+                window.open(`@Url.Action("MotorUnderwriteViewDetail", "MotorUnderwrite")?queueId=${encodeId}`,'_blank')
+        }
+        const OpenNewIndexPage = (queueId) => {
+                let encodeId = btoa(queueId);
+                window.open(`@Url.Action("MotorUnderwriteEditDetail", "MotorUnderwrite")?queueId=${encodeId}`,'_blank')
+            }
+    </script>
+}

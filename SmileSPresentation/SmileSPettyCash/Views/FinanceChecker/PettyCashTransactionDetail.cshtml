@@ -1,0 +1,426 @@
+﻿@{
+    /**/
+
+    ViewBag.Title = "รายการปิดยอด";
+}
+<style>
+    .table {
+        font-size: 14px;
+    }
+
+    .modal.fade .modal-dialog {
+        transform: translate(0, -100%);
+    }
+
+    .modal.in .modal-dialog {
+        transform: translate(0, 0);
+    }
+
+    div > label {
+        color: #0c09ce;
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* Dt form *@
+        <div class="col-sm-12" id="Detail_form">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtShowDataSource" name="dtShowDataSource" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-2 pull-right">
+                            <button type="button" id="btnSubmit" class="btn btn-block btn-success" onclick="CloseDayHeaderTransaction($('#hd_hPctId').val())">ปิดยอด</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* modal check *@
+    <div class="modal fade bd-check-modal-lg" id="checkModal" tabindex="-1" role="dialog" aria-labelledby="checkModal" aria-hidden="true">
+        <div class="modal-dialog  modal-lg " role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="checkModalHeader">ตรวจสอบ สาขา <label id="txtbranch"></label></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            Code : <label id="txtCode"></label>
+                            <input type="hidden" id="hd_pctId" value="" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            วันที่ใบเสร็จ/ใบกำกับภาษี : <label id="txtBillDate"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            ประเภท : <label id="txtType"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            รายละเอียด/ประเภทค่าใช้จ่าย : <label id="txtDescription"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            รายละเอียดเพิ่มเติม : <label id="txtDescriptionDetail"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            ชื่อบริษัท : <label id="txtCompany"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            เลขที่ใบเสร็จ : <label id="txtBillBook"></label>
+                        </div>
+                    </div>
+                    @*<div class="form-group row">
+                            <div class="col-sm-6">
+                                ประเภทบัญชี : <label id="txtBookType"></label>
+                            </div>
+                            <div class="col-sm-6">
+                                ธนาคาร : <label id="txtBank"></label>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-6">
+                                เลขที่บัญชี : <label id="txtBookBank"></label>
+                            </div>
+                            <div class="col-sm-6">
+                                ชื่อบัญชี : <label id="txtBookBankName"></label>
+                            </div>
+                        </div>*@
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            จำนวนเงิน : <label id="txtAmountNet"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            วันที่ทำรายการล่าสุด : <label id="txtUpdatedDate"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            โดย : <label id="txtUpdatedBy"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            เอกสาร : <a target="_blank" href="" id="btnScanDoc" class="btn btn-block btn-default">เอกสาร:<label class="text-bold" id="docCount">0</label></a>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            หมายเหตุ : <label id="txtRemark"></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-sm-offset-1 col-sm-2">
+                        การตรวจสอบ :
+                    </div>
+                    <div class="col-sm-3">
+                        <button type="button" class="btn btn-block btn-success" onclick="Pass()">ผ่าน</button>
+                    </div>
+                    <div class="col-sm-3">
+                        <button type="button" class="btn btn-block btn-danger" data-toggle="modal" data-target=".bd-notPass-modal-lg">ไม่ผ่าน</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end modal *@
+    @* not pass modal *@
+    <div class="modal fade bd-notPass-modal-lg" id="notPassModal" tabindex="-1" role="dialog" aria-labelledby="notPassModal" aria-hidden="true">
+        <div class="modal-dialog  modal-md " role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">สาเหตุไม่ผ่าน</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-3" style="text-align:right">
+                                หมายเหตุ :
+                            </div>
+                            <div class=" col-sm-9">
+                                <select id="select_NotPassStatus" name="select_NotPassStatus" class="form-control select2" required="">
+                                    <option value="-1">---กรุณาเลือก---</option>
+                                    @foreach(var itm in ViewBag.NotPass)
+                                    {
+                                        <option value="@itm.UnPassCauseId">@itm.UnPassCause</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+
+                        <div class="col-lg-offset-3 col-sm-9">
+                            <textarea rows="5" style="width: 100%" name="txtNotPassRemark" id="txtNotPassRemark"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-sm-offset-3 col-sm-3">
+                        <button type="button" class="btn btn-block btn-success" onclick="NotPass()">ตกลง</button>
+                    </div>
+                    <div class="col-sm-3">
+                        <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ยกเลิก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* endmodal *@
+    @* hidden *@
+    <input type="hidden" name="hd_hPctId" id="hd_hPctId" value="@ViewBag.hPettyCashId" />
+    @* end hidden *@
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            CallPettyCashDetailDT();
+            setTimeout(function () { loopInputToTblInput(); }, 1500);
+
+        });
+        const CallPettyCashDetailDT = () => {
+            $('#dtShowDataSource').empty();
+            var table = $('#dtShowDataSource').DataTable({
+                dom: 'frtip<"footer">',
+                paging: false,
+                info: false,
+                processing: true,
+                searching: false,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetCheckerDetail_DT","FinanceChecker")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 99999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.pcDailyId = $('#hd_hPctId').val();
+                    }
+                },
+                columns: [
+
+                    {
+                        title: 'Code',
+                        className: 'h-dt-center',
+                        data: 'PettyCashTransactionCode'
+                    },
+                    {
+                        title: 'วันที่สร้างรายการ',
+                        data: 'CreatedDate',
+                        className: 'h-dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+
+                            }
+                        }
+                    },
+                    {
+                        title: 'ประเภท',
+                        className: 'h-dt-center',
+                        data: 'PettyCashTransactionGroup',
+                        render: function (data) {
+                            if (data == "บันทึกจ่าย") {
+                                return `<span style="color: #d10000;">${data}</span>`
+                            } else if (data == "บันทึกรับ") {
+                                return `<span style="color: #007c16;">${data}</span>`
+                            }
+
+                            return `<span>${data}</span>`
+                        }
+                    },
+                    {
+                        title: 'รายละเอียด/ประเภทค่าใช้จ่าย',
+                        className: 'h-dt-center',
+                        data: 'PettyCashTransactionType'
+                    },
+                    {
+                        title: 'รายละเอียดเพิ่มเติม',
+                        className: 'h-dt-center',
+                        data: 'PettyCashTransactionTypeDescription'
+                    },
+                    {
+                        title: 'จำนวนเงิน',
+                        data: null,
+                        className: 'h-dt-center d-dt-right',
+                        render: function (data) {
+                            if (data.PettyCashTransactionGroup == "บันทึกจ่าย") {
+                                return `<span style="color: #d10000;">${data.Amount}</span>`
+                            } else if (data.PettyCashTransactionGroup == "บันทึกรับ") {
+                                return `<span style="color: #007c16;">${data.Amount}</span>`
+                            }
+                            return `<span>${data}</span>`
+                        },
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        searchable: false,
+                        mRender: function (data) {
+                            if (data.PettyCashTransactionStatus == "ผ่าน") {
+                                return `<span  class="label label-success">${data.PettyCashTransactionStatus}</span>` + '<input class="check_unPass" type="hidden" id="hd_' + data.PettyCashTransactionId + '" value="' + data.PettyCashTransactionStatusId + '" />';
+
+                            } else if (data.PettyCashTransactionStatus == "ไม่ผ่าน") {
+                                return `<span  class="label label-danger">${data.PettyCashTransactionStatus}</span>` + '<input class="check_unPass" type="hidden" id="hd_' + data.PettyCashTransactionId + '" value="' + data.PettyCashTransactionStatusId + '" />';
+
+                            } else if (data.PettyCashTransactionStatus == "รอตรวจสอบ") {
+                                return `<span  class="label label-warning">${data.PettyCashTransactionStatus}</span>` + '<input class="check_unPass" type="hidden" id="hd_' + data.PettyCashTransactionId + '" value="' + data.PettyCashTransactionStatusId + '" />';
+                            }
+                            return `<span  class="label label-default">${data.PettyCashTransactionStatus}</span>` + '<input class="check_unPass" type="hidden" id="hd_' + data.PettyCashTransactionId + '" value="' + data.PettyCashTransactionStatusId + '" />';
+                        }
+                    },
+                    {
+                        title: 'ตรวจสอบ',
+                        data: null,
+                        className: 'h-dt-center',
+                        searchable: false,
+                        render: function (data) {
+                            return '<button type="button" data-toggle="modal" data-target=".bd-check-modal-lg" class="btn btn-block btn-default" id="btnEdit_' + data.PettyCashTransactionId + '" onclick="Edit(' + data.PettyCashTransactionId + ')"><i class="fa fa-search"></i> ตรวจสอบ</button>';
+
+                        }
+                    }
+
+                ],
+                drawCallback: function (d) {
+                    debugger
+                    var api = this.api();
+                    var sum = 0;
+                    var d = api.rows({ page: 'current' }).data();
+                    for (var i = 0; i < d.length; i++) {
+                        //2รับ-3จ่าย
+                        if (d[i].PettyCashTransactionGroupId === 2) {
+                            sum += d[i].Amount
+                        } else if (d[i].PettyCashTransactionGroupId === 3) {
+                            sum -= d[i].Amount
+                        }
+                    }
+                    $("div.footer").html(`<h4 style="float: right" class="text-bold">ยอดรวมรายการเบิก รับ-จ่าย &nbsp&nbsp รวม: <span style="color:${negative(sum) ? "#d10000;" : "#007c16;"}">${sum}</span> บาท</h4>`);
+                }
+
+            });
+        }
+
+        const Edit = (pctId) => {
+            $('#hd_pctId').empty();
+            $.get('@Url.Action("GetPctDetail","FinanceChecker")', { pctTranId: pctId },
+                function (data) {
+                    $('#txtbranch').text(data.BranchDetail);
+                    $('#txtCode').text(data.PettyCashTransactionCode);
+                    $('#txtBillDate').text(moment(data.BillDate).format('DD/MM/YYYY HH:mm'));
+                    $('#txtType').text(data.PettyCashTransactionGroup);
+                    $('#txtDescription').text(data.PettyCashTransactionType);
+                    $('#txtDescriptionDetail').text(data.PettyCashTransactionTypeDescription);
+                    $('#txtCompany').text(data.OrganizeDetail);
+                    $('#txtBillBook').text(data.BillBook);
+                    $('#txtAmountNet').text(data.Amount);
+                    $('#txtUpdatedDate').text(moment(data.UpdatedDate).format('DD/MM/YYYY HH:mm'));
+                    $('#txtUpdatedBy').text(data.UpdatedByName);
+                    $('#btnScanDoc').attr('href', data.UrlLinkOpenSSSDoc);
+                    $('#txtRemark').text(data.Remark);
+                    $('#docCount').text(data.DocumentFileCount);
+                    $('#hd_pctId').val(data.PettyCashTransactionId);
+                });
+        }
+
+        //5-not pass
+        const NotPass = () => {
+            var unPassCauseId = $('#select_NotPassStatus').val();
+            var unPassRemark = $('#txtNotPassRemark').val();
+            if (ValidateNotPass()) {
+                swal_confirm("ยืนยันการทำรายการ?", "ต้องการปฎิเสธรายการนี้?", function () {
+                    $.post('@Url.Action("SetTransactionStatus","FinanceChecker")', { pctId: $('#hd_pctId').val(), pctStatusId: 5, unPassCauseId: unPassCauseId, unPassRemark: unPassRemark },
+                        function (data) {
+                            if (data.IsResult) {
+                                swal_success(setTimeout(function () {
+                                    window.location = ('@Url.Action("PettyCashTransactionDetail","FinanceChecker")?hPettyCashId=' + $('#hd_hPctId').val());
+                                    swal.close();
+                                }, 2000));
+
+                            } else {
+                                swal_fail("ทำรายการไม่สำเร็จ กรุณาตรวจสอบ!!");
+                            }
+                        });
+                });
+            } else {
+                swal_fail("กรูณากรอกข้อมูลให้ครบถ้วน!");
+            }
+
+        }
+        //4-pass
+        const Pass = () => {
+            swal_confirm("ยืนยันการทำรายการ?", "ต้องการให้รายการนี้ผ่าน?", function () {
+                $.post('@Url.Action("SetTransactionStatus","FinanceChecker")', { pctId: $('#hd_pctId').val(), pctStatusId: 4, unPassCauseId: null, unPassRemark: null },
+                    function (data) {
+                        if (data.IsResult) {
+                            swal_success(setTimeout(function () {
+                                window.location = ('@Url.Action("PettyCashTransactionDetail","FinanceChecker")?hPettyCashId=' + $('#hd_hPctId').val());
+                                swal.close();
+                            }, 2000));
+                        } else {
+                            swal_fail("ทำรายการไม่สำเร็จ กรุณาตรวจสอบ!!");
+                        }
+                    });
+            });
+        }
+
+        const ValidateNotPass = () => {
+            if ($('#select_NotPassStatus').val() == -1) {
+                return false;
+            } else if ($('#txtNotPassRemark').val() == '') {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        const CloseDayHeaderTransaction = (cdtId) => {
+            $.post('@Url.Action("CloseHeaderTransaction","FinanceChecker")', { hpctId: cdtId }, function (data) {
+                if (data.IsResult) {
+                    swal_success(setTimeout(function () {
+                        window.location = ('@Url.Action("CheckTransactionManage","FinanceChecker")');
+                        swal.close();
+                    }, 2000));
+
+                } else {
+                    swal_fail("ทำรายการไม่สำเร็จ กรุณาตรวจสอบ!!");
+                }
+            });
+        }
+
+        //loop and send not null data to sp
+        const loopInputToTblInput = () => {
+            var result = [];
+            //loop in class input
+            $('.check_unPass').each(function (index, data) {
+                //check if assign not null
+                if (data.value != "") {
+                    result.push(data.value);
+                }
+            });
+            var idx = $.inArray("5", result);
+            //loop array check
+            if (idx == -1) {
+                $('#btnSubmit').prop('disabled', false);
+            } else {
+                $('#btnSubmit').prop('disabled', true);
+            }
+            setTimeout(loopInputToTblInput, 1500);
+        }
+    </script>
+}

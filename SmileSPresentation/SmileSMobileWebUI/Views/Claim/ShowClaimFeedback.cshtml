@@ -1,0 +1,114 @@
+﻿@using SmileSMobileWebUI.PHClaimService
+@{
+    ViewBag.Title = "Feedback การเคลมของท่าน";
+    Layout = "~/Views/Shared/_MasterApplication.cshtml";
+}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 bg-primary text-white">
+            <h2>FeedBack การเคลมของท่าน</h2>
+        </div>
+    </div>
+    <br />
+    <form class="form-horizontal">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-lg-12" style="text-align: center">
+                    <label class="control-label col-xs-4 col-sm-4 col-md-4 col-lg-4" for="select_dcr">DCR:</label>
+                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                        <select name="select_dcr" id="select_dcr" class="form-control select2">
+                            @foreach (var item in ViewBag.MasterFilterList)
+                            {
+                                <option value="@item.Value">@item.Display</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" name="hidden_selected" id="hidden_selected" />
+            <br />
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-lg-12">
+                    <div class="form-group" style="text-align: center">
+                        <label class="control-label" for="totalClaimRating">ยอดรวมทั้งหมด</label>
+                        <input id="totalClaimRating" name="totalClaimRating" value="" class="rating">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-lg-12" style="border-top: solid 1px">
+                    <div class="form-group">
+                        <label id="totalClaimFeedback" class="col-xs-4 col-sm-4 col-lg-4"></label>
+                        <label id="totalClaimFeedback5" class="col-xs-4 col-sm-4 col-lg-4"></label>
+                        <label id="totalClaimFeedback4" class="col-xs-4 col-sm-4 col-lg-4"></label>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-lg-12">
+                    <div class="form-group" style="border-bottom: solid 1px;">
+                        <label id="totalClaimFeedback3" class="col-xs-4 col-sm-4 col-lg-4"></label>
+                        <label id="totalClaimFeedback2" class="col-xs-4 col-sm-4 col-lg-4"></label>
+                        <label id="totalClaimFeedback1" class="col-xs-4 col-sm-4 col-lg-4"></label>
+                    </div>
+                </div>
+            </div>
+            <br />
+        </div>
+    </form>
+</div>
+@section scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            $('#totalClaimRating').rating('refresh', { disabled: true });
+
+            $('#select_dcr').on('change',
+                function () {
+                    $('#hidden_selected').val($('#select_dcr').val());
+                    GetTotalClaim();
+                });
+        });
+
+        function GetTotalClaim() {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("TotalClaimFeedback")',
+                data: {
+                    empCode: '@ViewBag.empCode',
+                    dcr: $('#select_dcr').val()
+                },
+                success: function (response) {
+                    $('#totalClaimRating').rating('update', response[0].AVGTotalScore);
+                    $('#totalClaimFeedback').text('ทั้งหมด(' + response[0].TotalClaim + ')');
+                    $('#totalClaimFeedback5').text('5(' + response[0].TotalScoreRate5 + ')');
+                    $('#totalClaimFeedback4').text('4(' + response[0].TotalScoreRate4 + ')');
+                    $('#totalClaimFeedback3').text('3(' + response[0].TotalScoreRate3 + ')');
+                    $('#totalClaimFeedback2').text('2(' + response[0].TotalScoreRate2 + ')');
+                    $('#totalClaimFeedback1').text('1(' + response[0].TotalScoreRate1 + ')');
+                }
+            });
+        }
+
+        @*function GetAppDetail() {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("AppDetail")',
+                data: {
+                    empCode: '@ViewBag.empCode',
+                    dcr: $('#select_dcr').val(),
+                    pageSize: 20,
+                    indexStart: 0,
+                    sortField: null,
+                    orderType: null
+                },
+                success: function (response) {
+                    response.each(function () {
+
+                    });
+                }
+            });
+        }*@
+    </script>
+}

@@ -1,0 +1,108 @@
+﻿@{
+    ViewBag.Title = "DatatablesRenderRowHilight";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-sm-12" style="width:100%">
+        <div class="box">
+            <div class="box-body">
+                <table id="dtdetail" class="table table-bordered table-striped display" style="width: 100%"></table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+            GetDatatableDetail();
+        })
+
+        function GetDatatableDetail()
+        {
+            $('#dtdetail').empty();
+            var table = $('#dtdetail').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetPersonDetail", "Datatables")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'Person_Id',
+                        data: 'Person_Id',
+                        className: 'd-dt-center h-dt-center'
+                    },
+                    {
+                        title: 'คำนำหน้า',
+                        data: 'TitleDetail',
+                        className: 'd-dt-center h-dt-center'
+                    },
+                    {
+                        title: 'ชื่อ',
+                        data: 'FirstName',
+                        className: 'd-dt-center h-dt-center'
+                    },
+                    {
+                        title: 'นามสกุล',
+                        data: 'LastName',
+                        className: 'd-dt-center h-dt-center'
+                    },
+                    {
+                        title: 'เบอร์โทร',
+                        data: 'PhoneNumber',
+                        className: 'd-dt-center h-dt-center'
+                    },
+                    {
+                        title: 'Email',
+                        data: 'Email',
+                        className: 'd-dt-center h-dt-center'
+                    },
+                    {
+                        title: 'วันเกิด',
+                        data: 'Birthdate',
+                        className: 'd-dt-center h-dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'แผนก',
+                        data: 'DepartmentDetail',
+                        className: 'd-dt-center h-dt-center'
+                    },
+
+                ],
+                bLengthChange: false,
+                createdRow: function (row, data, index) {
+                    if (data.Person_Id%2 == 0) {
+                        $('td', row).addClass('selected');
+                    }
+                }
+
+            });
+        }
+
+    </script>
+}

@@ -1,0 +1,317 @@
+﻿@{
+    ViewBag.Title = "DashBoard";
+}
+
+<div class="box-info">
+    <div class="col-md-3 col-sm-12">
+        <div class="box box-danger">
+            <div class="box-header with-border">
+                <h3 class="box-title">Point คงเหลือ แบ่งตามประเภทบัญชี</h3>
+
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body" style="">
+                <canvas id="chart-PointRemainByAccountType" width="80" height="80"></canvas>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-12">
+        <div class="box box-danger">
+            <div class="box-header with-border">
+                <h3 class="box-title">สาขา Point สูงสุด</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body" style="">
+                <canvas id="chart-PointRanking" width="80" height="80"></canvas>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-12">
+        <div class="box box-danger">
+            <div class="box-header with-border">
+                <h3 class="box-title">พนักงาน Point สูงสุด</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body" style="">
+                <canvas id="chart-PointRanking-Employee" width="80" height="80"></canvas>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-12">
+        <div class="box box-danger">
+            <div class="box-header with-border">
+                <h3 class="box-title">เขตพื้นที่ Point สูงสุด</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body" style="">
+                <canvas id="chart-PointRanking-StudyArea" width="80" height="80"></canvas>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+
+    <div class="col-md-6 col-sm-12">
+        <div class="box box-danger">
+            <div class="box-header with-border">
+                <h3 class="box-title">สถิติการใช้ Point</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body" style="">
+                <canvas id="chart-DashboardTransactionByDate" width="80" height="80"></canvas>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript{
+    <script>
+        $(document).ready(function () {
+            RenderChartPointRemainByAccountType();
+            RenderChartPointRankingBranch();
+            RenderChartPointRankingEmployee();
+            RenderChartPointRankingStudyArea();
+            RenderChartDashboardTransactionByDate();
+        });
+
+        function RenderChartPointRemainByAccountType() {
+            $.ajax({
+                type: "POST",
+                url: "/Report/GetDashBoardPointRemainByAccountType",
+                success: function (response) {
+
+                    //DeclareVariables
+                    var labels = [];
+                    var datas = [];
+                    var color = [];
+
+                    //Set Dynamic colors
+                    var dynamicColors = function () {
+                        var r = (Math.round(Math.random() * 127) + 127).toString(16);
+                        var g = (Math.round(Math.random() * 127) + 127).toString(16);
+                        var b = (Math.round(Math.random() * 127) + 127).toString(16);
+                        return "#" + r + g + b;
+                    };
+
+                    //Get data
+                    for (var i = 0; i < response.length; i++) {
+                        labels.push(response[i].PointAccountTypeName);
+                        datas.push(response[i].Remain);
+                        color.push(dynamicColors());
+                    }
+
+                    //Render chart
+                    var ctx = document.getElementById("chart-PointRemainByAccountType").getContext("2d");
+
+                    var config = {
+                        type: 'doughnut',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: '',
+                                data: datas,
+                                backgroundColor: color
+                            }]
+                        },
+                        options: {
+                            responsive: true
+                        }
+                    };
+
+                    var chart = new Chart(ctx, config);
+
+                }
+            });
+        }
+
+        function RenderChartPointRankingBranch() {
+            $.ajax({
+                type: "POST",
+                url: "/Report/GetDashBoardRankingPointRemain_Branch",
+                success: function (response) {
+
+                    //DeclareVariables
+                    var labels = [];
+                    var datas = [];
+                    var color = [];
+
+                    //Set Dynamic colors
+                    var dynamicColors = function () {
+                        var r = (Math.round(Math.random() * 127) + 127).toString(16);
+                        var g = (Math.round(Math.random() * 127) + 127).toString(16);
+                        var b = (Math.round(Math.random() * 127) + 127).toString(16);
+                        return "#" + r + g + b;
+                    };
+
+                    //Get data
+                    for (var i = 0; i < response.length; i++) {
+                        labels.push(response[i].PointAccountName);
+                        datas.push(response[i].PointRemain);
+                        color.push(dynamicColors());
+                    }
+
+                    //Render chart
+                    var ctx = document.getElementById("chart-PointRanking").getContext("2d");
+
+                    var config = {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: '',
+                                data: datas,
+                                backgroundColor: color
+                            }]
+                        },
+                        options: {
+                            responsive: true
+                        }
+                    };
+                    var chart = new Chart(ctx, config);
+                }
+            });
+        }
+
+        function RenderChartPointRankingStudyArea() {
+            $.ajax({
+                type: "POST",
+                url: "/Report/GetDashBoardRankingPointRemain_StudyArea",
+                success: function (response) {
+
+                    //DeclareVariables
+                    var labels = [];
+                    var datas = [];
+                    var color = [];
+
+                    //Set Dynamic colors
+                    var dynamicColors = function () {
+                        var r = (Math.round(Math.random() * 127) + 127).toString(16);
+                        var g = (Math.round(Math.random() * 127) + 127).toString(16);
+                        var b = (Math.round(Math.random() * 127) + 127).toString(16);
+                        return "#" + r + g + b;
+                    };
+
+                    //Get data
+                    for (var i = 0; i < response.length; i++) {
+                        labels.push(response[i].PointAccountName);
+                        datas.push(response[i].PointRemain);
+                        color.push(dynamicColors());
+                    }
+
+                    //Render chart
+                    var ctx = document.getElementById("chart-PointRanking-StudyArea").getContext("2d");
+
+                    var config = {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: '',
+                                data: datas,
+                                backgroundColor: color
+                            }]
+                        },
+                        options: {
+                            responsive: true
+                        }
+                    };
+                    var chart = new Chart(ctx, config);
+                }
+            });
+        }
+
+        function RenderChartPointRankingEmployee() {
+            $.ajax({
+                type: "POST",
+                url: "/Report/GetDashBoardRankingPointRemain_Employee",
+                success: function (response) {
+
+                    //DeclareVariables
+                    var labels = [];
+                    var datas = [];
+                    var color = [];
+
+                    //Set Dynamic colors
+                    var dynamicColors = function () {
+                        var r = (Math.round(Math.random() * 127) + 127).toString(16);
+                        var g = (Math.round(Math.random() * 127) + 127).toString(16);
+                        var b = (Math.round(Math.random() * 127) + 127).toString(16);
+                        return "#" + r + g + b;
+                    };
+
+                    //Get data
+                    for (var i = 0; i < response.length; i++) {
+                        labels.push(response[i].PointAccountName);
+                        datas.push(response[i].PointRemain);
+                        color.push(dynamicColors());
+                    }
+
+                    //Render chart
+                    var ctx = document.getElementById("chart-PointRanking-Employee").getContext("2d");
+
+                    var config = {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: '',
+                                data: datas,
+                                backgroundColor: color
+                            }]
+                        },
+                        options: {
+                            responsive: true
+                        }
+                    };
+                    var chart = new Chart(ctx, config);
+                }
+            });
+        }
+
+        function RenderChartDashboardTransactionByDate() {
+            var responseResult = [];
+            var labels = [];
+            var datas = [];
+            $.ajax({
+                type: "POST",
+                async: false,
+                url: "/Report/GetDashboardTransactionByDate",
+                success: function (response) {
+                    debugger;
+                    responseResult = response;
+                }
+            });
+
+            debugger;
+
+            labels = jQuery.unique(responseResult.CreatedDate);
+
+        }
+    </script>
+}

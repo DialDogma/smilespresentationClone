@@ -1,0 +1,113 @@
+﻿@{
+    ViewBag.Title = "ตรวจสอบปิดยอดรายวัน";
+
+}
+<style>
+    .table {
+        font-size: 14px;
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* Dt form *@
+        <div class="col-sm-12" id="Detail_form">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtShowDataSource" name="dtShowDataSource" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            CallPettyCashCloseDayBranchDT();
+        });
+
+        const CallPettyCashCloseDayBranchDT = () => {
+            $('#dtShowDataSource').empty();
+            var table = $('#dtShowDataSource').DataTable({
+                paging: false,
+                info: false,
+                searching: false,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetChecker_DT","FinanceChecker")',
+                    type: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 99999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'วันที่ปิดยอด',
+                        data: 'CreatedDate',
+                        className: "h-dt-center",
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY HH:mm:ss');
+                            } else {
+                                return '-';
+
+                            }
+                        }
+                    }, {
+                        title: 'Group Code',
+                        className: "h-dt-center",
+                        data: 'PettyCashXPettyCashDailyCode'
+                    }, {
+                        title: 'สาขา',
+                        className: "h-dt-center",
+                        data: 'Branch'
+                    }, {
+                        title: 'ยอดเงิน',
+                        className: "h-dt-center d-dt-right",
+                        data: 'Amount'
+                    }, {
+                        title: 'โดย',
+                        className: "h-dt-center",
+                        data: 'CreatedByName'
+                    }, {
+                        title: 'จำนวนรายการแก้ไข',
+                        className: "h-dt-center d-dt-center",
+                        data: 'EditString'
+
+                    },{
+                        title: 'จำนวนรายการ',
+                        data: null,
+                        className: "h-dt-center d-dt-center",
+                        searchable: false,
+                        mRender: function (data) {
+                            return data.CheckString + '<input class="check_unPass" type="hidden" id="hd_' + data.PettyCashXPettyCashDailyId + '" value="' + data.UnPass + '" />';
+                        }
+                    }, {
+                        title: 'ดูรายละเอียด',
+                        data: null,
+                        className: "h-dt-center",
+                        searchable: false,
+                        render: function (data) {
+                            return '<button type="button" class="btn btn-block btn-info" id="open_' + data.PettyCashXPettyCashDailyId + '" onclick="openPCC(' + data.PettyCashXPettyCashDailyId + ')">ดูรายละเอียด</button>';
+                        }
+                    }
+
+                ]
+            });
+        }
+        const openPCC = (PCCId) => {
+            window.open("@Url.Action("PettyCashTransactionDetail","FinanceChecker")?hPettyCashId=" + PCCId);
+        }
+    </script>
+}

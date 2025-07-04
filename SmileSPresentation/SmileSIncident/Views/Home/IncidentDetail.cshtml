@@ -1,0 +1,1502 @@
+﻿@using SmileSIncident.Models;
+@using SmileSIncident.Helper;
+@using SmileSIncident.Properties;
+@{
+    ViewBag.Title = "Task Detail";
+    ViewBag.Description = "รายละเอียด";
+
+    var acceptedFileTypes = Settings.Default.AcceptedFileTypes;
+}
+<style>
+    table {
+        font-size: 14px !important;
+    }
+
+        table tr {
+            cursor: pointer !important;
+        }
+
+    .border-red {
+        border: solid 1px red !important;
+    }
+
+    .border-green {
+        border: solid 1px green !important;
+    }
+
+    .status_label {
+        font-size: 14px !important
+    }
+    /* Rating Star Widgets Style */
+    .rating-stars ul {
+        list-style-type: none;
+        padding: 0;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+    }
+
+    .dropzone .dz-preview .dz-details .dz-filename:not(:hover) {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        height: auto;
+        display: block;
+        width: 150px;
+    }
+    /*wrap text in a*/
+    .mailbox-attachment-info a {
+        display: block;
+        text-overflow: ellipsis !important;
+        white-space: nowrap;
+        width: 150px;
+        overflow: hidden;
+    }
+
+    .mailbox-read-message p > img {
+        max-width: -webkit-fill-available;
+    }
+
+    .rating-stars ul > li.star {
+        display: inline-block;
+    }
+
+        /* Idle State of the stars */
+        .rating-stars ul > li.star > i.fa {
+            font-size: 2.5em; /* Change the size of the stars */
+            color: #ccc; /* Color on idle state */
+        }
+
+        /* Hover state of the stars */
+        .rating-stars ul > li.star.hover > i.fa {
+            color: #FFCC36;
+        }
+
+        /* Selected state of the stars */
+        .rating-stars ul > li.star.selected > i.fa {
+            color: #FF912C;
+        }
+
+    .container-footer {
+        position: relative;
+        display: flex;
+        justify-content: end;
+    }
+
+    .btn-holder {
+        position: fixed;
+        bottom: 20px;
+    }
+
+    .btn-circle {
+        width: 49px;
+        height: 49px;
+        text-align: center;
+        padding: 5px 0;
+        font-size: 20px;
+        line-height: 2.00;
+        border-radius: 30px;
+    }
+
+    .btn-circle-micro {
+        width: 19px;
+        height: 19px;
+        text-align: center;
+        padding: 1px 0;
+        font-size: 13px;
+        line-height: 0.1;
+        border-radius: 30px;
+    }
+
+    .btn-circle-sm {
+        width: 35px;
+        height: 35px;
+        text-align: center;
+        padding: 2px 0;
+        font-size: 20px;
+        line-height: 1.65;
+        border-radius: 30px;
+    }
+
+    .btn-circle-lg {
+        width: 79px;
+        height: 79px;
+        text-align: center;
+        padding: 13px 0;
+        font-size: 30px;
+        line-height: 2.00;
+        border-radius: 70px;
+    }
+</style>
+<div class="container">
+    <ul class="timeline">
+        <!-- timeline time label -->
+        <li class="time-label">
+            <span class="bg-blue-gradient">
+                <i class="fa fa-envelope" aria-hidden="true"></i>
+                แจ้งปัญหา
+                @ViewBag.detailList.CreatedDate.ToString("dd MMM yyyy")
+            </span>
+        </li>
+        <!-- /.timeline-label -->
+        <!-- timeline item -->
+        <li>
+            <div class="timeline-item">
+
+                <div class="timeline-header bg-gray">
+
+                    @if (@ViewBag.detailList.TaskStatusId == 1)
+                    {
+
+                        <span style="color:blue">[@ViewBag.detailList.TaskStatus]</span>
+                    }
+                    else if (@ViewBag.detailList.TaskStatusId == 2)
+                    {
+
+                        <span style="color: orangered">[@ViewBag.detailList.TaskStatus]</span>
+                    }
+                    else if (@ViewBag.detailList.TaskStatusId == 3)
+                    {
+
+                        <span style="color:green">[@ViewBag.detailList.TaskStatus]</span>
+                    }
+                    else if (@ViewBag.detailList.TaskStatusId == 4)
+                    {
+
+                        <span style="color:red">[@ViewBag.detailList.TaskStatus]</span>
+                    }
+
+                    <span style="font-size:20px"><b>@ViewBag.detailList.TaskCode</b> @ViewBag.detailList.IncidentType: @ViewBag.detailList.TaskSubject</span>
+                </div>
+                <div class="timeline-body">
+                    @* Main incident message *@
+                    <div class="box-header with-border">
+                        <span style="font-size: 16px;"><b> From: </b>@ViewBag.detailList.CreatedByName : @ViewBag.detailList.Branch  (@ViewBag.detailList.Department) &nbsp;</span>
+                        <span class="mailbox-read-time pull-right">
+                            <span class="time">
+                                <i class="fa fa-clock"></i> @ViewBag.detailList.CreatedDate.ToString("dd/MM/yyyy HH:mm:ss")
+                            </span>
+                        </span>
+
+                        <input type="hidden" id="hd_IncidentTask_id" value="@ViewBag.detailList.TaskId" />
+                        <input type="hidden" id="hd_IncidentTypeId" value="@ViewBag.detailList.IncidentTypeId" />
+                        <input type="hidden" id="hd_TaskSubject" value="@ViewBag.detailList.TaskSubject" />
+                        <input type="hidden" id="hd_IncidentMessageId" value="@ViewBag.detailList.IncidentMessageId" />
+                        <input type="hidden" id="hd_IncidentMessage" value="@ViewBag.detailList.IncidentMessage" />
+                        <input type="hidden" id="hd_isDev" value="@(ViewBag.isDev.ToString().ToLower())" />
+                        <input type="hidden" id="hdOld_TaskStatusId" value="@ViewBag.detailList.TaskStatusId" />
+                    </div>
+                    <div class="box-body">
+                        <div class="mailbox-read-message">
+                            @Html.Raw(ViewBag.detailList.IncidentMessage)
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <ul class="mailbox-attachments clearfix">
+                            @if (ViewBag.linkList != null)
+                            {
+                                foreach (var itm in ViewBag.linkList)
+                                {
+                                    string fileType = "";
+                                    string fileName = itm.AttactmentFileName;
+                                    try
+                                    {
+                                        fileType = fileName.Split('.')[1];
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        fileType = "unknown";
+                                    }
+
+                                    if (fileType == "jpg")
+                                    {
+                                        <li>
+                                            <span class="mailbox-attachment-icon @*has-img*@"><i class="fa fa-file-image"></i>@*<img src="@itm.AttactmentURLPath">*@</span>
+
+                                            <div class="mailbox-attachment-info">
+                                                <a href="@itm.AttactmentURLPath" target="_blank" class="mailbox-attachment-name"><i class="fa fa-camera"></i> @itm.AttactmentFileName</a>
+                                            </div>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li>
+                                            <span class="mailbox-attachment-icon"><i class="fa fa-file-pdf"></i></span>
+
+                                            <div class="mailbox-attachment-info">
+                                                <a href="@itm.AttactmentURLPath" target="_blank" class="mailbox-attachment-name"><i class="fa fa-paperclip"></i> @itm.AttactmentFileName</a>
+                                            </div>
+                                        </li>
+                                    }
+                                }
+                            }
+                        </ul>
+                    </div>
+                </div>
+                <div class="timeline-footer">
+                    <button class="btn btn-warning btn-xs" type="button" data-toggle="modal" data-target=".edit-type-modal" title="แก้ไขกลุ่มงาน" id="btnEditType"><i class="fa fa-pen"></i> แก้ไขกลุ่มงาน</button>
+                    <button class="btn btn-danger btn-xs" type="button" data-toggle="tooltip" title="ยกเลิกงาน" id="cxljob"><i class="fa fa-ban"></i> ยกเลิกงาน</button>
+                </div>
+            </div>
+        </li>
+        <!-- END timeline item -->
+        @* loop get reply list *@
+        @if (@ViewBag.ReplyList != null)
+        {
+            <!-- timeline time label -->
+            <li class="time-label">
+                <span class="bg-green-gradient">
+                    <i class="fa fa-comments" aria-hidden="true"></i>
+                    การตอบกลับ
+                </span>
+            </li>
+            <!-- /.timeline-label -->
+            foreach (var itm in ViewBag.ReplyList)
+            {
+                <!-- timeline item -->
+                <li>
+                    <div class="timeline-item" style="background-color: @(ViewBag.detailList.CreatedByUserId == itm.ReplyMessage.MessageCreatedByUserId ? "snow" : "white");">
+                        <span class="time">
+                            <i class="fa fa-clock"></i> &nbsp;
+                            @if (itm.ReplyMessage.MessageUpdatedDate != null)
+                            {
+                                <span class="mailbox-read-time pull-right">@itm.ReplyMessage.MessageUpdatedDate.ToString("dd/MM/yyyy HH:mm:ss")</span>
+                            }
+                            else
+                            {
+                                <span class="mailbox-read-time pull-right"> N/A </span>
+                            }
+                        </span>
+
+                        <h3 class="timeline-header">
+                            <a>Reply Message Id #@itm.ReplyMessage.MessageId</a>
+                            <span style="font-size: 14px; font-style: italic">From: @itm.ReplyMessage.MessageCreatedByName (@itm.ReplyMessage.MessageUpdatedByDepartment)</span>
+                        </h3>
+
+                        <div class="timeline-body">
+                            @* reply result form *@
+                            <div class="box-body" id="ReplyResult_form_@itm.ReplyMessage.MessageId">
+                                <div class="mailbox-read-message">
+                                    @Html.Raw(itm.ReplyMessage.Message)
+                                </div>
+                            </div>
+                            @if (itm.Attachments != null)
+                            {
+                                <div class="box-footer" style="background-color:transparent">
+                                    <ul class="mailbox-attachments clearfix">
+                                        @foreach (var attm in itm.Attachments)
+                                        {
+                                            string fileName = attm.AttactmentFileName;
+                                            var arrFileTypes = fileName.Split('.');
+                                            var fileType = "unknown";
+
+                                            if (arrFileTypes.Count() > 1)
+                                            {
+                                                fileType = arrFileTypes[1];
+                                            }
+
+                                            if (fileType == "jpg" || fileType == "png")
+                                            {
+                                                <li>
+                                                    <span class="mailbox-attachment-icon @*has-img*@"><i class="fa fa-file-image"></i>@*<img src="@attm.AttactmentURLPath" alt="Attachment">*@</span>
+
+                                                    <div class="mailbox-attachment-info">
+                                                        <a href="@attm.AttactmentURLPath" target="_blank" class="mailbox-attachment-name"><i class="fa fa-camera"></i> @attm.AttactmentFileName</a>
+                                                    </div>
+                                                </li>
+                                            }
+                                            else if (fileType == "pdf")
+                                            {
+                                                <li>
+                                                    <span class="mailbox-attachment-icon"><i class="fa fa-file-pdf"></i></span>
+
+                                                    <div class="mailbox-attachment-info">
+                                                        <a href="@attm.AttactmentURLPath" target="_blank" class="mailbox-attachment-name"><i class="fa fa-paperclip"></i> @attm.AttactmentFileName</a>
+                                                    </div>
+                                                </li>
+                                            }
+                                            else
+                                            {
+                                                <li>
+                                                    <span class="mailbox-attachment-icon"><i class="fa fa-file"></i></span>
+
+                                                    <div class="mailbox-attachment-info">
+                                                        <a href="@attm.AttactmentURLPath" target="_blank" class="mailbox-attachment-name"><i class="fa fa-paperclip"></i> @attm.AttactmentFileName</a>
+                                                    </div>
+                                                </li>
+                                            }
+
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </li>
+                <!-- END timeline item -->
+
+            }
+        }
+        @* Job form *@
+        @if (ViewBag.isDev)
+        {
+            <!-- timeline time label -->
+            <li class="time-label">
+                <span class="bg-light-blue-gradient">
+                    <i class="fa fa-cogs" aria-hidden="true"></i>
+                    จัดการงาน
+                </span>
+            </li>
+            <!-- /.timeline-label -->
+
+            <!-- timeline item -->
+            <li>
+                <div class="timeline-item">
+                    <div class="timeline-body" id="Job_form">
+                        <table class="table table-hover table-striped display responsive nowrap" id="dtJobBox"></table>
+                    </div>
+                </div>
+            </li>
+            <!-- END timeline item -->
+        }
+
+        @* feedback form *@
+        @if (ViewBag.feedback != null)
+        {
+            <!-- timeline time label -->
+            <li class="time-label">
+                <span class="bg-red-gradient">
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                    Feedback
+                </span>
+            </li>
+            <!-- /.timeline-label -->
+            <!-- timeline item -->
+            <li>
+                <div class="timeline-item">
+                    <div class="timeline-body" id="feedback_form">
+
+                        <div class="box-body">
+                            <div class="form-group">
+                                <h4>
+                                    ให้คะแนน : <span class="star-rating"></span>
+                                    <span class="live-rating"></span>
+                                </h4>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-xs-12 col-md-offset-1 col-md-10">
+                                    <textarea rows="3" id="txtFeedback" class="form-control" placeholder="กรอกความคิดเห็น..." style="width: 100%;resize:none" disabled="disabled">@ViewBag.feedback.Feedback</textarea>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-xs-12 col-md-offset-4 col-md-2 pull-right">
+                                    <button id="btnFeedback" type="button" class="btn btn-success" disabled="disabled">ส่งความเห็น</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            <!-- END timeline item -->
+        }
+        else
+        {
+            if ((ViewBag.detailList.CreatedByUserId == ViewBag.User.User_ID) && (ViewBag.detailList.TaskStatusId == 3))
+            {
+                <!-- timeline time label -->
+                <li class="time-label">
+                    <span class="bg-red-gradient">
+                        <i class="fa fa-star" aria-hidden="true"></i>
+                        Feedback
+                    </span>
+                </li>
+                <!-- /.timeline-label -->
+
+                <!-- timeline item -->
+                <li>
+                    <div class="timeline-item">
+                        <div class="timeline-body" id="feedback_form">
+
+                            <div class="box-body">
+                                <div class="form-group">
+                                    <h4>
+                                        Feedback : <span class="star-rating"></span>
+                                        <span class="live-rating"></span>
+                                    </h4>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-xs-12 col-md-offset-1 col-md-10">
+                                        <textarea rows="3" id="txtFeedback" class="form-control" placeholder="กรอกความคิดเห็น..." style="width: 100%;resize:none"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-xs-12 col-md-offset-4 col-md-2 pull-right">
+                                        <button id="btnFeedback" type="button" class="btn btn-success" onclick="SendFeedback()">ส่งความเห็น</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <!-- END timeline item -->
+            }
+        }
+        <!-- timeline time label -->
+        <li class="time-label Reply_form">
+            <span class="bg-aqua-gradient">
+                <i class="fa fa-reply" aria-hidden="true"></i>
+                Reply Message
+            </span>
+        </li>
+        <!-- /.timeline-label -->
+        <!-- timeline item -->
+        <li class="Reply_form">
+            <div class="timeline-item">
+                <div class="timeline-body">
+                    @* reply form *@
+                    <div class="box-body">
+                        <div class="form-group col-md-12">
+                            <div id="editor" style="height: 200px">
+                            </div>
+                        </div>
+                        <div class=" form-group col-md-12">
+                            <label class="control-label" for="">แนบไฟล์:</label><small style="color: red">*ขนาดไฟล์ไม่เกิน 30mb</small>
+                            <div id="fileTest">
+                                <form action="@Url.Action("FileUpload")" class="dropzone dz-clickable dz-started" id="testDropzone" enctype="multipart/form-data">
+                                    <div class="dz-message">
+                                        Drop files here or click to upload.
+                                    </div>
+                                    @* hidden field *@
+                                    <input type="hidden" id="hd_IncidentMsgId" name="hd_IncidentMsgId" value="" />
+                                    <input type="hidden" id="hd_IncidentId" name="hd_IncidentId" value="@ViewBag.detailList.TaskId" />
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer" style="display: flex; justify-content: center;">
+                        <div class="col-xs-6 col-md-2">
+                            <button type="button" class=" btn btn-block btn-danger" id="btnCancel">ยกเลิกตอบกลับ</button>
+                        </div>
+                        <div class="col-xs-6 col-md-2">
+                            <button class="btn btn-block btn-success ladda-button" id="btnReplyComment" type="submit" data-style="zoom-in"><span class="ladda-label"><i class="fa fa-reply"></i> ตอบกลับข้อความ</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </li>
+        <!-- END timeline item -->
+        <!-- timeline time label -->
+        <li class="time-label">
+            <span class="bg-gray-active">
+                <i class="fa fa-clock" aria-hidden="true"></i> Now
+            </span>
+        </li>
+        <!-- /.timeline-label -->
+    </ul>
+    @* footer form *@
+    <div id="footer" class="container-footer ">
+        <div class="btn-holder">
+            @if (ViewBag.isDev)
+            {
+                <div class="form-group" style=" margin: 10px;">
+                    @*<button type="button" style="width: 100%" class="btn btn-lg btn-warning" id="btnCreateJob"
+                                data-toggle="modal" data-target=".job-modal" onclick="CreateNewJob()">
+                            <i class="fa  fa-plus"></i> สร้างงาน
+                        </button>*@
+                    <a title="สร้างงาน" onclick="CreateNewJob()" id="btnCreateJob" data-toggle="modal" data-target=".job-modal" class="btn btn-circle btn-warning"><span class="glyphicon glyphicon-plus"></span></a>
+                </div>
+
+            }
+            <div class="form-group" style=" margin: 10px;">
+                @*  <button type="button" style="width: 100%" class="btn btn-lg btn-info" id="btnReply"><i class="fa fa-reply"></i> ตอบกลับ</button>*@
+                <a title="ตอบกลับข้อความ" id="btnReply" class="btn btn-circle btn-info"><span class="glyphicon glyphicon-comment"></span> </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* edit type modal *@
+<div class="modal fade bd-check-modal-lg edit-type-modal" id="editTaskTypeModal" role="dialog" aria-labelledby="editTaskTypeModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h4 class="modal-title" id="editTaskTypeModalHeader">แก้ไขกลุ่มงาน</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group row">
+                    <div class="form-group col-md-3">
+                        <label class="control-label" for="">กลุ่มงานหลัก :</label>
+                        <select id="select_TaskGroup" class=" form-control">
+                            <option value="0">---โปรดระบุ---</option>
+                            @foreach (var itm in ViewBag.IncidentTypeList)
+                            {
+                                <option value="@itm.IncidentGroupTypeId">@itm.IncidentGroupType</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label class="control-label" for="">กลุ่มงานย่อย :</label>
+                        <select id="select_TaskSubGroup" class=" form-control"></select>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label class="control-label" style="color:transparent" for="">_</label>
+                        <button type="button" class="btn btn-block btn-warning" id="btnEditTypeModal">แก้ไข</button>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label class="control-label" style="color:transparent" for="">_</label>
+                        <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ปิด</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@* end modal *@
+
+@* job modal *@
+<div class="modal fade bd-check-modal-lg job-modal" id="checkModal" role="dialog" aria-labelledby="checkModal" aria-hidden="true">
+    <div class="modal-dialog  modal-lg " role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="checkModalHeader">Job#<label id="lblJobId"></label></h4>
+                <input type="hidden" id="hd_jobId" value="" />
+            </div>
+            <div class="modal-body">
+                <div class="form-group row">
+                    <div class="col-sm-12 col-md-12">
+                        <label class="control-label" for="select_dev">Assignee :</label>
+                        <select id="select_dev" class="form-control select2" tabindex="-1" style="width: 100%">
+                            @foreach (var itm in ViewBag.devList)
+                            {
+
+                                <option value="@itm.UserId">@itm.FullNamexNickName</option>
+
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <label class="control-label">Description:</label>
+                        <input type="text" id="txtDescription" class="form-control" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <label class="control-label">Action Remark:</label>
+                        <input type="text" id="txtActionRemark" class="form-control" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <label class="control-label">Job Status:</label>
+                        <select id="select_StatusJob" class="form-control">
+                            @foreach (var itm in ViewBag.statusJobList)
+                            {
+
+                                <option value="@itm.JobStatusId">@itm.JobStatus</option>
+
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row" id="rejectCase">
+                    <div class="col-sm-12">
+                        <label class="control-label">Reject Case:</label>
+                        <select id="select_RejectCase" class="form-control">
+                            @foreach (var itm in ViewBag.rejectList)
+                            {
+
+                                <option value="@itm.IncidentRejectCaseId">@itm.IncidentRejectCase</option>
+
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <label class="control-label">Tag project:</label>
+                        <div id="tagProject"></div>
+                    </div>
+                </div>
+                <div class="form-group row" id="transferJob">
+                    <div class="col-sm-12">
+                        <label class="control-label">Transfer To:</label>
+                        <select id="select_Transferdev" class="form-control select2" tabindex="-1" style="width: 100%">
+                            <option value="0">--None--</option>
+                            @foreach (var itm in ViewBag.devList)
+                            {
+
+                                <option value="@itm.UserId">@itm.FullNamexNickName</option>
+
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer" id="modelFooter-new">
+                <div class="col-md-offset-3 col-md-3 col-xs-6">
+                    <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ปิด</button>
+                </div>
+                <div class="col-md-3 col-xs-6">
+                    <button type="button" class="btn btn-block btn-success" onclick="SaveJob()">บันทึก</button>
+                </div>
+            </div>
+            <div class="modal-footer" id="modelFooter-edit">
+                <div class="col-md-offset-3 col-md-3 col-xs-6">
+                    <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ปิด</button>
+                </div>
+                <div class="col-md-3 col-xs-6">
+                    <button type="button" class="btn btn-block btn-warning" onclick="EditJob()">แก้ไข</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@* end modal *@
+@* see job modal *@
+<div class="modal fade bd-see-modal-lg" id="seeModal" tabindex="-1" role="dialog" aria-labelledby="seeModal" aria-hidden="true">
+    <div class="modal-dialog  modal-lg " role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Job#<label id="lblSeeJobId"></label></h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <label class="control-label">Assignee :</label>
+                        <select id="select_dev_see" class="form-control">
+                            @foreach (var itm in ViewBag.devList)
+                            {
+
+                                <option value="@itm.UserId">@itm.FullNamexNickName</option>
+
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <label class="control-label">Description:</label>
+                        <input type="text" id="txtDescription_see" class="form-control" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <label class="control-label">Action Remark:</label>
+                        <input type="text" id="txtActionRemark_see" class="form-control" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <label class="control-label">Job Status:</label>
+                        <select id="select_StatusJob_see" class="form-control">
+                            @foreach (var itm in ViewBag.statusJobList)
+                            {
+
+                                <option value="@itm.JobStatusId">@itm.JobStatus</option>
+
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row" id="rejectCase_see">
+                    <div class="col-sm-12">
+                        <label class="control-label">Reject Case:</label>
+                        <select id="select_RejectCase_see" class="form-control">
+                            @foreach (var itm in ViewBag.rejectList)
+                            {
+
+                                <option value="@itm.IncidentRejectCaseId">@itm.IncidentRejectCase</option>
+
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <label class="control-label">Tag project:</label>
+                        <div id="tagProject_see"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-offset-4 col-md-3 col-xs-6">
+                    <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ปิด</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@* end modal *@
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        // Reference the auto-generated proxy for the hub.
+        var channelId = "cid" + Math.random().toString(16).slice(3);
+        var chat = $.connection.chatHub;
+        $(function () {
+            GetIncidentGroupType();
+
+            $('[data-toggle="tooltip"]').tooltip();
+            $('.select2').select2();
+
+            $('.content-header').addClass('container');
+            $('.content-header').removeClass('content-header');
+
+            if ($('#hd_isDev').val()!=='true') {
+                $('#btnEditType').attr('style', 'display:none');
+                $('#cxljob').attr('style', 'display:none');
+            }
+
+        //tool bar text editor setup
+        var toolbarOptions = [
+            ['bold', 'italic', 'underline', 'strike','link'],
+            ['blockquote', 'code-block'],
+
+            [{ 'header': 1 }, { 'header': 2 }],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+
+            [{ 'size': ['small', false, 'large', 'huge'] }],
+
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'align': [] }],
+
+            ['clean']
+            ];
+
+            //save quill rich text editor value
+            var quill = new Quill('#editor', {
+                modules: {
+                    toolbar: toolbarOptions
+                },
+
+                theme: 'snow',
+                placeholder: 'เขียนบางอย่าง....',
+
+            });
+
+            //dropzone setup
+            Dropzone.options.testDropzone = {
+                paramName: "file",
+                maxFilesize: 31,
+                maxFiles: 4,
+                dictMaxFilesExceeded: "ไฟล์เกินจำนวน",
+                dictResponseError: "ไม่สามารถอัพโหลดไฟล์ได้",
+                dictFallbackMessage:"ไม่รองรับไฟล์",
+                addRemoveLinks: true,
+                acceptedFiles: "@acceptedFileTypes",
+                init: function () {
+                    //check if upload success
+                    this.on("success", function (file, response) {
+                        //add id
+                        file.serverId = response.id;
+                        $(".dz-preview:last-child").attr('id', response.id);
+                    });
+                    this.on('error', function(file, errorMessage) {
+                        if (errorMessage.indexOf('Error 404') !== -1) {
+                            var errorDisplay = document.querySelectorAll('[data-dz-errormessage]');
+                            errorDisplay[errorDisplay.length - 1].innerHTML = 'Error 404: ไม่สามารถอัพโหลดไฟล์ได้';
+                        }
+                         if (errorMessage.indexOf('Server Error') !== -1) {
+                            var errorDisplay = document.querySelectorAll('[data-dz-errormessage]');
+                            errorDisplay[errorDisplay.length - 1].innerHTML = 'Error 404: ไม่สามารถอัพโหลดไฟล์ได้';
+                        }
+                    });
+                },
+                removedfile: function (file) {
+                    //call ajax to remove file from server
+                    var fileId = file.serverId;
+                    $.post('@Url.Action("File_delete")', { attachId: fileId }, (data) => {
+                        if (data.IsResult) {
+                            var _ref;
+                            return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;
+                        } else {
+                            return swal_fail("กรุณาลองอีกครั้ง");
+                        }
+                    });
+
+                }
+            }
+
+            var dropZone = new Dropzone("#fileTest", { url: '@Url.Action("FileUpload")' });
+
+            if (@ViewBag.IsDevJob == 1) {
+                 //Start Connection
+                $.connection.hub.start().done(function () {
+                    //join group
+                    chat.server.joinGroup(channelId);
+                });
+
+                $.connection.hub.disconnected(function () {
+                    setTimeout(function () {
+                        $.connection.hub.start().done(function () {
+                            //join group
+                            chat.server.joinGroup(channelId);
+                        });;
+                    }, 5000); // Restart connection after 5 seconds.
+                });
+            }
+
+            if (@ViewBag.IsDevJob == 2) {
+                 //Start Connection
+                $.connection.hub.start().done(function () {
+                    //join group
+                    chat.server.joinGroup(channelId);
+                });
+
+                $.connection.hub.disconnected(function () {
+                    setTimeout(function () {
+                        $.connection.hub.start().done(function () {
+                            //join group
+                            chat.server.joinGroup(channelId);
+                        });;
+                    }, 5000); // Restart connection after 5 seconds.
+                });
+            }
+
+            //Show group message to client
+            chat.client.receiveGroupMessage = function (name, message) {
+                toastr["success"]("อัพเดตข้อมูล", message);
+                GetInboxTask_DT();
+                window.location.reload();
+            };
+
+            toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-bottom-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+            /*END SignalR*/
+
+            $('.Reply_form').hide();
+            $('#transferJob').hide();
+            $('#rejectCase').hide();
+            $('#select_Transferdev').prop('disabled', true);
+            $('#select_RejectCase').prop('disabled', true);
+
+            GetInboxTask_DT();
+
+            //Edit Task Type
+            $('#btnEditTypeModal').click((e) => {
+                e.preventDefault();
+                if ($('#select_TaskSubGroup').val() == null || $('#select_TaskSubGroup').val().trim() == '' || $('#select_TaskSubGroup').val() == undefined) {
+                    swal("แจ้งเตือน", "กรุณาเลือกกลุ่มงาน", "warning");
+                    return false;
+                }
+
+                //check dev
+                if ($('#hd_isDev').val() === 'true') {
+                    swal_confirm2("ต้องการแก้ไขกลุ่มงานนี้หรือไม่", "กด ยืนยัน เพื่อดำเนินการต่อ", () => {
+                        $.post('@Url.Action("IncidentTaskType_Update", "Home")',
+                            {
+                                IncidentTaskId: $('#hd_IncidentTask_id').val(),
+                                IncidentTypeId: $('#select_TaskSubGroup').val()
+                            }, (data) => {
+                                if (data.IsResult) {
+                                    //messaage
+                                    chat.server.sendGroupMessage("อัพเดตกลุ่มงาน!", 'อัพเดตกลุ่มงาน !', channelId);
+                                    chat.server.sendGroupMessage("อัพเดตกลุ่มงาน !", 'อัพเดตกลุ่มงาน !', 'dev');
+                                    chat.server.sendGroupMessage("อัพเดตกลุ่มงาน !", 'อัพเดตกลุ่มงาน !', 'user');
+                                    swal("แจ้งเตือน", "ทำรายการเรียบร้อย", "success");
+                                    setTimeout("location.reload(true);", 2000);
+                                } else {
+                                    swal("เกิดข้อผิดพลาด", data.Msg, "error");
+                                }
+                            });
+                    })
+                } else {
+                    swal("แจ้งเตือน", "ไม่สามารถใช้ฟังก์ชันนี้ได้", "info");
+                    return false;
+                }
+            });
+
+            //cancel job
+            $('#cxljob').click((e) => {
+                e.preventDefault();
+                //check dev
+                if ($('#hd_isDev').val()==='true') {
+                    swal_confirm2("ต้องการยกเลิกงานนี้หรือไม่", "กด ยืนยัน เพื่อดำเนินการต่อ", () => {
+                        $.post('@Url.Action("CxlJob_Incident", "Home")',
+                            {
+                                IncidentTaskId: $('#hd_IncidentTask_id').val(),
+                                IncidentTypeId: $('#hd_IncidentTypeId').val(),
+                                IncidentMessageId: $('#hd_IncidentMessageId').val(),
+                                IncidentSubject: $('#hd_TaskSubject').val(),
+                                message: $('#hd_IncidentMessage').val(),
+                                IncidentTaskStatusId: $('#hdOld_TaskStatusId').val()
+                            }, (data) => {
+                                if (data.IsResult) {
+                                    //messaage
+                                    chat.server.sendGroupMessage("ยกเลิกงาน !", 'ยกเลิกงาน !', channelId);
+                                    chat.server.sendGroupMessage("ยกเลิกงาน !", 'ยกเลิกงาน !', 'dev');
+                                    chat.server.sendGroupMessage("ยกเลิกงาน !", 'ยกเลิกงาน !', 'user');
+                                    swal("แจ้งเตือน", "ทำรายการเรียบร้อย", "success");
+                                    setTimeout("location.reload(true);", 2000);
+                                } else {
+                                    swal("เกิดข้อผิดพลาด", data.Msg, "error");
+                                }
+                            });
+                    })
+                } else {
+                    swal("แจ้งเตือน", "ไม่สามารถใช้ฟังก์ชันนี้ได้", "info");
+                    return false;
+                }
+            });
+
+            //reply click event
+            $('#btnReply').click(() => {
+                $.post('@Url.Action("Insert_Reply","Home")', { incidentTaskId: $('#hd_IncidentId').val() }, (data) => {
+                    if (!data.IsResult) {
+                        swal_fail('เกิดข้อผิดพลาด!!');
+                    } else {
+                        $('#hd_IncidentMsgId').val(data.Result);
+                    }
+                });
+                $('.Reply_form').show();
+                $('#footer').hide();
+                $("html, body").animate({ scrollTop: $(document).height() }, 1000);
+            });
+
+            var loadingTimeout;
+            var l;
+
+            const ReplyComment = () => {
+                //----------------------------------------------//
+                l.start();
+                //----------------------------------------------//
+
+                var incidentMsgId = $('#hd_IncidentMsgId').val();
+                var textEditorValue = quill.root.innerHTML;
+
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("Update_Reply")",
+                    data: {
+                        "msgId": incidentMsgId,
+                        "msg": textEditorValue
+                    },
+                    dataType: "json",
+                    async: false,
+                    success: function (response) {
+                        //----------------------------------------------//
+                        l.stop();
+                        clearTimeout(loadingTimeout);
+                        //----------------------------------------------//
+                        if (response.IsResult) {
+                            // messaage
+                            chat.server.sendGroupMessage("Reply Comment!", 'มีการตอบกลับข้อความใหม่!', channelId);
+                            chat.server.sendGroupMessage("Reply Comment!", 'มีการตอบกลับข้อความใหม่!', 'dev');
+                            chat.server.sendGroupMessage("Reply Comment!", 'มีการตอบกลับข้อความใหม่!', 'user');
+                            return;
+                        } else {
+                            return swal({
+                                title: "เกิดข้อผิดพลาด",
+                                type: "error",
+                                confirmButtonColor: "#DD6B55",
+                                confirmButtonText: "OK",
+                                showCancelButton: false,
+                                closeOnConfirm: false,
+                                closeOnEsc: false
+                            }, function (isConfirm) {
+                                if (isConfirm) {
+                                    swal.close()
+                                    window.location = ('@Url.Action("IncidentDetail","Home")?incidentTaskId='+$('#hd_IncidentId').val());
+                                }
+                            });
+                        }
+                    },
+                    error: function async(xhr, textStatus, errorThrown) {
+                        //----------------------------------------------//
+                        l.stop();
+                        clearTimeout(loadingTimeout);
+                        //----------------------------------------------//
+
+                        return swal({
+                            title: 'เกิดข้อผิดพลาด',
+                            type: "error",
+                            confirmButtonColor: "#DD6B55",
+                            confirmButtonText: "OK",
+                            showCancelButton: false,
+                            closeOnConfirm: false,
+                            closeOnEsc: false
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                swal.close()
+                            }
+                        });
+                    }
+                });
+            }
+
+            $('#btnReplyComment').click(function (e) {
+                e.preventDefault();
+                l = Ladda.create(this);
+
+                loadingTimeout = setTimeout(function () {
+                    //----------------------------------------------//
+                    l.stop();
+                    //----------------------------------------------//
+                    swal({
+                        title: "การส่งข้อความใช้เวลานานเกินไป",
+                        html: true,
+                        text: "อาจจะเกิดข้อผิดพลาดในการส่ง SMS<br>กรุณาติดต่อผู้ดูแลระบบ",
+                        type: "error",
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "OK",
+                        showCancelButton: false,
+                        closeOnConfirm: false,
+                        closeOnEsc: false
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+                            swal.close()
+                        }
+                    });
+                }, 10000);
+
+                ReplyComment(function () {
+                    //----------------------------------------------//
+                    l.stop();
+                    clearTimeout(loadingTimeout);
+                    //----------------------------------------------//
+                });
+            });
+
+            //cancel reply click event
+            $('#btnCancel').click(() => {
+                window.location = ('@Url.Action("IncidentDetail","Home")?incidentTaskId='+$('#hd_IncidentId').val());
+            });
+
+            $('#select_StatusJob').change(() => {
+                if ($('#select_StatusJob').val() == 4) {
+                    $('#transferJob').show();
+                    $('#rejectCase').show();
+                    $('#select_Transferdev').prop('disabled', false);
+                    $('#select_RejectCase').prop('disabled', false);
+                } else {
+                    $('#transferJob').hide();
+                    $('#rejectCase').hide();
+                    $('#select_Transferdev').val(0).change();
+                    $('#select_RejectCase').val(1);
+                    $('#select_Transferdev').prop('disabled', true);
+                    $('#select_RejectCase').prop('disabled', true);
+                }
+            });
+
+            //event on change select dev
+            $('#select_dev').change(() => {
+                if ($('#select_dev').val() == @ViewBag.User.User_ID) {
+                    $('#txtDescription').prop('disabled', true);
+                    $('#txtActionRemark').prop('disabled', false);
+                    $('#select_StatusJob').prop('disabled', false);
+                    $('#tagProject input').prop('disabled', false);
+                } else {
+                    $('#txtDescription').prop('disabled', false);
+                    $('#txtActionRemark').prop('disabled', true);
+                    $('#txtActionRemark').val('');
+                    $('#select_StatusJob').prop('disabled', true);
+                    $('#select_StatusJob').val(1);
+
+                    $('#tagProject input').prop('disabled', true);
+                    $('#tagProject input').prop('checked', false);
+                }
+            });
+
+            if (@(ViewBag.feedback != null ?"2":"1") != 1) {
+                 //star rating
+                 $('.star-rating').starRating({
+                     initialRating: @(ViewBag.feedback != null ?@ViewBag.feedback.FeedbackScore:"3"),
+                     readOnly: true
+                });
+
+            } else {
+                 //star rating
+                 $('.star-rating').starRating({
+                     initialRating: 3,
+                     disableAfterRate: false,
+                     onHover: function(currentIndex, currentRating, $el){
+                         $('.live-rating').text(currentIndex);
+                     },
+                     onLeave: function(currentIndex, currentRating, $el){
+                       $('.live-rating').text(currentRating);
+                     }
+                 });
+            }
+        });
+
+         const GetInboxTask_DT = () => {
+            $('#dtJobBox').empty();
+             var table = $('#dtJobBox').DataTable({
+                 async: true,
+                 paging: false,
+                 ordering: false,
+                 info: false,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                 autoWidth: false,
+                 destroy: true,
+                 searching: false,
+                 order: [[6, "desc"]], //set order default
+                 language: {
+                     url: "http://cdn.datatables.net/plug-ins/1.10.19/i18n/Thai.json"
+                 },
+                ajax: {
+                    url: '@Url.Action("GetJob_dt","Home")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = 1;
+                        d.pageSize = 999;
+                        d.indexStart = null;
+                        d.sortField = null;
+                        d.orderType = null;
+                        d.search = d.search.value;
+                        d.incidentTaskId = $('#hd_IncidentId').val();
+                    }
+                },
+                 columns: [
+                 {
+                    title: '#',
+                    data: null,
+                    width: "50px",
+                    className: "h-dt-center d-dt-center",
+                    render: function (data) {
+                             if (data.JobStatusId == 1) {
+                                 return '<span class="label label-info">' + data.JobStatus + '</span>';
+                             } else if (data.JobStatusId == 2) {
+                                 return '<span class="label label-warning">' + data.JobStatus + '</span>';
+                             } else if (data.JobStatusId == 3) {
+                                 return '<span class="label label-success">' + data.JobStatus + '</span>';
+                             } else {
+                                 return '<span class="label label-danger">' + data.JobStatus + '</span>';
+                             }
+                    }
+                 },
+                 {
+                    title: 'Assignee',
+                    data: 'JobActionByName',
+                    className: "h-dt-center",
+
+                },
+                 {
+                     title: 'Job Description',
+                     data: 'JobDescription',
+                     className: "h-dt-center",
+
+                 },
+                 {
+                    title: 'Assign By',
+                    data: 'JobCreatedByName',
+                    className: "h-dt-center",
+
+                },
+                {
+                   title: 'Assign Date',
+                   data: 'JobCreatedDate',
+                   // width: "180px",
+                   className: "h-dt-center",
+                   render: function (data) {
+                        if (data != null) {
+                            return moment(data).format('DD/MM/YYYY HH:mm') + 'น.';
+                        } else {
+                            return '-';
+                        }
+                    }
+                },
+                {
+                   title: 'Code',
+                   data: 'JobCode',
+                   className: "h-dt-center",
+                 },
+                 {
+                     title: 'จัดการ',
+                     data: null,
+                     className:"h-dt-center",
+                     render: function (data) {
+                         if ((data.JobActionByUserId == @ViewBag.User.User_ID) && (data.JobStatusId != 3 && data.JobStatusId != 4)) {
+                             return '<button class="btn btn-block btn-warning" id="btnShow_' + data.JobId + '" data-toggle="modal" data-target=".job-modal"' +
+                                 'onclick="EditJobDetail(' + data.JobId + ')"><i class="fa fa-pen" aria-hidden="true"></i></button>';
+                         } else {
+                             return '<button class="btn btn-block btn-info" id="btnShow_' + data.JobId + '" data-toggle="modal" data-target=".bd-see-modal-lg"' +
+                                 'onclick="SeeDetail(' + data.JobId + ')"><i class="fa fa-search" aria-hidden="true"></i></button>';
+                         }
+                     }
+                 }]
+            });
+        }
+
+        const EditJobDetail = (jobId) => {
+            $.get('@Url.Action("GetJobDetail")', { jobId: jobId }, (data) => {
+                $('#select_dev').val(data.JobActionByUserId).change();
+                $('#txtDescription').val(data.JobDescription);
+                $('#txtActionRemark').val(data.JobActionRemark);
+                $('#select_StatusJob').val(data.JobStatusId);
+                $('#select_RejectCase').val(data.JobRejectCaseId);
+                $('#select_dev').prop('disabled', true);
+                $('#txtDescription').prop('disabled', true);
+                $('#lblJobId').text(jobId);
+                $('#hd_jobId').val(jobId);
+                $('#transferJob').hide();
+                $('#rejectCase').hide();
+                GetProjects(jobId);
+            });
+            $('#modelFooter-new').hide();
+            $('#modelFooter-edit').show();
+            $('#select_Transferdev').prop('disabled', false);
+        }
+
+        const EditJob = () => {
+            var incidentId = $('#hd_IncidentId').val();
+            var description = $('#txtDescription').val();
+            var actionRemark = $('#txtActionRemark').val();
+            var rejectCaseId = $('#select_RejectCase').val();
+            var jobStatus = $('#select_StatusJob').val();
+            var jobId = $('#hd_jobId').val();
+            var trId = $('#select_Transferdev').val();
+            var insertTagResult = [];
+            var incidentGroupTypeId = @ViewBag.detailList.IncidentGroupTypeId;
+
+            var checkedId = $(":checkbox:checked").map(function() {
+                            return this.id;
+            }).get();
+
+            var unCheckedId = $(":checkbox:not(:checked)").map(function() {
+                            return this.id;
+            }).get();
+
+            swal_confirm('ยืนยันการเปลี่ยนแปลง', 'ต้องการอัพเดท Job?', () => {
+                $.post('@Url.Action("Job_Update","Home")',
+                    {
+                        incidentTaskId: incidentId,
+                        jobId: jobId,
+                        jobStatusId: jobStatus,
+                        description: description,
+                        actionRemark: actionRemark,
+                        rejectCaseId: rejectCaseId,
+                        trId: trId,
+                        incidentGroupTypeId: incidentGroupTypeId,
+
+                    }, (data) => {
+                         if (data.IsResult) {
+                             swal_success("บันทึก job สำเร็จ");
+                             //loop checked
+                             $.each(checkedId, (key, val)=>
+                             {
+                                 $.post('@Url.Action("Tag_Update","Home")', { jobId: jobId, tagId: val,isChecked:true }, (data) => {
+                                     insertTagResult = data.IsResult;
+                                     console.log(data.IsResult);
+                                 });
+                             });
+                             //loop unchecked
+                              $.each(unCheckedId, (key, val)=>
+                             {
+                                 $.post('@Url.Action("Tag_Update","Home")', { jobId: jobId, tagId: val,isChecked:false }, (data) => {
+                                     insertTagResult = data.IsResult;
+                                     console.log(data.IsResult);
+                                 });
+                             });
+                             chat.server.sendGroupMessage("Update Job!", 'งานมีการอัพเดท!', channelId);
+                             chat.server.sendGroupMessage("Update Job!" ,'งานมีการอัพเดท!', 'dev');
+                             setTimeout(() => { window.location = ('@Url.Action("IncidentDetail","Home")?incidentTaskId=' + $('#hd_IncidentId').val()) }, 4000);
+                          } else {
+                              swal_fail('กรุณาลองใหม่อีกครั้ง');
+                          }
+                    });
+             });
+        }
+
+        const CreateNewJob = () => {
+            $('#check_modal input').empty();
+            $('#select_dev').val(@ViewBag.User.User_ID).change();
+            $('#txtDescription').val('');
+            $('#hd_jobId').val('');
+            $('#txtActionRemark').val('');
+            $('#select_StatusJob').val(1);
+            $('#select_Transferdev').prop('disabled', true);
+            $('#txtDescription').prop('disabled', true);
+            $('#select_dev').prop('disabled', false);
+            $('#txtActionRemark').prop('disabled', false);
+            $('#select_StatusJob').prop('disabled', false);
+            $('#select_RejectCase').prop('disabled', false);
+            $('#tagProject input').prop('disabled', false);
+            $('.chkProject').prop('cheked', false);
+            $('#transferJob').hide();
+            $('#rejectCase').hide();
+            GetProjects();
+            $('#modelFooter-new').show();
+            $('#modelFooter-edit').hide();
+        }
+
+        const SaveJob = () => {
+            var incidentId = $('#hd_IncidentId').val();
+            var actionUser = $('#select_dev').val();
+            var description = $('#txtDescription').val();
+            var actionRemark = $('#txtActionRemark').val();
+            var jobStatus = $('#select_StatusJob').val();
+            var rejectCaseId = $('#select_RejectCase').val();
+
+            var insertTagResult = [];
+
+            var checkedId = $(":checkbox:checked").map(function() {
+                            return this.id;
+                            }).get();
+
+            swal_confirm('ยืนยันการสร้าง Job?', 'ต้องการสร้าง Job นี้?', () => {
+                $.post('@Url.Action("Insert_Job","Home")',
+                {
+                    incidentTaskId: incidentId,
+                    actionByUserId: actionUser,
+                    description: description,
+                    jobStatus: jobStatus,
+                    actionRemark: actionRemark,
+                    rejectCaseId: rejectCaseId,
+                },
+
+                (data) => {
+                    if (data.IsResult) {
+                        swal_success("บันทึก job สำเร็จ");
+                        var jobId = data.Result;
+                        $.each(checkedId, (key, val)=>
+                        {
+                            $.post('@Url.Action("Insert_Tag","Home")', { jobId: jobId, tagId: val }, (data) => {
+                                insertTagResult = data.IsResult;
+                            });
+                        });
+                        chat.server.sendGroupMessage("Update Job!", 'งานมีการอัพเดท!', channelId);
+                        chat.server.sendGroupMessage("Update Job!" ,'งานมีการอัพเดท!', 'dev');
+                        setTimeout(() => { window.location = ('@Url.Action("IncidentDetail","Home")?incidentTaskId=' + $('#hd_IncidentId').val()) }, 4000);
+                    } else {
+                        swal_fail('กรุณาลองใหม่อีกครั้ง');
+                    }
+                 });
+             });
+        }
+
+        //loop get project
+        const GetProjects = (jobId) => {
+            $('#tagProject').empty();
+            $.get('@Url.Action("GetProjectList")', (response) => {
+                    for (var i = 0; i < response.length; i++) {
+                        $('#tagProject').append(
+                            '<div class="col-sm-2">' +
+                            '<div class="form-group">' +
+                            '<div class="checkbox" style="display:block;">' +
+                            '<label>' +
+                            '<input type="checkbox" class="chkProject" name="' + response[i].ProjectId + '" id="' + response[i].ProjectId + '" value="' + response[i].ProjectId + '">' +
+                            response[i].ProjectName +
+                            '</label>' +
+                            '</div>' +
+                            '</div>' +
+                            '</div>'
+                        );
+                    }
+            });
+
+            //check if edit
+            setTimeout(() => {
+                if (jobId != null) {
+                    $.get('@Url.Action("GetTagById","Home")', { jobId: jobId }, (data) => {
+                        $.each(data, (idx, li) => {
+                            if (li.IsChecked) {
+                                var checkbox = $("input[type='checkbox'][id='" + li.ProjectId + "']");
+                                checkbox.prop("checked", true);
+                            }
+
+                        });
+                    });
+                }
+            }, 200);
+
+        }
+
+        const SeeDetail = (jobId) => {
+
+            $.get('@Url.Action("GetJobDetail")', { jobId: jobId }, (data) => {
+                $('#select_dev_see').val(data.JobActionByUserId);
+                $('#txtDescription_see').val(data.JobDescription);
+                $('#txtActionRemark_see').val(data.JobActionRemark);
+                $('#select_StatusJob_see').val(data.JobStatusId);
+                $('#select_RejectCase_see').val(data.JobRejectCaseId);
+                if (data.JobStatusId != 4) {
+                    $('#transferJob_see').hide();
+                    $('#rejectCase_see').hide();
+                } else {
+                    $('#transferJob_see').show();
+                    $('#rejectCase_see').show();
+                }
+                $('#select_dev_see').prop('disabled', true);
+                $('#txtDescription_see').prop('disabled', true);
+                $('#txtActionRemark_see').prop('disabled', true);
+                $('#select_StatusJob_see').prop('disabled', true);
+                $('#select_RejectCase_see').prop('disabled', true);
+
+                $('#lblSeeJobId').text(jobId);
+
+                $('#tagProject_see').empty();
+                $.get('@Url.Action("GetTagById","Home")', { jobId: jobId }, (result) => {
+                    $.each(result, (idx, li) => {
+                        if (li.IsChecked) {
+                            $('#tagProject_see').append(
+                                '<span class="badge badge-primary">' + li.ProjectName + '</div>'
+                            );
+                        }
+
+                    });
+                });
+            });
+        }
+
+        const SendFeedback = () => {
+            var incidentId = $('#hd_IncidentId').val();
+            var feedback = $('#txtFeedback').val();
+            var score = $('.star-rating').starRating('getRating');
+            swal_confirm('ต้องการส่งfeedbackนี้', 'ยืนยันการทำรายการ', () => {
+                $.post('@Url.Action("Feedback_Insert")', { incidentTaskId: incidentId, feedback: feedback, score: score }, (data) => {
+                    if (data.IsResult) {
+                        swal_success();
+                        setTimeout(() => { window.location = ('@Url.Action("IncidentDetail","Home")?incidentTaskId=' + $('#hd_IncidentId').val()) }, 2000);
+                    } else {
+                        swal_fail('กรุณาลองใหม่อีกครั้ง');
+                    }
+                });
+            });
+
+        }
+
+        $('#select_TaskGroup').change(function (e) {
+            e.preventDefault();
+            GetIncidentGroupType();
+        });
+
+        const GetIncidentGroupType = () => {
+         $('#select_TaskSubGroup').empty();
+            $.ajax({
+                 type: "GET",
+                 url: "@Url.Action("GetIncidentGroupType", "Home")",
+                 data: {
+                 incidentGroupTypeId: $('#select_TaskGroup').val()
+             },
+                async: false,
+                dataType: "json",
+                success: function (response) {
+                    for (var i = 0; i < response.length; i++) {
+                         $('#select_TaskSubGroup').append('<option value=' + response[i].IncidentTypeId + '>' + response[i].IncidentType +'</option>')
+                    }
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,549 @@
+﻿@{
+                /**/
+
+                ViewBag.Title = "Welcome to AWS S3 Upload Monitoring & Report :)";
+                Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style type="text/css">
+    .inline {
+        display: inline;
+        border: 1px solid red;
+        margin: 10px;
+    }
+
+    .container {
+        min-height: 100%;
+        display: table-cell;
+        vertical-align: middle
+    }
+
+    .buttons {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        width: 120px;
+        transform: translateY(-50%);
+    }
+</style>
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="info-box bg-aqua">
+                <span class="info-box-icon"><i class="fa fa-server"></i></span>
+
+                <div class="info-box-content">
+                    <span class="info-box-text">Server 192.168.100.11</span>
+                    <span class="info-box-number" style="font-size:x-small">
+                        Total&nbsp;<label for="lblTotal">@ViewBag.spacetotal</label><br />
+                        Usage&nbsp;<label for="lblUsage">@ViewBag.spaceusage (@ViewBag.spacepercent%)</label><br />
+                        Free&nbsp;<label for="lblFreeSpace">@ViewBag.spacefree</label>
+                    </span>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: @ViewBag.spacepercent%"></div>
+                    </div>
+                    <span class="progress-description">
+                        Last update at @ViewBag.updatedt
+                    </span>
+                </div>
+                <!-- /.info-box-content -->
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-box bg-aqua">
+                <span class="info-box-icon"><i class="fa fa-cloud" aria-hidden="true"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">SSSDoc on S3 Storage</span>
+                    <span class="info-box-number" style="font-size:x-small">
+                        Total&nbsp;Size&nbsp;<label for="lblS3Size_SSSDoc">@ViewBag.s3size_SSSDoc </label><br />
+                        Total&nbsp;File&nbsp;<label for="lblS3File_SSSDoc">@ViewBag.s3file_SSSDoc (@ViewBag.s3sssdocpercent%)</label><br />
+                        Un upload&nbsp;<label for="lblS3FileUn_SSSDoc">@ViewBag.s3fileUnup_SSSSDoc</label>
+                    </span>
+
+                    <div class="progress">
+                        <div class="progress-bar" style="width: @ViewBag.s3sssdocpercent%"></div>
+                    </div>
+                    <span class="progress-description">
+                        Last update at @ViewBag.updatedt
+                    </span>
+                </div>
+                <!-- /.info-box-content -->
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-box bg-aqua">
+                <span class="info-box-icon"><i class="fa fa-cloud"></i></span>
+
+                <div class="info-box-content">
+                    <span class="info-box-text">SmileDoc S3 Storage</span>
+                    <span class="info-box-number" style="font-size:x-small">
+                        Total&nbsp;Size&nbsp;<label for="lblS3Size_SmileDoc">@ViewBag.s3size_SmileDoc</label><br />
+                        Total&nbsp;File&nbsp;<label for="lblS3File_SmileDoc">@ViewBag.s3file_SmileDoc (@ViewBag.s3smiledocpercent%)</label><br />
+                        Un upload&nbsp;<label for="lblS3FileUn_SmileDoc">@ViewBag.s3fileUnup_SmileSDoc</label>
+                    </span>
+
+                    <div class="progress">
+                        <div class="progress-bar" style="width: @ViewBag.s3smiledocpercent%"></div>
+                    </div>
+                    <span class="progress-description">
+                        Last update at @ViewBag.updatedt2
+                    </span>
+                </div>
+                <!-- /.info-box-content -->
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">Select Date Range</h3>
+                </div>
+                <div class="box-body">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Satrt Date:</label>
+                            <div class="input-group date">
+                                <input type="text" class="form-control pull-right" id="dtpStartdt" name="dtpStartdt" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="yyyy-mm-dd">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                            </div>
+                            <!-- /.input group -->
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>End Date:</label>
+                            <div class="input-group date">
+                                <input type="text" class="form-control pull-right" id="dtpEnddt" name="dtpEnddt" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="yyyy-mm-dd">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                            </div>
+                            <!-- /.input group -->
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-block btn-primary" id="btnShow" style="margin-top:25px">Show</button>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-block btn-primary" id="btnClear" style="margin-top:25px">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                    <h3 class="box-title">History by Space Used</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body no-padding">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="pad">
+                                <!-- Bar chart creat here -->
+                                <div class="chart">
+                                    <canvas id="barChart" class="chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- /.box-body -->
+        </div>
+        <div class="col-md-6">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                    <h3 class="box-title">จำนวนไฟล์ที่อัพโหลดในแต่ละวัน</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body no-padding">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="pad">
+                                <!-- Bar chart creat here -->
+                                <canvas id="lineChart"></canvas>
+                            </div>
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Upload Pie chart</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body no-padding">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="pad">
+                                <!-- Bar chart creat here -->
+                                <div class="chart">
+                                    <canvas id="pieChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- /.box-body -->
+        </div>
+        <div class="col-md-6">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ปริมาณไฟล์ที่เพิ่มขึ้นในแต่ละวัน</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body no-padding">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="pad">
+                                <!-- Bar chart creat here -->
+                                <canvas id="lineChart2"></canvas>
+                            </div>
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+
+    <script>
+        $(function () {
+            //create_piechart();
+            var d1 = new Date();
+            $('#dtpStartdt').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date(d1.getFullYear(), d1.getMonth(), -8));
+            $('#dtpEnddt').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date(d1.getFullYear(), d1.getMonth(), -5));
+
+        });
+
+        $('#dtpStartdt').change(e => {
+            e.preventDefault();
+        });
+
+        $('#dtpEnddt').change(e => {
+            e.preventDefault();
+            var date = $('#dtpStartdt').datepicker("getDate");
+            var Newdate = new Date(date);
+            Newdate.setDate(Newdate.getDate() + 10);
+            var Endd = $('#dtpEnddt').datepicker("getDate");
+            if (Endd > Newdate)
+            {
+                alert('เลือกได้ไม่เกิน10วัน');
+                $('#dtpEnddt').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", Newdate);
+            }
+        });
+
+        $('#btnShow').click(function (e) {
+            e.preventDefault();
+            getDateArray();
+            create_linechartperday();
+            create_barchart();
+            create_piechart();
+        });
+
+        $('#btnClear').click(function (e) {
+            e.preventDefault();
+            myLineChart.claer();
+            BuildBarChart([], [], "ความจุ(Byte)");
+        });
+
+        var DateArray = [];
+        var getDateArray = function () {
+            //Define param
+            var arr_start = $("#dtpStartdt").val().split("/")
+            var dt_start = new Date(arr_start[2], arr_start[1] - 1, arr_start[0])
+            var arr_end = $("#dtpEnddt").val().split("/")
+            var dt_end = new Date(arr_end[2], arr_end[1] - 1, arr_end[0])
+            DateArray = [];
+            while (dt_start <= dt_end) {
+                var i = moment(dt_start).format('DD-MM-YYYY');
+                DateArray.push(i);
+                dt_start.setDate(dt_start.getDate() + 1);
+            }
+            return DateArray;
+        }
+
+        var myLineChart2 = new Chart(document.getElementById("lineChart2"), {
+            type: 'line',
+            data: {
+                labels: DateArray,
+                datasets: [
+                    {
+                        label: "จำนวนไฟล์(ไฟล์)",
+                        data: [],
+                        fill: false,
+                        backgroundColor: [ // Specify custom colors
+                          'rgba(255, 99, 132, 0.2)',
+                          'rgba(54, 162, 235, 0.2)',
+                          'rgba(255, 206, 86, 0.2)',
+                          'rgba(75, 192, 192, 0.2)',
+                          'rgba(153, 102, 255, 0.2)',
+                          'rgba(255, 159, 64, 0.2)'
+                        ],
+                        borderColor: [ // Add custom color borders
+                          'rgba(255,99,132,1)',
+                          'rgba(54, 162, 235, 1)',
+                          'rgba(255, 206, 86, 1)',
+                          'rgba(75, 192, 192, 1)',
+                          'rgba(153, 102, 255, 1)',
+                          'rgba(255, 159, 64, 1)'
+                        ]
+                    }
+                ]
+            },
+            options: {}
+        })
+
+        function addData_linechart(chart, data, datasetIndex) {
+            chart.clear();
+            chart.data.datasets[datasetIndex].data = data;
+            chart.update();
+        }
+
+        function addData(chart, data, datasetIndex) {
+            chart.clear();
+            chart.data.datasets[datasetIndex].data = data;
+            chart.update();
+        }
+
+        function removeData(chart) {
+            chart.data.labels.pop();
+            chart.data.datasets.forEach((dataset) => {
+                dataset.data.pop();
+            });
+            chart.update();
+        }
+
+        function create_linechartperday() {
+            var lstsss = [];
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("GetCountUploadAll", "AmazonS3")',
+                data: {
+                     dtstart: $('#dtpStartdt').val()
+                    , dtend: $('#dtpEnddt').val()
+                },
+                contentType: "application/json; charset=utf-8",
+                datatype: "json",
+                async: false,
+                success: function (response) {
+                    lstsss = response;
+                },
+                failure: function (response) { alert("Done sss"); },
+                error: function (response) { alert("Done sss"); }
+            });
+            BuildLineChart(DateArray,lstsss,"จำนวนไฟล์(ไฟล์)");
+        }
+
+        function create_barchart() {
+            //var lstsss = [,];
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("GetLocalSpacePerDay", "AmazonS3")',
+                data: {
+                     dtstart: $('#dtpStartdt').val()
+                    , dtend: $('#dtpEnddt').val()
+                },
+                contentType: "application/json; charset=utf-8",
+                datatype: "json",
+                async: false,
+                success: function (response) {
+                    data_free = [];
+                    data_total = [];
+                    data_usage = [];
+
+                    $.each(response, function (indexInArray, valueOfElement) {
+                        data_free.push(response[indexInArray].LocalDiskAvailable);
+                        data_total.push(response[indexInArray].LocalDiskTotal);
+                        data_usage.push(response[indexInArray].LocalDiskUsage);
+                    });
+
+                },
+                failure: function (response) { alert("Error sss"); },
+                error: function (response) { alert("Error sss"); }
+            });
+
+            debugger;
+            BuildBarChart(DateArray, "ความจุ(Byte)");
+        }
+
+        function create_piechart() {
+            var sdoc_uploaded, sdoc_unupload;
+            $.ajax({
+                type: "POST",
+                url: "/AmazonS3/GetDBUploadCount",
+                contentType: "application/json; charset=utf-8",
+                datatype: "json",
+                async: false,
+                success: function (response) {
+                    sdoc_uploaded = response[0];
+                    sdoc_unupload = response[1];
+                },
+                failure: function (response) { /*alert("fail");*/ },
+                error: function (response) { /*alert("error sssdoc");*/ }
+            });
+
+            addData(myPieChart, [Number(sdoc_uploaded), Number(sdoc_unupload)], 0);
+        }
+
+        //get the doughnut chart canvas
+        var canvas3 = document.getElementById('pieChart');
+        var ctx3 = canvas3.getContext('2d');
+        var myPieChart = new Chart(ctx3, {
+            type: "doughnut",
+            data: {
+                labels: ["อัพโหลดแล้ว", "ยังไม่อัพโหลด"],
+                datasets: [{
+                    label: "SSSDoc and SmileDoc",
+                    data: [],
+                    backgroundColor: ['rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'],
+                    borderColor: ['rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)']
+                }]
+            },
+            options: {
+                cutoutPercentage: 40,
+                responsive: false,
+            }
+
+        });
+
+        function BuildLineChart(labels, values, chartTitle) {
+          var canvas2 = document.getElementById('lineChart2');
+          var ctx2 = canvas2.getContext('2d');
+          var myChart = new Chart(ctx2, {
+            type: 'line',
+            data: {
+              labels: labels, // Our labels
+              datasets: [{
+                label: chartTitle, // Name the series
+                data: values, // Our values
+                backgroundColor: [ // Specify custom colors
+                  'rgba(255, 99, 132, 0.2)',
+                  'rgba(54, 162, 235, 0.2)',
+                  'rgba(255, 206, 86, 0.2)',
+                  'rgba(75, 192, 192, 0.2)',
+                  'rgba(153, 102, 255, 0.2)',
+                  'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [ // Add custom color borders
+                  'rgba(255,99,132,1)',
+                  'rgba(54, 162, 235, 1)',
+                  'rgba(255, 206, 86, 1)',
+                  'rgba(75, 192, 192, 1)',
+                  'rgba(153, 102, 255, 1)',
+                  'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1 // Specify bar border width
+              }]
+            },
+            options: {
+              responsive: true, // Instruct chart js to respond nicely.
+              maintainAspectRatio: false, // Add to prevent default behavior of full-width/height
+            }
+          });
+          return myChart;
+        }                                                                                                                                                                                                                                                                                                                                                                                              //    }
+
+        var data_total = [];
+        var data_free = [];
+        var data_usage = [];
+        function BuildBarChart(labels, chartTitle) {
+          var canvas4 = document.getElementById('barChart');
+          var ctx4 = canvas4.getContext('3d');
+          var myChart2 = new Chart(ctx4, {
+            type: 'bar',
+            data: {
+              labels: labels, // Our labels
+                datasets: [{
+                  label: 'Free', // Name the series
+                data: data_free, // Our values
+                backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                borderColor: 'rgba(255, 206, 86, 1)',
+                borderWidth: 1 // Specify bar border width
+
+              },
+              {
+                label: 'Usage', // Name the series
+                data: data_usage, // Our values
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1 // Specify bar border width
+                    },
+              {
+                label: 'Total', // Name the series
+                data: data_total, // Our values
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255,99,132,1)',
+                borderWidth: 1 // Specify bar border width
+              },
+              ]
+            },
+            options: {
+              responsive: true, // Instruct chart js to respond nicely.
+                maintainAspectRatio: true, // Add to prevent default behavior of full-width/height
+                spanGaps: true,
+              scales: {
+                    xAxes: [{
+                        stacked: true
+                    }],
+                    yAxes: [{
+                        stacked: true
+                    }]
+                }
+            }
+            });
+            debugger;
+          return myChart2;
+        }
+    </script>
+}

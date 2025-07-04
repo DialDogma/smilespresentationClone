@@ -1,0 +1,119 @@
+﻿@model IEnumerable<SmileSClaimPayBack.Models.usp_ClaimPayBackSubGroupTransactionDetails_Select_Result>
+@{
+    Layout = null;
+}
+
+<div class="modal-header" style="background-color: #65aadb ">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="modal-title" style="color:#FFFFFF"> ประวัติการทำรายการ: @ViewBag.ClaimPayBackSubGroupCode </h4>
+</div>
+<div class="modal-body table-responsive">
+    <div class="row">
+        @{
+            if (Model.Count() > 0)
+            {
+                var round = Model.GroupBy(g => g.Rounds).Count();
+                for (Model.GroupBy(g => g.Rounds).Count(); round > 0; round--)
+                {
+                    <div class="col-md-12">
+                        <div class="box">
+                            <div class="box-header">
+                                <h3 class="box-title"><strong>ประวัติทำรายการรอบที่ @round</strong></h3>
+                            </div>
+                            <div class="box-body">
+                                <table class="table table-striped" style="font-size:1.4rem">
+                                    <thead>
+                                        <tr class="text-center">
+                                            <th>ลำดับ</th>
+                                            <th>วันที่ทำรายการ</th>
+                                            <th>ประเภทรายการ</th>
+                                            <th>ผู้ทำรายการ</th>
+                                            <th>จำนวนเงิน</th>
+                                            <th>รายละเอียด</th>
+                                            <th width="20%">หมายเหตุ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{
+                                            int countList = 1;
+                                            foreach (var get in Model.Where(w => w.Rounds == round).OrderByDescending(o => o.SubGroupTransactionStatusId))
+                                            {
+                                                <tr>
+                                                    <td class="text-center">@countList.</td>
+                                                    <td class="text-center">@get.TransferDate</td>
+                                                    <td>
+                                                        @if (get.SubGroupTransactionStatusId == 3 || get.SubGroupTransactionStatusId == 5)
+                                                        {
+                                                            <strong style="color:green">@get.ClaimPayBackSubGroupTransactionStatusName</strong>
+                                                        }
+                                                        else if (get.SubGroupTransactionStatusId == 4 || get.SubGroupTransactionStatusId == 6)
+                                                        {
+                                                            <strong style="color:red">@get.ClaimPayBackSubGroupTransactionStatusName</strong>
+                                                        }
+                                                        else
+                                                        {
+                                                            <strong style="color:orange">@get.ClaimPayBackSubGroupTransactionStatusName</strong>
+                                                        }
+                                                    </td>
+                                                    <td>@get.CreateByUser</td>
+                                                    <td class="text-right">
+                                                        @{
+                                                            if (get.SubGroupTransactionStatusId == 5)
+                                                            {
+                                                                @Convert.ToDecimal(get.Amount).ToString("N")
+                                                            }
+                                                            else
+                                                            {
+                                                                <text>-</text>
+                                                            }
+                                                        }
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @{
+                                                            @get.Detail
+                                                            if (round == Model.GroupBy(g => g.Rounds).Count())
+                                                            {
+                                                                if (ViewBag.Environment == "UAT")
+                                                                {
+                                                                    <a href="http://uat.siamsmile.co.th:9101/Modules/Fund/frmHospitalManage.aspx" style="display:@(get.SubGroupTransactionStatusId != 6  ? "none" : "")" data-toggle="tooltip" data-placement="top" data-original-title="แก้ไขข้อมูล" target="_blank">
+                                                                        <i class="fa fa-pencil" />
+                                                                    </a>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <a href="https://sssph.siamsmile.co.th/Modules/Fund/frmHospitalManage.aspx" style="display:@(get.SubGroupTransactionStatusId != 6  ? "none" : "")" data-toggle="tooltip" data-placement="top" data-original-title="แก้ไขข้อมูล" target="_blank">
+                                                                        <i class="fa fa-pencil" />
+                                                                    </a>
+                                                                }
+                                                            }
+                                                        }
+
+                                                    </td>
+                                                    <td>@get.Descriptions</td>
+                                                </tr>
+                                                countList++;
+                                            }
+                                        }
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                }
+            }
+            else
+            {
+                <div class="text-center">
+                    <h4><i class="icon fa fa-warning"></i> แจ้งเตือน! ไม่พบข้อมูล</h4>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+
+

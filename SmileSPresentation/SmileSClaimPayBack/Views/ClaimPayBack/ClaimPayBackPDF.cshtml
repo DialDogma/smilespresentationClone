@@ -1,0 +1,163 @@
+﻿@model IEnumerable<SmileSClaimPayBack.Models.ClaimPayBackMonitorModel>
+@{
+    ViewBag.Title = "รายการเอกสารตั้งเบิกเคลม";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Export PDF</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
+</head>
+<body >
+    <table cellspacing="0" cellpadding="3" width="100%" style="border-collapse: collapse; font-family:'Sarabun'; font-size:small" class="table table-bordered table-striped page-breaker">
+        <thead></thead>
+        <tr>
+            <td colspan="6" style="text-align:center; font-size:x-large">@ViewBag.Title</td>
+        </tr>
+        <tr>
+            <td colspan="5"></td>
+            <td style="border: 1px solid #000000; text-align: center">
+                <b>วันที่ส่งการเงิน :&nbsp;</b>
+                @if (Model != null)
+                {
+                    @Html.ValueFor(model => model.First().CreatedDate, "{0:dd/MM/yyyy}")
+                }
+            </td>
+        </tr>
+        <tr>
+            <td colspan="6">
+                <b> สาขา : </b>
+                @if (Model != null)
+                {
+                    @Html.DisplayFor(model => model.First().BranchDetail)
+                }
+            </td>
+        </tr>
+        <tr>
+            <td colspan="6">
+                <b> กลุ่มงานแผนประกัน : </b>
+                @if (Model != null)
+                {
+                    @Html.DisplayFor(model => model.First().ProductGroup)
+                }
+            </td>
+        </tr>
+        <tr>
+            <td colspan="6">
+                <b> ประเภทงานเคลม : </b>
+                @if (Model != null)
+                {
+                    @Html.DisplayFor(model => model.First().ClaimGroupType)
+                }
+            </td>
+        </tr>
+        <tbody style="page-break-after: always;">
+            <tr style="page-break-inside: avoid !important">
+                <td class="page-breaker" style="border: 1px solid #000000; text-align: center">ลำดับที่</td>
+                <td class="page-breaker" style="border: 1px solid #000000; text-align: center">บริษัทประกันภัย</td>
+                @if (Model != null && Model.Any(item => item.ClaimGroupTypeId == 4))
+                {
+                    <td class="page-breaker" style="border: 1px solid #000000; text-align: center">สถานพยาบาล</td>
+                }
+                @*<td class="page-breaker" style="border: 1px solid #000000; text-align: center">สถานพยาบาล</td>*@
+                <td class="page-breaker" style="border: 1px solid #000000; text-align: center">เลขที่ บ.ส.</td>
+                <td class="page-breaker" style="border: 1px solid #000000; text-align: center">จำนวนรายการ</td>
+                <td class="page-breaker" style="border: 1px solid #000000; text-align: center">ยอดเงินรวม</td>
+                <td class="page-breaker" style="border: 1px solid #000000; text-align: center">หมายเหตุ</td>
+            </tr>
+            @{ int i = 1; }
+            @{ decimal? summaryAmount = 0;}
+            @{ int? summaryCount = 0;}
+            @{ int? claimGroupTypeId = 0;}
+            @{ string amount = "";}
+            @{ string SumAmount = "";}
+
+            @if (Model != null)
+            {
+                foreach (var item in Model)
+                {
+                    { amount = item.Amount.HasValue ? item.Amount.Value.ToString("#,###.00") : ""; }
+        <tr style="page-break-inside: avoid !important">
+            <td class="page-breaker" style="border: 1px solid #000000; text-align: center"> @i </td>
+            <td class="page-breaker" style="border: 1px solid #000000;"> @Html.DisplayFor(modelItem => item.InsuranceCompany) </td>
+            @if (item.ClaimGroupTypeId == 4)
+            {
+                claimGroupTypeId = item.ClaimGroupTypeId;
+                <td class="page-breaker" style="border: 1px solid #000000;"> @Html.DisplayFor(modelItem => item.HospitalName) </td>
+            }
+            <td class="page-breaker" style="border: 1px solid #000000;"> @Html.DisplayFor(modelItem => item.ClaimGroupCode) </td>
+            <td class="page-breaker" style="border: 1px solid #000000; text-align: center"> @Html.DisplayFor(modelItem => item.ItemCount) </td>
+            <td class="page-breaker contribution" style="border: 1px solid #000000; text-align: right">@amount</td>
+            <td class="page-breaker" style="border: 1px solid #000000;"></td>
+        </tr>
+
+                    { i++; }
+                    {
+                        summaryCount = summaryCount + item.ItemCount;
+                        summaryAmount = summaryAmount + item.Amount;
+                        SumAmount = summaryAmount.HasValue ? summaryAmount.Value.ToString("#,###.00") : "";
+                    }
+                }
+            }
+
+        <tr style="page-break-inside: avoid !important">
+            @if (claimGroupTypeId == 4)
+            {
+                <td class="page-breaker" style="border: 1px solid #000000; text-align: center" colspan="4"> <b>สรุปยอดรวม</b> </td>
+            }
+            else
+            {
+                <td class="page-breaker" style="border: 1px solid #000000; text-align: center" colspan="3"> <b>สรุปยอดรวม</b> </td>
+            }
+            <td class="page-breaker" style="border: 1px solid #000000; text-align: center"><b>@summaryCount</b></td>
+            <td class="page-breaker contribution" style="border: 1px solid #000000; text-align: right">@SumAmount</td>
+            <td class="page-breaker" style="border: 1px solid #000000; background-color: gray"></td>
+        </tr>
+            <tr style="page-break-inside: avoid !important">
+                <td colspan="6" class="page-breaker">
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                </td>
+            </tr>
+            <tr style="page-break-inside: avoid !important">
+                <td colspan="2" style="text-align:center" class="page-breaker">
+                    ลงชื่อผู้จัดทำ..........................................
+                </td>
+                <td colspan="2" style="text-align:center" class="page-breaker">
+                    ลงชื่อผู้ตรวจสอบ....................................
+                </td>
+                <td colspan="2" style="text-align:center" class="page-breaker">
+                    ลงชื่อผู้ตรวจสอบ....................................
+                </td>
+            </tr>
+            <tr style="page-break-inside: avoid !important">
+                <td colspan="2" style="text-align:center" class="page-breaker">
+                    (..............................................................)
+                </td>
+                <td colspan="2" style="text-align:center" class="page-breaker">
+                    (..............................................................)
+                </td>
+                <td colspan="2" style="text-align:center" class="page-breaker">
+                    (..............................................................)
+                </td>
+            </tr>
+
+        </tbody>
+        <tfoot></tfoot>
+    </table>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("td.contribution").each(function () { $(this).html(parseFloat($(this).text()).toLocaleString(undefined, { minimumFractionDigits: 2 })); })
+        })
+    </script>
+</body>
+</html>

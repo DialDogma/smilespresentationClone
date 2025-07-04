@@ -1,0 +1,56 @@
+﻿
+
+<table id="dtTask" class="table table-bordered table-hover dataTable" style="width:100%;"></table>
+
+<script type="text/javascript">
+
+
+        const DoloadTask = (appId) => {
+            $('#dtTask').empty();
+            var table = $('#dtTask').DataTable({
+                     pageLength: 10,
+                     processing: true,
+                     serverSide: true,
+                     responsive: true,
+                     destroy: true,
+                     searching: false,
+                     info: false,
+                     ajax: {
+                         url: '@Url.Action("GetTask", "PartialView")',
+                         type: 'POST',
+                         async:false,
+                         data: function (d) {
+                             d.draw = d.draw;
+                             d.pageSize = d.length;
+                             d.pageStart = d.start;
+                             d.sortField = d.columns[d.order[0].column].data;
+                             d.orderType = d.order[0].dir;
+                             d.search = d.search.value;
+                             d.applicationID = appId;
+                         }
+                     },
+                    columns: [
+                         {
+                            title: 'วันที่ทำรายการ', data: 'CreatedDate', className: 'h-dt-center d-dt-center'
+                             , mRender: function (data) {
+                                 moment.locale('th');
+                                 return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:ss");
+                             }, width: '10%'
+                        },
+                        { title: 'รายละเอียด', data: 'TransactionType', className: 'h-dt-center d-dt-center', },
+                        { title: 'หมายเหตุ', data: 'Detail', className: 'h-dt-center d-dt-center', },
+                        { title: 'รหัสพนักงาน', data: 'CreatedByCode', className: 'h-dt-center d-dt-center', },
+                        { title: 'ผู้ทำรายการ', data: 'CreatedByName', className: 'h-dt-center d-dt-center', },
+                        { title: 'สาขา', data: 'CreatedByBranch', className: 'h-dt-center d-dt-center', },
+
+                     ],
+                     bLengthChange: false,
+                     createdRow: function (row, data, index) {
+
+                     },
+              });
+        }
+
+</script>
+
+

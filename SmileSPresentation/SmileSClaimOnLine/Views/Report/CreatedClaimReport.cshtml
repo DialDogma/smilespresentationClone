@@ -1,0 +1,360 @@
+﻿
+@{
+    ViewBag.Title = "รายงานการสร้างและติดตามเคลม";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*<h2>CreatedClaimReport</h2>*@
+
+<form class="form-horizontal" method="post" id="myform">
+    <div class="row">
+        <div class="col-xs-12">
+
+            @* ค้นหา *@
+            <div class="box box-primary box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <label>ProductGroup :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlProductGroup">
+
+                                    <option value="-1"> -- โปรดระบุ -- </option>
+
+                                    @{
+                                        foreach (var item in ViewBag.ProductType)
+                                        {
+                                            <option value=@item.ProductGroup_ID>  @item.ProductGroupDetail </option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <label>จากวันที่ :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpDateFrom" data-provide="datepicker" data-date-language="th-th">
+                                </div>
+                            </div>
+
+                            <div class="col-xs-3">
+                                <label>ถึงวันที่ :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpDateTo" data-provide="datepicker" data-date-language="th-th">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <label>โซน :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlZone">
+                                    
+                                    <option value="-1">--ทั้งหมด--</option>
+                                    
+                                    @{
+                                        foreach (var item in ViewBag.Zone)
+                                        {
+                                            <option value="@item.ZoneId">@item.Zone</option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-xs-3">
+                                <label>สาขา :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlBranch">
+                                 </select>
+                            </div>
+                            <div class="col-xs-3" style="padding-top: 25px;">
+                                <button class="btn btn-primary" id="btnSearch" type="button" style="width:50%">ค้นหา</button>
+                            </div>
+                            <div class="col-xs-3" style="padding-top: 25px;">
+                                <button class="btn btn-warning" id="btnExportToExcel" type="button" style="width:50%">ExportToExcel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+
+
+            <div class="box box-primary box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียด</h3>
+
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <table id="dtMain" class="table table-bordered table-hover dataTable" role="grid" aria-describedby="example2_info"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+
+
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('.select2').select2();
+
+            var d1 = new Date();
+            $('#dtpDateFrom').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date(d1.getFullYear(), d1.getMonth(), 1));
+            $('#dtpDateTo').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+
+            GetZoneByEmployeeId();
+
+            $('#ddlZone').change(function (e) {
+                e.preventDefault();
+                GetBranchByZoneId($('#ddlZone').val());
+            });
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+
+                if (IsvalidateForSearch() == "") {  
+                    //MonitorCreatedClaim
+                    GetCreateClaimDetail()
+                }
+               
+            });
+
+            $('#btnExportToExcel').click(function (e) {
+                e.preventDefault();
+                //ExportToExcel();
+
+                if (IsvalidateForSearch() == "") {
+                    let productGroup = $('#ddlProductGroup').val();
+                    let dateFrom = $('#dtpDateFrom').val();
+                    let dateTo = $('#dtpDateTo').val();
+                    let branchID = $('#ddlBranch').val();
+                    let zoneID = $('#ddlZone').val();
+
+                    window.location = `@Url.Action("CreatedClaimReportExport", "Report")?dateFrom=${dateFrom}&dateTo=${dateTo}&productGroupId=${productGroup}&branchId=${branchID}&zoneId=${zoneID}`;
+
+                }
+
+                
+            });
+
+        });
+
+        ExportToExcel = () => {
+            $.get("@Url.Action("CreatedClaimReportExport", "Report")",
+            { 
+                dateFrom : $('#dtpDateFrom').val(),
+                dateTo : $('#dtpDateTo').val(),
+                productGroupId : $('#ddlProductGroup').val(),
+                branchId : $('#ddlBranch').val(),
+                zoneId : $('#ddlZone').val()
+            },    
+              (data, textStatus, jqXHR) => {
+
+                  
+                  
+                  if (textStatus == "success") {    
+
+                      if (data == true) {   
+                          swal("ดาวน์โหลดสำเร็จ");
+                      }
+                  }
+              },
+                "json"
+            );
+        }
+
+        GetCreateClaimDetail = () => {
+              $('#dtMain').empty();
+
+            let t = $('#dtMain').DataTable({
+             pageLength: 5,
+             processing: true,
+             serverSide: true,
+             responsive: true,
+                destroy: true,
+               
+             ajax: {
+                 url: '@Url.Action("GetCreatedClaimDetail", "Report")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.dateFrom = $('#dtpDateFrom').val();
+                        d.dateTo = $('#dtpDateTo').val();
+                        d.productGroupId = $('#ddlProductGroup').val();
+                        d.branchId = $('#ddlBranch').val();
+                        d.zoneId = $('#ddlZone').val();
+                    }
+                },
+                columns: [
+                    { title: 'เลขที่เคลม', data: 'ClaimHeader_ID', orderable: false},
+                    { title: 'ชื่อ-สกุลผู้เอาประกัน', data: 'CustomerName', orderable: false},
+                    { title: 'ผู้ให้บริการ', data: 'ServiceByName', orderable: false},
+                    { title: 'โซน', data: 'Zone', orderable: false},
+                    { title: 'สาขา', data: 'BranchDetail', orderable: false},
+                    { title: 'ผู้บันทึกเปิดหัวเคลม', data: 'CreatedByFullName', orderable: false},
+                    {
+                        title: 'วันที่บันทึกเปิดหัวเคลม', data: 'CreatedDate', orderable: false,
+                         mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                        }
+                    },
+                    { title: 'สถานะ', data: 'Status', orderable: false },
+                ],
+                bLengthChange: false,
+                //createdRow: function (row, data, index) {
+                //    if (data.ClaimOnLineStatusId == 3) {
+                //        $('td', row).addClass('selected');
+                //    }
+                //},
+
+
+            });
+        }
+
+
+        IsvalidateForSearch = () => {
+            let rs = "";
+
+            let d = new Date();
+
+            //ProductGroup
+            if ($('#ddlProductGroup').val() == "-1") {
+                rs = "กรุณาเลือก ประเภทเคลม";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            }
+
+            //DateFrom
+            if ($('#dtpDateFrom').val() == "") {
+                rs = "กรุณาเลือก วันที่จาก";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            } else {
+
+                let dateFrom = $('#dtpDateFrom').datepicker('getDate');
+
+                if (dateFrom > d) { 
+                    rs = "กรุณาตรวจสอบวันที่จาก";
+                    swal("Warning !!", rs, "error");
+
+                    return rs;
+                }
+            }
+
+            //DateTo
+            if ($('#dtpDateTo').val() == "") {
+                rs = "กรุณาเลือก วันที่ถึง";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            } else {
+                let dateTo = $('#dtpDateTo').datepicker('getDate');
+                let dateFrom = $('#dtpDateFrom').datepicker('getDate');
+
+                //วันที่ถึง ต้องไม่น้อยกว่า วันที่จาก
+                if (dateTo < dateFrom) {
+                    rs = "กรุณาตรวจสอบวันที่ เนื่องจากวันที่ไม่สัมพันธ์กัน";
+                    swal("Warning !!", rs, "error");
+
+                    return rs;
+                }
+            }
+
+
+            return rs;
+        }
+
+          GetZoneByEmployeeId =() =>
+        {
+            
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetZoneByEmployee")',
+                //data: { zoneId: ZoneId },
+                success: function (data) {
+                    if (data == 0) {
+                        //$('#ddlZone').val("-1");
+                        
+                        $('#ddlZone').select2().val("-1").trigger('change.select2');
+
+                        GetBranchByZoneId($("#ddlZone").val());
+
+                    } else {
+                        //$('#ddlZone').select2().select2("val", data);
+
+                        //$('#ddlZone>option[value="' + data + '"]').prop('selected', true);
+
+                        $('#ddlZone').select2().val(data).trigger('change.select2');
+
+                        GetBranchByZoneId($("#ddlZone").val());
+
+                    }
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail1');
+                }
+
+              });
+
+
+        }
+
+
+         GetBranchByZoneId = (ZoneId) =>
+        {
+
+            
+             $('#ddlBranch').empty();
+             $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetBranchByZoneId")',
+                data: { zoneId: ZoneId },
+                success: function (data) {
+                    $('#ddlBranch').append('<option value=-1>---ทั้งหมด---</option>');
+                    for (var i = 0; i < data.length; i++) {
+                        $('#ddlBranch').append('<option value=' + data[i].Branch_ID + '>' + data[i].BranchDetail + '</option>');
+                    }
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail2');
+                }
+
+            });
+
+        }
+
+
+    </script>
+}

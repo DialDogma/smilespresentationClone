@@ -1,0 +1,143 @@
+﻿@using SmileSIncident.Models
+@{
+
+    var userDetail = SmileSIncident.Helper.GlobalFunction.GetLoginDetail();
+
+}
+<aside class="main-sidebar">
+    <section class="sidebar">
+        <br />
+        @* BEGIN Menu *@
+
+        <ul class="sidebar-menu" data-widget="tree">
+            <li>
+                <a href="@Url.Action("IncidentInsert","Home")">
+                    <div style="display: flex; justify-content: flex-start; align-items: center;">
+                        <div style="padding-left: 5px; padding-right: 5px; width: 3rem;">
+                            <i class="fa fa-envelope"></i>
+                        </div>
+                        <div>
+                            <span>แจ้งปัญหา</span>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            @{var username = userDetail.UserName;
+                if (username != null)
+                {
+                    //Get menu by roles
+                    var menus = MenuRoles.GetMenuByUserName();
+
+                    var parentMenus = menus.ToList().Where(x => x.MainMenuId == 0);
+
+                    //Load Parent Menu Level 0
+                    foreach (var parent in parentMenus)
+                    {
+                        //Get Child Level 1
+                        var lstLevel1 = menus.ToList().Where(x => x.MainMenuId == parent.MenuId).OrderBy(x => x.SortOrder);
+
+                        if (!lstLevel1.Any())
+                        {
+                            //Render Parent without children (as a menu)
+                            if (!string.IsNullOrEmpty(parent.QueryString))
+                            {
+
+                            }
+                            <li>
+                                <a href="@Url.Action(parent.Action, parent.Controller)@parent.QueryString">
+                                    <div style="display: flex; justify-content: flex-start; align-items: center;">
+                                        <div style="padding-left: 5px; padding-right: 5px; width: 3rem;">
+                                            <i class="@parent.IconClassMenu"></i>
+                                        </div>
+                                        <div>
+                                            <span>@parent.Detail</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            //Render Parent with children
+                            <li class="treeview">
+                                <a href="#">
+                                    <div style="display: flex; justify-content: flex-start; align-items: center;">
+                                        <div style="padding-left: 5px; padding-right: 5px; width: 3rem;">
+                                            <i class="@parent.IconClassMenu"></i>
+                                        </div>
+                                        <div>
+                                            <span>@parent.Detail</span>
+                                        </div>
+                                    </div>
+
+                                    @*<span class="pull-right-container">
+                                            <i class="fa fa-angle-left pull-right"></i>
+                                        </span>*@
+                                </a>
+
+                                <ul class="treeview-menu">
+                                    @foreach (var Item1 in lstLevel1)
+                                    {
+                                        //Get list level 2
+                                        var lstLevel2 = menus.ToList().Where(x => x.MainMenuId == Item1.MenuId).OrderBy(x => x.SortOrder);
+
+                                        if (lstLevel2.Any())
+                                        {
+                                            //Has Level 2
+                                            <li class="treeview">
+                                                <a href="#">
+                                                    <div style="display: flex; justify-content: flex-start; align-items: center;">
+                                                        <div style="padding-left: 5px; padding-right: 5px; width: 3rem;">
+                                                            <i class="@parent.IconClassMenu"></i>
+                                                        </div>
+                                                        <div>
+                                                            <span>@parent.Detail</span>
+                                                        </div>
+                                                    </div>
+                                                    @*<span class="pull-right-container">
+                                                            <i class="fa fa-angle-left pull-right"></i>
+                                                        </span>*@
+                                                </a>
+                                                <ul class="treeview-menu">
+                                                    @foreach (var Item2 in lstLevel2)
+                                                    {
+                                                        //Render level 2
+                                                        <li><a href="@Url.Action(Item2.Action, Item2.Controller)@Item2.QueryString">@Item2.Detail</a></li>
+                                                    }
+                                                </ul>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            //No level 2
+                                            //Render level 1
+                                            <li><a href="@Url.Action(Item1.Action, Item1.Controller)@Item1.QueryString">@Item1.Detail</a></li>
+                                        }
+                                    }
+                                </ul>
+                            </li>
+                        }
+
+                        @* END Menu *@
+                    }
+                }
+            }
+            @* Download Menu *@
+            <li class="treeview">
+                <a href="#">
+                    <div style="display: flex; justify-content: flex-start; align-items: center;">
+                        <div style="padding-left: 5px; padding-right: 5px; width: 3rem;">
+                            <svg class="svg-inline--fa fa-file fa-w-12" aria-hidden="true" data-prefix="fa" data-icon="file" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" data-fa-i2svg=""><path fill="currentColor" d="M224 136V0H24C10.7 0 0 10.7 0 24v464c0 13.3 10.7 24 24 24h336c13.3 0 24-10.7 24-24V160H248c-13.2 0-24-10.8-24-24zm160-14.1v6.1H256V0h6.1c6.4 0 12.5 2.5 17 7l97.9 98c4.5 4.5 7 10.6 7 16.9z"></path></svg><!-- <i class="fa fa-file"></i> -->
+                        </div>
+                        <div>
+                            <span>เอกสารแบบฟอร์ม/คู่มือ</span>
+                        </div>
+                    </div>
+                </a>
+                <ul class="treeview-menu">
+                    <li><a href="https://docs.google.com/spreadsheets/d/1TeTC8S9eMV7LNN9L2rYCvDaWxqXLTekJZwDm-9Tt8MI/edit?usp=sharing" previewlistener="true" target="_blank"> แบบฟอร์ม/คู่มือ IT</a></li>
+                </ul>
+            </li>
+        </ul>
+    </section>
+</aside>

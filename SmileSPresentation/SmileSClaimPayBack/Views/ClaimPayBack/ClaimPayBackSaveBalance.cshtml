@@ -1,0 +1,661 @@
+﻿@{
+    ViewBag.Title = "บันทึกยอดเงินบริษัทประกัน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .detailTable {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    td {
+        vertical-align: baseline;
+    }
+
+    .btn-primary {
+        background-color: #5485E6 !important;
+    }
+
+    .btn-Success {
+        background-color: #669576 !important;
+        border-radius: 15px;
+    }
+
+    .btn-Cancel {
+        background-color: #BF5D49 !important;
+        border-radius: 15px;
+    }
+
+    .labelTable {
+        font-weight: 400;
+        color: #315591;
+    }
+
+    .bg-aqua {
+        background-color: #63A4E8 !important;
+        color: #fff !important;
+    }
+
+    .nav-tabs-custom {
+        margin-bottom: 20px !important;
+        background: #fff !important;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 3px !important;
+    }
+
+    .nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
+        color: #63A4E8 !important;
+        cursor: default;
+        background-color: #fff !important;
+        -moz-border-radius-topleft: 4px;
+        border-top: solid 4px;
+        border-top-color: #63A4E8 !important;
+        /*        border: 2px solid #63A4E8 !important;
+        border-bottom-color: transparent;*/
+    }
+
+    .radio label {
+        padding-left: 14px;
+    }
+
+    table.dataTable thead {
+        background-color: #315591;
+        color: white;
+    }
+
+    .History thead {
+        background-color: white;
+        color: #000;
+    }
+
+    td.selected {
+        font-weight: bold;
+        background-color: #96BFD6;
+    }
+</style>
+<form>
+    <div class="box" style=" border-color: #2B7ABA;">
+        <div class="box-header with-border">
+            <h3 class="box-title" style="color: #326BAF ">
+                <i class=" glyphicon glyphicon-filter"></i>ค้นหาข้อมูล
+            </h3>
+        </div>
+        <div class="box-body" style="padding-bottom:10%;">
+            <div class="form-group">
+                <div class="row">
+                    <div class="radio">
+                        <div class="col-sm-1" style="text-align:right;">
+                            <label style="font-weight: 600; padding: 0px;">ค้นหาด้วย</label>
+                        </div>
+                        <div class="col-sm-5" style="padding-left:0;">
+                            <label>
+                                <input type="radio" name="optionsRadios" id="chkClaimHeader" value="1">
+                                &nbsp;&nbsp;เลขที่ CL
+                            </label>
+                            <label>
+                                <input type="radio" name="optionsRadios" id="chkClaimHeaderGroup" value="2">
+                                &nbsp;&nbsp;เลขที่ บ.ส.
+                            </label>
+                        </div>
+                        <div class="col-sm-6"></div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-sm-1"></div>
+                    <div class="col-sm-5">
+                        <div class="input-group">
+                            <input type="text" name="txtSearchDetail" data-date-language="th-th" class="form-control" id="txtSearchDetail" placeholder="" style="width:100%" onkeypress="return /[0-9a-zA-Z-]/i.test(event.key)">
+                            <span class="input-group-btn">
+                                <button class="btn btn-block btn-primary" id="btnSearch" style="color: #ffffff;" type="button">
+                                    ค้นหาข้อมูล
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6"></div>
+                </div>
+            </div>
+            <br>
+            <div class="row">
+                <div class="col-sm-1"></div>
+                <div class="col-sm-10">
+                    <table id="dtClaimHeader" class="table table-bordered dataTable table-hover" style="text-align: center;display: none;"></table>
+                </div>
+                <div class="col-sm-1"></div>
+            </div>
+            <br />
+            <br />
+            @*กรณีค้นหาด้วยเลขที่ CL*@
+            <div class="row">
+                <div class="col-sm-1"></div>
+                <div class="col-sm-10">
+                    <div class="nav-tabs" id="divTabClaim" style="display: none;">
+                        <ul class="nav nav-tabs">
+                            <li role="presentation" class="active"><a href="#tab_1" data-toggle="tab" aria-expanded="false" style="background-color: #63A4E8; color: white">ข้อมูลเคลม</a></li>
+                            <li role="presentation" class=""><a href="#tab_2" data-toggle="tab" aria-expanded="false" style="background-color: #63A4E8; color: white">ประวัติการทำรายการ</a></li>
+                        </ul>
+                        <div class="tab-content" style="padding: 10px; border-right: 0.5px solid #ddd; border-left: 0.5px solid #ddd; ">
+                            <br />
+                            <div class="tab-pane active" id="tab_1">
+                                <div class="box box-solid" style="border: 1px solid #315591; ">
+                                    <div class="box-header with-border" style="color: #ffffff; background-color: #315591;">
+                                        <i class="fa fa-file-text"></i>
+                                        <h4 class="box-title">รายละเอียดเคลม</h4>
+                                    </div>
+                                    <div class="box-body">
+                                        <table class="detailTable" width="100%">
+                                            <tr>
+                                                <td width="7%">เลขที่ CL :</td>
+                                                <td width="16%"><a href="#" id="lnkClaim" target="_blank"><label class="labelTable" id="lblClaimHeader" style="text-decoration: underline !important; cursor:pointer;"></label></a></td>
+                                                <td width="7%" style="padding-left: 15px;">เลขที่ บ.ส. :</td>
+                                                <td width="16%"><label class="labelTable" id="lblClaimHeaderGroup"></label></td>
+                                                <td width="7%" style="padding-left: 15px;">ชื่อ : </td>
+                                                <td width="16%"><label class="labelTable" id="lblName"></label></td>
+                                            </tr>
+                                            <tr>
+                                                <td width="7%">บริษัทประกัน :</td>
+                                                <td width="16%"><label class="labelTable" id="lblCompany"></label></td>
+                                                <td width="7%" style="padding-left: 15px;">วันที่เข้า รพ. :</td>
+                                                <td width="16%"><label class="labelTable" id="lblAdmit"></label></td>
+                                                <td width="7%" style="padding-left: 15px;">วันที่ออก รพ. :</td>
+                                                <td width="16%"><label class="labelTable" id="lblUnAdmit"></label></td>
+                                            </tr>
+                                            <tr>
+                                                <td width="7%">สถานพยาบาล :</td>
+                                                <td width="16%"><label class="labelTable" id="lblHospital"></label></td>
+                                                <td width="7%" style="padding-left: 15px;">อาการ :</td>
+                                                <td width="16%"><label class="labelTable" id="lblSymptom"></label></td>
+                                                <td width="7%" style="padding-left: 15px;">วินิจฉัย :</td>
+                                                <td width="16%"><label class="labelTable" id="lblDiagnose"></label></td>
+                                            </tr>
+                                            <tr>
+                                                <td width="7%">จำนวนเงิน : </td>
+                                                <td width="16%"><label class="labelTable control-label" id="lblAmount"></label></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                                <table width="100%">
+                                    <tr>
+                                        <td style="width:35%; text-align: right;">บันทึกยอด :&nbsp;</td>
+                                        <td colspan="2" style="width: 30%;">
+                                                <input type="radio" name="AmountRadios" id="chkAmount" style="position: absolute;" value="1">
+                                                &nbsp;ยอดรับชำระ
+                                                &nbsp;&nbsp;
+                                                <input type="radio" name="AmountRadios" id="chkAmountNPL" style="position: absolute;" value="2">
+                                                &nbsp;ยอด NPL
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width:35%; text-align:right;">&nbsp;</td>
+                                        <td colspan="2" style="width: 30%;">
+                                            <input type="text" name="txtAmount" style="text-align:right;" data-date-language="th-th" class="form-control" id="txtAmount" placeholder="" onkeypress="return /[0-9a-zA-Z]/i.test(event.key)">
+                                        </td>
+                                        <td style="width: 35%; text-align: left;">&nbsp;บาท</td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width:35%; text-align:right;">ยอดเงินหลังตัดรับชำระ :&nbsp;</td>
+                                        <td width="16%"><label class="labelTable" id="lblAmountPay"></label></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width:35%; text-align:right;">ยอดเงินหลังตัด NPL :&nbsp;</td>
+                                        <td width="16%"><label class="labelTable" id="lblAmountNPL"></label></td>
+                                        <td></td>
+                                    </tr>
+                                </table>
+                                <br />
+                                <br />
+                                <center style="margin-bottom: 20px;">
+                                    <button class="btn btn-Success" id="btnSave" style="color: #ffffff;" type="button">
+                                        <i class="glyphicon glyphicon-ok"></i>&nbsp;
+                                        ยืนยัน
+                                    </button>
+                                    <button class="btn btn-Cancel" id="btnCancel" style="color: #ffffff;" type="button">
+                                        <i class="glyphicon glyphicon-remove-circle"></i>&nbsp;
+                                        ยกเลิก
+                                    </button>
+                                </center>
+                                <br />
+                            </div>
+                            <div class="tab-pane" id="tab_2">
+                                <table id="dtHistory" class="table table-bordered dataTable table-hover" style="text-align: center;"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-1"></div>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="hdfClaimHeaderId" name="hdfClaimHeaderId" />
+    <input type="hidden" id="hdfAmount" name="hdfAmout" />
+    <input type="hidden" id="hdfClaimCode" name="hdfClaimCode" />
+    <input type="hidden" id="hdfLinkClaim" name="hdfLinkClaim" />
+</form>
+
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+
+        let claimPayBackTransferId = 0 ;
+
+        var currentRowSelected = "";
+
+        var amountInput = 0;
+
+        var sumTotal = 0;
+
+        var amountNPLInput = 0;
+
+        var sumTotalNPL = 0;
+
+        $(function () {
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                Search()
+            });
+
+            $('#btnSave').click(function (e) {
+                e.preventDefault();
+                Save()
+            });
+
+            $('#btnCancel').click(function (e) {
+                e.preventDefault();
+                DoClear();
+            });
+
+            $("#txtAmount").inputmask({
+                rightAlign: true,
+                alias: "currency",
+                prefix: '',
+            });
+
+            $("#lnkClaim").on('click', function () {
+                window.open(
+                    $('#hdfLinkClaim').val(),
+                    '_blank' // <- This is what makes it open in a new window.
+                );
+            });
+
+            $('#txtSearchDetail').keypress(function (event) {
+                var keycode = (event.keyCode ? event.keyCode : event.which);
+                if (keycode == '13') {
+                    Search()
+                }
+            });
+
+            $('#txtAmount').keypress(function (event) {
+                var keycode = (event.keyCode ? event.keyCode : event.which);
+                if (keycode == '13') {
+                    Save()
+                }
+            });
+        })
+
+        function Search() {
+            if (!$("input[name='optionsRadios']:checked").val()) {
+                swal('กรุณาเลือกเลขที่ต้องการค้นหา', "", "warning");
+                return false;
+            } else {
+                if (SearchValidate()) {
+                    GetClaimHeaderGroupImportDetail();
+                    $('#dtClaimHeader').show();
+                    $('#divTabClaim').hide();
+                }
+            }
+        }
+
+        function Save() {
+            if (!$("input[name='AmountRadios']:checked").val()) {
+                swal('กรุณาเลือกยอดที่ต้องการบันทึก', "", "warning");
+                return false;
+            } else {
+                if (IsValidateForSave() != "") {
+                    IsValidateForSave();
+                } else {
+                    if (amountInput !== 0) {
+                        swal_confirm("ยืนยันการแก้ไขข้อมูล?", "", function (e) {
+                            DoSaveAmount();
+                        });
+                    } else {
+                        DoSaveAmount();
+                    }
+                }
+            }
+        }
+
+         //---------------------------- Get Table ClaimHeader Group--------------------------//
+        function GetClaimHeaderGroupImportDetail() {
+            //console.log("error");
+
+            var RadioButton = document.querySelector('input[name="optionsRadios"]:checked');
+            var Radio = RadioButton.value;
+            $('#dtClaimHeader').empty();
+            var table = $('#dtClaimHeader').DataTable({
+                paging: false,
+                info: false,
+                lengthChange: false,
+                processing: true,
+                serverSide: false,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetClaimHeaderGroupImportDetail", "ClaimPayBack")',
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.SearchTypeId = Radio;
+                        d.SearchDetail = $('#txtSearchDetail').val();
+                    }
+                },
+                columns: [
+                    {
+                        title: '',
+                        data: null,
+                        className: 'h-dt-center text-font-small',
+                        render: function (data) {
+                            return `<a href="javascript:GetClaimDetail('${data.ClaimHeaderGroupImportDetailId}'),DoLoadTableHistory('${data.ClaimHeaderGroupImportDetailId}')" onclick="changeRowColor(this)" sytle="font-weight: Italic;">เลือก</a>`; //ยังไม่มีหน้า //divTabClaim อาจเปลี่ยนtarget =  _self เป็น divTabClaim
+                        }
+                    },
+                    {
+                        title: 'เลขที่ บ.ส.',
+                        data: 'ClaimHeaderGroupCode',
+                        className: 'h-dt-center text-font-small',
+                    },
+                    {
+                        title: 'เลขที่ CL',
+                        data: 'ClaimCode',
+                        className: 'h-dt-center text-font-smalltext-left',
+                    },
+                    {
+                        title: 'ชื่อผู้เอาประกัน',
+                        data: 'CustName',
+                        className: 'h-dt-center text-font-small',
+                    }
+                ]
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        //---------------------------- Get Table History --------------------------//
+        function DoLoadTableHistory(ClaimHeaderGroupImportDetailId) {
+            $('#dtHistory').empty();
+            var table = $('#dtHistory').DataTable({
+                info: false,
+                lengthChange: false,
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                order: [[0, "desc"]],
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetClaimPayBackSaveBalanceHistory", "ClaimPayBack")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.claimHeaderGroupImportDetailId = ClaimHeaderGroupImportDetailId;
+                        d.searchDetail = $('#hdfClaimCode').val();
+                        d.indexStart = d.start;
+                        d.pageSize = d.length;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'วันที่ทำรายการ',
+                        data: 'CreatedDate',
+                        className: 'h-dt-center text-font-small',
+                        render: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return toBuddhistYear(moment(data), 'DD/MM/YYYY HH:mm:ss');
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'ผู้ทำรายการ',
+                        data: 'CreatedByName',
+                        className: 'h-dt-center text-font-small',
+                    },
+                    {
+                        title: 'ยอดรับชำระ',
+                        data: 'CoverAmount',
+                        className: 'h-dt-center text-font-small text-center',
+                        mRender: function (data) {
+                            var historyAmount = "";
+                            if (data == 0) {
+                                historyAmount = "-";
+                            } else {
+                                historyAmount = "ยอดรับชำระ : " + numberWithCommas(data.toFixed(2)) + " บาท";
+                            }
+
+                            return historyAmount;
+                        }
+                    },
+                    {
+                        title: 'ยอด NPL',
+                        data: 'AmountNPL',
+                        className: 'h-dt-center text-font-small text-Center',
+                        mRender: function (data) {
+                            var historyAmountNPL = "";
+                            if (data == 0) {
+                                historyAmountNPL = "-";
+                            } else {
+                                historyAmountNPL = "ยอด NPL : " + numberWithCommas(data.toFixed(2)) + " บาท";
+                            }
+
+                            return historyAmountNPL;
+                        }
+                    }
+                ]
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        //---------------------------- Get ClaimDetail --------------------------//
+        function GetClaimDetail(ClaimHeaderGroupImportDetailId)
+        {
+            //$('#lblClaimOnLineCode').text(claimOnLineCode);
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetClaimDetailSelect", "ClaimPayBack")',
+                dataType: 'json',
+                data: { ClaimHeaderCode: ClaimHeaderGroupImportDetailId },
+                success: function (data) {
+                    //คำนวณเป็นยอดหลังจากตัดรับชำระ เอามาแสดงเฉยๆ ไม่ได้บันทึกไว้ที่ไหน
+                    amountInput = data.CoverAmount;
+                    amountNPLInput = data.AmountNPL;
+
+                    if (data.IsManualNPL == null) {
+                        $('#chkAmount').iCheck('check');
+                        sumTotal = data.PaySS_Total - amountInput
+                        sumTotalNPL = data.PaySS_Total
+                    } else {
+                        $('#chkAmountNPL').iCheck('check');
+                        sumTotal = data.PaySS_Total
+                        sumTotalNPL = data.PaySS_Total - amountNPLInput
+                    }
+
+                    $('#divTabClaim').show();
+                    $('#hdfClaimHeaderId').val(data.ClaimHeaderGroupImportDetailId);
+                    $('#lblClaimHeader').text(data.ClaimCode)
+                    $('#hdfClaimCode').val(data.ClaimCode);
+                    $('#hdfLinkClaim').val(data.URLOpenClaimLink);
+                    $('#lblClaimHeaderGroup').text(data.ClaimHeaderGroupCode)
+                    $('#lblName').text(data.CustName);
+                    $('#lblCompany').text(data.InsuranceCompanyName);
+
+                    let DateTo = toBuddhistYear(moment(data.DateIn), 'DD/MM/YYYY');
+                    let DateEnd = toBuddhistYear(moment(data.DateOut), 'DD/MM/YYYY');
+
+                    $('#lblAdmit').text(DateTo);
+                    $('#lblUnAdmit').text(DateEnd);
+                    $('#lblHospital').text(data.HospitalName);
+                    $('#lblSymptom').text(data.ChiefComplain);
+                    $('#lblDiagnose').text(data.ICD10);
+                    $('#lblAmount').text(numberWithCommas(data.PaySS_Total.toFixed(2)) + " บาท");
+                    $('#hdfAmount').val(data.PaySS_Total);
+
+                    if (data.PaySS_Total != 0) {
+                        if (data.IsManualNPL == null) {
+                            $('#txtAmount').val(data.CoverAmount);
+                        } else {
+                            $('#txtAmount').val(data.AmountNPL);
+                        }
+                    } else {
+                        $('#txtAmount').val('');
+                    }
+
+                    $('#lblAmountPay').text(numberWithCommas(sumTotal.toFixed(2)) + " บาท");
+                    $('#lblAmountNPL').text(numberWithCommas(sumTotalNPL.toFixed(2)) + " บาท");
+                    //alert(data);
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail');
+                }
+
+            });
+        }
+
+        //---------------------------- Save Amount --------------------------//
+        function DoSaveAmount() {
+            var RadioAmountButton = document.querySelector('input[name="AmountRadios"]:checked');
+            var RadioAmount = RadioAmountButton.value;
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("SaveClaimPayBackAmountBalance", "ClaimPayBack")",
+                data: {
+                    ClaimHeaderGroupImportDetailId: $('#hdfClaimHeaderId').val(), //มาจาก GetClaimDetail
+                    coverAmount: $('#txtAmount').val(),
+                    IsCheckManual: RadioAmount
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response.IsResult == true) {
+                        swal("บันทึกข้อมูล", "บันทึกข้อมูลสำเร็จ", "success");
+                        $('#divTabClaim').hide();
+                    } else {
+                        swal("บันทึกข้อมูลไม่สำเร็จ", response.Msg , "error");
+                    }
+                }
+            });
+        }
+
+        //---------------------------- Clear Amount --------------------------//
+        function DoClear() {
+            $('#divTabClaim').hide();
+        }
+
+        //---------------------------- validate Search --------------------------//
+        function SearchValidate() {
+            const re = /[`!#$%^&*()_+\=\[\]{};':"\\|,.<>\/?~]/;
+            var searchDetail = $('#txtSearchDetail').val();
+            if (re.test(searchDetail)) {
+                swal('ตรวจสอบ', 'รูปแบบตัวอักษรไม่ถูกต้อง', 'error');
+                return false
+            }else if (document.getElementById('chkClaimHeader').checked == true && $('#txtSearchDetail').val() == "") {
+                swal('กรุณากรอกเลขที่ CL', "", "warning");
+                return false;
+            } else if (document.getElementById('chkClaimHeaderGroup').checked == true && $('#txtSearchDetail').val() == ""){
+                swal('กรุณากรอกเลขที่ บ.ส.', "", "warning");
+                return false;
+            }
+            return true;
+        }
+
+        //---------------------------- Validate For Save --------------------------//
+        function IsValidateForSave() {
+            var result = "";
+
+            let oldAmount = Number($('#hdfAmount').val().replace(/,/g, ""));
+            let inputAmount = Number($('#txtAmount').val().replace(/,/g, ""));
+
+            if (!$("input[name='AmountRadios']:checked").val()) {
+                swal('กรุณาเลือกยอดที่ต้องการบันทึก', "", "warning");
+                return result;
+            }
+
+            if (inputAmount == "") {
+                result = swal('กรุณากรอกยอดเงิน', "", "warning");
+                return result;
+            }
+
+            if (inputAmount == "0") {
+                result = swal('ยอดเงินต้องไม่เป็น 0', "", "warning");
+                return result;
+            }
+
+            if (inputAmount < 0) {
+                result = swal('ยอดเงินต้องไม่ติดลบ', "", "warning");
+                return result;
+            }
+
+            if (inputAmount >= oldAmount) {
+                result = window.swal({
+                    title: 'กรุณาตรวจสอบยอดเงิน',
+                    type: 'warning',
+                    text: 'ยอดเงินไม่ถูกต้อง',
+                    showCancelButton: true,
+                    confirmButtonText: 'ตกลง',
+                    cancelButtonText: 'ยกเลิก',
+                    closeOnEsc: false,
+                    className: "text"
+                })
+                /*result = swal('กรุณาตรวจสอบยอดเงิน', 'ยอดเงินไม่ถูกต้อง' , "warning");*/
+                return result;
+            }
+
+            return result;
+        }
+
+        function changeRowColor(button) {
+            // Get the button's parent <tr> element
+            var row = button.parentNode.parentNode;
+            //Chenge BackGround Color of The last Selected Row
+            if (currentRowSelected !== "") {
+                currentRowSelected.style.backgroundColor = "#ffffff";
+            }
+            currentRowSelected = row
+            // Change the background color of the row
+            row.style.backgroundColor = "#96BFD6";
+
+        }
+
+        function toBuddhistYear(moment, format) {
+            var christianYear = moment.format('YYYY')
+            var buddhishYear = (parseInt(christianYear) + 543).toString()
+            return moment
+                .format(format.replace('YYYY', buddhishYear).replace('YY', buddhishYear.substring(2, 4)))
+                .replace(christianYear, buddhishYear)
+        }
+    </script>
+}

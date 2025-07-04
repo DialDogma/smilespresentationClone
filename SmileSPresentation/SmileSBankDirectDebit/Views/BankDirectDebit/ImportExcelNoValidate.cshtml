@@ -1,0 +1,312 @@
+﻿@{
+    ViewBag.Title = "นำเข้าข้อมูลจาก Excel";
+
+}
+<form action="@Url.Action("ImportExcel")" method="post" id="Mainform" enctype="multipart/form-data">
+    <div class="row">
+        @* check temp return message *@
+        @if(TempData["Success"] != null)
+        {
+            <div id="Notification" class="alert alert-success alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                <h4><i class="icon fa fa-check"></i> Alert!</h4>
+                <p><strong>Success:</strong> @TempData["Success"].ToString()</p>
+            </div>
+        }
+        @if(TempData["Fail"] != null)
+        {
+            <div id="Notification_fail" class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                <h4><i class="icon fa fa-check"></i> Alert!</h4>
+                <p><strong>Fail:</strong> @TempData["Fail"].ToString()</p>
+            </div>
+        }
+        @* Set import *@
+        <div class="col-sm-12" id="Search_form">
+            <div class="box box-default">
+                <div class="box-header">
+                    <h3 class="box-title">Import File</h3>
+                </div>
+                <div class="box-body">
+                    @*<div class="form-group row">
+                            <div class="col-sm-4">
+                                <label for="" class="control-label">วันที่</label>
+                                <input type="text" class="form-control pull-right" name="DateImport" id="DateImport" required="required"
+                                       data-provide="datepicker" placeholder="dd/mm/yyyy">
+                            </div>
+                        </div>*@
+                    <div class="form-group row">
+                        <div class="col-sm-4">
+                            <label for="" class="control-label">เลือกไฟล์ (Excel*)</label>
+                            <input type="file" id="uploadFile" class="btn btn-block btn-success" name="uploadFile" hidden>
+                        </div>
+
+                        <div class=" col-sm-2" style="padding-top: 26px">
+                            <button type="button" class="btn btn-block btn-info" id="btnShow">แสดงรายการ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* datatable *@
+        <div class="col-sm-12" id="DataTable_form">
+            <div class="box box-default">
+                <div class="box-header">
+                    <h3 class="box-title">รายการนำเข้า</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-4">
+                            <label for="lblBank" class="control-label">ธนาคาร : </label>
+                            <label class="form-control" id="lblBank"></label>
+                        </div>
+                        <div class="col-sm-offset-2 col-sm-4">
+                            <label for="lblCountRow" class="control-label">จำนวนรายการของไฟล์ : </label>
+                            <div class="input-group">
+                                <label class="form-control" id="lblCountRow"></label>
+                                <span class="input-group-addon">
+                                    <i class="fa fa-check" id="faCheckCount"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    @*<div class="form-group row">
+                            <div class="col-sm-4">
+                                <label for="lblDate" class="control-label">วันที่ไฟล์ : </label>
+                                <div class="input-group">
+                                    <label class="form-control" id="lblDate"></label>
+                                </div>
+                            </div>
+                            <div class="col-sm-offset-2 col-sm-4">
+                            </div>
+                        </div>*@
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtShowDetail" name="dtShowDetail" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* confirm *@
+        <div id="Submit_form" class="col-sm-12">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-offset-2 col-sm-3">
+                            <button class="btn btn-block btn-success" type="button" id="btnSubmit">บันทึก</button>
+                        </div>
+                        <div class="col-sm-offset-1 col-sm-3">
+                            <button class="btn btn-block btn-warning" type="button" id="btnCancel" onclick="ReturnToMainPage()">ยกเลิกรายการ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* hidden *@
+    <input type="hidden" name="hd_RowIndex" id="hd_RowIndex" />
+    <input type="hidden" name="hd_InputDate" id="hd_InputDate" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            //$('#DateImport').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+            $('#DataTable_form').hide();
+            $('#Submit_form').hide();
+            $('#Notification').fadeOut(3000);
+            $('#Notification_fail').fadeOut(3000);
+
+            moment.locale('th');
+            $('#btnShow').click(function () {
+                if ($('#uploadFile').val() != "") {
+                        $('#DataTable_form').show();
+                        GetExampleUploadFile();
+                        $('#DateImport').attr('disabled', true);
+
+                        $('#btnShow').attr('disabled', true);
+                    $('#uploadFile').hide();
+                    $('#Submit_form').show();
+                } else {
+                    window.swal({
+                        title: 'คำเตือน',
+                        type: 'error',
+                        text: 'กรุณาเลือกไฟล์ที่ต้องการ Upload',
+                        showCancelButton: false,
+                        confirmButtonColor: '#ed2b09',
+                        confirmButtonText: 'ตกลง',
+                        closeOnEsc: false
+                    }, function () {
+                        return false;
+                    });
+                }
+
+            });
+            //submit button
+            $('#btnSubmit').click(function () {
+                window.swal({
+                    title: 'ยืนยันรายการ?',
+                    type: 'info',
+                    showCancelButton: true,
+                    confirmButtonColor: '#277020',
+                    confirmButtonText: 'ตกลง',
+                    cancelButtonText: 'ยกเลิก',
+                    closeOnConfirm: false,
+                    closeOnEsc: false,
+                    closeOnCancel: true
+                }, function (isConfirm) {
+                    if (isConfirm) {
+                        waitingDialog.show('กำลัง Import กรุณารอสักครู่'); setTimeout(function () { waitingDialog.hide(); }, 1000000);
+                        $('#Mainform').submit();
+                        swal.close();
+                    }
+                });
+            });
+
+        });
+
+        function GetExampleUploadFile() {
+            $.ajax({
+                type: "POST",
+                async: false,
+                url: '@Url.Action("GetExcelPreviewTable")',
+                data: function () {
+                    var data = new window.FormData();
+                    data.append("uploadFile", jQuery("#uploadFile").get(0).files[0]);
+                    return data;
+                }(),
+                contentType: false,
+                processData: false,
+                success: function (data) {
+                    debugger;
+                    //get datatable
+                    GetDatatable(data);
+                    GetHeaderDetail(data);
+                    //call validate data
+                },
+                error: function (jqXHR, textStatus, error) {
+                    debugger;
+                    //do something if error
+                    console.log(error);
+                }
+            });
+        }
+        //get datatable to preview file
+        function GetDatatable(data) {
+            $('#dtShowDetail').empty();
+            $('#DataTable_form').show();
+            var table = $('#dtShowDetail').DataTable({
+                pageLength: 10,
+                //serverSide: true,
+                processing: true,
+                destroy: true,
+                responsive: true,
+                data: data.data,
+                columns: [
+                    { title: 'ลำดับ', data: 'OrderNo' },
+                    {
+                        title: 'วันที่นำส่ง', data: 'DeliverDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    { title: 'เลขบัญชี', data: 'AccountNo' },
+                    { title: 'ชื่อบัญชี', data: 'AccountName' },
+                    {
+                        title: 'สถานะ', data: null,
+                        mRender: function (d) {
+                            if (d.KTBReportStatusId == '2') {
+                                return '<span class="label label-success">รับรอง</span>';
+                            } else if (d.KTBReportStatusId == '3') {
+                                return '<span class="label label-warning">ไม่รับรอง</span>';
+                            } else {
+                                return '<span class="label label-warning">n/a</span>';
+                            }
+                        }
+                    },
+                    { title: 'สาเหตุ', data: 'CauseText' }
+                ]
+            });
+            var rowIndex = table.page.info().recordsTotal;
+            $('#hd_RowIndex').val(rowIndex);
+            //Validate();
+        }
+
+        //get header detail
+        function GetHeaderDetail(data) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetHeaderKTBDetail")',
+                data: function () {
+                    var data = new FormData();
+                    data.append("uploadFile", jQuery("#uploadFile").get(0).files[0]);
+                    return data;
+                }(),
+                contentType: false,
+                processData: false,
+                success: function (data) {
+                    //bank value
+                    $('#hd_Bank').val(data.BankCompanyCode);
+                    $('#lblBank').text(data.BankCompanyCode);
+                    //input date
+                    $('#hd_InputDate').val(moment(data.ProcessDate).format('DD/MM/YYYY'));
+                    //$('#lblDate').text(moment(data.ProcessDate).format('DD/MM/YYYY'));
+                    //row count
+                    $('#hd_RowCount').val(data.TotalRow);
+                    $('#lblCountRow').text(data.TotalRow);
+
+                },
+                error: function (jqXHR, textStatus, errorMessage) {
+
+                    console.log(errorMessage);
+                    alert(errorMessage);
+                }
+            });
+        }
+        ////validate header
+        //function ValidateHeader() {
+        //    var dateinput = $('#DateImport').val();
+        //    var dateText = $('#hd_InputDate').val();
+        //    //validate date
+        //    if (dateinput === dateText) {
+        //        $('#faCheckDate').removeClass('fa-close').addClass('fa-check');
+        //        $('#faCheckDate').css('color', 'green');
+        //    } else {
+        //        $('#faCheckDate').removeClass('fa-check').addClass('fa-close');
+        //        $('#faCheckDate').css('color', 'red');
+        //    }
+        //    //check for enable submit form
+        //    if (($('#faCheckDate').css('color') == "rgb(0, 128, 0)")) {
+        //        $('#Submit_form').show();
+        //    } else {
+        //        $('#Submit_form').hide();
+        //    }
+        //}
+        //back to main page
+        function ReturnToMainPage() {
+            window.swal({
+                title: 'ต้องการละทิ้งข้อมูลใช่หรือไม่?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#277020',
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                closeOnConfirm: false,
+                closeOnEsc: false,
+                closeOnCancel: true
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    window.location = '@Url.Action("ImportData","BankDirectDebit")';
+                }
+            });
+
+        }
+    </script>
+}

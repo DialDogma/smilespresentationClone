@@ -1,0 +1,689 @@
+﻿@{
+    ViewBag.Title = "SIAMSMILE ROADSIDE ASSISTANCE";
+}
+<style>
+    .error {
+        color: red;
+    }
+</style>
+
+<div class="box box-default">
+    <div class="box-header with-border" style="text-align:center;">
+        <h3 class="box-title">เช็คสิทธิ์ Roadside Assistance</h3>
+    </div>
+    <div class="box-body">
+        <form id="formsearch">
+            <div class="row">
+                <div class="form-group col-md-2">
+                    <label for="firstName" class="control-label">ชื่อ</label>
+                    <input class="form-control" type="text" name="firstName" id="firstName">
+                </div>
+                <div class="form-group col-md-2">
+                    <label for="lastName" class="control-label">นามสกุล</label>
+                    <input class="form-control" type="text" name="lastName" id="lastName" />
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="buildingName" class="control-label">หน่วยงาน</label>
+                    <input class="form-control" type="text" name="buildingName" id="buildingName" />
+                </div>
+                <div class="form-group col-md-2">
+                    <label></label>
+                    <select class="form-control" id="CardDetailTypeId" name="CardDetailTypeId" style="margin-top:5px;" onchange="checkSearch()">
+                        <option value="" selected>กรุณาเลือก</option>
+                        <option value="2">บัตรประชาชน</option>
+                        <option value="3">พาสปอร์ต</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="CardDetail">เลขบัตรประชาชน/พาสปอร์ต</label>
+                    <input class="form-control" type="text" name="CardDetail" id="CardDetail" onkeyup="checkSearch()" />
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="box-footer">
+        <div class="row">
+            <div class="col-sm-2 col-sm-offset-10">
+                <button type="button" class="btn btn-block btn-info btn-sm" id="btnSRS">ค้นหา</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal add member  *@
+<div class="modal fade" tabindex="-1" id="modalAddmember" role="dialog" aria-labelledby="myLargeModalLabel">
+    <div class="modal-dialog modal-lg" role="document" tabindex="-1">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#ffc12f">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title text-center text-bold">เพิ่มรายชื่อผู้มีสิทธิ์ใช้บริการ Roadside Assistance</h4>
+            </div>
+            <div class="modal-body">
+                <form id="formAddmember">
+                    <div class="row">
+                        <div class="form-group col-md-3">
+                            <label>คำนำหน้า</label>
+                            <select class="form-control" required id="titleId">
+                                <option value="" selected>เลือก</option>
+                                @foreach (var item in ViewBag.Title_Select)
+                                {
+                                    <option value="@item.TitleId">@item.Title</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="txtfirstName" class="control-label">ชื่อ</label>
+                            <input class="form-control" type="text" name="txtfirstName" id="txtfirstName" required>
+                        </div>
+
+                        <div class="form-group col-md-3">
+                            <label for="txtlastName" class="control-label">นามสกุล</label>
+                            <input class="form-control" type="text" name="txtlastName" id="txtlastName" required>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="txtBankAccNo" class="control-label">เบอร์โทรศัพท์</label>
+                            <input class="form-control" type="text" name="txtmobileNumber" id="txtmobileNumber" checkOnlyNum="checkOnlyNum" maxlength="10" minlength="10" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col-md-3">
+                            <label for="txtIdName">เลขบัตรประชาชน/พาสปอร์ต</label>
+                            <select class="form-control" id="txtbuilding" name="txtbuilding" onchange="checknum()">
+                                <option value="-1" selected>เลือก</option>
+                                @foreach (var item in ViewBag.PersonCardType_Select)
+                                {
+                                    <option value="@item.PersonCardTypeID">@item.PersonCardType</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label></label>
+                            <input class="form-control" type="text" name="txtIdName" id="txtIdName" style="margin-top:5px;">
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="txtAgen" class="control-label">หน่วยงาน</label>
+                            <input class="form-control" type="text" name="txtAgen" id="txtAgen">
+                        </div>
+
+                        <div class="form-group col-md-3">
+                            <label for="txtappid" class="control-label">เลข App</label>
+                            <input class="form-control" type="text" name="txtappid" id="txtappid" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col-md-3">
+                            <label for="SourceType">ประเภทลูกค้า</label>
+                            <select class="form-control" id="SourceType" required>
+                                <option value="-1" selected>เลือก</option>
+                                @foreach (var item in ViewBag.SourceType)
+                                {
+                                    <option value="@item.SourceTypeId">@item.SourceType</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3" id="divPeriodType" hidden>
+                            <label for="PeriodType">ประเภทการชำระ</label>
+                            <select class="form-control" id="PeriodType" name="PeriodType">
+                                <option value="Month">รายเดือน</option>
+                                <option value="Year">รายปี</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label>วันที่คุ้มครอง</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <span class="fa fa-calendar"></span>
+                                </div>
+                                <input type="text" class="form-control pull-right" name="txtStartCoverDate" id="txtStartCoverDate" data-provide="datepicker" data-date-language="th-th" placeholder="วัน/เดือน/ปี" required>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-3" id="divEndCoverDate" hidden>
+                            <label for="txtEndCoverDate" class="control-label">วันที่สิ้นสุด</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <span class="fa fa-calendar"></span>
+                                </div>
+                                <input type="text" class="form-control pull-right" name="txtEndCoverDate" id="txtEndCoverDate" data-provide="datepicker" data-date-language="th-th" placeholder="วัน/เดือน/ปี" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-3">
+                            <label for="txtRight" class="control-label">สิทธิในการใช้</label>
+                            <input class="form-control" type="text" name="txtRight" id="txtRight" readonly>
+                        </div>
+
+                        <div class="form-group col-md-12 text-right">
+                            <button type="button" class="btn btn-primary" id="addmemberRS">บันทึก</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="row">
+                    <div class="form-group col-md-6" style="text-align: left">
+                        <label for="manjob" class="control-label">สร้างโดย</label>
+                        <input class="form-control" type="text" name="manjob" id="manjob" value="@ViewBag.EmpCode  -  @ViewBag.Fristname  @ViewBag.Lastname - @ViewBag.Department" readonly>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="txtDay" class="control-label">วันที่สร้าง</label>
+                        <input style="text-align: right" class="form-control" type="text" name="txtDay" id="txtDay" value="@ViewBag.today" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> @* end modal add member  *@
+
+<div class="box box-default">
+    <div class="box-header with-border">
+        <div class="form-group col-md-12" style="background-color:rgb(38, 185, 167);height:71px;padding:15px">
+            <div class=" col-md-6">
+                <p class="" style="color:white;">จำนวนรายที่ค้นหาพบ   <span id="textCount" style="font-weight:bold;"></span> รายการ</p>
+            </div>
+            <div class="col-md-2 col-md-offset-4">
+                <button type="submit" class="btn btn-block btn-warning btn-sm" data-toggle="modal" data-target="#modalAddmember" @(ViewBag.SeeOnly == true ? "disabled" : "")><i class="fa fa-plus" style="margin-right:5px;font-size:15px"></i>เพิ่มชื่อ</button>
+            </div>
+        </div>
+    </div>
+    <div class="box-body">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title"></h3>
+                </div>
+                <div class="box-body">
+                    <div id="example2_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group col-xs-12 col-md-12">
+                                    <table class="table table-bordered table-hover dataTable" style="width: 100%" id="memberSRSTable">
+                                        <thead style="background:#50a3a4">
+                                        </thead>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input style="color:blue" type="hidden" id="memberid" name="memberhis" value="" />
+    <div class="box-footer" style="background: linear-gradient(to right, rgb(37, 80, 177), rgb(28, 176, 230));">
+        <p style="color:white">Copyright SIAMSMILE BROKER (THAILAND) CO., LTD.</p>
+    </div>
+</div>
+
+@section ViewSpecificJavascript {
+    <script type="text/javascript">
+        var historyCheck = [];
+        var tableA;
+        //load
+        $(function () {
+
+            $('#txtStartCoverDate').datepicker({
+                autoclose: true,
+            });
+
+            $('#txtEndCoverDate').datepicker({
+                autoclose: true,
+            });
+
+            //chang type
+            $('#SourceType').change(function () {
+                const val = $(this).val();
+                //2-7ผู้ชำระเบี้ย
+                switch (parseInt(val)) {
+                    case 2:
+                    case 3:
+                    case 4:
+                    case 5:
+                    case 6:
+                    case 7:
+                        $('#divPeriodType').show();
+                        $('#PeriodType').trigger('change');
+                        break;
+                    //ผู้บริหารสถานศึกษา,ผู้ประสานงานประกันนักเรียน,ผู้ประสานงานประกันชุมชน
+                    case 8:
+                    case 9:
+                    case 10:
+                    case 14:
+                        $('#divPeriodType').hide();
+                        $('#divEndCoverDate').show();
+                        break;
+                    default:
+                        $('#divPeriodType').hide();
+                        $('#divEndCoverDate').hide();
+                        $('#txtEndCoverDate').val(null);
+                        break;
+                }
+            });
+
+            $('#PeriodType').change(function () {
+
+                const val = $(this).val();
+                switch (val) {
+                    case 'Month':
+                        $('#divEndCoverDate').hide();
+                        $('#txtEndCoverDate').val(null);
+                        break;
+                    case 'Year':
+                        $('#divEndCoverDate').show();
+                        break;
+                    default:
+                }
+            });
+
+            window.jQuery.validator.addMethod("checkOnlyNum", function (value) {
+                var regex = new RegExp("^[0-9]+$");
+
+                if (!regex.test(value)) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }, "กรอกเฉพาะตัวเลขเท่านั้น(0-9)");
+
+        });//end load
+
+        //add member Roadside
+        $('#addmemberRS').click(function (e) {
+            loadingSpinner('fadeIn');
+
+            if ($('#formAddmember').valid()) {
+
+                if ($('#SourceType').val() != "-1") {
+
+                    if ($('#txtbuilding').val() != "-1") {
+                        swal({
+                            title: "กำลังบันทึกข้อมูล...",
+                            text: "...",
+                            type: "warning",
+                            showConfirmButton: false,
+                            timer: 3000,
+                        },
+                            function (e) {
+                                const datestart = $('#txtStartCoverDate').datepicker('getDate')
+                                const dateend = $('#txtEndCoverDate').datepicker('getDate')
+
+                                if ($('#SourceType').val() == 7) {
+                                    if ($('#PeriodType').val() != 'Year') {
+                                        MemberInsert()
+                                    } else {
+                                        if (datestart >= dateend) {
+                                            swal("แจ้งเตือน", "กรุณาตรวจสอบวันที่เริ่มต้น วันที่สิ้นสุด", "warning");
+                                            return false
+                                        } else {
+                                            MemberInsert()
+                                        }
+                                    }
+                                } else {
+                                    if (datestart >= dateend) {
+                                        swal("แจ้งเตือน", "กรุณาตรวจสอบวันที่เริ่มต้น วันที่สิ้นสุด", "warning");
+                                        return false
+                                    } else {
+                                        MemberInsert()
+                                    }
+                                }
+                            });
+                    } else {
+                        loadingSpinner('fadeOut');
+                        swal("แจ้งเตือน", "กรุณาเลือกประเภทบัตร !", "warning");
+                    }
+                } else {
+                    loadingSpinner('fadeOut');
+                    swal("แจ้งเตือน", "กรุณาเลือกประเภทลูกค้า !", "warning");
+                }
+            } else {
+                loadingSpinner('fadeOut');
+                swal("แจ้งเตือน", "กรุณากรอกข้อมูลให้ครบถ้วน !", "warning");
+            }
+        });
+
+        function MemberInsert() {
+
+            $.ajax({
+            type: 'POST',
+            url: "@Url.Action("MemberRoadsideAssistanceInsert", "RoadsideAssistance")",
+            data: {
+                sourceTypeId: $('#SourceType').val(),
+                referenceCode: $('#txtappid').val(),
+                cardDetailTypeId: $('#txtbuilding').val(),
+                cardDetail: $('#txtIdName').val(),
+                titleId: $('#titleId').val(),
+                firstName: $('#txtfirstName').val(),
+                lastName: $('#txtlastName').val(),
+                mobileNumber: $('#txtmobileNumber').val(),
+                buildingName: $('#txtAgen').val(),
+                startCoverDate: $('#txtStartCoverDate').val(),
+                endCoverDate: $('#txtEndCoverDate').val()
+            },
+            dataType: 'json',
+                success: function (data) {
+                    loadingSpinner('fadeOut');
+                    if (data.IsResult) {
+                        swal({
+                            title: "แจ้งเตือน!",
+                            text: "บันทึกข้อมูลเรียบร้อย",
+                            type: "success",
+                            showConfirmButton: false,
+                            timer: 3000,
+                        },
+                            function (e) {
+                                $('#modalAddmember').modal('hide');
+                                $('#titleId').val('');
+                                $('#txtfirstName').val('');
+                                $('#txtlastName').val('');
+                                $('#txtmobileNumber').val('');
+                                $('#txtbuilding').val('-1');
+                                $('#txtIdName').val('');
+                                $('#txtAgen').val('');
+                                $('#txtappid').val('');
+                                $('#SourceType').val('-1');
+
+                                // memberSRS(); //ยังไม่ต้องสร้าง datatable
+                                swal.close();
+                           });
+
+                    } else {
+                        loadingSpinner('fadeOut');
+                        swal("แจ้งเตือน", `${data.Msg}`, "error");
+                    }
+                }
+            })
+        }
+
+        $('#modalAddmember').on('hidden.bs.modal', function (e) {
+            $('#titleId').val('');
+            $('#txtfirstName').val('');
+            $('#txtlastName').val('');
+            $('#txtmobileNumber').val('');
+            $('#txtbuilding').val('-1');
+            $('#txtIdName').val('');
+            $('#txtAgen').val('');
+            $('#txtappid').val('');
+            $('#SourceType').val('-1');
+            $('#txtStartCoverDate').val('');
+            $('#txtEndCoverDate').val('');
+            $('#txtStartCoverDate').datepicker().datepicker("setDate", new Date());
+            $('#txtEndCoverDate').datepicker().datepicker("setDate", new Date());
+        })
+
+        //button search
+        $('#btnSRS').click(function (e) {
+            e.preventDefault()
+            btnSRS()
+        })
+
+        //enter to search
+        $('#formsearch').keypress(function (e) {
+            //e.preventDefault();
+            if (e.which == 13) {
+                btnSRS();
+            }
+        })
+
+        //search
+        function btnSRS() {
+            if ($('#firstName').val().trim() !== ""
+                || $('#lastName').val().trim() !== ""
+                || $('#buildingName').val().trim() !== ""
+                || (($('#CardDetailTypeId').val().trim() !== "") && $('#CardDetail').val().trim() !== "")) {
+
+                if ($('#CardDetailTypeId').val() !== "") {
+                    if ($('#formsearch').valid()) {
+                        memberSRS()
+                        //gethis()
+                    } else {
+                        swal("แจ้งเตือน", "กรอกข้อมูลบัตรประชาชน / passport เพื่อค้นหา", "warning");
+                    }
+                } else {
+                    memberSRS()
+                    //gethis()
+                }
+
+            } else {
+
+                swal("แจ้งเตือน", "กรอกข้อมูลเพื่อค้นหา", "warning");
+            }
+        }
+
+        const gethis = (id) => {
+            debugger
+            $.ajax({
+                method: 'POST',
+                url: "@Url.Action("Index", "RoadsideAssistance")",
+                data: {
+                    id: id
+                },
+            });
+        }
+
+        function memberSRS() {
+            $("#memberSRSTable").empty();
+            tableA = $("#memberSRSTable").DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                autoWidth: false,
+                destroy: true,
+                searching: false,
+                lengthChange: false,
+                ordering: false,
+                ajax: {
+                    url: "@Url.Action("GetDataMember", "RoadsideAssistance")",
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.search = d.search.value;
+                        d.firstName = $('#firstName').val();
+                        d.lastName = $('#lastName').val();
+                        d.buildingName = $('#buildingName').val();
+                        d.CardDetail = $('#CardDetail').val();
+                        d.cardDetailTypeId = $('#CardDetailTypeId').val();
+                    },
+                    dataSrc: function (json) {
+                        $('#textCount').text(numberWithCommas(json.recordsFiltered));
+                        return json.data;
+                    }
+                },
+                columns: [
+                    {
+                        "title": "คำนำหน้า",
+                        orderable: false,
+                        "data": "Title"
+                    },
+                    {
+                        "title": "ชื่อ",
+                        orderable: false,
+                        "data": "FirstName"
+                    },
+                    {
+                        "title": "นามสกุล",
+                        orderable: false,
+                        "data": "LastName"
+                    },
+                    {
+                        "title": "บัตรประชาชน/พาสปอร์ต",
+                        orderable: false,
+                        "data": "CardDetail"
+                    },
+                    {
+                        "title": "เบอร์ติดต่อ",
+                        orderable: false,
+                        "data": "MobileNumber"
+                    },
+                    {
+                        "title": "หน่วยงาน",
+                        orderable: false,
+                        "data": "BuildingName"
+                    },
+                    {
+                        "title": "ประเภทลูกค้า",
+                        orderable: false,
+                        "data": "SourceTypeIdList",
+                        render: function (data) {
+                            if (data == null) {
+                                return `<i class="fa fa-info-circle" style="font-size: 2.5rem; margin-right: 10px;cursor:pointer" title="ไม่ระบุ"></i>`;
+                            } else {
+                                let icon = '';
+                                const obj = JSON.parse(data);
+                                for (var i = 0; i < obj.length; i++) {
+                                    icon = icon.concat(`<i class="glyphicon glyphicon-user" style="color: ${obj[i].ColorCode}; font-size: 1.8rem; margin-right: 10px;cursor:pointer;" title="${obj[i].SourceType}"></i>`)
+                                }
+                                return `<span>${icon}</span>`;
+                            }
+                           
+                            }
+                    },
+                    {
+                        "title": "สิทธิ์",
+                        orderable: false,
+                        "data": null,
+                        render: function (data) {
+                            if (data.FreeServiceTotal <= data.FreeServiceUsed) {
+                                let en_MemberId = window.btoa(data.MemberId);
+                                return `<a href="@Url.Action("UseRoadsideAssis", "RoadsideAssistance")?memberid=${en_MemberId} "style="text-decoration:none;cursor:pointer" class="btn btn-outline-primary">0</a>`;
+                            } else {
+                                let en_MemberId = window.btoa(data.MemberId);
+                                return `<a href="@Url.Action("UseRoadsideAssis", "RoadsideAssistance")?memberid=${en_MemberId} "style="text-decoration:none;cursor:pointer" class="btn btn-outline-primary">${data.FreeServiceTotal}</a>`;
+                            }
+                        }
+                    },
+                    {
+                        "title": "ประวัติ",
+                        orderable: false,
+                        "data": null,
+                        render: function (data) {
+                            let en_MemberId = window.btoa(data.MemberId);
+                            if (data.ServiceCount <= "0") {
+                                return '<a href="@Url.Action("HistoryAssistance", "RoadsideAssistance")?memberid=' + en_MemberId + '" target="_blank" style="text-decoration:none;style="color: #36CDFF" class="btn btn-outline-lg" ></a>';
+                            } else {
+                                let en_MemberId = window.btoa(data.MemberId);
+                                return '<a href="@Url.Action("HistoryAssistance", "RoadsideAssistance")?memberid=' + en_MemberId + '" target="_blank" style="text-decoration:none;style="color: #36CDFF" class="btn btn-outline-lg glyphicon glyphicon-time"></a>';
+                            }
+                        }
+                    },
+
+                ]
+                });
+
+            $('#memberSRSTable tbody').on('click', 'td', function (e) {
+                e.preventDefault();
+
+                if ($(this).index() == 8) {
+                    var data = tableA.row(this, e.preventDefault()).data();
+                    let en_MemberId = window.btoa(data.MemberId);
+                    setTimeout(() => window.open(`@Url.Action("HistoryAssistance", "RoadsideAssistance")?memberid=${en_MemberId}`), "_blank", 800);
+                } else {
+                    if ('@ViewBag.SeeOnly' == 'False') {
+                        var data = tableA.row(this).data();
+                        let en_MemberId = window.btoa(data.MemberId);
+                        setTimeout(() => window.location.replace(`@Url.Action("UseRoadsideAssis", "RoadsideAssistance")?memberId=${en_MemberId}`), 800);
+                    }
+                }
+            });
+        }
+
+        const SaveRoadside = () => {
+
+            $('#ShowConfirm').modal('hide');
+
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("UseRoadsideAssisInsert", "RoadsideAssistance")",
+                data: {
+                    createdByUserId: @ViewBag.EmpId,
+                },
+                dataType: 'json',
+                //async: false,
+                success: function (data) {
+
+                    if (data.IsResult) {
+                        swal("แจ้งเตือน", "บันทึกข้อมูลเรียบร้อย", "success");
+                        setTimeout(() => window.location.replace(`@Url.Action("FollowRoadsideAssis", "RoadsideAssistance")?RoadsideAssistanceId=${data.Result}`),3000);
+
+                    } else {
+                        alert(data.Msg);
+                    }
+
+                }
+
+            });
+
+        }
+
+        function checknum() {
+
+            if ($('#txtbuilding').val() !== "2") {
+                $('#txtIdName').removeAttr('checkOnlyNum');
+                $('#txtIdName').removeAttr('checkID');
+                $('#txtIdName').valid();
+                ('input[type=radio][name=contact]:checked')
+            } else {
+                $('#txtIdName').attr('checkOnlyNum', 'checkOnlyNum');
+
+                $('#txtIdName').attr('checkID', 'checkID');
+                $('#txtIdName').valid();
+            }
+        }
+
+        function checkSearch() {
+
+            let val = $('#CardDetailTypeId').val();
+            switch (val) {
+                case "2"://บัตร ปชช
+                    $('#CardDetail').attr('checkOnlyNum', 'checkOnlyNum');
+                    $('#CardDetail').attr('maxlength', '13');
+                    $('#CardDetail').attr('minlength', '13');
+                    $('#CardDetail').attr('checkID', 'checkID');
+                    $('#CardDetail').valid();
+                    break;
+                case "3"://passport
+                    $('#CardDetail').removeAttr('checkOnlyNum');
+                    $('#CardDetail').removeAttr('checkID', 'checkID');
+                    $('#CardDetail').removeAttr('maxlength', '13');
+                    $('#CardDetail').removeAttr('minlength', '13');
+                    $('#CardDetail').valid();
+                    break;
+                default:
+                    $('#CardDetail').removeAttr('checkOnlyNum');
+                    $('#CardDetail').removeAttr('checkID', 'checkID');
+                    $('#CardDetail').removeAttr('maxlength', '13');
+                    $('#CardDetail').removeAttr('minlength', '13');
+                    $('#CardDetail').valid();
+                    break;
+            }
+
+            if ($('#CardDetailTypeId').val() !== "2") {
+
+                $('#CardDetail').removeAttr('checkOnlyNum');
+                $('#CardDetail').removeAttr('checkID', 'checkID');
+                $('#CardDetail').removeAttr('maxlength', '13');
+                $('#CardDetail').removeAttr('minlength', '13');
+                $('#CardDetail').valid();
+
+            } else {
+
+                $('#CardDetail').attr('checkOnlyNum', 'checkOnlyNum');
+                $('#CardDetail').attr('maxlength', '13');
+                $('#CardDetail').attr('minlength', '13');
+                $('#CardDetail').attr('checkID', 'checkID');
+                $('#CardDetail').valid();
+            }
+        }
+
+        function numberWithCommas(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+    </script>
+}

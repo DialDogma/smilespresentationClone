@@ -1,0 +1,67 @@
+﻿
+<table id="dtCustomer" class="table table-bordered table-hover dataTable" style="width:100%;"></table>
+
+
+<script type="text/javascript">
+
+    const DoloadCustomerDetail = (roundId, appID) => {
+        if (roundId == "-1") {  
+            roundId = null;
+        }
+
+            $('#dtCustomer').empty();
+            var t = $('#dtCustomer').DataTable({
+
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                searching: true,
+                ajax: {
+                    url: '@Url.Action("GetCustomerDetail", "PartialView")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.CustomerDetailId = null;
+                        d.applicatonRoundId = roundId;
+                        d.applicatonId = appID;
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+
+                    }
+                },
+
+                columns: [
+
+                    { title: 'Memder ID', data: 'PersonnelCustomerDetailCode', width: '10%', className: 'h-dt-center d-dt-center',},
+                    { title: 'ชื่อ-นามสกุล', data: 'PersonnelCustomerName', width: '100%', className: 'h-dt-center d-dt-center', },
+                    { title: 'รหัสประจำตัวประชาชน', data: 'IdCardNumber', className: 'h-dt-center d-dt-center', width: '10%'} ,
+                    { title: 'Passport/อื่นๆ', data: 'PassPortNumber', width: '10%', className: 'h-dt-center d-dt-center',},
+
+                    { title: 'ตำแหน่ง', data: 'Position', width: '10%', className: 'h-dt-center d-dt-center', },
+                    { title: 'เบอร์โทร', data: 'MobileNumber', width: '10%', className: 'h-dt-center d-dt-center', },
+                    { title: 'รอบที่นำเข้า', data: 'RoundNo', className: 'h-dt-center d-dt-center', width: '10%' },
+
+
+                    {
+                        title: 'วันที่มีผลบังคับ', data: 'EffectiveDate', className: 'h-dt-center d-dt-center'
+                        , mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                        }, width: '10%'
+                    },
+
+                    { title: 'สถานะ', data: 'PersonnelCustomerDetailStatusName', className: 'h-dt-center d-dt-center', },
+
+                ],
+
+            });
+    }
+
+
+</script>

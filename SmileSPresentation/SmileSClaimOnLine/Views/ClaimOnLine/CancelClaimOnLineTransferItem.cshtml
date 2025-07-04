@@ -1,0 +1,180 @@
+﻿@{
+    ViewBag.Title = "ยกเลิกรับเงินคืนจากกองทุน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .modal-dialog {
+        margin-top: 0;
+        margin-bottom: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .modal.fade .modal-dialog {
+        transform: translate(0, -100%);
+    }
+
+    .modal.in .modal-dialog {
+        transform: translate(0, 0);
+    }
+
+    row_selected {
+        background-color: whitesmoke !important;
+    }
+
+    /*.modal-body {
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }*/
+
+    .ui-datepicker {
+        position: relative !important;
+        top: -290px !important;
+        left: 0 !important;
+    }
+
+    #events {
+        margin-bottom: 1em;
+        padding: 1em;
+        background-color: #f6f6f6;
+        border: 1px solid #999;
+        border-radius: 3px;
+        height: 100px;
+        overflow: auto;
+    }
+
+    td.selected {
+        font-weight: bold;
+        background-color: #8EDCF8;
+    }
+</style>
+
+<form class="form-horizontal" action="@Url.Action("CancelClaimOnLineTransferItem")" method="post" id="Mainform">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">ค้นหาข้อมูล</h3>
+                </div>
+
+                <div class="box-body">
+
+                    <div class="form-group">
+
+                        <div class=" col-sm-3">
+                            <label class="control-label">COL/บส.</label>
+                            <input class="form-control" id="txtColId" name="txtColId" type="text" />
+                        </div>
+                        <div class="col-sm-3" style="padding-top:27px;">
+                            <button id="btnSearch" type="button" class="btn btn-success" style="width:50%">ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">รายละเอียด</h3>
+                </div>
+
+                <div class="box-body" style="width: 100%">
+
+                    <div class="col-sm-12">
+                        <table id="dtMonitor" class="table table-bordered table-striped display" style="width: 100%"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function(){
+             $('#btnSearch').click(function (e) {
+                if ($('#txtColId').val() != "") {
+                    e.preventDefault();
+
+                    GetDatatable();
+                } else {
+                    swal('กรุณากรอกคำค้นหา',"","warning");
+                }
+
+            });
+        });
+        function GetDatatable() {
+
+             $('#dtTransferLog').empty();
+             var table = $('#dtMonitor').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                info: false,
+                searching: false,
+                paging: false,
+                ajax: {
+                      type: 'POST',
+                    url: '@Url.Action("SearchTransferItem")',
+                    dataType: 'json',
+                    data: function(d) {
+                         d.colCode = $('#txtColId').val();
+                    }
+                },
+                 columns: [
+
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        data: null,
+                        title: 'Action',
+                        mRender: function (data) {
+                                return '<button type="button" onclick="DeleteTransection(\'' + data.ClaimHeaderGroupCode + '\')"" class="btn btn-danger"> ลบ บส. </button>';
+
+                        }
+                    },
+                    { title: 'เลข บส.', data: 'ClaimHeaderGroupCode' },
+                    { title: 'รายละเอียด', data: 'Detail' },
+                    { title: 'เลขCOL', data: 'ClaimOnLineCode' },
+                    { title: 'จำนวนเงิน', data: 'Pay' },
+                    {
+                        title: 'วันที่โอนเงินล่าสุด',
+                        data: 'TransferDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY HH:mm');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    }
+
+                ]
+
+            });
+        }
+
+        function DeleteTransection(claimHeaderGroupCode) {
+             swal_confirm("ยืนยันการลบข้อมูล","",
+                        function () {
+                            $.post("@Url.Action("DeleteCOLItem")",
+                                {
+                                    claimHeaderGroupCode: claimHeaderGroupCode
+                                },
+                                function (res) {
+                                    if (res === true) {
+                                        swal_success(function (e) {window.location.reload()});
+                                    } else {
+                                        swal_fail(res);
+                                    }
+                                });
+                        });
+        }
+    </script>
+}

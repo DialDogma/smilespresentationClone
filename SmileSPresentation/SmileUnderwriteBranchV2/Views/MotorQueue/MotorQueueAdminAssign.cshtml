@@ -1,0 +1,539 @@
+﻿
+@{
+    ViewBag.Title = "จัดการคิวงานคัดกรองและมอบกรมธรรม์";
+    Layout = "~/Views/Shared/_LayoutForTopIndexMotor.cshtml";
+}
+
+<style>
+    .table {
+        font-size: 14px;
+    }
+
+    .select2-container .select2-selection--single {
+        box-sizing: border-box;
+        cursor: pointer;
+        display: block;
+        height: 34px !important;
+        border-radius: 0px !important;
+        -webkit-user-select: none;
+    }
+
+    .select2 {
+        width: 100% !important;
+    }
+
+    .btnSearch {
+        margin-top: 5px;
+    }
+</style>
+<div class="box box-header bg-aqua">
+    <center><span style="font-size:large;">ประกันรถยนต์</span></center>
+</div>
+
+<div class="box box-primary">
+    <div class="box-body">
+        <div class="form-group">
+            <fieldset>
+                <legend style="text-align: center; background: #0A5769; color: white">จัดการคิวงานมอบกรมธรรม์</legend>
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label for="applicationCode">เลข App</label>
+                            <input id="applicationCode" name="applicationCode" type="text" class="form-control" placeholder="เลข App" />
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="cutomerName">ชื่อ-สกุล ผู้เอาประกัน</label>
+                            <input id="cutomerName" name="cutomerName" type="text" class="form-control" placeholder="ชื่อ-สกุล ผู้เอาประกัน" />
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="payerName">ชื่อ-สกุล ผู้ชำระเบี้ย</label>
+                            <input id="payerName" name="payerName" type="text" class="form-control" placeholder="ชื่อ-สกุล ผู้ชำระเบี้ย" />
+                        </div>
+                        <div class="col-sm-12  col-md-3">
+                            <label for="selectStartCoverDate" class="col-sm-1 control-label txt-nowrap">รอบการมอบกรมธรรม์</label>
+                            <select id="selectStartCoverDate" class="form-control">
+                                @if (ViewBag.PeriodList != null)
+                                {
+                                    foreach (var i in ViewBag.PeriodList)
+                                    {
+                                        <option value="@i.Value.ToString("yyyy-MM-dd")"> @i.Value.ToString("MMM yy")</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                       
+                    </div>
+                </form>
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label for="selectProvince">จังหวัด</label>
+                            <select id="selectProvince" class="form-control select2"></select>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="selectDistrict">อำเภอ</label>
+                            <select id="selectDistrict" class="form-control select2"></select>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="selectSubDistrict">ตำบล</label>
+                            <select id="selectSubDistrict" class="form-control select2">
+                            </select>
+                        </div>
+
+                        <div class="col-sm-3">
+                            <label for="">ชื่อผู้มอบกรมธรรม์</label>
+                            <select id="selectDirector" name="selectDirector" class="form-control select2">
+                                @if (ViewBag.directorList != null)
+                                {
+                                    <option value="-1">-ทั้งหมด-</option>
+                                    foreach (var i in ViewBag.directorList)
+                                    {
+                                        <option value="@i.UserId">@i.DirectorName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-1 btnSearch">
+                            <br />
+                            <button type="button" class="btn btn-primary" id="btnSearch" style="cursor:pointer">ค้นหา</button>
+                        </div>
+                    </div>
+                </form>
+                <hr />
+                <div class="form-group">
+                    <label id="countSelect"></label>
+                    <label id="textSelectAll2"></label>
+                    <a class="pull-right" id="textSelectAll" style="display:none;cursor:pointer" onclick="GetQueueAssignAll();"></a>
+                    <a class="pull-right" id="textSelectAllClear" style="display:none;cursor:pointer" onclick="ClearCheckboxAll();">ล้างข้อมูลที่เลือก</a>
+
+                    <table id="tableQueueAssignDetail" name="tableQueueAssignDetail" class="table table-bordered table-striped display" style="width:100%;">
+                        <tbody>
+                            <tr style="text-align:center"><td>ไม่พบข้อมูล</td></tr>
+                        </tbody>
+                    </table>
+                    <div style="text-align:center">
+                        <button type="button" id="btnModal" name="btnModal" class="btn btn-info">เปลี่ยนผู้มอบกรมธรรม์</button>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" name="myModal" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title text-red" id="myModalLabel">เลือกผู้รับคิวงาน</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="" class="col-sm-2 col-md-offset-1 control-label txt-nowrap">คิวงานที่เลือก</label>
+
+                        <div class="col-sm-10  col-md-6">
+                            <label id="countSelectModal" class="control-label txt-nowrap"></label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="selectDirector2" class="col-sm-2 col-md-offset-1 control-label txt-nowrap">ผู้รับคิวงาน : </label>
+                        <div class="col-sm-6">
+                            <select id="selectDirector2" name="selectDirector2" class="form-control select2">
+                                @if (ViewBag.directorList != null)
+                                {
+                                    <option value="-1"> -ทั้งหมด -</option>
+                                    foreach (var i in ViewBag.directorList)
+                                    {
+                                        if (i.EmployeeStatusId == 3) {
+                            <option value="@i.UserId">@i.DirectorName</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="text-align:center">
+                <button type="button" id="btnCancel" name="btnCancel" class="btn btn-danger" data-dismiss="modal">ยกเลิก</button>
+                <button type="button" id="btnConfirm" name="btnConfirm" class="btn btn-success">ยืนยัน</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section ViewSpecificJavascript
+{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/th.min.js"></script>
+    <script type="text/javascript">
+        var inited = false;
+        var count = 0;
+        var rowDT = 0;
+        var totalDT = 0;
+        var ListCheckBox = [];
+        var ListCheckBoxAll = [];
+        $(function () {
+            $('.select2').select2();
+
+            //Load Province
+            GetProvince();
+            //Load Default
+            LoadDefault();
+
+            //Event
+            $('#btnSearch').on('click', function (e) {
+                e.preventDefault();
+                ClearCheckboxAll();
+                //load datatable
+                QueueAssign_DT();
+            });
+
+            $('#selectProvince').on('change', function (e) {
+                e.preventDefault();
+                GetDistrict($(this).val());
+                GetSubDistrict(-1)
+            })
+
+            $('#selectDistrict').on('change', function (e) {
+                e.preventDefault();
+                GetSubDistrict($(this).val());
+            })
+
+
+            $('#btnModal').on('click', function (e) {
+                if (ListCheckBoxAll.length > 0) {
+                    $('#myModal').modal('show');
+                    $('#countSelectModal').text(`จำนวน ${ListCheckBoxAll.length} รายการ`)
+                   @* if ($("#selectDirector2").val() == -1) {
+                        $('#btnConfirm').prop('disabled', true);
+                    } else {
+                        $('#btnConfirm').prop('disabled', false);
+                    }*@
+                } else {
+                    swal("กรุณาเลือกข้อมูลอย่างน้อย 1 รายการ", "","warning");
+                }
+            });
+
+            $('#btnConfirm').on('click', function (e) {
+                e.preventDefault();
+                $('#myModal').modal('hide');
+                UpdateQueueListAssign($(this).val());
+            })
+
+            //event tableQueueAssignDetail paging
+            $('#tableQueueAssignDetail').on('page.dt', function () {
+                if (ListCheckBoxAll.length === totalDT) {
+                    $('table[name="tableQueueAssignDetail"]').find(".chk-row-select").prop('checked', true);
+                    $('table[name="tableQueueAssignDetail"]').find(".chk-row-select-all").prop('checked', true);
+                } else {
+                    $('table[name="tableQueueAssignDetail"]').find(".chk-row-select-all").prop('checked', false);
+                    $('#countSelect').text('');
+                    $('#textSelectAll').hide
+                    $('#textSelectAll2').hide();
+                    $('#textSelectAllClear').hide();
+                    for (var i = 0; i < ListCheckBox.length; i++) {
+                        if (!(ListCheckBoxAll.includes(ListCheckBox[i]))) {
+                            ListCheckBoxAll.push(ListCheckBox[i]);
+                        }
+                    }
+                    count = 0;
+                    ListCheckBox = [];
+                }
+                //console.log(ListCheckBoxAll)
+            });
+
+            /*checkbox in datatables change*/
+            $('#tableQueueAssignDetail').on('change', 'input[type="checkbox"]', function (e) {
+                let table = $('#tableQueueAssignDetail').DataTable();
+                let rows = table.rows().nodes();
+                switch (this.className) {
+                    case 'chk-row-select-all':
+                        if (this.checked) {
+                            $('input[class="chk-row-select"]', rows).prop('checked', true).change();
+                        } else {
+                            $('input[class="chk-row-select"]', rows).prop('checked', false).change();
+                        }
+                        break;
+                    case 'chk-row-select':
+                        if (this.checked) {
+                            let count = 0;
+                            const value = this.value;
+                            //adds one or more elements to the end of an array and returns the new length of the array.
+                            if (!ListCheckBox.includes(value)) ListCheckBox.push(this.value);
+                            if (!ListCheckBoxAll.includes(value)) ListCheckBoxAll.push(this.value);
+                            //check count data equal rows.length then checkbox-all is checked
+                            if (!(ListCheckBox.length === rows.length)) {
+                                $('table[name="tableQueueAssignDetail"]').find(".chk-row-select-all").prop('checked', false);
+                                $('#countSelect').text('')
+
+                            } else {
+                                $('table[name="tableQueueAssignDetail"]').find(".chk-row-select-all").prop('checked', true);
+                                $('#countSelect').text(`คิวงานที่เลือก จำนวน ${ListCheckBox.length} รายการ`)
+                                $('#textSelectAll').text(`เลือกทั้งหมด ${totalDT} รายการ`).show();
+                                $('#textSelectAll2').text(`จาก ${totalDT} รายการ`).show();
+                            }
+                        } else {
+                            const value = this.value;
+                             //replaces 1 element at indexOd() returnValue index
+                            ListCheckBox.splice(ListCheckBox.indexOf(value), 1);
+                            ListCheckBoxAll.splice(ListCheckBoxAll.indexOf(value), 1);
+
+                            //check count data equal rows.length then checkbox-all is checked
+                            if (!(ListCheckBox.length === rows.length)) {
+                                $('table[name="tableQueueAssignDetail"]').find(".chk-row-select-all").prop('checked', false);
+                                $('#countSelect').text('')
+                                $('#textSelectAll').hide();
+                                $('#textSelectAll2').hide();
+                                $('#textSelectAllClear').hide();
+                            } else {
+                                $('table[name="tableQueueAssignDetail"]').find(".chk-row-select-all").prop('checked', true);
+                            }
+                        }
+                        break;
+                    default:
+                }
+            });
+        });
+
+        const QueueAssign_DT = () => {
+            $('#tableQueueAssignDetail').empty();
+            var table = $('#tableQueueAssignDetail').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("QueueMotorAdminAssign_DT")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.applicationCode = $("#applicationCode").val();
+                        d.cutomerName = $("#cutomerName").val();
+                        d.payerName = $("#payerName").val();
+                        d.StartCoverDate = $("#selectStartCoverDate").val();
+                        d.payerSubDistrictId = $("#selectSubDistrict").val();
+                        d.payerDistrictId = $("#selectDistrict").val();
+                        d.payerProvinceId = $("#selectProvince").val();
+                        d.assignToUserId = $("#selectDirector").val();
+                    },
+                    dataSrc: function (json) {
+                        rowDT = json.data.length;
+                        totalDT = json.recordsTotal;
+                        return json.data;
+                    },
+                },
+                columns: [
+                    {
+                        title: '<label>เลือก</label><input id="chk-all" name="chk-all" style="cursor:pointer"  class="chk-row-select-all" type="checkbox" />',
+                        data: null,
+                        orderable: false,
+                        className: 'th-center td-center-checkbox nosort',
+                        width: "33px",
+                        render: function (data) {
+                            let Ischecked = "";
+                            if (ListCheckBoxAll.includes(data.QueueId.toString())) {
+                                count++
+                                Ischecked = "checked"
+                            }
+                            if (!(totalDT === ListCheckBoxAll.length)) {
+                                if (count === rowDT) {
+                                    $('input[class="chk-row-select-all"]').prop('checked', true);
+                                    $('#countSelect').text(`คิวงานที่เลือก จำนวน ${rowDT} รายการ`)
+                                    $('#textSelectAll').text(`เลือกทั้งหมด ${totalDT} รายการ`).show();
+                                    $('#textSelectAll2').text(`จาก ${totalDT} รายการ`).show();
+                                    rowDT = 0;
+                                    count = 0;
+                                }
+                            }
+
+                            return `<input type="checkbox" style="cursor:pointer"  class="chk-row-select" ${Ischecked} id="chkdtrow_${data.QueueId}" name="chkdtrow_${data.QueueId}" value="${data.QueueId}">`;
+                        }
+                    },
+                    {
+                        title: 'เลข App',
+                        data: 'ApplicationCode',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'ชื่อผู้เอาประกัน',
+                        data: 'InsuredName',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'ชื่อผู้ชำระเบี้ย',
+                        data: 'PayerName',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'ชื่อหน่วยงาน',
+                        data: 'PayerOfficeName',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'ตำบล',
+                        data: 'SubDistrictDetail',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'อำเภอ',
+                        data: 'DistrictDetail',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'จังหวัด',
+                        data: 'ProvinceDetail',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'วันเริ่มคุ้มครอง',
+                        data: 'StartCoverDate',
+                        className: "th-center",
+                        render: function (data) {
+                            return moment(data).format("DD/MM/YYYY");
+                        }
+                    },
+                    {
+                        title: 'ชื่อผู้มอบกรมธรรม์',
+                        width:"110px",
+                        data: 'AssignToPersonName',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'รอบการมอบกรมธรรม์', data: "UnderwritePeriod",
+                        render: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return moment(data).add(543, 'years').locale('th').format("MMM YY ", "LLLL");
+                            }
+
+                        }
+                    },
+                ]
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+       const GetProvince = () => {
+            $.get("@Url.Action("GetProvince")", function (data) {
+                $("#selectProvince").empty();
+                if (data.length !== 0) {
+                        $("#selectProvince").append(`<option value="-1">-ทั้งหมด-</option>`);
+                    for (var i = 0; i < data.length; i++) {
+                        $("#selectProvince").append(`<option value="${data[i].Province_ID}">${data[i].ProvinceDetail}</option>`);
+                    }
+                    GetDistrict(data[0].Province_ID);
+                } else {
+                    $("#selectProvince").append(`<option value="-1">ไม่ระบุ</option>`);
+                    GetDistrict(-1);
+                }
+            });
+        }
+
+        const GetDistrict = (provinceId) => {
+            $.get("@Url.Action("GetDistrict")", { provinceId: provinceId }, function (data) {
+                $("#selectDistrict").empty();
+                if (data.length !== 0) {
+                    $("#selectDistrict").append(`<option value="-1">-ทั้งหมด-</option>`);
+                    for (var i = 0; i < data.length; i++) {
+                        $("#selectDistrict").append(`<option value="${data[i].District_ID}">${data[i].DistrictDetail}</option>`);
+                    }
+                    GetSubDistrict(data[0].District_ID)
+                } else {
+                    $("#selectDistrict").append(`<option value="-1">ไม่ระบุ</option>`);
+                    GetSubDistrict(-1)
+                }
+                inited = true;
+            });
+        }
+
+        const GetSubDistrict = (districtId) => {
+            $.get("@Url.Action("GetSubDistrict")", { districtId: districtId }, function (data) {
+                $("#selectSubDistrict").empty();
+                if (data.length !== 0) {
+                    $("#selectSubDistrict").append(`<option value="-1">-ทั้งหมด-</option>`);
+                    for (var i = 0; i < data.length; i++) {
+                        $("#selectSubDistrict").append(`<option value="${data[i].SubDistrict_ID}">${data[i].SubDistrictDetail}</option>`);
+                    }
+                } else {
+                    $("#selectSubDistrict").append(`<option value="-1">ไม่ระบุ</option>`);
+                }
+                inited = true;
+            });
+        }
+
+        function LoadDefault() {
+            if (inited) {
+                //LOAD DT
+                QueueAssign_DT();
+            } else {
+                setTimeout(LoadDefault, 250);
+            }
+        }
+
+        const UpdateQueueListAssign = () => {
+            $.post("@Url.Action("QueueMotorListAdminAssign")", {
+                queueArray: ListCheckBoxAll,
+                assignTo: $('#selectDirector2').val()
+            }, function (data) {
+                    if (data.IsResult) {
+                        swal("สำเร็จ!", "", "success");
+                        QueueAssign_DT();
+                    }
+                $("#selectDirector2").val(-1);
+                    ClearCheckboxAll();
+            });
+        }
+
+        const GetQueueAssignAll = () => {
+            $.post("@Url.Action("QueueMotorAdminAssignAll")", {
+                applicationCode : $("#applicationCode").val(),
+                cutomerName : $("#cutomerName").val(),
+                payerName : $("#payerName").val(),
+                StartCoverDate : $("#selectStartCoverDate").val(),
+                payerSubDistrictId : $("#selectSubDistrict").val(),
+                payerDistrictId : $("#selectDistrict").val(),
+                payerProvinceId : $("#selectProvince").val(),
+                assignToUserId : $("#selectDirector").val(),
+            }, function (data) {
+                    ListCheckBoxAll = []
+                    for (var i = 0; i < data.length; i++) {
+                        if (!ListCheckBoxAll.includes(data[i].QueueId.toString())) ListCheckBoxAll.push(data[i].QueueId.toString())
+                    }
+                    $('#countSelect').text(`ทั้ง ${totalDT} รายการถูกเลือกอยู่`)
+                    $('#textSelectAllClear').show();
+                $('#textSelectAll').hide();
+                $('#textSelectAll2').hide();
+            });
+        }
+
+        const ClearCheckboxAll = () => {
+            ListCheckBoxAll = [];
+            ListCheckBox = [];
+            $('#countSelect').text('');
+            $('#textSelectAll').hide();
+            $('#textSelectAll2').hide();
+            $('#textSelectAllClear').hide();
+            $('table[name="tableQueueAssignDetail"]').find(".chk-row-select").prop('checked', false);
+            $('table[name="tableQueueAssignDetail"]').find(".chk-row-select-all").prop('checked', false);
+        }
+    </script>
+}

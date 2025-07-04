@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="SSSRootModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityContainer Name="SSSRootModelStoreContainer" />
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="SSSRootModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="GroupMenu">
+          <Key>
+            <PropertyRef Name="GroupMenuId" />
+          </Key>
+          <Property Name="GroupMenuId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="GroupMenu1" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="IsActive" Type="Boolean" />
+          <Property Name="CreatedByUserId" Type="Int32" />
+          <Property Name="CreatedDate" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedByUserId" Type="Int32" />
+          <Property Name="UpdatedDate" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="RootMenus" Relationship="Self.FK_RootMenu_GroupMenu" FromRole="GroupMenu" ToRole="RootMenu" />
+        </EntityType>
+        <EntityType Name="MenuIcon">
+          <Key>
+            <PropertyRef Name="MenuIconId" />
+          </Key>
+          <Property Name="MenuIconId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="MenuIconDetail" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="RootMenus" Relationship="Self.FK_RootMenu_MenuIcon" FromRole="MenuIcon" ToRole="RootMenu" />
+        </EntityType>
+        <EntityType Name="RootMenu">
+          <Key>
+            <PropertyRef Name="MenuId" />
+          </Key>
+          <Property Name="MenuId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="GroupMenuId" Type="Int32" />
+          <Property Name="DisplayName" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="URLAddress" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="Sort" Type="Int32" />
+          <Property Name="IsActive" Type="Boolean" />
+          <Property Name="CreatedByUserId" Type="Int32" />
+          <Property Name="CreatedDate" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedByUserId" Type="Int32" />
+          <Property Name="UpdatedDate" Type="DateTime" Precision="3" />
+          <Property Name="MenuIconId" Type="Int32" />
+          <NavigationProperty Name="GroupMenu" Relationship="Self.FK_RootMenu_GroupMenu" FromRole="RootMenu" ToRole="GroupMenu" />
+          <NavigationProperty Name="MenuIcon" Relationship="Self.FK_RootMenu_MenuIcon" FromRole="RootMenu" ToRole="MenuIcon" />
+          <Property Name="IconMenuId" Type="Int32" />
+        </EntityType>
+        <Association Name="FK_RootMenu_GroupMenu">
+          <End Role="GroupMenu" Type="Self.GroupMenu" Multiplicity="0..1" />
+          <End Role="RootMenu" Type="Self.RootMenu" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="GroupMenu">
+              <PropertyRef Name="GroupMenuId" />
+            </Principal>
+            <Dependent Role="RootMenu">
+              <PropertyRef Name="GroupMenuId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RootMenu_MenuIcon">
+          <End Role="MenuIcon" Type="Self.MenuIcon" Multiplicity="0..1" />
+          <End Role="RootMenu" Type="Self.RootMenu" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MenuIcon">
+              <PropertyRef Name="MenuIconId" />
+            </Principal>
+            <Dependent Role="RootMenu">
+              <PropertyRef Name="MenuIconId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="SSSRootDBContext" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="GroupMenus" EntityType="Self.GroupMenu" />
+          <EntitySet Name="MenuIcons" EntityType="Self.MenuIcon" />
+          <EntitySet Name="RootMenus" EntityType="Self.RootMenu" />
+          <AssociationSet Name="FK_RootMenu_GroupMenu" Association="Self.FK_RootMenu_GroupMenu">
+            <End Role="GroupMenu" EntitySet="GroupMenus" />
+            <End Role="RootMenu" EntitySet="RootMenus" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RootMenu_MenuIcon" Association="Self.FK_RootMenu_MenuIcon">
+            <End Role="MenuIcon" EntitySet="MenuIcons" />
+            <End Role="RootMenu" EntitySet="RootMenus" />
+          </AssociationSet>
+          <FunctionImport Name="usp_RootMenu_Select" ReturnType="Collection(SSSRootModel.usp_RootMenu_Select_Result)">
+            <Parameter Name="GroupMenuId" Mode="In" Type="Int32" />
+          </FunctionImport>
+        </EntityContainer>
+        <ComplexType Name="usp_RootMenu_Select_Result">
+          <Property Type="Int32" Name="MenuId" Nullable="false" />
+          <Property Type="Int32" Name="GroupMenuId" Nullable="true" />
+          <Property Type="String" Name="GroupMenu" Nullable="true" MaxLength="250" />
+          <Property Type="String" Name="DisplayName" Nullable="true" MaxLength="150" />
+          <Property Type="String" Name="URLAddress" Nullable="true" MaxLength="200" />
+          <Property Type="Int32" Name="Sort" Nullable="true" />
+          <Property Type="Boolean" Name="IsActive" Nullable="true" />
+          <Property Type="Int32" Name="CreatedByUserId" Nullable="true" />
+          <Property Type="DateTime" Name="CreatedDate" Nullable="true" Precision="23" />
+          <Property Type="Int32" Name="UpdatedByUserId" Nullable="true" />
+          <Property Type="DateTime" Name="UpdatedDate" Nullable="true" Precision="23" />
+          <Property Type="Int32" Name="IconMenuId" Nullable="true" />
+          <Property Type="String" Name="IconMenu" Nullable="true" MaxLength="20" />
+        </ComplexType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="SSSRootModelStoreContainer" CdmEntityContainer="SSSRootDBContext">
+          </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

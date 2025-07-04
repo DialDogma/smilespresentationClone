@@ -1,0 +1,185 @@
+﻿@using System.Linq;
+@{
+    ViewBag.Title = "Message";
+    ViewBag.Description = "งาน";
+}
+<style>
+    .select2-results__options {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        font-size: 14px !important;
+    }
+</style>
+<input type="hidden" id="devId" value="@ViewBag.devId" readonly />
+<input type="hidden" id="StatusTask" value="@ViewBag.StatusTask" readonly />
+<div class="row">
+    <div class="col-xs-12 col-md-12">
+        <div class="box box-info">
+            <div class="box-body">
+                <div class="form-group col-xs-12 col-md-12" style="margin-top: 24px">
+                    <table class="table table-hover  display table-responsive" style="width: 100%" id="dtJobBox"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+            // Reference the auto-generated proxy for the hub.
+            chat = $.connection.chatHub;
+
+            if (@ViewBag.IsDev == 1) {
+                 //Start Connection
+                $.connection.hub.start().done(function () {
+                    //join group
+                    chat.server.joinGroup('devJob');
+                });
+            }
+
+            if (@ViewBag.IsDev == 2) {
+                 //Start Connection
+                $.connection.hub.start().done(function () {
+                    //join group
+                    chat.server.joinGroup('userJob');
+                });
+            }
+
+            //Show group message to client
+            chat.client.receiveGroupMessage = function (name, message) {
+                toastr["success"](name, message);
+                //TODO: something....
+
+            };
+
+            toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-bottom-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+             /*END SignalR*/
+
+            $('#dtJobBox').empty();
+            table = $('#dtJobBox').DataTable({
+                processing: true,
+                serverSide: true,
+                searching: false,
+                iDisplayLength:10,
+                responsive: true,
+                destroy: true,
+                 language: {
+                     url:"http://cdn.datatables.net/plug-ins/1.10.19/i18n/Thai.json"
+                 },
+                ajax: {
+                    url: '@Url.Action("Message_Dt", "Home")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.PageSize = d.length;
+                        d.IndexStart = d.start;
+                        d.SortField = d.columns[d.order[0].column].data;
+                        d.OrderType = d.order[0].dir;
+                        d.CreatedById = $("#devId").val();
+                        d.StatusTaskId = $("#StatusTask").val();
+                        d.IncidentTypeId = null;
+                    }
+                },
+                columns: [
+                    {
+                        title: '',
+                        data: null,
+                        render: function (data) {
+                            if (data.IncidentTaskStatusId == 1) {
+                                return '<span class="label label-info dot_status"><i class="fa fa-genderless">' +
+                                    '</i></span>' +
+                                    '<label class="status_label label label-info">' + data.IncidentTaskStatus + '</label>';
+                            } else if (data.IncidentTaskStatusId == 2) {
+                                return '<span class="label label-warning dot_status"><i class="fa fa-genderless">' +
+                                    '</i></span>' +
+                                    '<label class="status_label label label-warning">' + data.IncidentTaskStatus + '</label>';
+                            } else if (data.IncidentTaskStatusId == 3) {
+                                return '<span class="label label-success dot_status"><i class="fa fa-genderless">' +
+                                    '</i></span>' +
+                                    '<label class="status_label label label-success">' + data.IncidentTaskStatus + '</label>';
+                            } else {
+                                return '<span class="label label-danger dot_status"><i class="fa fa-genderless">' +
+                                    '</i></span>' +
+                                    '<label class="status_label label label-danger">' + data.IncidentTaskStatus + '</label>';
+                            }
+                        }
+
+                    },
+                    {
+                        title: 'Subject',
+                        data: 'IncidentSubject',
+
+                    },
+                    {
+                        title: 'Branch',
+                        data:'Branch'
+                    },
+
+                    {
+                        title: 'Task Group',
+                        data:'IncidentType'
+                    },
+
+                    {
+                        title: 'Task Code',
+                        data: 'IncidentTaskCode',
+                    },
+                    {
+                        title: 'Assign Date',
+                        data: 'CreatedDate',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY HH:mm') + 'น.';
+                            } else {
+                                return '-';
+                            }
+                        }
+                    }
+
+                ],
+                rowId: 'IncidentTaskId'
+            });
+
+                   $('#dtJobBox tbody').on('click', 'td', function (e) {
+                    e.preventDefault();
+                    //don't trigger when click row index 0 and index 6
+                    if ($(this).index() == 0||$(this).index() == 6) {
+                        return;
+                    } else {
+                        var data = table.row(this).data();
+                        $.get('@Url.Action("Read_Update")', { incidentTaskId: data.IncidentTaskId ,typeId:0});
+                        setTimeout(() => { SeeDetail(e,data.IncidentTaskId) },1000);
+                    }
+
+                });
+
+            const SeeDetail = (event, incidentTaskId) => {
+            //window.location.href = ('@Url.Action("IncidentDetail")?incidentTaskId=' + incidentTaskId);
+                let devId = $("#devId").val();
+            event.preventDefault();
+                var url = (`@Url.Action("IncidentDetail")?incidentTaskId=` + incidentTaskId + `&UserId=` + @ViewBag.devId);
+            window.open(url, "_blank")
+        }
+
+        })
+    </script>
+}

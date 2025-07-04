@@ -1,0 +1,106 @@
+﻿@{
+    ViewBag.Title = "สถานะการนำเข้า";
+
+}
+<div class="row">
+    <form action="" method="post" id="Mainform">
+        <div class="col-sm-12" id="Detail_form">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtShowDataSource" name="dtShowDataSource" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <input type="hidden" id="hd_systemName" value="@ViewBag.systemName" />
+        <input type="hidden" id="hd_headerId" value="@ViewBag.headerId" />
+    </form>
+</div>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+         let statusId = 0;
+        $(function () {
+            setTimeout(() => {InsertToCommission();},1500);
+        });
+
+        const InsertToCommission = () => {
+            var systemName = $('#hd_systemName').val();
+            $.post('@Url.Action("IntegrateDataToCommission_Insert","DataImport")', { systemName: systemName }, (data) => {
+                if (data) {
+                    IntegrateHeader_Select();
+                    swal_info("กรุณารอสักครู่(อย่าออกจากหน้าจอนี้)...");
+                } else {
+                    swal_fail(data);
+                }
+            });
+        }
+
+        const IntegrateHeader_Select = () => {
+            var systemName = $('#hd_systemName').val();
+            var headerId = $('#hd_headerId').val();
+            $.get('@Url.Action("IntegrateHeader_Select","DataImport")',
+                {
+                    systemName: systemName, headerId: headerId
+                }, (data) => {
+                    statusId = data.SentStatusId;
+                });
+            setTimeout(() => {
+                if (statusId == 2) {
+                    swal_success("กระบวนการทำงานเสร็จสิ้น");
+                    setTimeout(() => {
+                        window.location = ('@Url.Action("DataSystem_push_SSS")');
+                    },3000);
+
+                } else if (statusId == 3) {
+
+                    swal_fail("error! กรุณาตรวจสอบข้อมูล");
+                    return;
+                }
+                else {
+                    IntegrateHeader_Select();
+                    GetDatatable();
+                }
+            },5000);
+        }
+
+        const GetDatatable = () => {
+            $('#dtShowDataSource').empty();
+            var table = $('#dtShowDataSource').DataTable({
+                lengthChange: false,
+                info:false,
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("IntegrateDataToCommission_Select","DataImport")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 9999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.systemName = $('#hd_systemName').val();
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ReportName', data: 'ReportName'
+                    },
+                    {
+                        title: 'Status',data:'Status'
+                    }
+
+                ]
+            });
+        }
+    </script>
+}

@@ -1,0 +1,271 @@
+﻿﻿@{
+    ViewBag.Title = "Application ID :" + @ViewBag.Application.ApplicationCode;
+}
+<style>
+    #Operate_Form {
+        position: fixed;
+        bottom: 0;
+        margin-top: -20px;
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* nav tabs *@
+        @if(!ViewBag.chkAge.IsResult)
+        {
+            <div class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                <h4>@ViewBag.chkAge.Result</h4>
+                @ViewBag.chkAge.Msg
+            </div>
+        }
+        <div class="col-sm-12 col-md-12">
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs nav-justified">
+                    <li class="active"><a style="font-size: larger" href="#tab1" data-toggle="tab" aria-expanded="True">ข้อมูลกรมธรรม์</a></li>
+                    <li><a style="font-size: larger" href="#tab2" data-toggle="tab" ifia-expanded="True">ข้อมูลด้านสุขภาพ</a></li>
+                </ul>
+                @* tabs content *@
+                <div class="tab-content">
+                    @* ข้อมูลกรมธรรม์ *@
+                    <div class="tab-pane active" id="tab1">
+                        @* document form *@
+                        @Html.Partial("~/Views/partial_view/_Document.cshtml")
+                        @* end document *@
+                        @* Application detail form *@
+                        @Html.Partial("~/Views/partial_view/_ApplicationDetail.cshtml")
+                        @* end application detail *@
+                        @* Customer form *@
+                        @Html.Partial("~/Views/partial_view/_Customer.cshtml")
+                        @* end customer form *@
+                        @* Payer form *@
+                        @Html.Partial("~/Views/partial_view/_Payer.cshtml")
+                        @* end payer form *@
+                        @* heir form *@
+                        @Html.Partial("~/Views/partial_view/_Heir.cshtml")
+                        @* end heir form *@
+                        @* memo form *@
+                        @Html.Partial("~/Views/partial_view/_Memo.cshtml")
+                        @* end memo *@
+                        @* transaction detail *@
+                        @Html.Partial("~/Views/partial_view/_Transaction.cshtml")
+                        @* end transaction *@
+                        @* transaction detail *@
+                        @Html.Partial("~/Views/partial_view/_Debt.cshtml")
+                        @* end transaction *@
+                    </div>
+                    @* ข้อมูลด้านสุขภาพ *@
+                    <div class="tab-pane" id="tab2">
+                        @Html.Partial("~/Views/partial_view/_Question.cshtml")
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end tabs *@
+        @* operate *@
+        <div class="col-sm-12 col-md-12" id="Operate_Form">
+            <div class="col-sm-3 col-md-offset-1 col-md-2">
+                <button type="button" id="btnReturnDoc" class="btn btn-block btn-warning" data-toggle="modal" data-target=".bd-return-modal-lg">ตีกลับเอกสาร</button>
+            </div>
+            <div class="col-sm-3 col-md-2">
+                <button type="button" id="btnPass" class="btn btn-block btn-success">ผ่าน</button>
+            </div>
+            <div class="col-sm-3 col-md-2">
+                <button type="button" id="btnNotPass" class="btn btn-block btn-danger" data-toggle="modal" data-target=".bd-cancel-modal-lg">ไม่ผ่าน</button>
+            </div>
+            <div class="col-sm-3 col-md-2">
+                <button type="button" id="btnEditApp" class="btn btn-block btn-default">แก้ไข App</button>
+            </div>
+        </div>
+
+        @* end operate *@
+    </div>
+    @* modal Not pass  *@
+    <div class="modal fade bd-cancel-modal-lg" id="CancelModal" tabindex="-1" role="dialog" aria-labelledby="CancelModal" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">ไม่ผ่าน</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-offset-1 col-md-10">
+                            <select id="select_cancelType" class="form-control">
+                                @foreach(var itm in ViewBag.udwStatus_NotPass)
+                                {
+                                    <option value="@itm.UdwUnApproveCauseId">@itm.UdwUnApproveCause</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-offset-1 col-md-10">
+                            <label class="">หมายเหตุ :</label>
+                            <textarea class="form-control" rows="3" id="txtRemarkNotpass"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6 col-md-offset-4 col-md-2">
+                            <button type="button" id="btnNotpassSubmit" class="btn btn-block btn-success">บันทึก</button>
+                        </div>
+                        <div class="col-sm-6 col-md-2">
+                            <button type="button" id="btnCloseModal" class="btn btn-block btn-danger" data-dismiss="modal">ยกเลิก</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end modal *@
+    @* modal return document *@
+    <div class="modal fade bd-return-modal-lg" id="returnModal" tabindex="-1" role="dialog" aria-labelledby="returnModal" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">ตีกลับเอกสาร</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-offset-1 col-md-10">
+                            <select id="select_returnType" class="form-control">
+                                @foreach(var itm in ViewBag.udwStatus_Return)
+                                {
+                                    <option value="@itm.UdwUnApproveCauseId">@itm.UdwUnApproveCause</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-offset-1 col-md-10">
+                            <label class="">หมายเหตุ :</label>
+                            <textarea class="form-control" rows="3" id="txtReturnRemark"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6 col-md-offset-4 col-md-2">
+                            <button type="button" id="btnReturnSubmit" class="btn btn-block btn-success">บันทึก</button>
+                        </div>
+                        <div class="col-sm-6 col-md-2">
+                            <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ยกเลิก</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end modal *@
+    @* hidden *@
+    <input type="hidden" id="hd_appId" value="@ViewBag.Application.ApplicationId" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            //approve cancel
+            $('#btnPass').click(() => {
+                swal_confirm("ต้องการอนุมัติ", "อนุมัติรายการนี้?", () => {
+                    $.post('@Url.Action("UDWNewAppApprove","Monitor")',
+                        {
+                            applicationId:@ViewBag.Application.ApplicationId,
+                            applicationUnderwriteStatusId: 4,
+                            udwUnApproveCauseId: null,
+                            udwRemark:null
+
+                        }, (data) => {
+                            if (data.IsResult) {
+                                swal_success(data.Msg);
+                                setTimeout(() => { window.location = "@Url.Action("ApplicationUnderwriteMonitor","Monitor")"; }, 1500);
+                            } else {
+                                swal_fail(data.Msg);
+                            }
+                        });
+
+                });
+            });
+            //unapprove cancel
+            $('#btnNotpassSubmit').click(() => {
+                if ($('#txtRemarkNotpass').val() != "") {
+                    swal_confirm("ต้องการปฎิเสธ", "ปฎิเสธรายการนี้?", () => {
+                         $.post('@Url.Action("UDWNewAppApprove","Monitor")',
+                        {
+                            applicationId:@ViewBag.Application.ApplicationId,
+                            applicationUnderwriteStatusId: 5,
+                            udwUnApproveCauseId: $('#select_cancelType').val(),
+                            udwRemark:$('#txtRemarkNotpass').val()
+
+                        }, (data) => {
+                            if (data.IsResult) {
+                                swal_success(data.Msg);
+                                setTimeout(() => { window.location = "@Url.Action("ApplicationUnderwriteMonitor","Monitor")"; }, 1500);
+                            } else {
+                                swal_fail(data.Msg);
+                            }
+                        });
+                    });
+                } else {
+                    swal_fail('กรุณาใส่หมายเหตุการปฎิเสธ');
+                }
+
+            });
+
+            //Return Doc
+            $('#btnReturnSubmit').click(() => {
+                if ($('#txtReturnRemark').val() != "") {
+                    swal_confirm("ต้องการตีกลับ", "ต้องการตีกลับรายการนี้?", () => {
+                         $.post('@Url.Action("UDWNewAppApprove","Monitor")',
+                        {
+                            applicationId:@ViewBag.Application.ApplicationId,
+                            applicationUnderwriteStatusId: 3,
+                            udwUnApproveCauseId: $('#select_returnType').val(),
+                            udwRemark:$('#txtReturnRemark').val()
+
+                        }, (data) => {
+                            if (data.IsResult) {
+                                swal_success(data.Msg);
+                                setTimeout(() => { window.location = "@Url.Action("ApplicationUnderwriteMonitor","Monitor")"; }, 1500);
+                            } else {
+                                swal_fail(data.Msg);
+                            }
+                        });
+                    });
+                } else {
+                    swal_fail('กรุณาใส่หมายเหตุ');
+                }
+            });
+
+            //go to edit app
+            $('#btnEditApp').click(() => {
+                var enc = btoa($('#hd_appId').val());
+                window.location = ('@Url.Action("NewApp","Application")?appId='+enc);
+            });
+
+            //load datatable
+            GetDocEditDetail_DT(@ViewBag.Application.ApplicationId);
+            GetHeir_dt(@ViewBag.Application.ApplicationId);
+            GetMemo_dt(@ViewBag.Application.ApplicationId);
+            GetTransaction_dt(@ViewBag.Application.ApplicationId);
+            GetDebt_dt(@ViewBag.Application.ApplicationId);
+
+            //Questioniar
+
+                //Q1
+                 $('#Q1_Form input').prop('disabled', true);
+                 $('#A1_07').prop('disabled', true);
+                 //Q2
+                 $('#Q2_Form input').prop('disabled', true);
+                 //Q3
+                 $('#Q3_Form input').prop('disabled', true);
+                 //Child Q3
+                 if ($('#A3_08').iCheck('update')[0].checked) {
+                     $('#Sub_A3_08').show();
+                 }
+                 if ($('#A3_09').iCheck('update')[0].checked) {
+                     $('#Sub_A3_09').show();
+                 }
+
+                 //Q4
+                 $('#Q4_Form input').prop('disabled', true);
+
+        });
+    </script>
+}

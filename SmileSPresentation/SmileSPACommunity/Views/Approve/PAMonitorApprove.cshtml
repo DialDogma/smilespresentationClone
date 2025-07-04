@@ -1,0 +1,398 @@
+﻿@{
+    ViewBag.Title = "PAชุมชน รออนุมัติ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+
+            @* Search *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                    <!-- /.box-tools -->
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body" style="">
+
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <label>รอบความคุ้มครอง :</label>
+                        </div>
+                    </div>
+                    <div class="row">
+
+                        <div class="col-xs-2">
+                            <input type="checkbox" class="minimal" style="position: absolute; opacity: 0;" id="chkAllDCR">
+                            <label>ทั้งหมด</label>
+                        </div>
+                        <div class="col-xs-4">
+
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right" id="dtpStartCoverDate" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy" readonly="readonly" style="background-color:white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" style="padding-top:6px">
+                        <div class="col-xs-3">
+                            <label>สาขา</label>
+                            <select class="form-control select2" name="ddlbranch" id="ddlbranch" style="width: 100%;">
+                                <option value="-1">--ทั้งหมด--</option>
+                                @foreach (var item in ViewBag.Branchs)
+                                {
+                                    <option value="@item.BranchID">@item.Branch</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-xs-5">
+                            <label>สถานะรอบ</label>
+                            <select class="form-control select2 leaderMultiSelctdropdown" name="ddlappRoundStatus" id="ddlappRoundStatus" style="width: 100%;" multiple="">
+                                @*<option value="-1">--ทั้งหมด--</option>*@
+
+                                @foreach (var item in ViewBag.AppRoundStatus)
+                                {
+                                    if (item.ApplicationRoundStatusId == 3 || item.ApplicationRoundStatusId == 6)
+                                    {
+                                        <option value="@item.ApplicationRoundStatusId" selected="selected">@item.ApplicationRoundStatus</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.ApplicationRoundStatusId">@item.ApplicationRoundStatus</option>
+                                    }
+
+                                }
+                            </select>
+                        </div>
+                        <div class="col-xs-3" style="padding-top:25px;">
+                            <button type="button" id="btnSearch" class="btn btn-primary" style=" text-decoration:none"><i class="fa fa-fw fa-search"></i> ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+
+            @* Detail *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">คิวงานทั้งหมด</h3>
+
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                    <!-- /.box-tools -->
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body" style="">
+                    <div class="box-group">
+
+                        <table id="dtPAMonitor" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script>
+
+       let approundStatuslist = "";
+
+            $(document).ready(function () {
+           var chat = $.connection.myHub;
+             debugger;
+             //Start Connection
+             $.connection.hub.start().done(function () {
+                 //join group
+                 chat.server.joinGroup(@ViewBag.userID);
+
+             });
+
+             //Show addNewNotice to client
+             chat.client.sendNoticeResult = function (Str1, Str2) {
+                 debugger;
+
+                 GetApplicationRoundMonitor();
+                 //window.location.reload();
+
+             };
+     });
+
+       $(function () {
+           $('#ddlbranch').select2();
+           $('#ddlappRoundStatus').select2();
+
+           $('#dtpStartCoverDate').datepicker({
+               format: "dd/mm/yyyy",
+               autoclose: true,
+               todayHighlight: true,
+
+               gotoCurrent: true,
+               beforeShowDay: function (date) {
+                   switch (date.getDate()) {
+                       case 1:
+                           return true;
+                       case 16:
+
+                           return true;
+                       default:
+                           return false;
+                   }
+               },
+
+           });
+
+           $('#dtpStartCoverDate').datepicker("setDate", CheckStartCoverDate(new Date()));
+
+           $('#chkAllDCR').on('ifChecked', function (event) {
+               $('#dtpStartCoverDate').prop('disabled', true);
+               $("#dtpStartCoverDate").css({ 'background-color': '', 'opacity': '' });
+               //$('#dtpStartCoverDate').datepicker("setDate", null);
+               $('#dtpStartCoverDate').val(null).datepicker();
+           });
+
+           $('#chkAllDCR').on('ifUnchecked', function (event) {
+               $('#dtpStartCoverDate').prop('disabled', false);
+               $('#dtpStartCoverDate').prop('readonly', 'readonly');
+               $("#dtpStartCoverDate").css({ 'background-color': '#fff', 'opacity': '' });
+               $('#dtpStartCoverDate').datepicker("setDate", CheckStartCoverDate(new Date()));
+           });
+
+           $.fn.select2.amd.require([
+               'select2/utils',
+               'select2/dropdown',
+               'select2/dropdown/attachBody'
+           ], function (Utils, Dropdown, AttachBody) {
+               function SelectAll() { }
+
+               SelectAll.prototype.render = function (decorated) {
+                   var $rendered = decorated.call(this);
+                   var self = this;
+
+                   var $selectAll = $(
+                       '<button type="button" class="btn btn-xs btn-default" style="margin-left:6px;">&#9744; Select All</button>'
+                   );
+
+                   $unselectAll = $(
+                       '<button class="btn btn-xs btn-default" type="button" style="margin-left:6px;">&#9744; Unselect All</button>'
+                   ),
+                       $btnContainer = $('<div style="margin-top:3px;">').append($selectAll).append($unselectAll);
+                   if (!this.$element.prop("multiple")) {
+                       // this isn't a multi-select -> don't add the buttons!
+                       return $rendered;
+                   }
+
+                   $rendered.find('.select2-dropdown').prepend($btnContainer);
+
+                   $selectAll.on('click', function (e) {
+                       var $results = $rendered.find('.select2-results__option[aria-selected=false]');
+
+                       // Get all results that aren't selected
+                       $results.each(function () {
+                           var $result = $(this);
+
+                           // Get the data object for it
+                           var data = $result.data('data');
+
+                           // Trigger the select event
+                           self.trigger('select', {
+                               data: data
+                           });
+                       });
+
+                       self.trigger('close');
+                   });
+
+                   $unselectAll.on('click', function (e) {
+                       var $results = $rendered.find('.select2-results__option[aria-selected=true]');
+                       $results.each(function () {
+                           self.trigger('unselect', {
+                               data: $(this).data('data')
+                           });
+                       });
+                       self.trigger('close');
+                   });
+
+                   return $rendered;
+               };
+
+               $("#ddlappRoundStatus").select2({
+                   placeholder: "โปรดระบุ สถานะรอบ...",
+                   dropdownAdapter: Utils.Decorate(
+                       Utils.Decorate(
+                           Dropdown,
+                           AttachBody
+                       ),
+                       SelectAll
+
+                   ),
+               });
+           });
+
+           $('#btnSearch').click(function (e) {
+               e.preventDefault();
+
+               //alert($('.leaderMultiSelctdropdown').val());
+
+               //if ($('#ddlbranch').val() == "-1")
+               //{
+               //    swal("ตรวจสอบข้อมูล", "กรุณาเลือกสาขา", "warning");
+               //    $('#dtPAMonitor').empty();
+               //}
+               //else
+               if ($('.leaderMultiSelctdropdown').val() == null)
+               {
+                   swal("ตรวจสอบข้อมูล", "กรุณาเลือกสถานะรอบ", "warning");
+                   $('#dtPAMonitor').empty();
+               } else
+               {
+                   GetApplicationRoundMonitor();
+               }
+
+           });
+
+       });
+
+       const GetApplicationRoundMonitor = () => {
+           $('#dtPAMonitor').empty();
+           var t = $('#dtPAMonitor').dataTable({
+                    pageLength: 10,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    destroy: true,
+                    ajax: {
+                        url: '@Url.Action("GetApplicationRound", "Approve")',
+                           type: 'POST',
+                           data: function (d) {
+                               d.draw = d.draw;
+                               d.pageSize = d.length;
+                               d.pageStart = d.start;
+                               d.sortField = d.columns[d.order[0].column].data;
+                               d.orderType = d.order[0].dir;
+                               d.search = d.search.value;
+                               d.branchID = $('#ddlbranch').val();
+                               d.appRoundStatusId = $('.leaderMultiSelctdropdown').val().join(",");
+                               d.startCoverDate = $('#dtpStartCoverDate').val();
+                           }
+                       },
+                       columns: [
+                           { title: 'ApplicationCode', data: 'ApplicationCode', className: 'h-dt-center d-dt-center', },
+                           { title: 'ชื่อกรมธรรม์', data: 'ApplicationName', className: 'h-dt-center d-dt-center', },
+                           { title: 'รอบที่', data: 'Round', className: 'h-dt-center d-dt-center', },
+                           {
+                               title: 'วันเริ่ม', data: 'EffectiveDate', className: 'h-dt-center d-dt-center',
+                               mRender: function (data) {
+                                   moment.locale('th');
+                                   return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                               }
+                           },
+                           { title: 'สถานะรอบ', data: 'ApplicationRoundStatus', className: 'h-dt-center d-dt-center', },
+                           { title: 'หมายเหตุ', data: 'ApplicationRoundUnApproveRemark', className: 'h-dt-center d-dt-center', },
+                           { title: 'สถานะการชำระเงิน', data: 'ApplicationRoundPaymentStatus', className: 'h-dt-center d-dt-center', },
+
+                           {
+                               data: null,
+                               className: 'h-dt-center d-dt-center',
+                               mRender: (data, type, full) =>
+                               {
+                                   let en_appID = window.btoa(data.ApplicationId);
+                                   return '<a href="@Url.Action("PANewAppApprove", "Approve")?appID=' + en_appID + '" class="btn btn-warning btn-sm" target="_blank"><i class="fa fa-fw fa-desktop"></i> ตรวจสอบ </a>';
+                               }, width: '5%'
+                               @*data: null,
+                                mRender: (data, type, full) =>
+                                {
+                                    debugger;
+                                    if (IsvalidateForCheckDCR(moment(data.EffectiveDate)._d)) {
+                                        debugger;
+                                        let en_appID = window.btoa(data.ApplicationId);
+                                   return '<a href="@Url.Action("PANewAppApprove", "Approve")?appID=' + en_appID + '" class="btn btn-warning btn-sm" target="_blank"><i class="fa fa-fw fa-desktop"></i> ตรวจสอบ </a>';
+
+                                    } else {
+                                        return '';
+
+                                        @*let rs = CheckApplicationByPass(data.ApplicationId);
+
+                                        if (rs == true) {
+                                            let en_code = window.btoa(data.ApplicationId);
+                                            return '<a href="@Url.Action("AddPACoumunityNewApp", "PACommunity")?appID=' + en_code + '" class="btn btn-warning btn-sm" target="_blank"><i class="fa fa-fw fa-edit"></i> แก้ไข </a>';
+                                        } else {
+                                            return '';
+                                        }
+                                    }
+
+                                }, width: '5%'*@
+                           },
+                       ],
+                       bLengthChange: false,
+                       //createdRow: function (row, data, index) {
+                       //    if (data.ClaimOnLineStatusId == 3) {
+                       //        $('td', row).addClass('selected');
+                       //    }
+                       //},
+
+           });
+       }
+
+       const IsvalidateForCheckDCR = (startCoverDate) => {
+           //let checkDCR = CheckStartCoverDate(new Date());
+           //Get range DCR
+           let MinDCR;
+           let MaxDCR;
+           //Get Next DCR ปัจจุบัน
+           let lastDCR;
+           //วันปัจจุบัน
+           let CurrDate = new Date();
+           let CurDT = CurrDate.getDate();
+           debugger;
+           if (CurDT >= 1 && CurDT <= 10)//ไม่เกินวันที่ 10
+           {//เป็นรอบตรวจ DCR 1
+               //คิดDCRปัจจุบันหรือDCR-1
+               //ตั้งDCR ที่ต้องเปิดแก้ไข ต้องไม่น้อยกว่า MinDCR และไม่เกิน
+               MinDCR = new Date(CurrDate.getFullYear(), CurrDate.getMonth(), 1);
+               MaxDCR = new Date(CurrDate.getFullYear(), CurrDate.getMonth(), 16);
+           }
+           else if (CurDT >= 11 && CurDT <= 25) {//เป็นรอบตรวจ DCR 16
+               //คิดDCRปัจจุบันหรือDCR-1
+               //ตั้งDCR ที่ต้องเปิดแก้ไข ต้องไม่น้อยกว่า MinDCR และไม่เกิน
+               let setDate1 = new Date();
+               let NextDCR1 = new Date(setDate1.setMonth(CurrDate.getMonth() + 1));
+               MinDCR = new Date(CurrDate.getFullYear(), CurrDate.getMonth(), 16);
+               MaxDCR = new Date(NextDCR1.getFullYear(), NextDCR1.getMonth(), 1);
+           }
+           else if (CurDT >= 26) {//เป็นรอบตรวจ DCR 1
+               //คิดDCRปัจจุบันหรือDCR+1
+               let setDate2 = new Date();
+               let NextDCR2 = new Date(setDate2.setMonth(CurrDate.getMonth() + 1));
+               MinDCR = new Date(NextDCR2.getFullYear(), NextDCR2.getMonth(), 1);
+               MaxDCR = new Date(NextDCR2.getFullYear(), NextDCR2.getMonth(), 16);
+           }
+
+           debugger;
+
+           if (startCoverDate < MinDCR) {
+               return false;
+           }
+           else if (startCoverDate > MaxDCR) {
+               return false;
+           }
+
+           return true;
+       }
+    </script>
+}

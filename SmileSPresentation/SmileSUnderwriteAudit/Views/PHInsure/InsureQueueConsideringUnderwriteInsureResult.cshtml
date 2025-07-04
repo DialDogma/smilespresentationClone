@@ -1,0 +1,539 @@
+﻿
+@{
+    ViewBag.Title = "คิวงานพิจารณาผลการคัดกรอง";
+    Layout = "~/Views/Shared/_LayoutForTopPHIndex.cshtml";
+}
+<style>
+    .material-icons.md-62 {
+        font-size: 62px;
+    }
+
+    .legend {
+        text-align: center;
+        background: #0a5769;
+        color: white;
+        font-size: 18px;
+        margin-left: 15px
+    }
+    /* สีพื้นหลังปกติ */
+    .wrimagecard-topimage_header {
+        background-color: #00C0EF;
+        transition: background-color 0.3s ease;
+    }
+
+    /* สีพื้นหลังเมื่อถูกเลือก */
+    .wrimagecard-topimage.selected .wrimagecard-topimage_header {
+        background-color: orchid !important;
+    }
+</style>
+
+<form class="form-horizontal" id="fmQueueConsideringUnderwrite">
+    <div class="container">
+        @foreach (var itm in ViewBag.AuditInsureCount)
+        {
+            <div class="col-md-3 col-sm-4">
+                <div class="wrimagecard wrimagecard-topimage @(itm.Period.ToString("MM") == ViewBag.Today ? "selected" : "")" onclick="SelectDCR('@itm.Period')">
+                    <div class="wrimagecard-topimage_header">
+                        <center>
+                            <span class="material-icons md-62" style="color: #ffffff">
+                                calendar_month
+                            </span>
+                        </center>
+                    </div>
+                    <div class="wrimagecard-topimage_title">
+                        <center>
+                            <h5>@itm.Period.ToString("MMM yy")</h5>
+                            <div id="getQueueInsuerDCRCount_@itm.Period.ToString("d/M")">
+                                <span class="pull-right badge bg-red" id="WrControls" style="position:absolute;right:5px;bottom:5px">@itm.TotalCount</span>
+                            </div>
+                        </center>
+                    </div>
+                </div>
+            </div>
+            if (itm.Period.ToString("MM") == ViewBag.Today)
+            {
+                <input type="hidden" id="hiddenSelectDCR" value="@itm.Period" />
+            }
+        }
+    </div>
+    <legend class="legend">คิวงานพิจารณาผลการคัดกรอง</legend>
+    <div class="container">
+        <div class="box box-widget widget-user-2">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12">
+
+                        <div class="nav-tabs-custom">
+                            <ul class="nav nav-tabs nav-justified">
+                                <li class="active"><a style="font-size: larger" href="#QueueWait" data-toggle="tab" aria-expanded="True">รอพิจารณา</a></li>
+                                <li><a style="font-size: larger" href="#ClosedQueue" data-toggle="tab" aria-expanded="True">พิจารณาแล้ว</a></li>
+                            </ul>
+                            <div class="tab-content">
+                                @* Tab รอพิจารณา *@
+                                <div role="tabpanel" class="tab-pane active" id="QueueWait">
+                                    <div class="box box-warning">
+                                        <div class="box-group">
+                                            <div class="row" style="padding-top:6px">
+                                                <div class="col-lg-2 col-xs-12 ">
+                                                    <label>ค้นหาข้อมูลจาก :</label>
+                                                </div>
+                                                <div class="col-lg-3 col-xs-12 ">
+                                                    <label>ชื่อผู้เอาประกัน</label>
+                                                    <input type="text" class="form-control" id="txtCustName_Wait" />
+                                                </div>
+                                                <div class="col-lg-3 col-xs-12">
+                                                    <label>ชื่อผู้ชำระเบี้ย</label>
+                                                    <input type="text" class="form-control" id="txtPayerName_Wait" />
+                                                </div>
+                                                <div class="col-lg-2 col-xs-12">
+                                                    <label>เลข App</label>
+                                                    <input type="text" class="form-control" id="txtApp_Wait" />
+                                                </div>
+                                                <div class="col-lg-2 col-xs-12" style="padding-top:25px">
+                                                    <button type="button" class="btn btn-info" id="btnSearch_Wait">ค้นหา</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="box-group">
+                                            <div class="row" style="padding-top:7px">
+                                                <div class="col-xs-12">
+                                                    <table id="dtWaitQueue" class="table table-bordered table-hover dataTable" style="width:100%;"></table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @* Tab พิจารณาแล้ว *@
+                                <div role="tabpanel" class="tab-pane" id="ClosedQueue">
+                                    <div class="box box-success">
+                                        <div class="box-group">
+                                            <div class="row" style="padding-top:6px">
+                                                <div class="col-lg-2 col-xs-12">
+                                                    <label>ค้นหาข้อมูลจาก :</label>
+                                                </div>
+                                                <div class="col-lg-3 col-xs-12">
+                                                    <label>ชื่อผู้เอาประกัน</label>
+                                                    <input type="text" class="form-control" id="txtCustName_Complete" />
+                                                </div>
+                                                <div class="col-lg-3 col-xs-12">
+                                                    <label>ชื่อผู้ชำระเบี้ย</label>
+                                                    <input type="text" class="form-control" id="txtPayerName_Complete" />
+                                                </div>
+                                                <div class="col-lg-2 col-xs-12">
+                                                    <label>เลข App</label>
+                                                    <input type="text" class="form-control" id="txtApp_Complete" />
+                                                </div>
+                                                <div class="col-lg-2 col-xs-12" style="padding-top:25px">
+                                                    <button type="button" class="btn btn-info" id="btnSearch_Considered">ค้นหา</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="box-group">
+                                            <div class="row" style="padding-top:7px">
+                                                <div class="col-xs-12">
+                                                    <table id="dtConsidered" class="table table-bordered table-hover dataTable" style="width:100%;"></table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        var dateDCR = new Date();
+        $(function () {
+            var formattedDate = $("#hiddenSelectDCR").val();
+                dateDCR = moment(formattedDate, "DD-MM-YYYY").format("DD/MM/YYYY");
+
+            /*start signalR*/
+            // Reference the auto-generated proxy for the hub.
+            var chat = $.connection.chatHub;
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                //join group
+                chat.server.joinGroup('@ViewBag.UserId');
+            });
+            //Show public message to client
+            chat.client.receiveGroupNotice = function (message) {
+                /*full msg*/
+                const fullMessage = message;
+                /*new date*/
+                const date = new Date();
+                /*set str*/
+                const str = date.getFullYear() +
+                    "-" +
+                    (date.getMonth() + 1) +
+                    "-" +
+                    date.getDate() +
+                    " " +
+                    date.getHours() +
+                    ":" +
+                    date.getMinutes() +
+                    ":" +
+                    date.getSeconds();
+                /*alert toastr*/
+                window.toastr["success"](`อัพเดตครั้งล่าสุด : ${str}`, fullMessage);
+                /*Load Datatables*/
+
+                getQueueInsuerDCRCount();
+                DoShowGrid(dateDCR);
+                DoShowGridConsidered(dateDCR);
+
+
+
+            };
+
+            window.toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+            /*end signalR*/
+            getQueueInsuerDCRCount();
+            DoShowGrid(dateDCR);
+            DoShowGridConsidered(dateDCR);
+
+            $('#btnSearch_Wait').click(function (e) {
+                e.preventDefault();
+                DoShowGrid(dateDCR);
+            });
+
+            $('#btnSearch_Considered').click(function (e) {
+                e.preventDefault();
+                DoShowGridConsidered(dateDCR);
+            });
+
+        });
+
+        function DoShowGrid(dcr) {
+            $('#dtWaitQueue').empty();
+            let t = $('#dtWaitQueue').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                order: [[6, "desc"]],
+                searching: false,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetMonitorQueueUnderwrite")',
+                    type: 'POST',
+                    data: function (d) {
+
+                        d.auditInsureStatusId = 2;
+                        d.applicationCode = $("#txtApp_Wait").val();
+                        d.insuredName = $("#txtCustName_Wait").val();
+                        d.payerName = $("#txtPayerName_Wait").val();
+                        d.c_period = dcr;
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'เลข App',
+                        data: 'ApplicationCode',
+                        orderable: true,
+                        width: '8%',
+                    },
+                    {
+                        title: 'ชื่อผู้เอาประกัน',
+                        data: 'InsuredName',
+                        orderable: true,
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'ชื่อผู้ชำระเบี้ย',
+                        data: 'PayerName',
+                        orderable: true,
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'บัตรประชาชนผู้ชำระเบี้ย',
+                        data: 'CardId',
+                        orderable: true,
+                    },
+                    {
+                        title: 'เบอร์โทรผู้ชำระเบี้ย',
+                        data: 'PayerPhone',
+                        orderable: true,
+                        width: '10%',
+                    },
+                    {
+                        title: 'DCR', data: 'Period',
+                        orderable: true,
+                        render: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY");
+                            }
+
+                        }
+
+                    },
+                    {
+                        title: 'เฝ้าระวัง',
+                        data: 'IsBeware',
+                        orderable: true,
+                        render: function (data) {
+                            switch (data) {
+                                case true:
+                                    return '<label class="label" style="color:red; font-size: 15px;align-items: center;" >มี</label>';
+                                    break;
+                                case false:
+                                    return '<label class="label" style="color:green; font-size: 15px;align-items: center;" >ไม่มี</label>';
+                                    break;
+                                default:
+                                    return '<span class="label label-default">รอข้อมูล</span>';
+                                    break;
+                            }
+                        }
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        width: '10%',
+                        render: function (data) {
+                            return `<button type="button" class="btn btn-info" onclick="openViewDetailCall(${data.QueueAuditId})">ดูรายละเอียด</button>`;
+
+                        }
+                    }],
+                bLengthChange: false,
+                'columnDefs': [
+                    {
+                        "targets": "_all", // your case first column
+                        "className": "text-center",
+                    }]
+            });
+            window.onresize = function () {
+                t.columns.adjust().responsive.recalc();
+            };
+        }
+
+        //หน้าพิจารณาแล้ว
+        function DoShowGridConsidered(dcr) {
+            $('#dtConsidered').empty();
+            let t = $('#dtConsidered').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                order: [[7, "desc"]],
+                searching: false,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetMonitorQueueUnderwrite")',
+                    type: 'POST',
+                    data: function (d) {
+
+                        d.auditInsureStatusId = 3;
+                        d.applicationCode = $("#txtApp_Complete").val();
+                        d.insuredName = $("#txtCustName_Complete").val();
+                        d.payerName = $("#txtPayerName_Complete").val();
+                        d.c_period = dcr;
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.auditInsureConsiderStatus = $('#AuditInsureConsiderStatus').val();
+                    }
+                },
+                columns: [
+                    {
+                        title: 'เลข App',
+                        data: 'ApplicationCode',
+                        width: '8%',
+                        orderable: true,
+                    },
+
+                    {
+                        title: 'ชื่อผู้เอาประกัน',
+                        data: 'InsuredName',
+                        className: 'h-dt-center',
+                        orderable: true,
+                    },
+
+                    {
+                        title: 'ชื่อผู้ชำระเบี้ย',
+                        data: 'PayerName',
+                        className: 'h-dt-center',
+                        orderable: true,
+                    },
+                    {
+                        title: 'บัตรประชาชนผู้ชำระเบี้ย',
+                        data: 'CardId',
+                        orderable: true,
+                    },
+                    {
+                        title: 'เบอร์โทรผู้ชำระเบี้ย',
+                        data: 'PayerPhone',
+                        orderable: true,
+
+                    },
+                    {
+                        title: 'DCR', data: 'Period', width: '10%',
+                        orderable: true,
+                        render: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY");
+                            }
+                        }
+
+                    },
+                    {
+                        title: 'ผลการพิจารณา',
+                        data: 'AuditInsureConsiderStatusDetail',
+                        width: '12%',
+                        orderable: true,
+                    },
+                    {
+                        title: 'เฝ้าระวัง',
+                        data: 'IsBeware',
+                        orderable: true,
+                        render: function (data) {
+                            switch (data) {
+                                case true:
+                                    return '<label class="label" style="color:red; font-size: 15px;align-items: center;" >มี</label>';
+                                    break;
+                                case false:
+                                    return '<label class="label" style="color:green; font-size: 15px;align-items: center;" >ไม่มี</label>';
+                                    break;
+                                default:
+                                    return '<span class="label label-default">รอข้อมูล</span>';
+                                    break;
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        width: '20%',
+                        render: function (data) {
+
+                            if (data.AuditInsureClose == true) {
+                                return `<button type="button" class="btn btn-info" onclick="openViewDetailConsider(${data.QueueAuditId})">ดูรายละเอียด</button> <button type="button" class="btn" style="background-color:gray; border-block-color: gray; color:#ffff" onclick="DoEditQueue(${data.QueueAuditId})" disabled>แก้ไข</button>`;
+                            } else if (data.AuditInsureConsiderStatusId == 4 && data.AuditInsureNotConsideredVerifiedType == 4 ) {
+                                return `<button type="button" class="btn btn-info" onclick="openViewDetailConsider(${data.QueueAuditId})">ดูรายละเอียด</button> <button type="button" class="btn" style="background-color:gray; border-block-color: gray; color:#ffff" onclick="DoEditQueue(${data.QueueAuditId})" disabled>แก้ไข</button>`;
+
+                            } else {
+                                return `<button type="button" class="btn btn-info" onclick="openViewDetailConsider(${data.QueueAuditId})">ดูรายละเอียด</button> <button type="button" class="btn btn-warning" onclick="DoEditQueue(${data.QueueAuditId})">แก้ไข</button>`;
+
+                            }
+                        }
+                    }],
+                bLengthChange: false,
+                'columnDefs': [
+                    {
+                        "targets": "_all", // your case first column
+                        "className": "text-center",
+                    }]
+
+            });
+            window.onresize = function () {
+                t.columns.adjust().responsive.recalc();
+            };
+        }
+
+
+        const getQueueInsuerDCRCount = () => {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetQueueInsuerDCRCount")",
+                data: {
+                    auditInsureStatusId: 2,
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+
+                    if (data.length !== 0) {
+                        for (var i = 0; i < data.length; i++) {
+                            let periodFormatted = moment(data[i].Period).format("D/M");
+                            let safeSelector = `[id='getQueueInsuerDCRCount_${periodFormatted}']`; // Safe selector
+                            $(safeSelector).html(`
+                            <span class="pull-right badge bg-red" id="WrControls">${data[i].TotalCount}</span>
+                    `);
+                        }
+                    }
+                }
+            });
+        };
+
+        const SelectDCR = (dcr) => {
+            $("#txtApp_Complete").val('');
+            $("#txtCustName_Complete").val('');
+            $("#txtPayerName_Complete").val('');
+            $("#txtApp_Wait").val('');
+            $("#txtCustName_Wait").val('');
+            $("#txtPayerName_Wait").val('');
+            dateDCR = moment(dcr, "DD-MM-YYYY").format("DD/MM/YYYY");
+            DoShowGrid(dateDCR);
+            DoShowGridConsidered(dateDCR);
+            // อัปเดตค่า hidden input
+            document.getElementById("hiddenSelectDCR").value = dcr;
+
+            // เอาคลาส 'selected' ออกจากปุ่มอื่นๆ
+            document.querySelectorAll(".wrimagecard-topimage").forEach(function (el) {
+                el.classList.remove("selected");
+            });
+
+            // ใส่คลาส 'selected' ให้ปุ่มที่ถูกเลือก
+            event.currentTarget.classList.add("selected");
+
+
+
+
+        }
+        const openViewDetailCall = (QueueAuditId) => {
+            let c_queueAutditID = window.btoa(QueueAuditId);
+            window.open(`@Url.Action("AuditIndexV2", "Audit")?queueAuditId=${c_queueAutditID}`, '_blank');
+        }
+
+        const openViewDetailConsider = (QueueAuditId) => {
+            let c_queueAutditID = window.btoa(QueueAuditId);
+            window.open(`@Url.Action("AuditViewV2", "Audit")?queueAuditId=${c_queueAutditID}`, '_blank');
+
+        }
+        //เปิดหน้าแก้ไขผลการพิจารณา
+        const DoEditQueue = (QueueAuditId) => {
+            let c_queueAutditID = window.btoa(QueueAuditId);
+            window.open(`@Url.Action("AuditIndexV2", "Audit")?queueAuditId=${c_queueAutditID}`, '_blank');
+        }
+    </script>
+}

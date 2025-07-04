@@ -1,0 +1,339 @@
+﻿
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+
+    <div class="row">
+        <div class="col-lg-12 ">
+
+            @* Search *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="row">
+                            @*สาขา มี 2 เคส 1. disabled default ตาม Login(สิทธิ์ตัวแทน)   2. enabled default ทั้งหมด(สิทธิ์ฝ่ายคัดกรอง)*@
+                            <div class="col-lg-3">
+                                <label>สาขา :</label>
+                                <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlbranch">
+
+                                    @{
+                                        foreach (var item in ViewBag.Role)
+                                        {
+                                            if (item == "Developer" || item == "PAPersonnel_PAUnderwrite")
+                                            {
+                                                <option value="-1">--ทั้งหมด--</option>
+                                            }
+                                        }
+                                    }
+                                    @{
+                                        foreach (var item in ViewBag.Branchs)
+                                        {
+                                            <option value="@item.BranchID">@item.Branch</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            @*สถานะขอเพิ่มรายชื่อ default รออนุมัติ*@
+                            <div class="col-lg-3">
+                                <label>สถานะขอเพิ่มรายชื่อ :</label>
+                                <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlStatusPersonnelEndorse">
+                                    @{
+                                        foreach (var item in ViewBag.StatusPAPersonnelEndorse)
+                                        {
+                                            if (item.ApproveStatusId == 2)
+                                            {
+                                                <option selected="selected" value="@item.ApproveStatusId">@item.ApproveStatus</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@item.ApproveStatusId">@item.ApproveStatus</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            @*ปีการศึกษา*@
+                            <div class="col-lg-3">
+                                <label>ปีการศึกษา :</label>
+                                <select class="form-control select2" style="width: 100%" tabindex="-1" aria-hidden="true" id="ddlYear">
+                                    @{
+                                        var currentYear = ViewBag.CurrentYear;
+                                        foreach (var item in ViewBag.PolicyYear)
+                                        {
+                                            <option value="@item.Code">@item.Detail</option>
+
+
+                                            @*if (item.Code == currentYear)
+                                            {
+                                                <option value="@item.Code" selected="selected">@item.Detail</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@item.Code">@item.Detail</option>
+                                            }*@
+
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            @*ค้นหาจากเลข App PA ยิ้มแฉ่ง หรือชื่อสถานศึกษา*@
+                            <div class="col-lg-6">
+                                <label>ค้นหาจากเลข App PA ยิ้มแฉ่ง หรือชื่อสถานศึกษา :</label>
+                                <input type="text" class="form-control" id="txtApplicationCode" />
+                            </div>
+                            @*ปุ่ม ค้นหา*@
+                            <div class="col-lg-3" style="padding-top:25px">
+                                <button type="button" style="text-decoration:none" class="btn btn-primary" id="btnSearch"><i class="fa fa-fw fa-search"></i> ค้นหา</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Detail *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียดรายการ</h3>
+                </div>
+                <div class="box-body">
+                    <div class="box-group">
+                        <table id="dtAddCustomerMonitor" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                    </div>
+                </div>
+            </div>
+
+            @*ปุ่ม บันทึกขอเพิ่มรายชื่อ  แยกตามสิทธิ์เห็นแค่ ตัวแทน link to UI 13*@
+            <div class="row">
+                <div class="col-lg-12" style="padding-top:25px">
+                    @*@{
+            foreach (var item in ViewBag.Role)
+            {
+                if (item == "Developer" || item == "PAPersonnel_PAUnderwrite")
+                {
+                    <a style="text-decoration:none" class="btn btn-warning" id="btnAddCustomerRequest"><i class="fa fa-plus-circle"></i> บันทึกขอเพิ่มรายชื่อ</a>
+                }
+            }
+        }*@
+                    <a style="text-decoration:none" class="btn btn-warning" id="btnAddCustomerRequest"><i class="fa fa-plus-circle"></i> บันทึกขอเพิ่มรายชื่อ</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- /.modal-dialog -->
+    <div class="modal fade in" id="modal-RemarkDetail" style="display: none;">
+        <div class="modal-dialog">
+            <div class="box box-danger">
+                <div class="box-header with-border" style="background-color:#ff0000 ; color:white">
+                    <h3 class="box-title">ไม่อนุมัติขอเพิ่มรายชื่อ</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <label>สาเหตุการไม่อนุมัติ : </label>
+                        </div>
+                        <div class="col-lg-12">
+                            <input type="text" id="txtCause" class="form-control" disabled>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-lg-12">
+                            <label>หมายเหตุ <label style="color:red">*</label> : </label>
+                        </div>
+                        <div class="col-lg-12">
+                            <textarea id="txtRemark" class="form-control" rows="5" disabled></textarea>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;text-align:center">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+@section ViewSpecificJavaScript{
+    <script type="text/javascript">
+
+        //-----------------------------------------------------------------Global Variables-----------------------------------------------------------------
+
+        var v_role = '@ViewBag.RoleList';
+        var arr = v_role.split(',');
+         //-----------------------------------------------------------------Update Main Function-----------------------------------------------------------------
+
+
+             $(document).ready(function () {
+           var chat = $.connection.myHub;
+             debugger;
+             //Start Connection
+             $.connection.hub.start().done(function () {
+                 //join group
+                 chat.server.joinGroup(@ViewBag.userID);
+
+             });
+
+             //Show addNewNotice to client
+             chat.client.sendNoticeResult = function (Str1, Str2) {
+                 debugger;
+
+                 GetDataTable();
+                 //window.location.reload();
+
+             };
+     });
+        //-----------------------------------------------------------------Main Function-----------------------------------------------------------------
+        $(function () {
+
+            $('.select2').select2();
+
+            //Initial Functions
+            InitialBranchsDDL();
+
+            //Button Events
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                GetDataTable();
+            });
+            $('#btnAddCustomerRequest').click(function (e) {
+                //Link to UI13 AddCustomerManage
+                window.open('@Url.Action("AddCustomerManage", "PAPersonnelEndorse")' , '_blank');
+            });
+        });
+
+
+        //-----------------------------------------------------------------Funtions-----------------------------------------------------------------
+
+        const InitialBranchsDDL = () => {
+            if (jQuery.inArray("Developer", arr) !== -1 || jQuery.inArray("PAPersonnel_PAUnderwrite", arr) !== -1) {
+                $('#ddlbranch').disabled = false;
+            } else {
+                $('#ddlbranch').disabled = true;
+            }
+        }
+
+        // Get data table
+        const GetDataTable = () => {
+
+            $('#dtAddCustomerMonitor').empty();
+
+            $('#dtAddCustomerMonitor').DataTable({
+                pageLength: 5,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetApplicationRoundMonitor", "PAPersonnelEndorse")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.branchId = $('#ddlbranch').val() == -1 ? null : $('#ddlbranch').val() ;
+                        d.appRoundStatusIdList = $('#ddlStatusPersonnelEndorse').val();
+                        d.year = $('#ddlYear').val();
+                        d.searchDetail = $('#txtApplicationCode').val();
+
+                    }
+                },
+                async: false,
+                columns: [
+                    { title: 'รหัสรายการ', data: 'PersonnelApplicationRoundCode', className: 'h-dt-center d-dt-center', width: '17%' },
+                    { title: 'App ID', data: 'PersonnelApplicationCode', className: 'h-dt-center d-dt-center' },
+                    { title: 'สถานศึกษา', data: 'PersonnelApplicationName', className: 'h-dt-center ' },
+                    { title: 'จำนวนผู้เอาประกันที่ขอเพิ่ม', data: 'CustomerCount', className: 'h-dt-center ' },
+                    {
+                        title: 'วันที่เริ่มคุ้มครอง', data: 'StartCoverDate', className: 'h-dt-center ',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'year').format("DD/MM/YYYY", "LLLL")
+                        }
+                    },
+                    {
+                        title: 'วันที่มีผลบังคบ', data: 'RoundEffectiveDate', className: 'h-dt-center ',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'year').format("DD/MM/YYYY", "LLLL")
+                        }
+                    },
+                    {
+                        title: 'สถานะขอเพิ่มรายชื่อ',
+                        data: 'ApproveStatus',
+                        className: 'h-dt-center '
+                    },
+                    {
+                        title: 'สาเหตุการไม่อนุมัติ',
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) => {
+                            //โชว์ปุ่มตามสถานะ
+                            // ไม่อนุมัติ show ปุ่ม สาเหตุ
+                            // else hide ปุ่ม สาเหตุ
+                            if (data.PersonnelApplicationRoundStatusId == 5) {
+                                let str = data.PersonnelApplicationRoundApproveRemark;
+                                if (str != null && str != "") {
+                                    str = str.replaceAll('.', /\r/).replaceAll('/', '');
+                                }
+                                return '<a onclick="ShowDialogRemarkDetail(\'' + data.ApproveCause + '\',\'' + str + '\');" class="btn btn-danger btn-sm" target="_blank"><i class="fa fa-info-circle"></i> สาเหตุ </a>';
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    {
+                        data: null,
+                        mRender: (data, type, full) => {
+                            //โชว์ปุ่มตามสถานะ link to UI15 AddCustomerApprove parameter = PK App_ID
+                            // ตัวแทน = ปุ่ม ดูรายละเอียด
+                            // ฝ่ายรับประกัน Underwrite  = ปุ่ม ตรวจสอบ
+                            let en_RoundId = window.btoa(data.PersonnelApplicationRoundId);
+
+                            if (data.PersonnelApplicationRoundApproveStatusId == "2") {
+                                if (jQuery.inArray("Developer", arr) !== -1 || jQuery.inArray("PAPersonnel_PAUnderwrite", arr) !== -1) {
+                                    return '<a href="@Url.Action("AddCustomerApprove", "PAPersonnelEndorse")?roundId=' + en_RoundId + '" class="btn btn-warning btn-sm" target="_blank"><i class="fa fa-fw fa-desktop"></i> ตรวจสอบ </a>';
+                                } else {
+                                    return '<a href="@Url.Action("AddCustomerApprove", "PAPersonnelEndorse")?roundId=' + en_RoundId + '" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-eye"></i> ดูรายละเอียด </a>';
+                                }
+                            } else {
+                                return '<a href="@Url.Action("AddCustomerApprove", "PAPersonnelEndorse")?roundId=' + en_RoundId + '" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-eye"></i> ดูรายละเอียด </a>';
+                            }
+
+
+                        }, width: '5%'
+                    },
+
+                ],
+                bLengthChange: false,
+            })
+        }
+
+        // Dialog
+        const ShowDialogRemarkDetail = (PersonnelApplicationRoundApproveCause, PersonnelApplicationRoundApproveRemark) => {
+            //GetRemarkDetail
+            if (PersonnelApplicationRoundApproveCause == null) {
+                PersonnelApplicationRoundApproveCause == ""
+            }
+            if (PersonnelApplicationRoundApproveRemark == null) {
+                PersonnelApplicationRoundApproveRemark == ""
+            }
+            $('#modal-RemarkDetail').modal('show');
+            $('#txtCause').val(PersonnelApplicationRoundApproveCause);
+            $('#txtRemark').val(PersonnelApplicationRoundApproveRemark);
+        }
+
+    </script>
+}

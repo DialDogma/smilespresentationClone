@@ -1,0 +1,45 @@
+﻿@using WebHelpers.Mvc5
+@using RoadsideAssistance.Models
+@{
+
+    var userDetail = RoadsideAssistance.Helper.GlobalFunction.GetLoginDetail(Context);
+
+}
+<aside class="main-sidebar">
+    <section class="sidebar">
+        @* BEGIN Menu *@
+        <ul class="sidebar-menu" data-widget="tree">
+            <li class="header">HEADER</li>
+            @* Start Menu *@
+            @{var username = userDetail.UserName;
+                if (username != null)
+                {
+                    //Get menu by roles
+                    var menus = MenuRoles.GetMenuByUserName(userDetail.UserName, userDetail.Branch_ID);
+
+                    var parentMenus = menus.ToList().Where(x => x.MainMenuId == 0);
+
+                    //Load Parent Menu Level 0
+                    foreach (var parent in parentMenus)
+                    {
+                        //Get Child Level 1
+                        var lstLevel1 = menus.ToList().Where(x => x.MainMenuId == parent.MenuId).OrderBy(x => x.SortOrder);
+
+                        if (!lstLevel1.Any())
+                        {
+                            //Render Parent without children (as a menu)
+                            if (!string.IsNullOrEmpty(parent.QueryString))
+                            {
+
+                            }
+                            <li>
+                                <a href="@Url.Action(parent.Action, parent.Controller)"><i class="@parent.IconClassMenu"></i> <span>@parent.Detail</span></a>
+                            </li>
+                        }
+                    }
+                }
+            }
+        </ul>
+        @* END Menu *@
+    </section>
+</aside>

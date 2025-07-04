@@ -1,0 +1,70 @@
+﻿@*
+    Parameters: ViewBag.AppId
+    Functions: GetDebt_dt(appId)
+*@
+
+@using SmileSCriticalIllness.Models
+
+@{
+    using (var db = new CriticalIllnessEntities())
+    {
+        string appId = ViewBag.AppId.ToString();
+        var appDetail = db.usp_ApplicationDetail_Select(null, null, null, null, null, null, null, appId, null, null, 99, null, null, null).FirstOrDefault();
+        var calculateBMI = db.usp_CalculateBMI_Select(appDetail.ApplicationId, appDetail.StartCoverDate).FirstOrDefault().Msg;
+
+        @* Application detail form *@
+        <div id="ApplicationDetail_form">
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียดกรมธรรม์</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-3 col-md-3">
+                            <label class="control-label">Application ID:</label> <span id="txtAppId">@appDetail.ApplicationCode</span>
+                        </div>
+                        <div class="col-sm-3 col-md-3">
+                            <label class="control-label">เลขกรมธรรม์:</label> <span id="txtPolicyId">@appDetail.CurrentPolicyNo</span>
+                        </div>
+                        <div class="col-sm-3 col-md-3">
+                            <label class="control-label">แผนประกัน:</label> <span id="txtPlan">@appDetail.Product</span>
+                        </div>
+                        <div class="col-sm-3 col-md-3">
+                            <label class="control-label">เบี้ยประกัน:</label> <span id="txtPremium">@appDetail.PremiumPerPolicy</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-3 col-md-3">
+                            <label class="control-label">บริษัทประกัน:</label> <span id="txtInsCompany">@appDetail.InsuranceCompany</span>
+                        </div>
+                        <div class="col-sm-3 col-md-3">
+                            <label class="control-label">ทุนประกัน:</label> <span id="txtPlanBenefit">@appDetail.MaxCover</span>
+                        </div>
+                        <div class="col-sm-3 col-md-3">
+                            <label class="control-label">เริ่มคุ้มครอง:</label> <span id="txtStartCoverDate">@(appDetail.StartCoverDate != null ? appDetail.StartCoverDate.Value.ToString("dd/MM/yyyy") : "")</span>
+                        </div>
+                        <div class="col-sm-3 col-md-3">
+                            <label class="control-label">สิ้นสุด:</label> <span id="txtEndCoverDate">@(appDetail.EndCoverDate != null ? appDetail.EndCoverDate.Value.ToString("dd/MM/yyyy") : "")</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-3 col-md-3">
+                            <label class="control-label">สถานะกรมธรรม์:</label> <span id="txtAppStatus">@appDetail.ApplicationStatus</span>
+                        </div>
+                        <div class="col-sm-3 col-md-3">
+                            <label class="control-label">ผลการพิจารณา:</label> <span id="txtAppUDWStatus">@appDetail.ApplicationUnderwriteStatus</span>
+                        </div>
+                        <div class="col-sm-3 col-md-3">
+                            <label class="control-label">BMI:</label> <span id="txtBMI">@calculateBMI</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end application detail *@
+    }
+
+}

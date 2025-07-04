@@ -1,0 +1,418 @@
+﻿@{
+    ViewBag.Title = " Approve Refund";
+
+}
+<style>
+
+    .table {
+        font-size: 14px;
+    }
+
+    .toolbar {
+        float: left;
+    }
+</style>
+<div class="row">
+    @* search *@
+    <div id="Search_form" class="col-xs-12 col-md-12">
+        <div class="box box-primary">
+            <div class="box-body">
+                <div class="form-group row">
+                    <div class="col-xs-10 col-md-offset-2 col-md-5">
+                        <label class="control-label" for="">สถานะคำขอ :</label>
+                        <select class="form-control" id="select_refundStatus">
+                            <option value="-1">---ทั้งหมด---</option>
+                            @foreach (var itm in ViewBag.refundType)
+                            {
+                                if (itm.RefundApproveStatusId == 2)
+                                {
+                                    <option value="@itm.RefundApproveStatusId" selected="selected">@itm.RefundApproveStatus</option>
+                                }
+                                else
+                                {
+                                    <option value="@itm.RefundApproveStatusId">@itm.RefundApproveStatus</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* DT form *@
+    <div id="dt_form" class="col-xs-12 col-md-12">
+        <div class="box box-default">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <table id="dtRefundList" name="dtRefundList" class="table table-bordered table-striped" style="width: 100%"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end form *@
+</div>
+<!-- Modal -->
+<div class="modal fade bd-cashback-modal-lg" id="cashbackModal" tabindex="-1" role="dialog" aria-labelledby="cashbackModal" aria-hidden="true">
+    <div class="modal-dialog  modal-lg " role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">ข้อมูลการคืนเงิน</h4><input type="hidden" id="hd_refundId" value="" />
+            </div>
+            <div class="modal-body">
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-1 col-md-6">
+                        <p>AppCode :<span class="labelData" id="lblAppCode"></span></p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-1 col-md-5">
+                        <p>ชื่อผู้เอาประกัน :<span class="labelData" id="lblCusName"></span></p>
+                    </div>
+                    <div class="col-xs-12 col-md-5">
+                        <p>ชื่อผู้ชำระเบี้ย :<span class="labelData" id="lblPayerName"></span></p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-1 col-md-5">
+                        <p>แผน :<span class="labelData" id="lblPlan"></span></p>
+                    </div>
+                    <div class="col-xs-12 col-md-5">
+                        <p>เบี้ย :<span class="labelData" id="lblPremium"></span></p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-1 col-md-5">
+                        <p>สถานะ App :<span class="labelData" id="lblStatus"></span></p>
+                    </div>
+                    <div class="col-xs-12 col-md-5">
+                        <p>ยอดเงินคงเหลือ :<span class="labelData" id="lblPaymentAmount"></span></p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-1 col-md-6">
+                        <p>Link SSS URL :<a class="labelData" target="_blank" id="lblSSSLink" href=""> Click Link Here </a></p>
+                    </div>
+                </div>
+                <div class="form-group row ">
+                    <div class="col-xs-12 col-md-6">
+                        <h4>รายละเอียดการคืนเงิน</h4>
+                    </div>
+                    <div class="col-xs-12 col-md-5">
+                        <h5 class="control-label" for="">วิธีการคืนเงิน :<span id="lblRefundType"></span></h5>
+                    </div>
+                </div>
+                <div id="sub_Transfer">
+                    <div class="form-group row">
+                        <div class="col-xs-12 col-md-offset-1 col-md-5">
+                            <p>ธนาคาร :<span id="lblBank"></span></p>
+                        </div>
+                    </div>
+                    <div class="form-group row ">
+                        <div class="col-xs-12 col-md-offset-1 col-md-5">
+                            <p>
+                                เลขที่บัญชี :<span id="lblBankAccountNo"></span>
+                            </p>
+                        </div>
+                        <div class="col-xs-12 col-md-5">
+                            <p>
+                                ชื่อบัญชี :<span id="lblBankAccountName"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div id="sub_Check">
+                    <div class="form-group row">
+                        <div class="col-xs-12  col-md-offset-1 col-md-5">
+                            <p>สั่งจ่ายในนาม :<span id="lblCheckName"></span></p>
+                        </div>
+                        <div class="col-xs-12  col-md-5">
+                            <p>ที่อยู่ :<span id="lblCheckAddress"></span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-1 col-md-5 ">
+                        <p>จำนวนเงิน :<span id="lblRefundAmount"></span></p>
+                    </div>
+                    <div class="col-xs-12 col-md-5">
+                        <p>สาเหตุการคืนเงิน :<span id="lblCause"></span></p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-1 col-md-12 ">
+                        <p>หมายเหตุ :<span id="lblRemark"></span></p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-12">
+                        <table id="dtScanDoc" name="dtScanDoc" class="table table-bordered table-striped" style="width: 100%"></table>
+                    </div>
+                    <div class="col-xs-2 col-md-2 pull-right">
+                        <button type="button" class="btn btn-block btn-info" id="btnRefresh" onclick="RefreshDoc()">Refresh</button>
+                    </div>
+                </div>
+                <div class="form-group row ">
+                    <div class="col-xs-12 col-md-12">
+                        <h4>พิจารณาคำขอคืนเงิน</h4>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-1 col-md-12">
+                        <div class="col-md-5">
+                            <input type="radio" class="iradio_minimal-blue " name="chk_Approve" id="chk_Approve_Pass" value="1" /><label for="chk_Approve_Pass">อนุมัติ</label>
+                        </div>
+                        <div class="col-md-5">
+                            <input type="radio" class="iradio_minimal-blue" name="chk_Approve" id="chk_Approve_UnPass" value="2" /><label for="chk_Approve_UnPass">ไม่อนุมัติ</label>
+                        </div>
+                        <input type="hidden" id="hd_Approve" value="approve" />
+                    </div>
+                </div>
+                <div id="sub_UnApprove">
+                    <div class="form-group row">
+                        <div class="col-xs-12 col-md-offset-1 col-md-10 ">
+                            <label class="control-label">เหตุผล :</label>
+                            <select class="form-control" id="select_UnApproveType">
+                                <option value="-1">---กรุณาเลือกเหตุผลการปฎิเสธ---</option>
+                                @foreach (var itm in ViewBag.rejectTypeList)
+                                {
+                                    <option value="@itm.RefundUnApproveCauseId">@itm.RefundUnApproveCause</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-1 col-md-10 ">
+                        <label class="control-label" for="">หมายเหตุ</label>
+                        <textarea id="txtUnApproveRemark" class="form-control" rows="3" placeholder="กรุณากรอกหมายเหตุ"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-sm-offset-3 col-sm-3">
+                    <button type="button" class="btn btn-block btn-success" onclick="ValidateApprove()">ยืนยัน</button>
+                </div>
+                <div class="col-sm-3">
+                    <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ยกเลิก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@* end modal *@
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            GetRefund_DT($('#select_refundStatus').val());
+
+            $('#select_refundStatus').change((e) => {
+                GetRefund_DT($('#select_refundStatus').val());
+            });
+
+            $('#chk_Approve_Pass').iCheck('check');
+            $('#hd_Approve').val('3');
+            $('#sub_UnApprove').hide();
+            //show and hide input type
+            $('#chk_Approve_Pass').on('ifChecked', function (e) {
+                $('#sub_UnApprove').hide();
+                $('#sub_UnApprove select').val(-1);
+                $('#hd_Approve').val('3');
+            });
+            $('#chk_Approve_UnPass').on('ifChecked', function (e) {
+                $('#sub_UnApprove').show();
+                $('#hd_Approve').val('4');
+            });
+        });
+
+        const ValidateApprove = () => {
+            if ($('#hd_refundId').val() == '') {
+                return swal_fail('เกิดข้อผิดพลาด กรุณาลองอีกครั้ง');
+            }
+            if ($('#hd_Approve').val() == '4') {
+                if ($('#select_UnApproveType').val() == -1) {
+                    return swal_fail('กรุณาเลือกหมายเหตุการยกเลิก');
+                }
+                if ($('#txtUnApproveRemark').val() == '') {
+                    return swal_fail('กรุณาระบุหมายเหตุ');
+                }
+                return SubmitRefund();
+            } else {
+                return SubmitRefund();
+            }
+
+        }
+
+        const GetRefund_DT = (statusId) => {
+            $('#dtRefundList').empty();
+            var tbl = $('#dtRefundList').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetRefundMonitor","RefundPayment")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.refundApproveStatusIdList = statusId;
+                    }
+                },
+                columns: [
+                    { title: 'ApplicationCode', data: 'ApplicationCode' },
+                    { title: 'ชื่อผู้ชำระเบี้ย', data: 'PayerName' },
+                    { title: 'ช่องทาง',data:'RefundType'},
+                    { title: 'จำนวนเงิน', data:'Amount'},
+                    { title: 'สถานะคำขอ', data:'RefundApproveStatus'},
+                    {
+                        title: 'วันที่บันทึกคำขอ', data:'CreatedDate',
+                        render: function (data) {
+                            if (data != null) {
+                                let sendDate = moment(data)._d;
+                                let yearBE = sendDate.getFullYear() + 543;
+                                let sendDateBE = moment(sendDate.setFullYear(yearBE)).format("DD/MM/YYYY HH:mm");
+                                return sendDateBE;
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    {
+                        title: 'จัดการ', data:null,
+                        render: function (data) {
+                            if (data.RefundApproveStatusId == 3||data.RefundApproveStatusId == 4) {
+                                return '';
+                            } else {
+                                return '<button class="btn btn-block btn-info" id="btnCashback_'+data.RefundRequestId+'" onclick="LoadRefundData(\''+data.ApplicationCode+'\');RefundDetail('+data.RefundRequestId+')"' +
+                                    ' data-toggle="modal" data-target=".bd-cashback-modal-lg">ตรวจสอบ</button>';
+                            }
+
+                        }
+                    }
+                ]
+            });
+        }
+
+        const LoadRefundData = (AppCode) => {
+            //app detail
+            $.get('@Url.Action("GetApplicationDetail","RefundPayment")', {applicationCode:AppCode}, (data) => {
+                $('#lblAppCode').text(data.ApplicationCode);
+                $('#lblCusName').text(data.CustomerName);
+                $('#lblPayerName').text(data.PayerName);
+                $('#lblPlan').text(data.Product);
+                $('#lblPremium').text(data.Premium);
+                $('#lblStatus').text(data.AppStatus);
+                $('#lblPaymentAmount').text(data.ReserveAccountAmountBalance);
+                $('#lblSSSLink').attr('href',data.LinkSSSURL);
+
+                //RefundDetail(data.ReserveAccountId);
+            });
+
+        }
+
+        const RefundDetail = (refundId) => {
+            //refund detail
+            $.get('@Url.Action("GetRefundDetail","RefundPayment")',
+                { refundRequestId: refundId}
+                , (data) => {
+                    if (data.RefundTypeId == 4) {
+                        $('#sub_Transfer').show();
+                        $('#sub_Check').hide();
+                    } else {
+                        $('#sub_Transfer').hide();
+                        $('#sub_Check').show();
+                    }
+                    $('#lblRefundType').text(data.RefundType);
+                    $('#lblBank').text(data.Bank);
+                    $('#lblBankAccountNo').text(data.BankAccount);
+                    $('#lblBankAccountName').text(data.BankAccountName);
+                    $('#lblCheckName').text(data.ChequeName);
+                    $('#lblCheckAddress').text(data.ChequeAddress2);
+                    $('#lblRefundAmount').text(data.Amount);
+                    $('#lblCause').text(data.RefundCause);
+                    $('#lblRemark').text(data.RequestRemark);
+                    $('#hd_refundId').val(refundId);
+                    GetDocDT(refundId);
+            });
+        }
+
+        const SubmitRefund = () => {
+
+            swal_confirm('ยืนยันบันทึกรายการ', 'ยืนยันผลการตรวจสอบ?', () => {
+                $.post('@Url.Action("ApproveRefund","RefundPayment")',
+                    {
+                        refundRequestId: $('#hd_refundId').val(),
+                        refundApproveStatusId: $('#hd_Approve').val(),
+                        refundUnApproveCauseId: $('#select_UnApproveType').val(),
+                        approveRemark:$('#txtUnApproveRemark').val()
+                    },
+                    (data) => {
+                    if (data.IsResult) {
+                        swal_success('ทำรายการสำเร็จ');
+                        return setTimeout(() => { window.location = '@Url.Action("ApproveRefund","RefundPayment")'; }, 1500);
+                    } else {
+                        return swal_fail(data.Msg);
+                    }
+                });
+            });
+        }
+        const GetDocDT = () => {
+            $('#dtScanDoc').empty();
+            var tbl = $('#dtScanDoc').DataTable({
+                pageLength: 10,
+                paging:false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetDocument","RefundPayment")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 99;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.refundRequestId =$('#hd_refundId').val();
+                    }
+                },
+                columns: [
+                    { title: 'Document Code', data: 'CustomerDocumentCode' },
+                    { title: 'ประเภทเอกสาร', data: 'CustomerDocumentType' },
+                    {
+                        title: 'จำนวนเอกสาร', data: null ,
+                        render: function (data) {
+                            return '<a target="_blank" href="'+data.UrlOpen+'" class="btn btn-block btn-success">จำนวนเอกสาร:'+data.DocumentFileCount+'</a>';
+                        }
+                    },
+                    {
+                        title: 'จัดการ', data:null,
+                        render: function (data) {
+                            if (data.AmountBalance == 0) {
+                                return '';
+                            } else {
+                                return '<a target="_blank" href="'+data.UrlScan+'" class="btn btn-block btn-info">Scan Doc</a>';
+                            }
+
+                        }
+                    }
+                ]
+            });
+        }
+
+        const RefreshDoc = () => {
+            GetDocDT();
+        }
+    </script>
+}

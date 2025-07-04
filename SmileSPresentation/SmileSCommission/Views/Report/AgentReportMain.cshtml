@@ -1,0 +1,216 @@
+﻿@{
+    ViewBag.Title = "สอบทานผลงานตัวแทน";
+
+}
+<style>
+    .table {
+        font-size: 14px
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* Search form *@
+        <div class="col-sm-12" id="Search_form">
+            <div class="box box-default">
+                <div class="box-header">
+                    <h3 class="box-title">ค้นหา</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-offset-1 col-sm-3">
+                            <label for="" class="control-label">ประจำเดือน/ปี:</label>
+                            <select class="select2 form-control" id="select_period">
+                                <option value="-1">---กรุณาเลือกงวดค่าตอบแทน---</option>
+                                @foreach(var itm in ViewBag.periodList)
+                                {
+                                    <option value="@itm.Id">@itm.PayPeriod:@itm.Description</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-3">
+
+                            <label for="" class="control-label">รหัสพนักงาน:</label>
+                            <select id="select_emp" class="select2 emp-data-ajax form-control"></select>
+                        </div>
+                        <div class="col-sm-2 " style="margin-top: 24px">
+                            <button type="button" class="btn btn-block btn-info" id="btnShow">ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end form *@
+        @* Result form *@
+        <div class="col-sm-12" id="Result_form">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class=" col-sm-3 pull-right">
+                            <button type="button" class="btn btn-block btn-info" id="btnDetail">รายละเอียด</button>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtModelP" name="dtModelP" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end form *@
+    </div>
+    @* hidden *@
+    <input type="hidden" id="hd_isHasAuthen" value="@ViewBag.IsHasAuthen" />
+    <input type="hidden" id="hd_empCode" value="@ViewBag.empCode" />
+    <input type="hidden" id="hd_empFullName" value="@ViewBag.empFullName" />
+    @* end *@
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('#Result_form').hide();
+            //check role to enable search employee
+            if ($('#hd_isHasAuthen').val() != "true") {
+                $('#select_emp').prop('disabled', true);
+                //set default option
+                var $option = $('<option></option>')
+                    .attr('value', $("#hd_empCode").val())
+                    .text($("#hd_empCode").val() + ':' + $('#hd_empFullName').val())
+                    .prop('selected', true);
+                $('#select_emp').append($option).change();
+            } else {
+                SetSelect2DDL();
+            }
+            //activate bootstrap tooltip
+            $("[data-toggle=tooltip]").tooltip();
+            //select datepicker year
+            $('#yearSelect').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker("setDate", new Date());
+
+            $('#btnShow').click(function () {
+                if ($('#select_period').val() == -1 || $('#select_emp').val() == null) {
+                    swal_info("กรุณากรอกคำค้นหา");
+                } else {
+                     GetModelDetail();
+                    $('#Result_form').show();
+                }
+
+            });
+
+            $('#btnDetail').click(function () {
+                window.open("@Url.Action("AgentReport","Report")?empCode="+$('#select_emp').val()+"&periodId="+$('#select_period').val());
+            });
+
+        });
+
+         //get datatable period
+        const GetModelDetail = () => {
+            $('#dtModelP').empty();
+            var groupColumn = 0;
+            var table = $('#dtModelP').DataTable({
+                lengthChange: false,
+                info:false,
+                sortable: false,
+                paginate:false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetParamValue_DT","Report")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 99999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.periodId = $('#select_period').val();
+                        d.mainKey = $('#select_emp').val();
+                    }
+                },
+                order: [[groupColumn, 'asc']],
+                columnDefs: [
+                    { "visible": false, "targets": groupColumn }
+                ],
+                columns: [
+                    { data: 'ModelName' },
+                    {
+                        title: 'รายการ',
+                        data: null,
+                        className:'d-dt-center',
+                        render: function (data) {
+                            if (data.ParamNameDescription != null) {
+                                return '<h5 data-toggle="tooltip" data-placement="top" title="'+data.ParamNameDescription+'">'+data.ParamName+'</h5>';
+                            } else {
+                                return '<h5>'+data.ParamName+'</h5>';
+                            }}
+                    },
+                    { title: 'จำนวน', data: 'Value' }
+                ],
+
+                displayLenght: 30,
+                //draw header group by ท่านบูม
+                drawCallback: function (settings) {
+                    var api = this.api();
+                    var rows = api.rows({ page: 'current' }).nodes();
+                    var last = null;
+
+                    //draw tooltip here only
+                    $("[data-toggle=tooltip]").tooltip();
+
+                    api.column(groupColumn, { page: 'current' }).data().each(function (group, i) {
+
+                    if (last !== group) {
+
+                            $(rows).eq(i).before(
+                                '<tr class="group info"><td colspan="2" class="d-dt-center"><h4>' + group  + '</h4></td></tr>'
+                            );
+
+                            last = group;
+                        }
+                    });
+                }
+            });
+
+        }
+        //set select2 auto complete
+        const SetSelect2DDL = () => {
+            $('#select_emp').select2({
+                ajax: {
+                    url: '@Url.Action("GetEmployeeData","Report")',
+                    dataType: 'json',
+                    delay:250,
+                    data: function (params) {
+                        return {
+                             empCode: params.term, // search term
+                            page: params.page
+                        }
+                    },
+                    processResults: function (data, search) {
+                        return {
+                            results: $.map(data, function (item) {
+                                return {
+                                    id: item.EmployeeCode,
+                                    text:item.EmployeeCode + ' : '+item.FirstName +' '+item.LastName
+                                }
+                            })
+                        };
+                    },
+                    cache:true
+                },
+                 templateResult: function (item) {
+                    if (item.loading) return item.text;
+                    return item.text;
+                },
+                placeholder: 'กรุณากรอกรหัสพนักงาน',
+                escapeMarkup: function (markup) { return markup; },
+                minimumInputLength: 3,
+                language: { inputTooShort: function () { return 'กรุณาใส่ตัวอักษรมากกว่า2หลัก'; } }
+
+            });
+        }
+    </script>
+}

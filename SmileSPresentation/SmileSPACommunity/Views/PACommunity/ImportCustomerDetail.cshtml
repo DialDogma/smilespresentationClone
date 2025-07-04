@@ -1,0 +1,680 @@
+﻿
+@{
+    ViewBag.Title = "นำเข้ารายชื่อ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@*ImportCustomerDetail*@</h2>
+
+<form class="form-horizontal" id="form1" name="form1" action="@Url.Action("ImportCustomerDetail")" method="post" enctype="multipart/form-data">
+    <div class="row">
+
+        <input type="hidden" id="hdfApplicationRoundID" hidden value="@ViewBag.ApplicationRoundID" />
+
+        <div class="col-xs-12">
+
+
+                <div id="Notification" class="alert alert-danger alert-dismissible" hidden>
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                    <h4><i class="icon fa fa-check"></i> Alert!</h4>
+                    <p><strong>คำเตือน : </strong><div id="diNoti"></div></p>
+                </div>
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">นำเข้ารายชื่อ</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+
+
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="col-xs-3">
+                            <label>Application ID:</label>
+                            <div class="input-group">
+                                <div class="input-group-addon bg-aqua">
+                                    <i class="fa fa-fw fa-heartbeat"></i>
+                                </div>
+                                <input type="text" class="form-control input-sm bg-aqua" disabled id="txtApplicationID" />
+                            </div>
+
+                        </div>
+                        <div class="col-xs-7">
+                            <label>ชื่อกรมธรรม์</label>
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-fw fa-desktop"></i>
+                                </div>
+                                    <input type="text" class="form-control input-sm" disabled id="txtPolicyName" />
+                                </div>
+
+                            </div>
+                            <div class="col-xs-2">
+                                <label>รอบที่</label>
+                                <input type="text" class="form-control input-sm" disabled id="txtRound" />
+                            </div>
+
+                        </div>
+
+                    <div class="box-group clearfix">
+                            @*<div class="col-xs-3" style="padding-top:6px;text-align:right">
+                            <label>จำนวนที่สามารถนำเข้าได้ :</label>
+                            </div>
+                            <div class="col-xs-2" style="padding-top:6px;">
+                            <label>ชำระเบี้ย</label>
+                            <input type="text" class="form-control input-sm" disabled id="txtCustomerBuyImport"/>
+                            </div>
+                            <div class="col-xs-2 " style="padding-top:6px;">
+                            <label>รับสิทธิ์ฟรี</label>
+                            <input type="text" class="form-control input-sm" disabled id="txtCustomerFreeImport"/>
+                            </div>*@
+
+                        <div class="col-xs-3" style="padding-top:16px;text-align:right">
+                            <label>จำนวนที่สามารถนำเข้าได้</label>
+                        </div>
+                        <div class="col-xs-2" style="padding-top:8px;">
+                            <label>ชำระเบี้ย</label> <label id="txtCustomerBuyImport">0</label> <label>คน</label>
+                            <div class="progress xs">
+                                <div class="progress-bar progress-bar-green" role="progressbar" id="pgbCustomerBuyImport" aria-valuenow="0" style="width: 0%" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-2 " style="padding-top:8px;">
+                            <label>รับสิทธิ์ฟรี</label> <label id="txtCustomerFreeImport">0</label> <label>คน</label>
+                            <div class="progress xs">
+                                <div class="progress-bar progress-bar-aqua" role="progressbar" id="pgbCustomerFreeImport" aria-valuenow="0" style="width: 0%" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="box-group clearfix">
+                        <div class="col-xs-3 text-right" style="padding-top:6px;">
+                            <label>เลือกไฟล์เพื่อนำเข้ารายชื่อ</label>
+                        </div>
+                        <div class="col-xs-5" style="padding-top:0px;">
+                            <input type="file" id="ImportFile" name="ImportFile" style="width:100%;" class="form-control">
+                        </div>
+                        <div class="col-xs-2" style="padding-top:0px;">
+                            @*<button type="submit" class="btn btn-primary" style="width:100%">Upload</button>*@
+
+                            <button type="button" class="btn btn-primary" style="width:100%" id="btnupload">อัพโหลด</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="box">
+
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <label>จำนวนคนในไฟล์ : </label>
+                            <label id="lblCustomerinFileCount"></label>
+                            <label>คน</label>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top:6px">
+                        <div class="col-xs-3">
+                            <label>รับประกันภัย : </label>
+                            <label id="lblCustomerNormalCount"></label>
+                            <label>คน</label>
+                        </div>
+                        <div class="col-xs-3" style="color:red">
+                            <label>ไม่รับประกันภัย : </label>
+                            <label id="lblCustomerCancelCount"></label>
+                            <label>คน</label>
+                        </div>
+                        <div class="col-xs-4" style="color:blue">
+                            <label>สิทธิการรับประกันภัยคงเหลือ : </label>
+                            <label id="lblCustomerBalanceCount"></label>
+                            <label>คน</label>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ตรวจสอบรายชื่อ</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+
+
+                <div class="box-body">
+                    <div class="box-group">
+                        <table id="dtCustomerDetail" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                    </div>
+                    <div class="box-group">
+                        <div class="col-xs-12" style="text-align:center">
+                            <button type="button" class="btn btn-success" id="btnComfirmImport" >ยืนยันนำเข้ารายชื่อ</button>
+                            <button type="button" class="btn btn-danger" id="btnClearImport">ล้างข้อมูล เริ่มใหม่ทั้งหมด</button>
+                        </div>
+                    </div>
+                </div>
+
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <input type="hidden" id="hdfTmpCode" hidden />
+</form>
+
+@section ViewSpecificJavascript
+{
+<script>
+
+    let m_validatefile;
+
+
+    $(document).ready(function () {
+        var chat = $.connection.myHub;
+
+        //Start Connection
+        $.connection.hub.start().done(function () {
+
+            debugger;
+            chat.server.joinGroup(@ViewBag.userID);
+
+            $("#btnComfirmImport").click(function (e) {
+                e.preventDefault();
+
+                window.swal({
+                    title: 'ยืนยันการทำรายการหรือไม่?',
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#277020',
+                    confirmButtonText: 'ตกลง',
+                    cancelButtonText: 'ยกเลิก',
+                    closeOnConfirm: false,
+                    closeOnEsc: false,
+                    closeOnCancel: true
+                }, function () {
+
+                    DoConfirmImportFile();
+                    debugger;
+
+                    chat.server.sendNotice("", "");
+                });
+            });
+
+        });
+    });
+
+    $(function () {
+
+        $("#Notification").hide();
+
+        $('#btnComfirmImport').attr("disabled", true);
+        $('#btnClearImport').attr("disabled", true);
+
+
+
+        GetApplicationRoundByID();
+
+        $('#btnupload').click(function (e) {
+            e.preventDefault();
+
+            //Validate
+            debugger;
+            let m_validate = IsvalidateforUpload();
+
+            if (m_validate == "") {
+
+                IsValidatefile();
+
+                //validatefile
+                if (m_validatefile == "") {
+
+                    //Closed button Upload
+                    $('#btnupload').prop('disabled', true);
+                    $('#ImportFile').prop('disabled', true);
+
+                    //Upload File
+                    DoUploadFile();
+
+                    DoCountCustomerDetailByTmpCode();
+
+                } else {
+
+                    $('#dtCustomerDetail').empty();
+                    $("#Notification").show();
+                    $("#diNoti").text(m_validatefile);
+                    $('#btnComfirmImport').attr("disabled", true);
+                    $('#btnClearImport').attr("disabled", true);
+
+                }
+            }
+            else
+            {
+                swal("ตรวจสอบข้อมูล", m_validate, "warning");
+               
+            }
+        });
+
+
+        $('#btnClearImport').click(function (e) {
+            e.preventDefault();
+            window.swal({
+                title: 'ยืนยันการทำรายการหรือไม่?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#277020',
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                closeOnConfirm: false,
+                closeOnEsc: false,
+                closeOnCancel: true
+            }, function () {
+
+                DoDeleteCustomerDetailImport();
+                DoClearCustomerCount();
+
+            });
+
+        });
+
+    });
+
+
+    ///////////////////////// function ////////////////////////////////
+
+    const DoClearCustomerCount = () => {
+        $('#lblCustomerinFileCount').text('');
+        $('#lblCustomerNormalCount').text('');
+        $('#lblCustomerCancelCount').text('');
+        $('#lblCustomerBalanceCount').text('');
+    }
+
+    const DoCountCustomerDetailByTmpCode = () => {
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("GetCustomerDetailByTmpCodeCount", "PACommunity")",
+            data: {
+                tmpCode: $('#hdfTmpCode').val()
+            },
+            async: false,
+            dataType: "json",
+            success: function (response) {
+
+                $('#lblCustomerinFileCount').text(response.RoundImportCount);
+                $('#lblCustomerNormalCount').text(response.RoundImportCount - response.ValidateResultCount);
+                $('#lblCustomerCancelCount').text(response.ValidateResultCount);
+                $('#lblCustomerBalanceCount').text(response.ValidateResultCount);
+            }
+        });
+    }
+
+    const DoUploadFile = () => {
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("ImportCustomerDetail", "PACommunity")',
+            data: function () {
+                var data = new FormData();
+                data.append("file", jQuery("#ImportFile").get(0).files[0]);
+                data.append("applicatonRoundId", $('#hdfApplicationRoundID').val());
+                return data;
+            }(),
+            contentType: false,
+            processData: false,
+            async: false,
+            //dataType: "json",
+            success: function (response) {
+                debugger;
+                //alert(response[0]);
+
+                //console.log(response);
+                debugger;
+                if (response == false) {
+                    //alert("กรุณาตรวจสอบไฟล์");
+
+                    swal("", "กรุณาตรวจสอบไฟล์", "warning");
+                    $('#btnupload').prop('disabled', false);
+                    $('#ImportFile').prop('disabled', false);
+                }
+                else {
+                    if (response[0] == "True" && response[1] == "1") {
+                        $('#hdfTmpCode').val(response[3]);
+
+                        //alert(response[2]);
+
+
+
+                        //Load Overview
+                        GetCustomerDetailImportOverView();
+
+                        //Open button
+                        $("#Notification").hide();
+                        $('#btnComfirmImport').attr("disabled", false);
+                        $('#btnClearImport').attr("disabled", false);
+
+                      
+
+                    } else if (response[0] == "True" && response[1] == "0") {
+
+                        $('#hdfTmpCode').val(response[3]);
+
+
+
+
+                        //Load Error
+                        GetCustomerDetailImportError();
+
+                        //Close button
+                        $('#btnComfirmImport').attr("disabled", true);
+                        $('#btnClearImport').attr("disabled", false);
+
+                        
+                    } else {
+                        //Alert MSG
+                        //alert(response[2]);
+                        swal("", response[2], "warning");
+
+                        //Close button
+                        $('#btnComfirmImport').attr("disabled", true);
+                        $('#btnClearImport').attr("disabled", false);
+
+                    }
+                }
+            }
+        });
+    }
+
+
+
+    const GetCustomerDetailImportOverView = () => {
+
+        $('#dtCustomerDetail').empty();
+        var t = $('#dtCustomerDetail').DataTable({
+             pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetTmpCustomerDetailOverView", "PACommunity")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.applicatonRoundId = $('#hdfApplicationRoundID').val();
+                        d.tmpCode = $('#hdfTmpCode').val();
+                    }
+                },
+                columns: [
+
+                    { title: 'คำนำหน้า', data: 'Title' },
+                    { title: 'ชื่อ', data: 'FirstName' },
+                    { title: 'นามสกุล', data: 'LastName' },
+                    { title: 'บัตรประชาชน', data: 'IdCardNumber'},
+                    { title: 'Passport', data: 'PassPortNumber' },
+                    { title: 'วันเกิด', data: 'BirthDate_D' },
+                    { title: 'เดือนเกิด', data: 'BirthDate_M' },
+                    { title: 'ปีเกิด', data: 'BirthDate_Y' },
+                    { title: 'อาชีพ', data: 'Occupation' },
+                    { title: 'เบอร์โทร', data: 'MobileNumber' },
+                    { title: 'ความคุ้มครองพิเศษเพิ่มเติมฟรี', data: 'CustomerDetailType' },
+                    {
+                        title: 'หมายเหตุ', data: 'AgeOver',
+                        mRender: (data) => {
+                            if (data != '') {
+                                return `<span class="red">${data}</span>`;
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                ],
+            bLengthChange: false
+        });
+    }
+
+    const GetCustomerDetailImportError = () => {
+        $('#dtCustomerDetail').empty();
+        var t = $('#dtCustomerDetail').DataTable({
+              pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetTmpCustomerDetailError", "PACommunity")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.applicatonRoundId = $('#hdfApplicationRoundID').val();
+                        d.tmpCode = $('#hdfTmpCode').val();
+                    }
+                },
+                columns: [
+
+                    { title: 'คำนำหน้า', data: 'Title' },
+                    { title: 'ชื่อ', data: 'FirstName' },
+                    { title: 'นามสกุล', data: 'LastName' },
+                    { title: 'หมายเหตุ', data: 'ValidateResult', className: 'text-color'},
+                ],
+                bLengthChange: false,
+                //createdRow: function (row, data, index) {
+                //    if (data.ClaimOnLineStatusId == 3) {
+                //        $('td', row).addClass('selected');
+                //    }
+                //},
+
+        });
+
+    }
+
+
+   const IsValidatefile = () => {
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("IsValidateforImport")',
+            data: function () {
+                var data = new FormData();
+                data.append("file", jQuery("#ImportFile").get(0).files[0]);
+                return data;
+            }(),
+            contentType: false,
+            processData: false,
+            async: false,
+            success: function (response) {
+
+                debugger;
+                m_validatefile =  response;
+            }
+        });
+    }
+
+   const IsvalidateforUpload = () => {
+        debugger;
+        var file = jQuery("#ImportFile").get(0);
+        var filename = file.value;
+
+        let isresult = "";
+
+        if (filename == "") {
+            isresult = "กรุณาเลือกไฟล์";
+        }
+        else
+        {
+            if (/\.(xlsx|xls)$/i.test(file.files[0].name) === false)
+            {
+                isresult = "กรุณาตรวจสอบไฟล์ ไฟล์ต้องเป็น Excel เท่านั้น";
+            }
+        }
+
+
+        return isresult;
+    }
+
+
+
+    const GetApplicationRoundByID = () => {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("GetApplicationRoundByID", "PACommunity")',
+            data: {
+                applicationRoundID: $('#hdfApplicationRoundID').val()
+            },
+            dataType: "json",
+            success: function (response) {
+                debugger;
+                $('#txtApplicationID').val(response.ApplicationCode);
+                $('#txtPolicyName').val(response.ApplicationName);
+                $('#txtRound').val(response.Round);
+                $('#txtCustomerBuyImport').text(response.CustomerBuyBalance);
+                $('#txtCustomerFreeImport').text(response.CustomerFreeBalance);
+
+                let v_custBuy = (response.CustomerBuyImport / response.CustomerBuyTotal) * 100;
+                let v_custFree = (response.CustomerFreeImport / response.CustomerFreeTotal) * 100;
+
+                $('#pgbCustomerBuyImport').attr('aria-valuenow', v_custBuy).css('width', v_custBuy+"%");
+                $('#pgbCustomerFreeImport').attr('aria-valuenow', v_custFree).css('width', v_custFree+"%");
+
+            }
+        });
+    }
+
+
+    const DoConfirmImportFile = () => {
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("DoConfirmImportCustomerDetail", "PACommunity")',
+            data: {
+                applicatonRoundId: $('#hdfApplicationRoundID').val(),
+                tmpCode: $('#hdfTmpCode').val()
+            },
+            async: false,
+            dataType: "json",
+            success: function (response) {
+
+                if (response[0] == "True" && response[1] == "Success") {
+                    window.swal({
+                        title: 'รายการ',
+                        type: 'success',
+                        text: response[2],
+                        showCancelButton: false,
+                        confirmButtonColor: '#26A65B',
+                        confirmButtonText: 'ตกลง',
+                        closeOnEsc: false,
+                        className: "text"
+                    }, function () {
+
+                        //DoClearDT
+                        $('#btnupload').prop('disabled', false);
+                        $('#ImportFile').prop('disabled', false);
+                        $('#dtCustomerDetail').empty();
+                        $('#hdfTmpCode').val('');
+
+
+                        GetApplicationRoundByID();
+
+                        //Closed button
+                        $('#btnComfirmImport').attr("disabled", true);
+                        $('#btnClearImport').attr("disabled", true);
+
+                    });
+                } else {
+                    window.swal({
+                        title: 'ทำรายการไม่สำเร็จ',
+                        type: 'error',
+                        text: response[2],
+                        showCancelButton: false,
+                        confirmButtonColor: '#26A65B',
+                        confirmButtonText: 'ตกลง',
+                        closeOnEsc: false,
+                        className: "text"
+                    }, function () {
+
+
+                        //Closed button
+                        $('#btnComfirmImport').attr("disabled", true);
+                        $('#btnClearImport').attr("disabled", false);
+                    });
+                }
+            }
+        });
+    }
+
+    const DoDeleteCustomerDetailImport = () => {
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("DoDeleteCustomerDetailImport", "PACommunity")',
+            data: {
+                applicatonRoundId: $('#hdfApplicationRoundID').val(),
+                tmpCode: $('#hdfTmpCode').val()
+            },
+            async:false,
+            dataType: "json",
+            success: function (response) {
+
+                if (response[0] == "True") {
+                    window.swal({
+                        title: 'รายการ',
+                        type: 'success',
+                        text: response[2],
+                        showCancelButton: false,
+                        confirmButtonColor: '#26A65B',
+                        confirmButtonText: 'ตกลง',
+                        closeOnEsc: false,
+                        className: "text"
+                    }, function () {
+
+                        //DoclearDT
+                        $('#btnupload').prop('disabled', false);
+                        $('#ImportFile').prop('disabled', false);
+                        $('#dtCustomerDetail').DataTable().destroy();
+                        $('#dtCustomerDetail').empty();
+                        $('#hdfTmpCode').val('');
+                        $('#ImportFile').val('');
+
+
+                        $('#btnComfirmImport').attr("disabled", true);
+                        $('#btnClearImport').attr("disabled", true);
+
+                    });
+                } else {
+                    window.swal({
+                        title: 'ทำรายการไม่สำเร็จ',
+                        type: 'error',
+                        text: response[2],
+                        showCancelButton: false,
+                        confirmButtonColor: '#26A65B',
+                        confirmButtonText: 'ตกลง',
+                        closeOnEsc: false,
+                        className: "text"
+                    }, function () {
+
+                        $('#btnComfirmImport').attr("disabled", true);
+                        $('#btnClearImport').attr("disabled", false);
+                    });
+                }
+
+            }
+        });
+    }
+
+</script>
+
+}

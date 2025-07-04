@@ -1,0 +1,767 @@
+﻿@{
+    ViewBag.Title = "บันทึกข้อมูล";
+}
+
+<style>
+    .title1 {
+        color: dimgray;
+        font-weight: normal;
+    }
+
+    .box {
+        margin-bottom: 0px;
+    }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12">
+        <!-- form start -->
+        <form id="myForm" action="@Url.Action("CreatePerson")" method="POST" enctype="multipart/form-data">
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ข้อมูลส่วนตัว</h3>
+                </div>
+                <!-- /.box-header -->
+                <!-- form start -->
+                <div class="box-body">
+                    @*<div class="row">*@
+                    <div class="form-group">
+                        <div class="col-md-2">
+                            <select id="cardType" name="cardType" class="form form-control select2" checkNA="checkNA">
+                                <option value="1">เลขบัตร</option>
+                                <option value="2">Passport</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div id="identityCardGroup" class="input-group">
+                                <input type="number" id="identityCardNumber" name="identityCardNumber" class="form-control" checkID="checkID" required>
+                                <div class="input-group-btn">
+                                    <button type="button" id="button_CheckCardDetail" class="btn btn-primary" disabled>ตรวจสอบ</button>
+                                </div>
+                            </div>
+                            <div id="passportGroup" class="input-group" style="display:none;">
+                                <input type="number" id="passportNumber" name="passportNumber" class="form-control" checkPP="checkPP" required>
+                                <div class="input-group-btn">
+                                    <button type="button" id="button_CheckPassportDetail" class="btn btn-primary" disabled>ตรวจสอบ</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="cardDetailStatus" class="col-md-2" style="margin-top:7px;">
+                            <span id="span_TrueStatus" style="display:none;color:green;">
+                                <i class="fa fa-check"></i>
+                                <label id="label_TrueStatus"></label>
+                            </span>
+                            <span id="span_FalseStatus" style="display:none;color:red;">
+                                <i class="fa fa-times"></i>
+                                <label id="label_FalseStatus"></label>
+                            </span>
+
+                        </div>
+
+                        <div class="clearfix"></div>
+                    </div>
+
+
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="control-label checkcard" for="" style="">คำนำหน้า</label>
+                            <select id="title" name="title" class="form form-control select2 checkcard" checkNA="checkNA" style="width:100%" disabled>
+                                <option value="-1">N/A</option>
+                                @foreach (var i in @ViewBag.listPersonTitle)
+                                {
+                                    <option value="@i.Title_ID">@i.TitleDetail</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label" for="">ชื่อ</label>
+                            <input id="input_FirstName" name="input_FirstName" type="text" placeholder="" class="form-control checkcard" required disabled>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label" for="">นามสกุล</label>
+                            <input id="input_LastName" name="input_LastName" type="text" placeholder="" class="form-control checkcard" required disabled>
+                        </div>
+                    </div>
+
+                    <div class="col-md-1">
+                        <div class="form-group">
+                            <label class="control-label" for="" style="">เพศ</label>
+                            <select id="sex" name="sex" class="form form-control select2 checkcard" checkNA="checkNA" style="width:100%" disabled>
+                                <option value="-1">N/A</option>
+                                @foreach (var i in @ViewBag.listPersonSex)
+                                {
+                                    <option value="@i.Sex_ID">@i.SexDetail</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="control-label" for="">สถานภาพ</label>
+                            <select id="marital" name="marital" class="form form-control select2 checkcard" checkNA="checkNA" style="width:100%" disabled>
+                                <option value="-1">N/A</option>
+                                @foreach (var i in @ViewBag.listPersonMarital)
+                                {
+                                    <option value="@i.MaritalStatus_ID">@i.MaritalStatusDetail</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="control-label" for="">วันเกิด</label>
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input class="form-control datepicker checkcard" id="birthdate" name="birthdate" data-provide="datepicker" data-date-language="th-th" required readonly disabled />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-1">
+                        <label class="control-label" for="">อายุ</label>
+                        <div style="margin-top:8px;">
+                            <label id="age"></label>
+                        </div>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="control-label" for="">ประกอบอาชีพ</label>
+                            <select id="occupation" name="occupation" class="from form-control select2 checkcard" checkNA="checkNA" style="width:100%" disabled>
+                                <option value="-1">N/A</option>
+                                @foreach (var i in @ViewBag.listPersonOccupation)
+                                {
+                                    <option value="@i.Occupation_ID">@i.OccupationDetail</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="control-label" for="">ระดับอาชีพ</label>
+                            <select id="occupationLevel" name="occupationLevel" class="from form-control select2 checkcard" checkNA="checkNA" style="width:100%" disabled>
+                                <option value="-1">N/A</option>
+                                @foreach (var i in @ViewBag.listPersonOccupation)
+                                {
+                                    <option value="@i.Occupation_ID">@i.OccupationDetail</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    @*<div class="clearfix"></div>*@
+
+                    <div class="col-md-3">
+                        <label class="control-label" for="">เลือกองค์กร</label>
+                        <div class="input-group">
+                            <div class="input-group-btn">
+                                <button type="button" id="button_searchOrganize" class="btn btn-primary checkcard" data-toggle="modal" data-target="#modal-default" disabled>ค้นหา</button>
+                            </div>
+                            <input type="text" id="input_organize" name="input_organize" class="form-control" readonly>
+                            <input type="hidden" id="input_organizeId" name="input_organizeId" class="form-control">
+                            @*<label id="label_organize" class="control-label" for="">เลือกองค์กร</label>*@
+                        </div>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label" for="">เลขประจำตัวผู้เสียภาษี</label>
+                            <input id="input_TaxpayerNumber" name="input_TaxpayerNumber" type="number" placeholder="" class="form-control checkcard" required disabled>
+                        </div>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>โทรศัพท์</label>
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-phone"></i>
+                                </div>
+                                <input type="number" id="phone_number" name="phone_number" class="form form-control checkcard" placeholder="ตัวอย่าง 0925556789" required="required" disabled />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>เบอร์</label>
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-phone"></i>
+                                </div>
+                                <input type="number" id="phone_number2" name="phone_number2" class="form form-control checkcard" placeholder="ตัวอย่าง 0925556789" required="required" disabled />
+                            </div>
+                        </div>
+                    </div>
+
+                    @*</div>*@
+                </div>
+
+                <!-- /.box-body -->
+            </div>
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ที่อยู่</h3>
+                </div>
+                <!-- /.box-header -->
+                <!-- form start -->
+                <div class="box-body">
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label" for="" style="">ชื่อหน่วยงาน</label>
+                            <input id="officeName" name="officeName" type="text" placeholder="" class="form-control checkcard" required disabled>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label" for="">หมู่บ้าน</label>
+                            <input id="villageName" name="villageName" type="text" placeholder="" class="form-control checkcard" required disabled>
+                        </div>
+                    </div>
+
+                    <div class="col-md-1">
+                        <div class="form-group">
+                            <label class="control-label" for="" style="">เลขที่</label>
+                            <input id="houseNo" name="houseNo" type="text" placeholder="" class="form-control checkcard" disabled>
+                        </div>
+                    </div>
+
+                    <div class="col-md-1">
+                        <div class="form-group">
+                            <label class="control-label" for="">หมู่ที่</label>
+                            <input id="villageNo" name="villageNo" type="text" placeholder="" class="form-control checkcard" disabled>
+                        </div>
+                    </div>
+
+                    <div class="col-md-1">
+                        <div class="form-group">
+                            <label class="control-label" for="" style="">ชั้น</label>
+                            <input id="floor" name="floor" type="text" placeholder="" class="form-control checkcard" disabled>
+                        </div>
+                    </div>
+
+                    <div class="col-md-1">
+                        <div class="form-group">
+                            <label class="control-label" for="">ห้อง</label>
+                            <input id="room" name="room" type="text" placeholder="" class="form-control checkcard" disabled>
+                        </div>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label" for="" style="">ซอย</label>
+                            <input id="lane" name="lane" type="text" placeholder="" class="form-control checkcard" required disabled>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label" for="">ถนน</label>
+                            <input id="road" name="road" type="text" placeholder="" class="form-control checkcard" required disabled>
+                        </div>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="control-label" for="">จังหวัด</label>
+                            <select id="province" name="province" class="form-control select2 checkcard" disabled checkNA="checkNA" style="width:100%">
+                                <option value="-1">N/A</option>
+                                @foreach (var i in @ViewBag.listPersonProvince)
+                                {
+                                    <option value="@i.Province_ID">@i.ProvinceDetail</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="control-label" for="">อำเภอ</label>
+                            <select id="district" name="district" class="form-control select2 checkcard" disabled checkNA="checkNA" style="width:100%">
+                                <option value="-1">N/A</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="control-label" for="">ตำบล</label>
+                            <select id="subdistrict" name="subdistrict" class="form-control select2 checkcard" disabled checkNA="checkNA" style="width:100%">
+                                <option value="-1">N/A</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="control-label" for="">รหัสไปรษณีย์</label>
+                            <input id="zipcode" name="zipcode" type="text" placeholder="" class="form-control checkcard" readonly disabled>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+
+            <div class="box-footer" style="text-align:right;">
+                <button type="submit" class="btn btn-success checkcard" disabled>บันทึกข้อมูล</button>
+            </div>
+        </form>
+        <!-- /.box-body -->
+        @*<div class="box-footer">
+            <button type="submit" class="btn btn-primary">Submit</button>
+            </div>*@
+    </div>
+</div>
+
+<div class="modal fade" id="modal-default" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">Default Modal</h4>
+            </div>
+            <div class="modal-body">
+                <table id="datatable1" class="table table-bordered table-striped "></table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+
+            $('#cardType').change(function () {
+                if ($('#cardType').val() == 1) {
+                    $('#identityCardGroup').css('display', '');
+                    $('#passportGroup').css('display', 'none');
+                } else {
+                    $('#identityCardGroup').css('display', 'none');
+                    $('#passportGroup').css('display', '');
+                }
+            });
+
+            $('#button_CheckCardDetail').click(function () {
+                var cardDetailStatus = CheckCardDetail($('#identityCardNumber').val());
+
+                if (cardDetailStatus != true) {
+                    $('#span_TrueStatus').css('display', 'unset');
+                    $('#label_TrueStatus').text('สามารถใช้เลขนี้ได้');
+
+                    $('.checkcard').prop('disabled', false);
+
+                    $('#district').prop('disabled', true);
+                    $('#subdistrict').prop('disabled', true);
+                } else {
+                    $('#span_FalseStatus').css('display', 'unset');
+                    $('#label_FalseStatus').text('ไม่สามารถใช้เลขนี้ได้');
+
+                    $('.checkcard').prop('disabled', true);
+                }
+            });
+
+            $('#button_CheckPassportDetail').click(function () {
+                var cardDetailStatus = CheckCardDetail($('#passportNumber').val());
+
+                if (cardDetailStatus != true) {
+                    $('#span_TrueStatus').css('display', 'unset');
+                    $('#label_TrueStatus').text('สามารถใช้เลขนี้ได้');
+
+                    $('.checkcard').prop('disabled', false);
+
+                    $('#district').prop('disabled', true);
+                    $('#subdistrict').prop('disabled', true);
+                } else {
+                    $('#span_FalseStatus').css('display', 'unset');
+                    $('#label_FalseStatus').text('ไม่สามารถใช้เลขนี้ได้');
+
+                    $('.checkcard').prop('disabled', true);
+                }
+            });
+
+            $('#identityCardNumber').keyup(function () {
+                $('#span_TrueStatus').css('display', 'none');
+                $('#span_FalseStatus').css('display', 'none');
+
+                var identityCardNumberStr = $('#identityCardNumber').val().toString();
+
+                if (identityCardNumberStr.length == 13) {
+                    $('#button_CheckCardDetail').prop('disabled', false);
+                } else {
+                    $('#button_CheckCardDetail').prop('disabled', true);
+                    $('.checkcard').prop('disabled', true);
+                }
+            });
+
+            $('#passportNumber').keyup(function () {
+                $('#span_TrueStatus').css('display', 'none');
+                $('#span_FalseStatus').css('display', 'none');
+
+                var identityCardNumberStr = $('#passportNumber').val().toString();
+
+                if (identityCardNumberStr.length == 9) {
+                    $('#button_CheckPassportDetail').prop('disabled', false);
+                } else {
+                    $('#button_CheckPassportDetail').prop('disabled', true);
+                    $('.checkcard').prop('disabled', true);
+                }
+            });
+
+            $('#title').change(function () {
+                if ($('#title').val() == -1) {
+                    $('#title').valid();
+                } else {
+                    $('#title').valid();
+                }
+            });
+
+            $('#sex').change(function () {
+                if ($('#sex').val() == -1) {
+                    $('#sex').valid();
+                } else {
+                    $('#sex').valid();
+                }
+            });
+
+            $('#occupation').change(function () {
+                if ($('#occupation').val() == -1) {
+                    $('#occupation').valid();
+                } else {
+                    $('#occupation').valid();
+                }
+            });
+
+            $('#occupationLevel').change(function () {
+                if ($('#occupationLevel').val() == -1) {
+                    $('#occupationLevel').valid();
+                } else {
+                    $('#occupationLevel').valid();
+                }
+            });
+
+            $('#occupation').change(function () {
+                GetOccupationLevel($('#occupation').val());
+            });
+
+            $('#button_searchOrganize').click(function () {
+                GetOrganize();
+            });
+
+            $('#province').change(function () {
+                if ($('#province').val() == -1) {
+
+                    $('#province').valid();
+
+                    $('#district').empty();
+
+                    $('#district').prop('disabled', true);
+
+                    $('#district').append('<option value="-1">N/A</option>');
+
+                    $('#subdistrict').empty();
+
+                    $('#subdistrict').append('<option value="-1">N/A</option>');
+
+                    $('#subdistrict').prop('disabled', true);
+
+                    $('#zipcode').val('');
+
+                }
+                else {
+                    $('#province').valid();
+
+                    $('#district').prop('disabled', false);
+
+                    GetDistrict($('#province').val());
+                }
+            });
+
+            $('#district').change(function () {
+                if ($('#district').val() == -1) {
+
+                    $('#district').valid();
+
+                    $('#subdistrict').empty();
+
+                    $('#subdistrict').append('<option value="-1">N/A</option>');
+
+                    $('#subdistrict').prop('disabled', true);
+
+                    $('#zipcode').val('');
+                } else {
+
+                    $('#district').valid();
+
+                    $('#subdistrict').prop('disabled', false);
+
+                    GetSubDistrict($('#district').val());
+                }
+            });
+
+            $('#subdistrict').change(function () {
+                if ($('#subdistrict').val() == -1) {
+
+                    $('#subdistrict').valid();
+
+                    $('#zipcode').val('');
+                } else {
+
+                    $('#subdistrict').valid();
+
+                    GetZipCode($('#subdistrict').val());
+                }
+            });
+
+            $('#birthdate').change(function () {
+
+                var dateNow = new Date();
+
+                var yearNow = dateNow.getUTCFullYear();
+
+                var bDate = $('#birthdate').val();
+
+                var arrBDate = bDate.split('/');
+
+                var bYear = arrBDate[2] - 543;
+
+
+                //ยังไม่ได้ Validate อายุ
+                var age = yearNow - bYear;
+
+                $('#age').text(age+' ปี');
+            }); 
+
+
+            $('#myForm').submit(function(e) {
+                e.preventDefault();
+                if ($("#myForm").valid() == true) {
+                        var dataObj = $('#myForm').serialize();
+                        window.swal({
+                            title: 'ต้องการบันทึกข้อมูลหรือไม่?',
+                            type: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#277020',
+                            confirmButtonText: 'ตกลง',
+                            cancelButtonText: 'ยกเลิก',
+                            closeOnConfirm: false,
+                            closeOnEsc: false,
+                            closeOnCancel: true,
+                            showLoaderOnConfirm: true
+                        },function() {
+                            $.ajax({
+                                type: "POST",
+                                url: $('#myForm').attr('action'),
+                                data: dataObj,
+                                success: function(response) {
+                                    if (response != null && response != "") {
+                                        window.swal({
+                                            title: 'ดำเนินการเรียบร้อย!',
+                                            type: 'success',
+                                            showCancelButton: false,
+                                            confirmButtonColor: '#26A65B',
+                                            confirmButtonText: 'ตกลง',
+                                            closeOnEsc: false
+                                        },function() {
+                                            window.location = "@Url.Action("AddPerson","Person")";
+                                        });
+                                    } else {
+                                        window.swal({
+                                            title: 'เกิดข้อผิดพลาด!',
+                                            type: 'error',
+                                            text:'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                                            showCancelButton: false,
+                                            confirmButtonColor: '#ed2b09',
+                                            confirmButtonText: 'ตกลง',
+                                            closeOnEsc: false
+                                        });
+                                    }
+                                }
+                            });
+                        });
+
+                }
+
+                document.body.scrollTop = 0; // For Chrome, Safari and Opera
+                document.documentElement.scrollTop = 0; // For IE and Firefox
+            });
+
+
+        });
+
+        function GetOccupationLevel(occupationId) {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetOccupationLevel", "Person")?occupationId=" + occupationId,
+                //async: false,
+                success: function (response) {
+                    $('#occupationLevel').empty();
+                    $('#occupationLevel').append('<option value="-1">N/A</option>');
+                    for (var i = 0; i < response.length; i++) {
+                        $('#occupationLevel').append('<option value="' +
+                            response[i].OccupationLevel_ID +
+                            '">' +
+                            response[i].OccupationLevelDetail +
+                            '</option>');
+                    }
+                }
+            });
+        }
+
+
+        function GetOrganize() {
+            $('#datatable1').empty();
+
+            $('#datatable1').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: true,
+                lengthChange: false,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetDataTableOrganize")',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    {
+                        title: '',
+                        data: null,
+                        bSortable: false,
+                        className: 'dt-center',
+                        mRender: function (o) {
+                            return '<a onclick="SetOrganize(\'' + o.OrganizeDetail + '\',\'' + o.OrganizeId + '\')" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-check"></i></a>';
+                        }
+                    },
+                    {
+                        title: 'ประเภทองค์กร', data: 'OrganizeTypeDetail'
+                    },
+                    {
+                        title: 'ชื่อองค์กร', data: 'OrganizeDetail'
+                    }
+                ]
+            });
+        }
+
+        function SetOrganize(organizeDetail, organizeId) {
+            $('#input_organize').val(organizeDetail);
+            $('#input_organizeId').val(organizeId);
+        }
+
+        function GetDistrict(provinceId) {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetDistrict", "Person")?provinceId=" + provinceId,
+                //async: false,
+                success: function (response) {
+                    $('#district').empty();
+                    $('#district').append('<option value="-1">N/A</option>');
+                    for (var i = 0; i < response.length; i++) {
+                        $('#district').append('<option value="' +
+                            response[i].District_ID +
+                            '">' +
+                            response[i].DistrictDetail +
+                            '</option>');
+                    }
+                }
+            });
+        }
+
+        function GetSubDistrict(districtId) {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetSubDistrict", "Person")?districtId=" + districtId,
+                //async: false,
+                success: function (response) {
+                    $('#subdistrict').empty();
+                    $('#subdistrict').append('<option value="-1">N/A</option>');
+                    for (var i = 0; i < response.length; i++) {
+                        $('#subdistrict').append('<option value="' +
+                            response[i].SubDistrict_ID +
+                            '">' +
+                            response[i].SubDistrictDetail +
+                            '</option>');
+                    }
+                }
+            });
+        }
+
+        function GetZipCode(subdistrictId) {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetZipCode", "Person")?subdistrictId=" + subdistrictId,
+                //async: false,
+                success: function (response) {
+                    $('#zipcode').val(response[0].ZipCode);
+                }
+            });
+        }
+
+        function CheckCardDetail(cardDetail) {
+
+            var result;
+
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("CheckCardDetail", "Person")?cardDetail=" + cardDetail,
+                async: false,
+                success: function (response) {
+                    result = response;
+                }
+            });
+
+            if (result.length != 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    </script>
+}

@@ -1,0 +1,401 @@
+﻿
+@{
+    ViewBag.Title = "จัดการข้อมูลผู้เอาประกัน";
+}
+
+<form>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="box box-warning">
+                <div class="box-header with-border">
+                    <h4 class="box-title">ข้อมูลกรมธรรม์</h4>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <label>Application ID :</label>
+                            <div class="input-group ">
+                                <div class="input-group-addon" style="background-color: #2eb5f0">
+                                    <i class="fa fa-heartbeat" style="color:#ffffff"></i>
+                                </div>
+                                <input id="txtApplicationCode" class="form-control" style="background-color: #2eb5f0; color: #ffffff" type="text" disabled />
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <label>ชื่อกรมธรรม์ :</label>
+                            <div class="input-group ">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-desktop"></i>
+                                </div>
+                                <input id="txtApplicationName" class="form-control" type="text" disabled />
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <label>วันที่มีผลบังคับ :</label>
+                            <div class="input-group ">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar-check"></i>
+                                </div>
+                                <input id="txtEffectiveDate" class="form-control" type="text" disabled />
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-lg-2">
+                            <button type="button" id="btnDelete" class="btn btn-danger btn-block"><i class="fa fa-trash"></i> ลบข้อมูลผู้เอาประกัน</button>
+                        </div>
+                        <div class="col-lg-2">
+                            <button type="button" id="btnImport" class="btn btn-success btn-block"><i class="fa fa-plus-circle"></i> นำเข้ารายชื่อ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="box box-warning">
+                <div class="box-header with-border">
+                    <h4 class="box-title">รายชื่อผู้เอาประกัน</h4>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <table id="dtCustomer" class="table table-bordered table-hover dataTable" style="width:100%;"></table>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12" style="text-align:center">
+                    <button type="button" id="btnRequest" class="btn btn-success "> ขอออกกรมธรรม์</button>
+                </div>
+
+            </div>
+            <br />
+        </div>
+    </div>
+
+    <input type="hidden" id="hdfRoundId" value="@ViewBag.RoundId" />
+    <input type="hidden" id="hdfAppId" value="" />
+
+</form>
+
+<!-- Modal -->
+<div class="modal fade" id="mdDelete" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color:#df5151">
+                <h4 class="modal-title" id="exampleModalLabel" style="color:#ffffff">สาเหตุการลบรายชื่อ</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <label>สาเหตุการลบรายชื่อ <b class="text-red">*</b> :</label>
+                        <select class="form-control select2" style="width:100%" id="ddlRoundCancelCause">
+                            <option value="-1">---โปรดระบุ---</option>
+                            @{ 
+                                foreach (var item in ViewBag.RoundCancelCause)
+                                {
+                                    <option value="@item.PersonnelApplicationRoundCancelCauseId">@item.PersonnelApplicationRoundCancelCauseName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="row" style="padding-top:1%">
+                    <div class="col-lg-12">
+                        <label>หมายเหตุ <b class="text-red">*</b> :</label>
+                        <textarea rows="5" id="txtRemark" class="form-control" value=""></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div class="row">
+                    <div class="col-lg-1 col-xs-2">
+                        <button type="button" class="btn btn-secondary " data-dismiss="modal">ยกเลิก</button>
+                    </div>
+                    <div class="col-lg-9 col-xs-7"></div>
+                    <div class="col-lg-1 col-xs-2">
+                        <button type="button" id="btnConfirmDelete" class="btn btn-primary">บันทึก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+
+        $(function () {
+            $('.select2').select2();
+
+            DoGetAppIdByRoundId();
+            DoloadApplicationDetail();
+            DoloadCustomer();
+         })
+
+        //-----------------------varable-------------------
+        let glbDtCount = 0;
+        let glbApplicationName;
+        //-----------------------------------------------
+        $('#btnDelete').click(function (e) {
+            e.preventDefault();
+
+            $('#mdDelete').modal('show')
+        });
+
+        $('#btnImport').click(function (e) {
+            e.preventDefault();
+            var en_AppId = window.btoa($('#hdfAppId').val());
+            window.location.href = "@Url.Action("PAPersonnelImportCustomer", "PAPersonnel")?appId=" + en_AppId;
+        });
+
+        $('#btnRequest').click(function (e) {
+            e.preventDefault();
+
+            if (glbDtCount > 0) {
+
+                swal({
+                    title: `ยืนยันการออกกรมธรรม์ \n ${glbApplicationName} ?`,
+                    text: "",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "ยืนยัน",
+                    cancelButtonText: "ยกเลิก",
+                    closeOnConfirm: false,
+                },
+                    function () {
+                        UpdateCustomerDetail();
+                    })
+
+            } else {
+
+                swal("ไม่สามารถทำรายการได้", "ไม่มีข้อมูลผู้เอาประกัน", "warning")
+            }
+        });
+
+        $('#btnConfirmDelete').click(function (e) {
+            e.preventDefault();
+            if (ValidateDetele() == true) {
+                swal({
+                    title: `ยืนยัน`,
+                    text: "ยืนยันการลบข้อมูลหรือไม่",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "ยืนยัน",
+                    cancelButtonText: "ยกเลิก",
+                    closeOnConfirm: false,
+                },
+                    function () {
+                        debugger
+                        DeleteCustomerDetail();
+                    })
+            }
+
+        });
+
+        const DoloadApplicationDetail = () => {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("GetPAApplicationDetailByAppID", "PAPersonnel")',
+                data: { appId: $('#hdfAppId').val() } ,
+                dataType: "json",
+                async: false,
+                success: function (data) {
+
+                    glbApplicationName = data.PersonnelApplicationName
+
+                    $('#txtApplicationCode').val(data.PersonnelApplicationCode);
+                    $('#txtApplicationName').val(data.PersonnelApplicationName);
+                    $('#txtEffectiveDate').val(moment(data.EffectiveDate).add(543, 'years').format("DD/MM/YYYY"));
+                }
+            });
+        }
+
+
+           const DoloadCustomer = () => {
+            $('#dtCustomer').empty();
+            var table = $('#dtCustomer').DataTable({
+
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetPersonnelCustomerDetail", "PAPersonnel")',
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.appId = $('#hdfAppId').val();
+                        d.roundId = $('#hdfRoundId').val();
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchDetail = "";
+
+                    },
+
+                },
+                columns: [
+
+                    { title: 'Memder ID', data: 'PersonnelCustomerDetailCode', className: 'h-dt-center d-dt-center',},
+                    { title: 'ชื่อ-นามสกุล', data: 'PersonnelCustomerName', className: 'h-dt-center d-dt-center', },
+                    { title: 'รหัสประจำตัวประชาชน', data: 'IdCardNumber', className: 'h-dt-center d-dt-center'} ,
+                    { title: 'Passport/อื่นๆ', data: 'PassPortNumber',  className: 'h-dt-center d-dt-center',},
+
+                    { title: 'ตำแหน่ง', data: 'Position', className: 'h-dt-center d-dt-center', },
+                    { title: 'เบอร์โทร', data: 'MobileNumber',  className: 'h-dt-center d-dt-center', },
+
+                ],
+                bLengthChange: false,
+            })
+
+               glbDtCount = table.page.info().recordsTotal
+               DoEnableButton();
+
+        }
+
+        const DoEnableButton = () => {
+
+            if (glbDtCount > 0) {
+
+                $('#btnImport').attr('disabled', true)
+                //$('#btnImport').css('background-color', '#bababa')
+
+                $('#btnDelete').attr('disabled', false)
+                $('#btnDelete').attr('class', 'btn btn-danger btn-block')
+
+            } else {
+                $('#btnImport').attr('disabled', false)
+                $('#btnImport').attr('class', 'btn btn-success btn-block')
+
+                $('#btnDelete').attr('disabled', true)
+                //$('#btnDelete').css('background-color', '#bababa')
+
+                $('#btnRequest').hide();
+
+            }
+        }
+
+        const DoGetAppIdByRoundId = () => {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetPAPersonnelAppIDByRoundID", "PAPersonnel")",
+                data: { appRoundId: $('#hdfRoundId').val()},
+                dataType: "json",
+                async: false,
+                success: function (response) {
+                    var appId = response.PersonnelApplicationId;
+                    debugger
+                    $('#hdfAppId').val(appId)
+                }
+            });
+        }
+
+        const DeleteCustomerDetail = () => {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("DeleteImportCustomerDetail", "PAPersonnel")",
+                data: {
+                    roundId: $('#hdfRoundId').val(),
+                    cancelCauseId: $('#ddlRoundCancelCause').val(),
+                    cancelRemark: $('#txtRemark').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+                    debugger
+                    if (response.IsResult == true) {
+
+                            swal({
+                                title: "รายการ",
+                                text: "ทำการลบข้อมูลสำเร็จ",
+                                type: "success",
+                                confirmButtonText: "ยืนยัน",
+                            },
+                                function () {
+                                    $('#mdDelete').modal('hide')
+                                    DoloadCustomer();
+                                }
+                            )
+
+                        } else {
+                            swal("พบข้อผิดพลาด",response.Msg,"error")
+                        }
+                }
+            });
+
+            DoEnableButton();
+
+        }
+
+        const UpdateCustomerDetail = () => {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("UpdatePersonelCustomerDetail", "PAPersonnel")",
+                data: {
+                    roundId: $('#hdfRoundId').val(),
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+                    if (response.IsResult == true) {
+
+                            swal({
+                                title: "รายการ",
+                                text: "ทำรายการสำเร็จ",
+                                type: "success",
+                                confirmButtonText: "ยืนยัน",
+                            },
+                                function () {
+                                    window.close();
+                                }
+                            )
+
+                        } else {
+                            swal("พบข้อผิดพลาด",response.Msg,"error")
+                        }
+                }
+            });
+        }
+
+
+        //------------------------------------Validate-------------------------------------
+        const ValidateDetele = () => {
+
+            if ($('#ddlRoundCancelCause').val() == "-1") {
+                swal("กรุณาเลือกสาเหตุการลบรายชื่อ", "", "warning")
+                return false
+            }
+            if ($('#txtRemark').val() == "") {
+                swal("กรุณากรอกหมายเหตุ", "", "warning")
+                return false
+            }
+
+            return true
+        }
+
+
+    </script>
+
+}
+
+

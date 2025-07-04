@@ -1,0 +1,531 @@
+﻿@{
+    ViewBag.Title = "Request Refund";
+
+}
+<style>
+
+    .table {
+        font-size: 14px;
+    }
+
+    .toolbar {
+        float: left;
+    }
+</style>
+<div class="row">
+    @* search *@
+    <div id="Search_form" class="col-xs-12 col-md-12">
+        <div class="box box-primary">
+            <div class="box-body">
+                <div class="form-group row">
+                    <div class="col-xs-10 col-md-offset-2 col-md-5">
+                        <label class="control-label" for="">กรอกหมายเลข Application :</label>
+                        <input type="text" class="form-control" id="txtSearchText" placeholder="Application Id">
+                    </div>
+                    <div class="col-xs-2 col-md-2" style="margin-top: 25px">
+                        <button type="button" id="btnSearch" class="btn btn-block btn-info">Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* detail form *@
+    <div id="detail_form" class="col-xs-12 col-md-12">
+        <div class="box box-success">
+            <div class="box-body">
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-1 col-md-6">
+                        <p>
+                            AppCode :<span class="labelData" id="lblAppCode"></span>
+                        </p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-1 col-md-5">
+                        <p>
+                            ชื่อผู้เอาประกัน :<span class="labelData" id="lblCusName"></span>
+                        </p>
+                    </div>
+                    <div class="col-xs-12 col-md-5">
+                        <p>
+                            ชื่อผู้ชำระเบี้ย :<span class="labelData" id="lblPayerName"></span>
+                        </p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-1 col-md-5">
+                        <p>
+                            แผน :<span class="labelData" id="lblPlan"></span>
+                        </p>
+                    </div>
+                    <div class="col-xs-12 col-md-5">
+                        <p>
+                            เบี้ย :<span class="labelData" id="lblPremium"></span>
+                        </p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-1 col-md-5">
+                        <p>
+                            สถานะ App :<span class="labelData" id="lblStatus"></span>
+                        </p>
+                    </div>
+                    <div class="col-xs-12 col-md-5">
+                        <p>
+                            ยอดเงินคงเหลือ :<span class="labelData" id="lblPaymentAmount"></span>
+                        </p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-1 col-md-6">
+                        <p>
+                            Link SSS URL :<a id="lblSSSLink" target="_blank" href=""> Click Link Here </a>
+                        </p>
+                        <input type="hidden" id="hd_reserveAccountId" value="" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-4 col-md-3">
+                        <button type="button" id="btnTestModal" class="btn btn-block btn-success" onclick="getRefundDetail()"
+                                data-toggle="modal" data-target=".bd-cashback-modal-lg">
+                            ขอคืนเงิน
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end form *@
+    @* Not found form *@
+    <div id="NotFound" class="col-xs-12 col-md-12">
+        <div class="box box-danger">
+            <div class="box-body">
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-offset-4 col-md-6">
+                        <h3>----- Not Found -----</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end form *@
+    <input type="hidden" id="hd_refundId" value="" />
+</div>
+<!-- Modal -->
+<div class="modal fade bd-cashback-modal-lg" id="cashbackModal" tabindex="-1" role="dialog" aria-labelledby="cashbackModal" aria-hidden="true">
+    <div class="modal-dialog  modal-lg " role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">บันทึกคืนเงิน</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-12">
+                        <h5 class="control-label" for="">วิธีการคืนเงิน :</h5>
+                        <div class="col-md-5">
+                            <input type="radio" class="iradio_minimal-blue " name="chk_Paytype" id="chk_Paytype_Transfer" value="1" /><label for="chk_Paytype_Transfer">โอน</label>
+                        </div>
+                        <div class="col-md-5">
+                            <input type="radio" class="iradio_minimal-blue" name="chk_Paytype" id="chk_Paytype_Check" value="2" /><label for="chk_Paytype_Transfer">เช็ค</label>
+                        </div>
+                        <input type="hidden" id="hd_refundType" value="4" />
+                    </div>
+                </div>
+                <div id="sub_Transfer">
+                    <div class="form-group row ">
+                        <div class="col-xs-12 col-md-6">
+                            <label class="control-label" for="">ธนาคาร :</label>
+                            <select class="form-control" id="select_bank">
+                                <option value="-1">---- กรุณาเลือก ----</option>
+                                @foreach (var itm in ViewBag.organizeList)
+                                {
+                                    <option value="@itm.OrganizeId">@itm.Organize</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row ">
+                        <div class="col-xs-12 col-md-6">
+                            <label class="control-label" for="">เลขที่บัญชี :</label>
+                            <input type="text" id="txtAccountNo" class="form-control" />
+                        </div>
+                        <div class="col-xs-12 col-md-6">
+                            <label class="control-label" for="">ชื่อบัญชี :</label>
+                            <input type="text" id="txtAccountName" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div id="sub_Check">
+                    <div class="form-group row">
+                        <div class="col-xs-12 col-md-6">
+                            <label class="control-label" for="">สั่งจ่ายในนาม :</label>
+                            <input type="text" id="txtCheckName" class="form-control" />
+                        </div>
+                        <div class="col-xs-12 col-md-6">
+                            <label class="control-label" for="">ที่อยู่จ่าหน้าซอง :</label>
+                            <input type="text" id="txtAddress" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-xs-4 col-md-3">
+                            <label class="control-label" for="">จังหวัด :</label>
+                            <select class="form-control" id="select_province">
+                                @foreach (var itm in ViewBag.provinceList)
+                                {
+                                    if (itm.Province_ID == "10")
+                                    {
+                                        <option value="@itm.Province_ID" selected="selected">@itm.ProvinceDetail</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@itm.Province_ID">@itm.ProvinceDetail</option>
+                                    }
+
+                                }
+                            </select>
+                        </div>
+                        <div class="col-xs-4 col-md-3">
+                            <label class="control-label" for="">อำเภอ/เขต :</label>
+                            <select class="form-control" id="select_district"></select>
+                        </div>
+                        <div class="col-xs-4 col-md-3">
+                            <label class="control-label" for="">ตำบล/แขวง :</label>
+                            <select class="form-control" id="select_subDistrict"></select>
+                        </div>
+                        <div class="col-xs-4 col-md-3">
+                            <label class="control-label" for="">รหัสไปรษณีย์ :</label>
+                            <input type="text" id="txtPostCode" class="form-control" disabled="disabled" />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-6 ">
+                        <label class="control-label" for="">จำนวนเงิน :</label>
+                        <input type="text" id="txtCashbackValue" class="form-control"
+                               data-inputmask="'alias':'decimal','groupSeparator': ',', 'autoGroup': true, 'digits': 2,
+                                   'digitsOptional': false, 'suffix': ' บาท', 'placeholder': '0'" />
+                    </div>
+                    <div class="col-xs-12 col-md-6">
+                        <label class="control-label" for="">สาเหตุการคืนเงิน :</label>
+                        <select class="form-control" id="select_cause">
+                            <option value="-1">---- กรุณาเลือก ----</option>
+                            @foreach (var itm in ViewBag.refundCauseList)
+                            {
+                                <option value="@itm.RefundCauseId">@itm.RefundCause</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-12 ">
+                        <label class="control-label" for="">หมายเหตุ</label>
+                        <textarea id="txtRemark" class="form-control" rows="2" placeholder="กรุณากรอกหมายเหตุ"></textarea>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-12">
+                        <table id="dtScanDoc" name="dtScanDoc" class="table table-bordered table-striped" style="width: 100%"></table>
+                    </div>
+                    <div class="col-xs-2 col-md-2 pull-right">
+                        <button type="button" class="btn btn-block btn-info" id="btnRefresh" onclick="RefreshDoc()">Refresh</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-sm-offset-3 col-sm-3">
+                    <button type="button" class="btn btn-block btn-success" onclick="ValidateRefundRequest()">ยืนยัน</button>
+                </div>
+                <div class="col-sm-3">
+                    <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ยกเลิก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@* end modal *@
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('#txtCashbackValue').inputmask();
+
+            $('#detail_form').hide();
+            $('#NotFound').hide();
+
+            $('#chk_Paytype_Transfer').iCheck('check');
+            $('#sub_Check').hide();
+
+            //show and hide input type
+            $('#chk_Paytype_Transfer').on('ifChecked', function (e) {
+                $('#sub_Transfer').show();
+                $('#sub_Check').hide();
+                $('#cashbackModal').find("input,textarea").val('').end();
+                $('#cashbackModal').find("select").val('-1').end();
+                $('#hd_refundType').val('4');
+            });
+            $('#chk_Paytype_Check').on('ifChecked', function (e) {
+                $('#sub_Transfer').hide();
+                $('#sub_Check').show();
+                $('#cashbackModal').find("input,textarea").val('').end();
+                $('#cashbackModal').find("select").val('-1').end();
+                $('#select_province').val('10');
+                $('#hd_refundType').val('3');
+                getdistrict($('#select_province').val());
+            });
+
+            //search click load data
+            $('#btnSearch').click(() => {
+                //$('#hd_refundId').val('');
+                $('#detail_form').show();
+                LoadAccountData($('#txtSearchText').val());
+                $('#chk_Paytype_Transfer').iCheck('check');
+                $('#hd_refundType').val('4');
+
+            });
+
+            //clear all input on modal
+            $('#cashbackModal').on('hidden.bs.modal', function (e) {
+                $(this).find("input,textarea").val('').end();
+                $(this).find("select").val('-1').end();
+                $('#select_province').val('10');
+                getdistrict($('#select_province').val());
+            });
+
+            getdistrict($('#select_province').val());
+            $('#select_province').change((e) => {
+                e.preventDefault();
+
+                getdistrict($('#select_province').val());
+            });
+            $('#select_district').change((e) => {
+                e.preventDefault();
+                getSubDistrict($('#select_district').val());
+            });
+            $('#select_subDistrict').change((e) => {
+                e.preventDefault();
+                getPostCode($('#select_subDistrict').val());
+            });
+        });
+
+        const LoadAccountData = (code) => {
+            $('.labelData').empty();
+
+            var request = $.get('@Url.Action("GetApplicationDetail","RefundPayment")', {applicationCode:code});
+            request.success((data) => {
+                $('#NotFound').hide();
+                //call function
+                $('#lblAppCode').text(data.ApplicationCode);
+                $('#lblCusName').text(data.CustomerName);
+                $('#lblPayerName').text(data.PayerName);
+                $('#lblPlan').text(data.Product);
+                $('#lblPremium').text(data.Premium);
+                $('#lblStatus').text(data.AppStatus);
+                $('#lblPaymentAmount').text(data.ReserveAccountAmountBalance);
+                $('#lblSSSLink').attr('href', data.LinkSSSURL);
+                $('#hd_reserveAccountId').val(data.ReserveAccountId);
+
+                if (data.ReserveAccountAmountBalance == 0) {
+                    $('#btnTestModal').prop('disabled', true);
+                } else {
+                    $('#btnTestModal').prop('disabled', false);
+                }
+            });
+            request.error((jqXHR, textStatus, errorThrown)=>
+            {
+                $('#detail_form').hide();
+                $('#NotFound').show();
+            });
+
+        }
+
+        const getdistrict = (provinceId) => {
+            $('#select_district').empty();
+            $.get('@Url.Action("GetDistrict","RefundPayment")', { provinceId: provinceId }, (data)=>
+            {
+                $.each(data, function (key, value) {
+                    $('#select_district').append($("<option></option>").attr('value',value.District_ID).text(value.DistrictDetail));
+                });
+                $('#select_district').val($('#select_district option:first').val());
+                getSubDistrict($('#select_district').val());
+            });
+        }
+
+        const getSubDistrict = (districtId) => {
+            $('#select_subDistrict').empty();
+            $.get('@Url.Action("GetSubDistrict","RefundPayment")', { districtId: districtId }, (data)=>
+            {
+                $.each(data, function (key, value) {
+                    $('#select_subDistrict').append($("<option></option>").attr('value',value.SubDistrict_ID).text(value.SubDistrictDetail));
+                });
+                $('#select_subDistrict').val($('#select_subDistrict option:first').val());
+                getPostCode($('#select_subDistrict').val());
+            });
+        }
+
+        const getPostCode = (subDistrictId) => {
+            $('#txtPostCode').val('');
+            $.get('@Url.Action("GetPostCode","RefundPayment")', { subDistrictId: subDistrictId }, (data) => {
+                $('#txtPostCode').val(data);
+            });
+        }
+
+        const ValidateRefundRequest = () => {
+            let refundText = $('#txtCashbackValue').val();
+            let splitValue = refundText.split(' ');
+            let refundValue = parseFloat(splitValue[0].replace(",", "")).toFixed(2);
+
+            if ($('#hd_refundId').val() == '') {
+                return swal_fail('เกิดข้อผิดพลาด!');
+            }
+
+            if ($('#hd_refundType').val() == "4") {
+                if ($('#select_bank').val() == -1) {
+                    return swal_fail('กรุณาเลือกธนาคาร');
+                }
+                if ($('#txtAccountNo').val() == '') {
+                    return swal_fail('กรุณากรอกเลขที่บัญชี');
+                }
+                if ($('#txtAccountName').val() == '') {
+                    return swal_fail('กรุณากรอกชื่อบัญชี');
+                }
+                if (refundValue <= 0) {
+                    return swal_fail('กรุณากรอกจำนวนเงินให้ถูกต้อง');
+                }
+                if ($('#select_cause').val() == -1) {
+                    return swal_fail('กรุณาเลือกสาเหตุการคืนเงิน');
+                }
+                return SubmitRefund();
+
+            } else if ($('#hd_refundType').val() == "3") {
+                if ($('#txtCheckName').val() == '') {
+                    return swal_fail('กรุณากรอกช่องสั่งจ่ายในนาม');
+                }
+                if ($('#txtAddress').val() == '') {
+                    return swal_fail('กรุณากรอกที่อยู่ให้ครบถ้วน');
+                }
+                if ($('#select_province').val() == -1) {
+                    return swal_fail('กรุณากรอกที่อยู่ให้ครบถ้วน');
+                }
+                if ($('#select_district').val() == -1) {
+                    return swal_fail('กรุณากรอกที่อยู่ให้ครบถ้วน');
+                }
+                if ($('#select_subDistrict').val() == -1) {
+                    return swal_fail('กรุณากรอกที่อยู่ให้ครบถ้วน');
+                }
+                if (refundValue <= 0) {
+                    return swal_fail('กรุณากรอกจำนวนเงินให้ถูกต้อง');
+                }
+                if ($('#select_cause').val() == -1) {
+                    return swal_fail('กรุณาเลือกสาเหตุการคืนเงิน');
+                }
+
+                return SubmitRefund();
+
+            } else {
+                return swal_fail('เกิดข้อผิดพลาด กรุณาทำรายการใหม่');
+            }
+        };
+
+        const SubmitRefund = () => {
+            let refundRequestId = $('#hd_refundId').val();
+            let refundText = $('#txtCashbackValue').val();
+            let splitValue = refundText.split(' ');
+            let refundValue = parseFloat(splitValue[0].replace(",", "")).toFixed(2);
+            let refundType = $('#hd_refundType').val();
+            let refundRemark = $('#txtRemark').val();
+
+            swal_confirm('ยืนยันบันทึกรายการ', 'ต้องการบันทึกรายการคืนเงินนี้หรือไม่?', () => {
+                $.post('@Url.Action("RequestRefund_Update","RefundPayment")',
+                    {
+                        refundRequestId: refundRequestId,
+                        refundTypeId: refundType,
+                        chequeName: $('#txtCheckName').val(),
+                        chequeAddress1: $('#txtAddress').val(),
+                        subDistrict_ID: $('#select_subDistrict').val(),
+                        refundCauseId: $('#select_cause').val(),
+                        bankId: $('#select_bank').val(),
+                        bankAccount: $('#txtAccountNo').val(),
+                        bankAccountName: $('#txtAccountName').val(),
+                        amount: refundValue,
+                        requestRemark:refundRemark
+                    },
+                    (data) => {
+                    if (data.IsResult) {
+                        swal_success('ทำรายการสำเร็จ');
+                        return setTimeout(() => { window.location = '@Url.Action("RequestRefund","RefundPayment")'; }, 1500);
+                    } else {
+                        return swal_fail(data.Msg);
+                    }
+                });
+            });
+        };
+
+        const getRefundDetail = () => {
+            var reserveId = $('#hd_reserveAccountId').val();
+            var applicationCode = $('#lblAppCode').text();
+
+            //get request id
+            $.post('@Url.Action("RequestRefund_Insert","RefundPayment")', {reserveAccountId:reserveId,applicationCode:applicationCode}, (data) => {
+                if (data.IsResult) {
+                    $('#hd_refundId').val(data.Result);
+                    GetDocDT();
+                } else {
+                    swal_fail(data.Msg);
+                    return setTimeout(() => { window.location = '@Url.Action("RequestRefund","RefundPayment")'; }, 1000);
+                }
+
+            });
+
+        }
+
+        const RefreshDoc = () => {
+            GetDocDT();
+        }
+
+        const GetDocDT = () => {
+            $('#dtScanDoc').empty();
+            var tbl = $('#dtScanDoc').DataTable({
+                paging:false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetDocument","RefundPayment")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 99;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.refundRequestId = $('#hd_refundId').val();
+                    }
+                },
+                columns: [
+                    { title: 'Document Code', data: 'CustomerDocumentCode' },
+                    { title: 'ประเภทเอกสาร', data: 'CustomerDocumentType' },
+                    {
+                        title: 'จำนวนเอกสาร', data: null ,
+                        render: function (data) {
+                            return '<a target="_blank" href="'+data.UrlOpen+'" class="btn btn-block btn-success">จำนวนเอกสาร:'+data.DocumentFileCount+'</a>';
+                        }
+                    },
+                    {
+                        title: 'จัดการ', data:null,
+                        render: function (data) {
+                            if (data.AmountBalance == 0) {
+                                return '';
+                            } else {
+                                return '<a target="_blank" href="'+data.UrlScan+'" class="btn btn-block btn-info">Scan Doc</a>';
+                            }
+
+                        }
+                    }
+                ]
+            });
+        }
+    </script>
+}

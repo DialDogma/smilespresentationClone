@@ -1,0 +1,316 @@
+﻿@{
+    ViewBag.Title = "ส่ง SMS";
+}
+
+<style>
+    .row {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+</style>
+
+<div class="row">
+    <div class="col-xs-12 col-sm-4">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">ส่ง SMS</h3>
+            </div>
+            <div class="box-body">
+                <div class="form-group row" style="padding-top:1.5rem;">
+                    <div class="col-xs-12 col-sm-12">
+                        <div style="display: flex; justify-content: space-between;">
+                            <label class="control-label">เบอร์โทรศัพท์</label>
+                            <label class="" style="color:red">* เลขโทรศัพท์มือถือ 10 หลัก</label>
+                        </div>
+                        <input class="form-control" id="txtPhoneNumber" name="txtPhoneNumber" type="text" placeholder="ระบุเบอร์โทรศัพท์" onkeypress="return /[0-9]/i.test(event.key)" maxlength="10" />
+                        <p id="phoneNumberErrorMessage" style="color: red; font-weight: bold; font-size: 10px; position: absolute; margin-top: 0.2rem; padding-left: 0.2rem;"></p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-sm-12">
+                        <label class="control-label">ข้อความ</label>
+                        <textarea class="form-control" rows="4" placeholder="ข้อความที่จะส่ง..." id="txtMessage"></textarea>
+                        <p>
+                            ตัวอักษร:<label class="control-label" id="lblCountText">0</label> &emsp; จำนวน SMS:<label class="control-label" id="lblCountSMS">0</label>
+                        </p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-sm-12">
+                        <label for="" class="control-label">ประเภท SMS:</label>
+                        <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" tabindex="-1" data-select2-id="1" aria-hidden="true" id="ddlSMSType" name="ddlSMSType">
+                            @{
+
+                                foreach (var itm in ViewBag.SMSType)
+                                {
+                                    if (itm.SMSTypeID == 1)
+                                    {
+                                        <option value="">----กรุณาเลือก----</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@itm.SMSTypeID">@itm.SMSTypeDetail</option>
+                                    }
+
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-sm-12">
+                        <button id="btnSubmit" type="button" class="btn btn-block btn-success">ยืนยันการส่ง SMS</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="hd_UserId" value="@ViewBag.userId" />
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('.select2').select2();
+
+            $('#btnSubmit').prop('disabled', true); // ค่าเริ่มต้นของปุ่ม
+            UpdateButtonClass(); // Update class
+
+            $('#sendDate').datepicker({
+                dateFormat: 'dd-mm-yyyy',
+                inline: true
+            });
+            //set interval time
+            var interval = setInterval(function () {
+                var momentNow = moment();
+                $('#dateNow').html(momentNow.format('DD/MM/YYYY') + ' '
+                    + momentNow.format('dddd')
+                        .substring(0, 3).toUpperCase());
+                $('#timeNow').html(momentNow.format('A hh:mm:ss'));
+            }, 100);
+
+            //count message when keyup
+            $('#txtMessage').keyup(function () {
+                var count = $(this).val().length;
+                $('#lblCountText').text(count);
+                if (count > 134) {
+                    $('#lblCountText').css('color', 'red');
+                    $('#lblCountSMS').text('3');
+                } else if (count > 70) {
+                    $('#lblCountText').css('color', 'orange');
+                    $('#lblCountSMS').text('2');
+                }
+                else {
+                    $('#lblCountText').css('color', 'black');
+                    $('#lblCountSMS').text('1');
+                }
+            });
+
+            // Validate phone number
+            $('#txtPhoneNumber').on('input', function () {
+                var phoneNumber = $(this).val().trim();
+                var errorMessage = '';
+
+                if (phoneNumber.length !== 10) {
+                    errorMessage = 'กรุณาใส่หมายเลขโทรศัพท์ 10 หลัก';
+                }
+
+                if (phoneNumber === '') {
+                    errorMessage = 'กรุณาระบุเบอร์โทรศัพท์';
+                }
+
+                if (errorMessage !== '') {
+                    $('#phoneNumberErrorMessage').text(errorMessage);
+                } else {
+                    $('#phoneNumberErrorMessage').text('');
+                }
+            });
+
+            // Validate ปุ่ม ยืนยันการส่ง SMS
+            $('#txtPhoneNumber, #txtMessage, #ddlSMSType').on('input change', function () {
+                var phoneNumber = $('#txtPhoneNumber').val();
+                var message = $('#txtMessage').val();
+                var smsTypes = $('#ddlSMSType option:selected').text();
+
+                if (phoneNumber === '' || phoneNumber.length !== 10 || message === '' || (smsTypes === '' || smsTypes === '----กรุณาเลือก----' || $('#ddlSMSType').val() === '')) {
+                    $('#btnSubmit').prop('disabled', true);
+                } else {
+                    $('#btnSubmit').prop('disabled', false);
+                }
+
+                UpdateButtonClass();
+            });
+
+            const DefaultValues = () => {
+                $('#lblCountText').text('0');
+                $('#lblCountSMS').text('0');
+                $('#txtPhoneNumber').val('');
+                $('#txtMessage').val('');
+                $('#ddlSMSType').val('').trigger('change');
+            }
+
+            var loadingTimeout;
+            // send sms function
+            const SendSMSV2 = () => {
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("SendSMSV2", "SMS")",
+                    data: {
+                        "SMSTypeId": $('#ddlSMSType').val(),
+                        "Message": $('#txtMessage').val(),
+                        "PhoneNo": $('#txtPhoneNumber').val(),
+                        "CreatedById": $('#hd_UserId').val()
+                    },
+                    dataType: "json",
+                    async: true,
+                    success: function async(response) {
+                        clearTimeout(loadingTimeout);
+                        if (response === '' || response === undefined) {
+                            return swal({
+                                title: "เกิดข้อผิดพลาด! ส่งข้อความไม่สำเร็จ",
+                                type: "error",
+                                confirmButtonColor: "#DD6B55",
+                                confirmButtonText: "OK",
+                                showCancelButton: false,
+                                closeOnConfirm: false,
+                                closeOnEsc: false
+                            }, function (isConfirm) {
+                                if (isConfirm) {
+                                    DefaultValues()
+                                    swal.close()
+                                }
+                            });
+                        }
+
+                        //if (response.Status === '1111') {
+                        //    return swal({
+                        //        title: response.Detail,
+                        //        type: "error",
+                        //        confirmButtonColor: "#DD6B55",
+                        //        confirmButtonText: "OK",
+                        //        showCancelButton: false,
+                        //        closeOnConfirm: false,
+                        //        closeOnEsc: false
+                        //    }, function (isConfirm) {
+                        //        if (isConfirm) {
+                        //            DefaultValues()
+                        //            swal.close()
+                        //        }
+                        //    });
+                        //} else
+
+                      if (response.Status === '000') {
+                            return swal({
+                                title: "ส่งออกข้อความเรียบร้อยแล้ว",
+                                type: "success",
+                                confirmButtonColor: "#277020",
+                                confirmButtonText: "OK",
+                                showCancelButton: false,
+                                closeOnConfirm: false,
+                                closeOnEsc: false
+                            }, function (isConfirm) {
+                                if (isConfirm) {
+                                    DefaultValues()
+                                    swal.close()
+                                }
+                            });
+                        } else {
+                            return swal({
+                                title: "ส่งข้อความไม่สำเร็จ",
+                                type: "error",
+                                confirmButtonColor: "#DD6B55",
+                                confirmButtonText: "OK",
+                                showCancelButton: false,
+                                closeOnConfirm: false,
+                                closeOnEsc: false
+                            }, function (isConfirm) {
+                                if (isConfirm) {
+                                    DefaultValues()
+                                    swal.close()
+                                }
+                            });
+                        }
+                    },
+                    error: function async(xhr, textStatus, errorThrown) {
+                        clearTimeout(loadingTimeout);
+                        return swal({
+                            title: 'เกิดข้อผิดพลาด ' + JSON.parse(textStatus),
+                            type: "error",
+                            confirmButtonColor: "#DD6B55",
+                            confirmButtonText: "OK",
+                            showCancelButton: false,
+                            closeOnConfirm: false,
+                            closeOnEsc: false
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                DefaultValues()
+                                swal.close()
+                            }
+                        });
+                    }
+                });
+            }
+
+            $('#btnSubmit').click(function (e) {
+                var phoneNumber = $('#txtPhoneNumber').val();
+                var message = $('#txtMessage').val();
+                var smsTypes = $('#ddlSMSType option:selected').text();
+                if (phoneNumber === '' || phoneNumber.length !== 10 || message === '' || (smsTypes === '' || smsTypes === '----กรุณาเลือก----' || $('#ddlSMSType').val() === '')) {
+                    swal_fail("กรุณากรอกข้อมูลให้ครบถ้วน");
+                } else {
+                    swal({
+                        title: "ยืนยันข้อมูล",
+                        text: "ต้องการส่ง SMS ใช่หรือไม่",
+                        type: "info",
+                        confirmButtonColor: "#277020",
+                        confirmButtonText: "ยืนยัน",
+                        cancelButtonText: "ยกเลิก",
+                        showCancelButton: true,
+                        closeOnConfirm: false,
+                        showLoaderOnConfirm: true,
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+                            loadingTimeout = setTimeout(function () {
+                                swal({
+                                    title: "การส่งข้อความใช้เวลานานเกินไป",
+                                    html: true,
+                                    text: "อาจจะเกิดข้อผิดพลาดในการส่ง SMS<br>กรุณาติดต่อผู้ดูแลระบบ",
+                                    type: "error",
+                                    confirmButtonColor: "#DD6B55",
+                                    confirmButtonText: "OK",
+                                    showCancelButton: false,
+                                    closeOnConfirm: false,
+                                    closeOnEsc: false
+                                }, function (isConfirm) {
+                                    if (isConfirm) {
+                                        DefaultValues()
+                                        swal.close()
+                                    }
+                                });
+                            }, 10000);
+
+                            SendSMSV2(function () {
+                                clearTimeout(loadingTimeout);
+                                swal.close();
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
+        function UpdateButtonClass() {
+            var disabled = $('#btnSubmit').prop('disabled');
+            var button = $('#btnSubmit');
+
+            if (disabled) {
+                button.removeClass('btn-success').addClass('btn-default');
+            } else {
+                button.removeClass('btn-default').addClass('btn-success');
+            }
+        }
+    </script>
+}

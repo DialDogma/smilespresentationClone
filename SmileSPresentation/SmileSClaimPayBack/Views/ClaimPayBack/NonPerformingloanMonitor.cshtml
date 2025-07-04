@@ -1,0 +1,271 @@
+﻿@{
+    ViewBag.Title = "ตัดรับชำระสินไหม Online";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="col-sm">
+    <div class="box box-primary" style="margin-top:0.8%;border-color:#167fb8">
+        <div class="box-header with-border">
+            <h3 class="box-title"> ตัดรับชำระ</h3>
+        </div>
+        <div class="box-body">
+            <div class="col-sm-12">
+                <div class="row">
+                    <div class="col-sm-3"></div>
+                    <div class="col-sm-6">
+                        <label> ประเภทการทำรายการ</label>
+                        <select name="DifferentPaymentType" id="DifferentPaymentType" class="DifferentPaymentType" style="width:100%">
+                            @{
+                                int count = 1;
+                                var differentPaymentTypes = ViewBag.DifferentPaymentTypeId as IEnumerable<SmileSClaimPayBack.Models.vw_ClaimOnlineReceiveType>;
+                                foreach (var Get in differentPaymentTypes)
+                                {
+                                    <option value="@Get.ReceiveTypeId"> @Get.ReceiveTypeName</option>
+
+                                    count++;
+                                }
+                            }
+
+                        </select>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </div>
+            <div class="col-sm-12">
+                <div class="row" style="margin-top:2rem">
+                    <div class="col-sm-3"></div>
+                    <div class="col-sm-6">
+                        <form id="formImport" enctype="multipart/form-data">
+                            <div class="input-group">
+                                <div class=" form-control" style="width: 100%">
+                                    <input type="file" id="ImportFile" name="ImportFile" style="width:100%;cursor:pointer;" accept=".xls, .xlsx">
+                                </div>
+                                <input type="hidden" name="DifferentPaymentTypeId" id="DifferentPaymentTypeId" />
+                                <span class="input-group-btn">
+                                    <button class="btn  bg-primary" type="button" id="btnImportValidation" disabled><i class="glyphicon glyphicon-open" id="upIcon"></i> อัปโหลด</button>
+                                </span>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-sm">
+    <div class="box box-primary" style="margin-top:0.8%;border-color:#167fb8">
+        <div class="box-header with-border">
+            <h3 class="box-title"> ยืนยันการตัดรับชำระ</h3>
+        </div>
+        <div class="box-body">
+            <div class="col-sm-12">
+                <form name="confirmForm" id="confirmForm">
+                    <div class="row">
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <td style="width:200px;" class="text-right">ผลต่างการชำระ :</td>
+                                    <td>
+                                        <span id="differentAmount" style="color:green"></span>
+                                        <input type="hidden" id="hiddenDifferentAmount" value="" />
+                                        <input type="hidden" id="header" name="jsonHeader" />
+                                        <input type="hidden" id="detail" name="jsonDetail" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-right"><span id="txtAmount"></span> :</td>
+                                    <td><input type="number" name="amount" id="amount" class="form-control" placeholder='0.00' /></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-right"><span id="txtdateTransfer"></span> :</td>
+                                    <td><input type="text" name="TransferDate" data-date-language="th-th" data-provide="datepicker" class="form-control" id="TransferDate" style="width:100%"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12" style="text-align:center">
+                            <button type="button" id="btnConfirm" class="btn btn-success"> ยืนยันการตัดชำระ</button>
+                            <input type="reset" id="reset" class="btn btn-danger" value="ยกเลิก" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<span id="result"></span>
+
+@section ViewSpecificJavascript
+{
+    <script src="~/Content/js/jquery.numeric.js"></script>
+    <script type="text/javascript">
+
+        $(function () {
+
+            $("#differentAmount").text("0.00");
+
+            // set datetime
+            var date = new Date();
+            var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            date.setDate(date.getDate() - 1);
+
+            var dateDefault = {
+                format: 'dd/mm/yyyy',
+                autoclose: true,
+                endDate: today
+            }
+
+            $('#TransferDate').datepicker(dateDefault);
+            $('#TransferDate').datepicker('setDate', today);
+
+
+            // disable ปุ่ม update excel file
+            $('#ImportFile').change(function (e) {
+                var filePath = $(this).val();
+                if (filePath != "") {
+                    $('#btnImportValidation').prop('disabled', false);
+                }
+
+                // check file extension
+                var fileExtension = new RegExp('^.*\.xls[xm]?$');
+                if (!fileExtension.test(filePath)) {
+                    swal("แจ้งเตือน!", "กรุณาเลือกไฟล์นามสกุล .xlsx", "warning");
+                    $('#btnImportValidation').prop('disabled', true);
+                    $(this).val(""); // set default
+                }
+            });
+
+            $("#DifferentPaymentType").select2();
+            $("#DifferentPaymentType").change(function () {
+                var stringAmountArray = ['', '', 'จำนวนเงินโอนเพิ่ม', 'จำนวนเงินคืน', 'จำนวนเงิน NPL '];
+                var stringTransferDateArray = ['', '', 'วันที่โอนเพิ่ม', 'วันที่คืนเงิน', 'วันที่รับเงิน NPL'];
+
+                $("#txtAmount").text(stringAmountArray[$(this).val()]);
+                $("#txtdateTransfer").text(stringTransferDateArray[$(this).val()]);
+                $("#DifferentPaymentTypeId").val($(this).val());
+
+            });
+            $("#DifferentPaymentType").val($("#DifferentPaymentType").val()).change();
+
+            // upload file
+            $("#btnImportValidation").click(function () {
+                swal({
+                    title: "แจ้งเตือน!",
+                    text: "ยืนยันการทำรายการ ?",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "ตกลง",
+                    cancelButtonText: "ยกเลิก",
+                    closeOnConfirm: false,
+                    showLoaderOnConfirm: true
+                },
+                    function () {
+                        var Data = new FormData($("#formImport")[0]);
+                        $.ajax(
+                            {
+                                type: "POST",
+                                url: "/ClaimPayBack/NonPerformingloanImportExcelFile",
+                                contentType: false,
+                                processData: false,
+                                data: Data,
+                                success: function (response) {
+                                    if (response.valid == true) {
+                                        $("#differentAmount").text(formatNumber(response.differentAmount));
+                                        $("#hiddenDifferentAmount").val(response.differentAmount);
+                                        $("#ImportFile").val("");
+                                        $("#btnImportValidation").attr("disabled", true);
+                                        swal("แจ้งเตือน", "บันทึกรายการสำเร็จ", "success");
+
+                                        $("#header").val(response.header);
+                                        $("#detail").val(response.details);
+                                    } else {
+                                        swal("แจ้งเตือน!", response.message, "warning");
+                                        $("#ImportFile").val("");
+                                        $("#btnImportValidation").attr("disabled", true);
+                                    }
+                                }
+                            });
+                    }
+                )
+            });
+
+            $("#amount").on("keyup keypress", function () {
+
+                $('#btnConfirm').prop('disabled', Math.abs(parseFloat($(this).val())) > Math.abs(parseFloat($("#hiddenDifferentAmount").val())));
+                if (Math.abs(parseFloat($(this).val())) > Math.abs(parseFloat($("#hiddenDifferentAmount").val()))) {
+                    $("#amount").css({ "background-color": "#ffbfbf" });
+                } else {
+                    $("#amount").css({ "background-color": "#FFF" })
+                }
+
+            });
+
+            // confirm list
+            $("#btnConfirm").click(function () {
+                if (!isValidate()) {
+                    return false;
+                }
+                swal({
+                    title: "แจ้งเตือน!",
+                    text: "ยืนยันการทำรายการ ?",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "ตกลง",
+                    cancelButtonText: "ยกเลิก",
+                    closeOnConfirm: false,
+                    showLoaderOnConfirm: true
+                },
+                    function () {
+                        var Data = new FormData($("#confirmForm")[0]);
+                        $.ajax(
+                            {
+                                type: "POST",
+                                url: "/ClaimPayBack/NonPerformingloanConfirm",
+                                contentType: false,
+                                processData: false,
+                                data: Data,
+                                success: function (response) {
+                                    if (response.valid == true) {
+                                        $("#differentAmount").text("0.00");
+                                        $("#amount").val("");
+                                        swal("แจ้งเตือน", "บันทึกรายการสำเร็จ", "success");
+                                    } else {
+                                        swal("แจ้งเตือน!", response.message, "warning");
+                                    }
+                                }
+                            });
+                    }
+                )
+            });
+        });
+
+        const isValidate = () => {
+            if ($("#amount").val().length === 0 || $("#amount").val() == 0) {
+                swal("แจ้งเตือน!", "กรุณาตรวจสอบ" + $("#txtAmount").text(), "warning");
+                return false;
+            }
+            //} else if ($("#amount").val() > $("#hiddenDifferentAmount").val()) {
+
+            //    alert($("#amount").val().toFixed(1));
+            //    swal("แจ้งเตือน!", "ยอดเงินต้องไม่มากกว่าผลต่างการชำระ", "warning");
+            //    return false;
+            //}
+
+            return true;
+        }
+
+        formatNumber = (number) => {
+            var parts = number.toFixed(2).split(".");
+            var num = parts[0].replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,") + (parts[1] ? "." + parts[1] : "");
+            return num;
+        }
+    </script>
+
+}

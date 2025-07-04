@@ -1,0 +1,584 @@
+﻿@{
+    ViewBag.Title = "รายการ App ที่ต้องส่งหนังสือยอมหักธนาคาร";
+
+}
+
+<form action="@Url.Action("AddDirectDebitHeader")" method="post" enctype="multipart/form-data">
+
+    <section class="content">
+
+        <div class="row">
+
+            <div class="box">
+                <div class="box-header">
+
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                    </div>
+
+                    <div class="form-group">
+
+                        <div class="col-md-4 ">
+                            <label>เลือกธนาคาร</label>
+                            <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="cBank" name="cBank">
+                                @foreach (var item in @ViewBag.BankId)
+                                {
+                                    <option value=@item.TempCode>  @item.OrganizeDetail </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4 ">
+                            <label>เลือกสถานะ</label>
+                            <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="cStatus" name="cStatus">
+                                <option selected="selected" value="0">ทั้งหมด</option>
+                                <option value="2">New App</option>
+                                <option value="3">ตรวจไม่ผ่าน</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <div style="padding-top:25px"> <button type="button" class="btn btn-block btn-info" id="btnSearch">แสดงรายการ</button></div>
+                        </div>
+
+                        <div class="col-md-12 ">
+                            <h1></h1>
+                        </div>
+                        <div class="col-md-12 ">
+                            <table id="dtReport" class="table table-bordered table-striped" style="width:100%"></table>
+                            <!-- /.box-body -->
+                            <button type="button" class="pull-right btn btn-success" id="btnSave">
+                                บันทึก
+                                <i class="fa fa-arrow-circle-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <br />
+
+                    <div class="form-group">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal -->
+    <div class="modal fade bd-example-modal-lg" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog  modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">รายละเอียด</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-group">
+
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-sm-2" style="text-align:right">
+                                    เลขที่บัญชีธนาคาร :
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="control-label" id="lblAccount" name="lblAccount" style="color:forestgreen"></label>
+                                </div>
+                                <div class="col-sm-3" style="text-align:right">
+                                    ชื่อบัญชีธนาคาร :
+                                </div>
+                                <div class="col-sm-3 ">
+
+                                    <label class="control-label" id="lblAccountName" name="lblAccountName" style="color:forestgreen"></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-sm-2" style="text-align:right">
+                                    ชื่อ-สกุล ผู้ชำระเบี้ย  :
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="control-label" id="lblPayerName" name="lblPayerName" style="color:forestgreen"></label>
+                                </div>
+                                <div class="col-sm-3" style="text-align:right">
+                                    เบอร์โทรศัพท์ :
+                                </div>
+                                <div class="col-sm-3 ">
+
+                                    <label class="control-label" id="lblPayerPhoneNumber" name="lblPayerPhoneNumber" style="color:forestgreen"></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12 ">
+                            <h1></h1>
+                            <table id="dtDetail" class="table table-bordered table-striped dataTable" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    @*<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>*@
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+         var AccCheckBox =  [];
+        $(function () {
+
+            $('.select2').select2();
+
+            GetReport($('#cBank').val());
+
+            $('#btnSearch').on('click', function (e) {
+                debugger;
+                e.preventDefault();
+                GetReport($('#cBank').val());
+
+            });
+
+            $('#dtReport').on('change', 'input[type="checkbox"]', function () {
+                debugger;
+                if (this.checked) {
+                    AccCheckBox.push(this.value);
+
+                } else {
+
+                    AccCheckBox.splice(AccCheckBox.indexOf(this.value), 1);
+                }
+
+            });
+
+            //$('#dtReport').on('draw.dt', function () {
+            //     //debugger;
+            //        var AccountAll = [];
+            //        $('.chk-row-select:checkbox:unchecked').each(function () {
+            //            AccountAll.push($(this).val());
+            //    });
+
+            //    var xxx =  $('input[class="chk-row-select"]', 1).value;
+            //} );
+
+            $('#btnSave').on('click', function (e) {
+                e.preventDefault();
+                if ($('.chk-row-select:checkbox:checked').length <= 0) {
+                    alert('กรุณาเลือกอย่างน้อย 1 บัญชี');
+                    return false;
+                }
+
+                else {
+                    window.swal({
+                        title: 'ยืนยันการทำรายการหรือไม่?',
+                        type: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#277020',
+                        confirmButtonText: 'ตกลง',
+                        cancelButtonText: 'ยกเลิก',
+                        closeOnConfirm: false,
+                        closeOnEsc: false,
+                        closeOnCancel: true
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+
+                            Assign(AccCheckBox);
+                            AccCheckBox = [];
+                        }
+                    });
+                }
+
+            });
+
+            //$('#chk-select-all').change(function (e) {
+            //   debugger;
+            //    e.preventDefault();
+            //    var rows = table.rows({ 'search': 'applied' }).nodes();
+
+            //    $('input[class="chk-row-select"]', rows).prop('checked', this.checked);
+
+            //    $('.chk-row-select:checkbox:checked').each(function () {
+            //          AccountAll.push($(this).val());
+            //    });
+
+            //});
+        });
+
+        function Assign(AccountNo) {
+            //debugger;
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("InsertGroup")',
+                data: {
+                    BankId: $('#cBank').val(),
+                    AccountNoList: AccountNo
+                },
+                success: function (response) {
+                    if (response[0] == "true") {
+                        window.swal({
+                            title: 'ทำรายการสำเร็จ',
+                            type: 'success',
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            var win = window.open("/BankDirectDebit/AccountDetailGroup?BankDirectDebitID=" + response[1], '_blank');
+                            win.focus();
+                            GetReport($('#cBank').val());
+
+                        });
+                    } else {
+                        window.swal({
+                            title: 'เกิดข้อผิดพลาด!',
+                            type: 'error',
+                            text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+
+                        });
+                    }
+                }
+            });
+        }
+
+       function GetReport(BankId)
+        {
+            $('#dtReport').empty();
+            var table = $('#dtReport').DataTable({
+                 pageLength: 10,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                 destroy: true,
+                 lengthMenu: [10, 20, 35, 50 ,100],
+
+                ajax: {
+                    method: 'POST',
+                    url: '@Url.Action("GetDatatable")',
+                    data: function (d) {
+                        debugger;
+                        d.BankId = BankId;
+                        d.PayerBranchId = @ViewBag.BranchId;
+                        d.BankDirectDebitStatusId =$('#cStatus').val();
+                        d.draw = d.draw;
+                        d.IndexStart = d.start;
+                        d.pageSize = d.length;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    {
+
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        targets:   0,
+                        data: 'AccountNo',
+                        title: '<input id="chk-select-all" type="checkbox" />',
+                        render: function (data, type, full, meta) {
+                            //debugger;
+
+                            var Ischecked = ""
+
+                            if (AccCheckBox.includes(data) == true) {
+                                Ischecked = "checked"
+
+                            }
+
+                            return '<input type="checkbox" class="chk-row-select" '+Ischecked+' id="chkdtrow_'+data+'" name="chkdtrow_'+data+'" value="'+data+'" >';
+                        }
+                        ,width: "5%"
+                    },
+                    { title: 'เลขที่บัญชีธนาคาร', data: 'AccountNo' ,width: "20%"},
+                    { title: 'ชื่อบัญชีธนาคาร', data: 'PayerName' },
+                    {
+                        title: 'สถานะ',
+                         data: null ,
+                        mRender: function (d) {
+
+                            if (d.BankDirectDebitStatusId == 0) {
+                                return '<span class="label label-success">New App</span>';
+                            } else if (d.BankDirectDebitStatusId == 1) {
+                                return '<span class="label label-danger">ตรวจไม่ผ่าน</span>';
+                            } else if (d.BankDirectDebitStatusId == 2) {
+                                return '<span class="label label-success">New App</span>';
+                            } else if (d.BankDirectDebitStatusId == 3) {
+                                return '<span class="label label-danger">ตรวจไม่ผ่าน</span>';
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-left',
+                        //data: 'QueueId',
+
+                        data: null,
+                        title: 'รายละเอียด',
+
+                        mRender: function (t) {
+                            //debugger;
+                            return '<div class="col-sm-10" ><a onclick="GetDetail(\'' + t.AccountNo +'\')"  data-toggle="modal" data-target=".bd-example-modal-lg" class="btn btn-block btn-default" ><i class="fa fa-external-link-square"></i></a></div>';
+
+                        },width: "10%"
+                    },
+
+                ],
+                    select: {
+                        style:    'os',
+                        selector: 'td:first-child'
+                    },
+                    order: [[ 1, 'asc' ]]
+           });
+
+           function GetAccAll(BankId) {
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("GetDatatableALL")',
+                data: {
+
+                        BankId : BankId,
+                        PayerBranchId : @ViewBag.BranchId,
+                        BankDirectDebitStatusId :$('#cStatus').val(),
+                        draw : 1,
+                        IndexStart : 0,
+                        pageSize : 99999,
+                        sortField : "AccountNo",
+                        orderType : "asc",
+                        search : ""
+                },
+                success: function (response) {
+
+                    AccCheckBox = response;
+                }
+            });
+           }
+
+           $('#chk-select-all').change(function (e) {
+
+                e.preventDefault();
+                var rows = table.rows({ 'search': 'applied' }).nodes();
+
+               $('input[class="chk-row-select"]', rows).prop('checked', this.checked);
+               if (this.checked == true) {
+                   GetAccAll($('#cBank').val());
+               } else {
+                   debugger;
+                   AccCheckBox = [];
+
+               }
+               //if (this.checked == true) {
+               //    $('.chk-row-select:checkbox:checked').each(function () {
+               //        AccCheckBox.push($(this).val());
+               //    });
+               //}
+               //else {
+               //    var AccCheckDel =  [];
+               //    $('.chk-row-select:checkbox:unchecked').each(function () {
+               //        AccCheckDel.push($(this).val());
+               //    });
+
+               //        for (i = 0; i < AccCheckDel.length; i++) {
+               //             AccCheckBox.splice(AccCheckBox.indexOf(AccCheckDel[i]), 1);
+               //         }
+               //}
+
+            });
+        }
+
+        @*function GetReport(BankId)
+        {
+            $('#dtReport').empty();
+            var table = $('#dtReport').DataTable({
+                 pageLength: 100,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                 destroy: true,
+                 lengthMenu: [10, 20, 35, 50 ,100],
+
+                ajax: {
+                    method: 'POST',
+                    url: '@Url.Action("GetDatatable")',
+                    data: function (d) {
+                        //debugger;
+                        d.BankId = BankId;
+                        d.PayerBranchId = @ViewBag.BranchCode;
+                        d.BankDirectDebitStatusId =$('#cStatus').val();
+                        d.draw = d.draw;
+                        d.IndexStart = d.start;
+                        d.pageSize = d.length;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        targets:   0,
+                        data: 'AccountNo',
+                        title: '<input id="chk-select-all" type="checkbox" />',
+                        render: function (data) {
+                            return '<input type="checkbox" class="chk-row-select" id="chkdtrow_'+data+'" name="chkdtrow_'+data+'" value="'+data+'" >';
+                        }
+                        ,width: "5%"
+                    },
+                    {title: 'เลขที่บัญชีธนาคาร', data: 'AccountNo' ,width: "20%"},
+                    { title: 'ชื่อบัญชีธนาคาร', data: 'PayerName' },
+                    { title: 'สถานะ', data: 'BankDirectDebitStatus' ,width: "15%"},
+
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-left',
+                        //data: 'QueueId',
+
+                        data: null,
+                        title: 'รายละเอียด',
+
+                        mRender: function (t) {
+                            //debugger;
+                            return '<div class="col-sm-10" ><a onclick="GetDetail(\'' + t.AccountNo +'\')"  data-toggle="modal" data-target=".bd-example-modal-lg" class="btn btn-block btn-default" ><i class="fa fa-external-link-square"></i></a></div>';
+
+                        },width: "10%"
+                    },
+
+                ],
+                    select: {
+                        style:    'os',
+                        selector: 'td:first-child'
+                    },
+                    order: [[ 1, 'asc' ]]
+            });
+
+           $('#chk-select-all').change(function (e) {
+                e.preventDefault();
+                var rows = table.rows({ 'search': 'applied' }).nodes();
+
+                $('input[class="chk-row-select"]', rows).prop('checked', this.checked);
+
+            });
+        }*@
+
+       function GetDetail(sCode)
+        {
+
+           GetHeadApp(sCode)
+           GetDetailApp(sCode)
+
+        }
+
+         function GetHeadApp(id)
+        {
+           //debugger;
+
+            $.ajax({
+                type: "POST",
+                  url: '@Url.Action("GetDatatableHead")',
+                data: { BankId: $('#cBank').val(),
+                        AccountNo: id
+                },
+
+                success: function (response) {
+                    //debugger;
+                    $('#lblAccount').text(response[0]);
+                    $('#lblAccountName').text(response[1]);
+                    $('#lblPayerName').text(response[2]);
+                    $('#lblPayerPhoneNumber').text(response[3]);
+                }
+            });
+        }
+        function GetDetailApp(id)
+        {
+           //debugger;
+
+            $('#dtDetail').empty();
+            var table = $('#dtDetail').DataTable({
+                 pageLength: 10,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                 destroy: true,
+                 searching: false,
+                lengthChange: false,
+
+                ajax: {
+                    method: 'POST',
+                    url: '@Url.Action("GetDatatableDetail")',
+                    data: function (d) {
+
+                        d.BankId = $('#cBank').val();
+                        d.AccountNo = id;
+                        d.draw = d.draw;
+                        d.IndexStart = d.start;
+                        d.pageSize = d.length;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = "";
+
+                    }
+                },
+                columns: [
+                    { title: 'เลขสติ๊กเกอร์', data: 'App_id' },
+                    { title: 'ผลิตภัณฑ์', data: 'Product' },
+                    { title: 'ชื่อ-สกุล ผู้เอาประกัน', data: 'CustName' },
+                    {
+                        title: 'DCR',
+                        data: 'StartCoverDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            return moment(data).format('DD/MM/YYYY');
+                        }
+                    },
+
+                    {
+                        title: 'วันบันทึก App',
+                        data: 'CreatedDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            return moment(data).format('DD/MM/YYYY');
+                        }
+                    },
+
+                    //{ title: 'สถานะ App', data: 'AppStatus' },
+
+                    {
+                        title: 'สถานะ App', data: null,
+                        className: 'dt-center',
+                        mRender: function (d) {
+                            debugger;
+                            if (d.AppCode == "3090" || d.AppCode == "3030"|| d.AppCode == "3050"|| d.AppCode == "3090" || d.AppCode == "3091") {
+                                return '<span class="label label-danger" style="font-size: 15px;">' + d.AppStatus + '</span>';
+                            }
+                            //else if (d.Status_ID == 9) {
+                            //    return '<span class="label label-danger">' + d.Status + '</span>';
+                            //}
+                            else {
+                                return '<span class="label label-success" style="font-size: 15px;">' + d.AppStatus + '</span>';
+                            }
+                        }
+                    },
+
+                ]
+           });
+
+        }
+    </script>
+}

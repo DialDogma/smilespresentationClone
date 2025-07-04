@@ -1,0 +1,361 @@
+﻿@*@model dynamic*@
+
+@{
+    ViewBag.Title = "งานโทรคัดกรอง";
+    //Layout = "~/Shared/_Layout";
+    ViewBag.Header = "งานโทรคัดกรอง";
+
+}
+
+<style>
+    td.details-control {
+        /*background: url('../../Content/img/negative.png') no-repeat center center;*/
+        cursor: pointer;
+    }
+
+    tr.shown td.details-control {
+        /*background: url('../../Content/img/negative.png') no-repeat center center;*/
+    }
+</style>
+
+<form id="form1">
+
+    <div class="row">
+        <div class="col-sm-12">
+
+            <div id="form1_msg" class="alert alert-danger alert-dismissible" style="display: none;">
+                <button type="button" class="close" data-dismiss="alerzdt" aria-hidden="true">×</button>
+                <h4><i class="icon fa fa-ban"></i> เตือน!</h4>
+                กรุณากรอกข้อมูลให้ถูกต้องและครบถ้วน
+            </div>
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหา</h3>
+                </div>
+
+                <div class="box-body">
+
+                    @* ประเภทคิว *@
+
+                    <div class="form-group">
+                        <div class="col-sm-4">
+                            <label for="ddlQueueType" class="">ประเภทคิว</label>
+                            <select class="form-control select2" name="ddlQueueType" id="ddlQueueType" style="width: 100%;" onchange="ddlQueueTypeOnChange()">
+                                <option value="" selected disabled>---โปรดระบุ---</option>
+                                <option value="-1" disabled>ทั้งหมด</option>
+                                @foreach (var item in ViewBag.QueueTypes)
+                                {
+                                    <option value="@item.QueueTypeId">@item.QueueTypeDetail</option>
+                                }
+                            </select>
+                        </div>
+
+                        @* ปีการศึกษา *@
+
+                        <div class="col-sm-4" id="div-ddlYear">
+                            <label for="lblQueueGroup" class="control-label">ปีการศึกษา :</label>
+                            <select class="form-control select2" name="ddlYear" id="ddlYear" style="width: 100%;">
+                                @foreach (var item in ViewBag.PaYear)
+                                {
+                                    <option value="@item.Detail">@item.Detail</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="clearfix visable-sm-block"></div>
+                    </div>
+
+                    @* วันที่ / ค้นหา *@
+                    <div class="form-group">
+                        @* วันที่ *@
+                        <div class="col-sm-4">
+                            <label>วันที่:</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right datepicker" name="dtpDateFrom" id="dtpDateFrom" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" required="required">
+                            </div>
+                        </div>
+                        @* ถึง *@
+                        <div class="col-sm-4">
+                            <label>ถึงวันที่:</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right datepicker" name="dtpDateTo" id="dtpDateTo" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" required="required">
+                            </div>
+                        </div>
+                        @* ค้นหา *@
+                        <div class="col-sm-2" style="padding-top: 5px;">
+                            <label></label>
+                            <button type="submit" class="btn btn-block btn-primary" id="btnSearch" name="btnSearch">ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box box-primary">
+                <div class="box-body">
+                    <div>
+
+                        <!-- Nav tabs -->
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#WaitCall" aria-controls="WaitCall" role="tab" data-toggle="tab">คิวงานใหม่  <label for="xxx" class="label label-danger" id="cNewQueue" name="cNewQueue"></label>  </a></li>
+                            <li role="presentation"><a href="#WaitCall_1" aria-controls="WaitCall_1" role="tab" data-toggle="tab">กำลังดำเนินการ  <label for="xxx" class="label label-warning" id="cWaitQueue" name="cWaitQueue"></label> </a></li>
+                            <li role="presentation"><a href="#Called" aria-controls="Called" role="tab" data-toggle="tab">คิวงานที่ถูกปิดไปแล้ว  <label for="xxx" class="label label-primary" id="cClosedQueue" name="cClosedQueue"></label> </a></li>
+                        </ul>
+
+                        <!-- Tab panes -->
+                        <div class="tab-content">
+
+                            @* คิวงานใหม่ *@
+                            <div role="tabpanel" class="tab-pane  active" id="WaitCall" style="padding-top: 7px;">
+                                <table id="dtWaitCall" class="table table-bordered table-striped" style=" width:100%"></table>
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane" id="WaitCall_1" style="padding-top: 7px;">
+                                <table id="dtWaitCall_1" class="table table-bordered table-striped" style=" width:100%"></table>
+                            </div>
+
+                            @* ปิดคิวงาน *@
+                            <div role="tabpanel" class="tab-pane " id="Called" style="padding-top: 7px;">
+                                <table id="dtCalled" class="table table-bordered table-striped" style=" width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+
+            $('.select2').select2();
+
+            var d1 = new Date();
+            $('#dtpDateFrom').datepicker("update", new Date(d1.getFullYear(), 0, 2));
+            $('#dtpDateTo').datepicker("update", new Date(d1.getFullYear(), 11, 32));
+
+            GetDatatableWaitCall(2, 'dtWaitCall'); //คิวงานใหม่
+
+            GetDatatableWaitCall(3, 'dtWaitCall_1'); //รอดำเนินการ
+
+            //GetDatatableCalled
+            GetDatatableCalled(4); //ปิดคิวงาน
+
+            $("#form1").validate();
+
+            $("#btnSearch").click(function (e) {
+
+                e.preventDefault();
+                //required ประเภทคีว
+                let ddlQueueType = $("#ddlQueueType").val();
+                if (ddlQueueType == "" || ddlQueueType == null) {
+                    swal("กรุณาตรวจสอบข้อมูล", "โปรดระบุประเภทคิว", "warning")
+                } else {
+
+                    if ($("#form1").valid() == true) {
+
+                        //GetDatatableWaitCall
+                        GetDatatableWaitCall(2, 'dtWaitCall', 'cNewQueue'); //คิวงานใหม่
+
+                        GetDatatableWaitCall(3, 'dtWaitCall_1', 'cWaitQueue'); //รอดำเนินการ
+
+                        //GetDatatableCalled
+                        GetDatatableCalled(4, 'cClosedQueue'); //ปิดคิวงาน
+                    };
+                };
+            });
+        });
+
+        //onChange ประเภทคีวงาน
+        const ddlQueueTypeOnChange = () => {
+            let ddlQueueType = $("#ddlQueueType").val();
+            //ประเภทคีวงาน เป็น โรงเรียนเก่าไม่ต่อสัญญา hidden ปีการศึกษา
+            if (ddlQueueType == 3) {
+                $('#div-ddlYear').attr('hidden', 'hidden');
+            } else {
+                $('#div-ddlYear').removeAttr('hidden', 'hidden');
+            }
+        }
+
+        function GetDatatableWaitCall(statusID, dt,lbl) {
+            var table = $('#' + dt);
+            var lblCount = $('#' + lbl);
+
+            let ddlYear = $('#ddlYear').val(); //ปีการศึกษา
+            let ddlQueueType = $("#ddlQueueType").val(); //ประเภทคีว
+             //ไม่ได้เลือก ประเภทคีว ไม่ยิง
+            if (ddlQueueType != "" && ddlQueueType != null) {
+                if (ddlQueueType == "3") {
+                    ddlYear = "";
+                };
+
+                $(table).empty();
+                var tbl = $(table).DataTable({
+                    pageLength: 10,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    destroy: true,
+
+                    ajax: {
+                        url: '@Url.Action("GetDatatableQueueCall")',
+                        method: 'POST',
+                        data: function (d) {
+                            d.draw = d.draw;
+                            d.pageSize = d.length;
+                            //d.pageSize = 1;
+                            d.pageStart = d.start;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.search = d.search.value;
+                            d.queueType = $("#ddlQueueType").val();
+                            d.dFrom = $("#dtpDateFrom").val();
+                            d.dTo = $("#dtpDateTo").val();
+                            d.yearData = ddlYear;
+                            d.statusCall = statusID;
+                        }
+                    },
+                    columns: [
+                        { title: 'ชื่อโรงเรียน', data: 'Detail1' },
+                        { title: 'ที่อยู่', data: 'Detail2' },
+                        { title: 'ประเภทคิวงาน', data: 'QueueTypeDetail' },
+                        { title: 'ผู้รับผิดชอบ', data: 'AssignToName' },
+                        { title: 'ผลการโทรคัดกรอง', data: 'CallStatus' },
+                        { title: 'สถานะการคัดกรอง', data: 'UnderwriteStatusDetail' },
+                        { title: 'หมายเหตุ', data: 'UnderwriteRemark' },
+                        {
+                            title: 'บันทึกการโทร',
+                            data: 'QueueId',
+                            width: 100,
+                            className: 'dt-center',
+                            render: function (data) {
+                                return '<a class="btn btn-warning"  href="@Url.Action("PAUnderwriteCall", "PAUnderwriteCall")?queueId=' + data + '" title="บันทึกการโทร" style="margin: 2px;" ><i class="fa fa-edit"></i> </a>';
+
+                            }
+                        }
+
+                    ],
+                    initComplete: function (settings, json) {
+                        var info = this.api().page.info();
+                        lblCount.text(info.recordsTotal);
+                    }
+                });
+            }
+
+        }
+
+        function GetDatatableCalled(statusID, lbl) {
+            var lblCount = $('#' + lbl);
+
+            let ddlYear = $('#ddlYear').val(); //ปีการศึกษา
+            let ddlQueueType = $("#ddlQueueType").val(); //ประเภทคีว
+           //ไม่ได้เลือก ประเภทคีว ไม่ยิง
+            if (ddlQueueType != "" && ddlQueueType != null) {
+                if (ddlQueueType == "3") {
+                    ddlYear = "";
+                };
+                $('#dtCalled').empty();
+                var table = $('#dtCalled').DataTable({
+                    pageLength: 10,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    destroy: true,
+                    initComplete: function (settings, json) {
+                        var info = this.api().page.info();
+                        lblCount.text(info.recordsTotal);
+                    },
+                    ajax: {
+                        url: '@Url.Action("GetDatatableQueueCall")',
+                        method: 'POST',
+                        data: function (d) {
+                            d.draw = d.draw;
+                            d.pageSize = d.length;
+                            d.pageStart = d.start;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.search = d.search.value;
+                            d.queueType = $("#ddlQueueType").val();
+                            d.dFrom = $("#dtpDateFrom").val();
+                            d.dTo = $("#dtpDateTo").val();
+                            d.yearData = ddlYear;
+                            d.statusCall = statusID;
+                        }
+                    },
+                    columns: [
+                        {
+                            className: 'details-control fa fa-plus-square',
+                            orderable: false,
+                            data: null,
+                            defaultContent: ''
+                        },
+                        { title: 'ชื่อโรงเรียน', data: 'Detail1' },
+                        //{ title: 'ที่อยู่', data: 'Detail2' },
+                        { title: 'ประเภทคิวงาน', data: 'QueueTypeDetail' },
+                        { title: 'ผู้รับผิดชอบ', data: 'AssignToName' },
+                        { title: 'ผลการโทรคัดกรอง', data: 'CallStatus' },
+                        { title: 'สถานะการคัดกรอง', data: 'UnderwriteStatusDetail' },
+                        //{ title: 'หมายเหตุ', data: 'UnderwriteRemark' },
+                        {
+                            title: 'วันที่ปิดคิวงาน', data: 'ClosedDate'
+                            ,
+                            className: 'dt-center',
+                            render: function (data) {
+                                return moment(data).format('DD/MM/YYYY');
+                            }
+                        },
+                        {
+                            title: 'รายละเอียด',
+                            data: 'QueueId',
+                            width: 100,
+                            className: 'dt-center',
+                            render: function (data) {
+                                return '<a href="@Url.Action("Detail")?queueId=' + data + '" class="btn btn-info" title="View Detail" style="margin: 2px;" target="_blank"><i class="fa fa-external-link"></i></a>';
+                            }
+                        }
+
+                    ]
+                });
+            };
+
+            function format ( d ) {
+                // `d` is the original data object for the row
+                return '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">' +
+                    '<tr>' +
+                    '<td>ที่อยู่:</td>' +
+                    '<td>' + d.Detail2 + '</td>' +
+                    '</tr>' +
+                    '<tr>' +
+                    '<td>หมายเหตุ:</td>' +
+                    '<td>' + d.UnderwriteRemark + '</td>' +
+                    '</tr>' +
+                    '</table>';
+            }
+
+            $('#dtCalled tbody').on('click', 'td.details-control', function () {
+                var tr = $(this).closest('tr');
+                var row = table.row(tr);
+
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                }
+                else {
+                    // Open this row
+                    row.child(format(row.data())).show();
+                    tr.addClass('shown');
+                }
+            });
+        }
+    </script>
+
+}

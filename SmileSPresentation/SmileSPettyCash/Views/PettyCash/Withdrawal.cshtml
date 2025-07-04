@@ -1,0 +1,682 @@
+﻿@{
+    ViewBag.Title = "รายการตั้งเบิกแยกตามบริษัท";
+
+}
+<style>
+    .table {
+        font-size: 14px;
+    }
+
+    input[type=checkbox] {
+        transform: scale(2);
+    }
+</style>
+<form action="" method="post">
+    <div class="row">
+        @* DT Row *@
+        <div class="col-sm-12" id="Detail_form">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">บริษัท มาตรฐาน ไอ.เอส.ซี จำกัด</h3>
+                    <!--.box-tools -->
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                    <!-- /.box-tools -->
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtISC" name="dtISC" class="table table-bordered table-striped"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">บริษัท สยามสไมล์ โบรกเกอร์ (ประเทศไทย) จำกัด</h3>
+                    <!--.box-tools -->
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                    <!-- /.box-tools -->
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtBroker" name="dtBroker" class="table table-bordered table-striped"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">บริษัท สไมล์ ทีพีเอ จำกัด</h3>
+                    <!--.box-tools -->
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                    <!-- /.box-tools -->
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtTPA" name="dtTPA" class="table table-bordered table-striped"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* end form *@
+            <div style="display: inline-grid;float:right">
+                <h3 style="margin-top:0">ยอดรอตั้งเบิกรวม <span id="sum_all" style="color:#007c16">0</span> บาท</h3>
+                <button id="btn_save" class="btn  btn-success" disabled="disabled">ส่งตั้งเบิก</button>
+                <span style="color:red">*ยอดรวมต้องมากกว่า @ViewBag.withdrawAmount</span>
+            </div>
+        </div>
+    </div>
+    @* modal check *@
+    <div class="modal fade bd-check-modal-lg" id="checkModal" tabindex="-1" role="dialog" aria-labelledby="checkModal" aria-hidden="true">
+        <div class="modal-dialog  modal-lg " role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="checkModalHeader">ตรวจสอบ สาขา <label id="txtbranch"></label></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            Code : <label id="txtCode"></label>
+                            <input type="hidden" id="hd_pctId" value="" />
+                        </div>
+                        <div class="col-sm-6">
+                            วันที่ตรวจสอบ : <label id="lblCheckedDate"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            ผลตรวจสอบ : <label id="lblCheckStatus"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            ตรวจสอบโดย : <label id="lblCheckedBy"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            วันที่สร้างรายการ : <label id="lblCreatedDate"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            วันที่ใบเสร็จ/ใบกำกับภาษี : <label id="txtBillDate"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            ประเภท : <label id="txtType"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            ประเภทค่าใช้จ่าย : <label id="txtDescription"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            รายละเอียดเพิ่มเติม : <label id="txtDescriptionDetail"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            ชื่อบริษัท : <label id="txtCompany"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            เลขที่ใบเสร็จ : <label id="txtBillBook"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            จำนวนเงิน : <label id="txtAmountNet"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            ยอดโอน : <label id="txtTransferNet"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            โดย : <label id="txtUpdatedBy"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            เอกสาร : <a target="_blank" href="" id="btnScanDoc" class="btn btn-block btn-default">เอกสาร:<label class="text-bold" id="docCount">0</label></a>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            หมายเหตุ : <label id="txtRemark"></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-sm-2">
+                        <button type="button" id="btnEditDoc" class="btn btn-block btn-info">แก้ไขเอกสาร</button>
+                    </div>
+                    <div class="col-sm-2 pull-right">
+                        <button type="button" class="btn btn-block btn-warning" data-dismiss="modal">เสร็จสิ้น</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end modal *@
+    <input type="hidden" id="hd_withdrawAmount" value="@ViewBag.withdrawAmount" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var BankList = [];
+        var ListCheckBox = [];
+        var ListCheckBoxISC = [];
+        var ListCheckBoxBroker = [];
+        var ListCheckBoxTPA = [];
+        var ListAmount = [];
+        var ListAmountISC = [];
+        var ListAmountBroker = [];
+        var ListAmountTPA = [];
+        var IsCheckedAll = false;
+        var oldValue_accname;
+        var oldValue_accNo;
+        var oldValue_bank;
+        $(function () {
+            GetBank();
+            loadDatatable('dtISC', 21);
+            loadDatatable('dtBroker', 22);
+            loadDatatable('dtTPA', 23);
+            $('#btnScanDoc').prop('disabled', true);
+
+            //enable scan doc button
+            $('#btnEditDoc').click(() => {
+                $('#btnScanDoc').prop('disabled', false);
+            });
+
+            /*checkbox in datatables datatable isc change*/
+            $('table[name="dtISC"]').on('change', 'input[type="checkbox"]', function (e) {
+                e.preventDefault();
+                const table = $('#dtISC').DataTable();
+                const rows = table.rows().nodes();
+                switch (this.className) {
+                    case 'chk-row-select-all':
+                        if (this.checked) {
+                            ListAmountISC = [];
+                            $('input[class="chk-row-select"]', rows).prop('checked', true).change();
+                        } else {
+                            $('input[class="chk-row-select"]', rows).prop('checked', false).change();
+                        }
+                        break;
+                    case 'chk-row-select':
+                        if (this.checked) {
+                            if (ListCheckBoxISC.length < 5) {
+                                let count = 0;
+                                const value = this.value;
+                                //adds one or more elements to the end of an array and returns the new length of the array.
+                                if (!ListCheckBoxISC.includes(value)) ListCheckBoxISC.push(this.value);
+                                if (!ListCheckBox.includes(value)) ListCheckBox.push(this.value);
+                                //loop every row
+                                table.rows().every(function () {
+                                    //check for add class selected
+                                    if (this.data().PettyCashTransactionId == value) {
+                                        $(this.node().cells).addClass('selected');
+                                        ListAmountISC.push(this.data().PaymentAmount);
+                                    }
+                                    //check data in array list
+                                    if (ListCheckBox.includes(this.data().PettyCashTransactionId.toString())) count++;
+                                });
+                                //check count data equal rows.length then checkbox-all is checked
+                                if (count === rows.length) $('table[name="dtISC"]').find(".chk-row-select-all").prop('checked', true);
+                            }else{
+                                swal_info("เลือกได้ไม่เกิน 5 รายการเท่านั้น");
+                                $(this).prop('checked',false);
+                            }
+                        } else {
+                            const value = this.value;
+                            //loop every row
+                            table.rows().every(function () {
+                                //check for remove class selected
+                                if (this.data().PettyCashTransactionId == value) {
+                                    $(this.node().cells).removeClass('selected');
+
+                                    ListAmount.splice(ListAmount.indexOf(this.data().PaymentAmount), 1);
+                                    ListAmountISC.splice(ListAmountISC.indexOf(this.data().PaymentAmount), 1);
+                                }
+                            });
+                            //replaces 1 element at indexOd() returnValue index
+                            ListCheckBoxISC.splice(ListCheckBoxISC.indexOf(value), 1);
+                            ListCheckBox.splice(ListCheckBox.indexOf(value), 1);
+                            $('table[name="dtISC"]').find(".chk-row-select-all").prop('checked', false);
+                        }
+                        break;
+                    default:
+                }
+                $('#btn_save').prop('disabled', (ListCheckBox.length > 0) ? false : true);
+                const sum = (ListAmountISC.length === 0 ? 0 : ListAmountISC.reduce(add));
+                $('#sum_dtISC').text(formatNumber(sum));
+                sum_all();
+            });
+
+            /*checkbox in datatables datatable isc change*/
+            $('table[name="dtBroker"]').on('change', 'input[type="checkbox"]', function (e) {
+                e.preventDefault();
+                const table = $('#dtBroker').DataTable();
+                const rows = table.rows().nodes();
+                switch (this.className) {
+                    case 'chk-row-select-all':
+                        if (this.checked) {
+                            ListAmountBroker = [];
+                            $('input[class="chk-row-select"]', rows).prop('checked', true).change();
+                        } else {
+                            $('input[class="chk-row-select"]', rows).prop('checked', false).change();
+                        }
+                        break;
+                    case 'chk-row-select':
+                        if (this.checked) {
+                            if (ListCheckBoxBroker.length < 5) {
+                                let count = 0;
+                                const value = this.value;
+                                //adds one or more elements to the end of an array and returns the new length of the array.
+                                if (!ListCheckBoxBroker.includes(value)) ListCheckBoxBroker.push(this.value);
+                                if (!ListCheckBox.includes(value)) ListCheckBox.push(this.value);
+                                //loop every row
+                                table.rows().every(function () {
+
+                                    //check for add class selected
+                                    if (this.data().PettyCashTransactionId == value) {
+                                        $(this.node().cells).addClass('selected');
+                                        ListAmountBroker.push(this.data().PaymentAmount);
+                                    }
+                                    //check data in array list
+                                    if (ListCheckBox.includes(this.data().PettyCashTransactionId.toString())) count++;
+                                });
+                                //check count data equal rows.length then checkbox-all is checked
+                                if (count === rows.length) $('table[name=dtBroker]').find('.chk-row-select-all').prop('checked', true);
+                            }else{
+                                swal_info("เลือกได้ไม่เกิน 5 รายการเท่านั้น");
+                                $(this).prop('checked',false);
+                            }
+                        } else {
+                            const value = this.value;
+                            //loop every row
+                            table.rows().every(function () {
+                                //check for remove class selected
+                                if (this.data().PettyCashTransactionId == value) {
+                                    $(this.node().cells).removeClass('selected');
+
+                                    ListAmount.splice(ListAmount.indexOf(this.data().PaymentAmount), 1);
+                                    ListAmountBroker.splice(ListAmountBroker.indexOf(this.data().PaymentAmount), 1);
+                                }
+                            });
+                            //replaces 1 element at indexOd() returnValue index
+                            ListCheckBoxBroker.splice(ListCheckBoxBroker.indexOf(value), 1);
+                            ListCheckBox.splice(ListCheckBox.indexOf(value), 1);
+                            $('table[name=dtBroker]').find('.chk-row-select-all').prop('checked', false);
+                        }
+                        break;
+                    default:
+                }
+                $('#btn_save').prop('disabled', (ListCheckBox.length > 0) ? false : true);
+                const sum = (ListAmountBroker.length === 0 ? 0 : ListAmountBroker.reduce(add));
+                $('#sum_dtBroker').text(formatNumber(sum));
+                sum_all();
+            });
+
+            /*checkbox in datatables datatable isc change*/
+            $('table[name="dtTPA"]').on('change', 'input[type="checkbox"]', function (e) {
+                e.preventDefault();
+                const table = $('#dtTPA').DataTable();
+                const rows = table.rows().nodes();
+                switch (this.className) {
+                    case 'chk-row-select-all':
+                        if (this.checked) {
+                            ListAmountTPA = [];
+                            $('input[class="chk-row-select"]', rows).prop('checked', true).change();
+                        } else {
+                            $('input[class="chk-row-select"]', rows).prop('checked', false).change();
+                        }
+                        break;
+                    case 'chk-row-select':
+                        if (this.checked) {
+                            if (ListCheckBoxTPA.length < 5) {
+                                let count = 0;
+                                const value = this.value;
+                                //adds one or more elements to the end of an array and returns the new length of the array.
+                                if (!ListCheckBoxTPA.includes(value)) ListCheckBoxTPA.push(this.value);
+                                if (!ListCheckBox.includes(value)) ListCheckBox.push(this.value);
+                                //loop every row
+                                table.rows().every(function () {
+                                    //  debugger
+                                    //check for add class selected
+                                    if (this.data().PettyCashTransactionId == value) {
+                                        $(this.node().cells).addClass('selected');
+                                        ListAmountTPA.push(this.data().PaymentAmount);
+                                    }
+                                    //check data in array list
+                                    if (ListCheckBox.includes(this.data().PettyCashTransactionId.toString())) count++;
+                                });
+                                //check count data equal rows.length then checkbox-all is checked
+                                if (count === rows.length) $('table[name=dtTPA]').find('.chk-row-select-all').prop('checked', true);
+                            }else{
+                                swal_info("เลือกได้ไม่เกิน 5 รายการเท่านั้น");
+                                $(this).prop('checked',false);
+                            }
+                        } else {
+                            const value = this.value;
+                            //loop every row
+                            table.rows().every(function () {
+                                //check for remove class selected
+                                if (this.data().PettyCashTransactionId == value) {
+                                    $(this.node().cells).removeClass('selected');
+                                    ListAmount.splice(ListAmount.indexOf(this.data().PaymentAmount), 1);
+                                    ListAmountTPA.splice(ListAmountTPA.indexOf(this.data().PaymentAmount), 1);
+                                }
+                            });
+                            //replaces 1 element at indexOd() returnValue index
+                            ListCheckBoxTPA.splice(ListCheckBoxTPA.indexOf(value), 1);
+                            ListCheckBox.splice(ListCheckBox.indexOf(value), 1);
+                            $('table[name=dtTPA]').find('.chk-row-select-all').prop('checked', false);
+                        }
+                        break;
+                    default:
+                }
+                $('#btn_save').prop('disabled', (ListCheckBox.length > 0) ? false : true);
+                const sum = (ListAmountTPA.length === 0 ? 0 : ListAmountTPA.reduce(add));
+                $('#sum_dtTPA').text(formatNumber(sum));
+                sum_all();
+            });
+
+            $('#btn_save').on('click', function (e) {
+                e.preventDefault();
+                //PARAMETER 2 BOOM
+                swal_confirm("ยืนยันการส่งตั้งเบิก", "ต้องการส่งตั้งเบิก?", function () {
+                    loadingSpinner("fadeIn");
+                    InsertRequisitionDetail();
+                });
+            });
+        });
+
+        //////////////////////////******FUNCTION*****//////////////////////////////////////
+        const loadDatatable = (tableName, organizeCompanyId) => {
+            $(`#${tableName}`).empty();
+
+            $(`#${tableName}`).DataTable({
+                dom: '<"toolbar">frtip<"footer">',
+                pageLength: 10,
+                lengthChange: false,
+                paging: false,
+                info: false,
+                processing: true,
+                serverSide: true,
+                responsive: false,
+                destroy: true,
+                searching: false,
+                ordering: false,
+                scrollX: true,
+                ajax: {
+                    url: '@Url.Action("GetPettyCashTransactionForRequisition")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 999999;
+                        d.indexStart = d.start;
+                        d.sortField = null;
+                        d.orderType = null;
+                        d.search = d.search.value;
+                        d.pettyCashId = @ViewBag.PettyCashId;
+                        d.organizeCompanyId = organizeCompanyId;
+                    },
+                    dataSrc: function (json) {
+                        let count = 0;
+                        const len = json.data.length;
+                        //loop check value in array list
+                        for (let i = 0; i < len; i++) {
+                            if (ListCheckBox.includes(json.data[i].PettyCashTransactionId.toString())) count++;
+                        }
+                        //check count == length
+                        count === len ? IsCheckedAll = true : IsCheckedAll = false;
+                        //return data
+                        return json.data;
+                    },
+                },
+                columns: [{
+                    targets: 0,
+                    title: '<label>เลือก</label><input id="chk-all" name="chk-all" class="chk-row-select-all" type="checkbox" disabled />',
+                    data: 'PettyCashTransactionId',
+                    orderable: false,
+                    className: 'h-dt-center d-dt-center-checkbox',
+                    render: function (data) {
+                        let Ischecked = "";
+                        $('input[class="chk-row-select-all"]').prop('checked', IsCheckedAll);
+                        if (ListCheckBox.includes(data.toString())) Ischecked = "checked";
+                        return `<input type="checkbox"  class="chk-row-select" ${Ischecked} id="chkdtrow_${data}" name="chkdtrow_${data}" value="${data}">`;
+                    }
+                },
+                {
+                    title: 'ประเภทค่าใช้จ่าย',
+                    data: 'PettyCashTransactionType',
+                    className: 'h-dt-center d-dt-left',
+                    width: '200px',
+                },
+                {
+                    title: 'รายละเอียดเพิ่มเติม',
+                    data: 'PettyCashTransactionTypeDescription',
+                    className: 'h-dt-center d-dt-left',
+                    width: '220px',
+                },
+                {
+                    title: 'จำนวนเงิน',
+                    data: 'Amount',
+                    className: 'h-dt-center d-dt-right',
+                    width: '80px',
+                    render: function (data) {
+                        return `${formatNumber(data)}`
+                    }
+                },
+                {
+                    title: 'ธนาคาร',
+                    data: null,
+                    className: 'h-dt-center d-dt-center',
+                    width: '120px',
+                    render: function (data) {
+                        var select = $(`<select class="form-control" id="select_bank_${data.PettyCashTransactionId}" disabled></select>`);
+                        $.each(BankList, function (key, value) {
+                            var option = $(`<option></option>`, {
+                                "text": value.OrganizeDetail,
+                                "value": value.OrganizeId
+                            });
+                            if (data.BankId == value.OrganizeId) {
+                                option.attr('selected', 'selected')
+                            }
+                            select.append(option);
+                        })
+                        return select.prop("outerHTML");
+                    }
+                },
+                {
+                    title: 'ชื่อบัญชี',
+                    data: null,
+                    className: 'h-dt-center d-dt-center',
+                    width: '230px',
+                    render: function (data) {
+                        return `<input class="form-control" id="input_bankaccountname_${data.PettyCashTransactionId}" value="${data.BankAccountName}" style="width:100%;margin-left:0;margin-right:0" disabled></input>`
+                    }
+                },
+                {
+                    title: 'เลขที่บัญชี',
+                    data: null,
+                    className: 'h-dt-center d-dt-center',
+                    width: '120px',
+                    render: function (data) {
+                        return `<input class="form-control" id="input_bankaccountno_${data.PettyCashTransactionId}" value="${data.BankAccountNo}" disabled></input>`
+                    }
+                },
+                {
+                    title: 'รายละเอียด',
+                    data: null,
+                    className: 'h-dt-center d-dt-center',
+                    width: '180px',
+                    render: function () {
+                        return "-"
+                    }
+                },
+                {
+                    title: 'ยอดโอน',
+                    data: 'PaymentAmount',
+                    className: 'h-dt-center d-dt-right',
+                    width: '70px',
+                    render: function (data) {
+                        return `${formatNumber(data)}`
+                    }
+                },
+                {
+                    title: 'จัดการ',
+                    data: null,
+                    className: 'h-dt-center d-dt-center',
+                    width: '100px',
+                    render: function (data) {
+                        return `<div style="display: inline-flex;">` +
+                            `<button style="margin:2px" type="button" class="btn btn-warning" id="btnEdit_${data.PettyCashTransactionId}" onclick="fnUpdate('input_bankaccountname_${data.PettyCashTransactionId}','input_bankaccountno_${data.PettyCashTransactionId}','btnSave_${data.PettyCashTransactionId}','btnEdit_${data.PettyCashTransactionId}','select_bank_${data.PettyCashTransactionId}',${data.PaymentAmount},${data.PaymentId},'EDIT');">แก้ไข</button>` +
+                            `<button style="margin:2px" type="button" class="btn btn-success" id="btnSave_${data.PettyCashTransactionId}" onclick="fnUpdate('input_bankaccountname_${data.PettyCashTransactionId}','input_bankaccountno_${data.PettyCashTransactionId}','btnSave_${data.PettyCashTransactionId}','btnEdit_${data.PettyCashTransactionId}','select_bank_${data.PettyCashTransactionId}',${data.PaymentAmount},${data.PaymentId},'SAVE');" disabled>บันทึก</button></div>`;
+
+                    }
+                },
+                ], drawCallback: function (d) {
+                    //var api = this.api();
+                    //var sum = 0;
+                    //var d = api.rows({ page: 'current' }).data();
+                    //for (var i = 0; i < d.length; i++) {
+                    //    sum += d[i].Amount
+                    //}
+                    //$(`div#${tableName}_wrapper>div.footer`).html(`<h4 style="float: right" class="text-bold">ยอดเบิกรวม  <span style="color:${negative(sum) ? "#d10000;" : "#007c16;"}">${formatNumber(sum)}</span> บาท</h4>`);
+                    $(`div#${tableName}_wrapper>div.footer`).html(`<h4 style="float: right" class="text-bold">ยอดเบิก  <span id="sum_${tableName}" style="color:#007c16">0</span> บาท</h4>`);
+
+                }
+            });
+        }
+        const fnUpdate = (accountName, accountNo, btnSave, btnEdit, bank, amount, paymentId, type) => {
+            var accName = $(`#${accountName}`);
+            var accNo = $(`#${accountNo}`);
+            var btnEdit = $(`#${btnEdit}`);
+            var btnSave = $(`#${btnSave}`);
+            var bank = $(`#${bank}`);
+            switch (type) {
+                case 'EDIT':
+                    if (btnEdit.hasClass('btn-warning')) {
+                        oldValue_accname = accName.val();
+                        oldValue_accNo = accNo.val();
+                        oldValue_bank = bank.val();
+                        //switch class button
+                        btnEdit.removeClass('btn-warning');
+                        btnEdit.addClass('btn-danger');
+                        btnEdit.text('ยกเลิก');
+
+                        //set disable element
+                        accName.prop('disabled', false);
+                        accNo.prop('disabled', false);
+                        bank.prop('disabled', false);
+                        //set disable button
+                        btnSave.prop('disabled', false);
+                        //disable button edit **when click edit ,allow enable only one button
+                        $('.btn-warning').prop('disabled', true);
+                    } else if (btnEdit.hasClass('btn-danger')) {
+                        //switch class button
+                        btnEdit.removeClass('btn-danger');
+                        btnEdit.addClass('btn-warning');
+                        btnEdit.text('แก้ไข');
+                        //set disable element
+                        accName.prop('disabled', true);
+                        accNo.prop('disabled', true);
+                        bank.prop('disabled', true);
+                        //set disable element
+                        btnEdit.prop('disabled', false);
+                        btnSave.prop('disabled', true);
+                        //restore old value
+                        accName.val(oldValue_accname);
+                        accNo.val(oldValue_accNo);
+                        bank.val(oldValue_bank);
+                        //enable button edit
+                        $('.btn-warning').prop('disabled', false);
+                    }
+                    break;
+                case 'SAVE':
+
+                    UpdatePayment(paymentId, bank.val(), accNo.val(), accName.val(), amount);
+                    //switch class button
+                    btnEdit.removeClass('btn-danger');
+                    btnEdit.addClass('btn-warning');
+                    btnEdit.text('แก้ไข');
+                    //set disable element
+                    accName.prop('disabled', true);
+                    accNo.prop('disabled', true);
+                    bank.prop('disabled', true);
+                    //set disable element
+                    btnEdit.prop('disabled', false);
+                    btnSave.prop('disabled', true);
+                    //enable button edit
+                    $('.btn-warning').prop('disabled', false);
+                    break;
+                default:
+
+            }
+        }
+
+        //Get Bank List
+        const GetBank = () => {
+            $.get('@Url.Action("GetBank")', function (response) {
+                BankList = response;
+            });
+        }
+
+        //Update Payment
+        const UpdatePayment = (paymentId, bankId, bankAccountNo, bankAccountName, amount) => {
+            $.post('@Url.Action("UpdatePayment")', { paymentId: paymentId, bankId: bankId, bankAccountNo: bankAccountNo, bankAccountName: bankAccountName, amount: amount });
+        }
+
+        //Insert RequisitionDetail
+        const InsertRequisitionDetail = () => {
+            if (ListCheckBox.length > 0) {
+                $.post('@Url.Action("InsertRequisitionDetail")', { pettyCashId: @ViewBag.PettyCashId, pettyCashTransactionIdList: ListCheckBox },
+                                function (response) {
+                                    if (response.IsResult) {
+                                        loadingSpinner("fadeOut");
+                                        swal_success(setTimeout(function () {
+                                            swal.close();
+                                            window.location.reload();
+                                        }, 2000));
+
+                                    } else {
+                                        loadingSpinner("fadeOut");
+                                        swal_fail(response.Msg);
+                                    }
+                                });
+            } else {
+                loadingSpinner("fadeOut");
+                swal_fail("กรุณาเลือกรายการยอดตั้งเบิก!");
+            }
+
+        }
+
+        //function add
+        const add = (accumulator, a) => {
+            return accumulator + a;
+        }
+
+        //function sum amount all
+        const sum_all = () => {
+            var withdrawAmount = $('#hd_withdrawAmount').val();
+            const isc = (ListAmountISC.length === 0 ? 0 : ListAmountISC.reduce(add));
+            const broker = (ListAmountBroker.length === 0 ? 0 : ListAmountBroker.reduce(add));
+            const tpa = (ListAmountTPA.length === 0 ? 0 : ListAmountTPA.reduce(add));
+            const x = isc + broker + tpa;
+            $('#sum_all').text(formatNumber(x));
+
+            $('#btn_save').prop('disabled', (x >= withdrawAmount) ? false : true);
+        }
+    </script>
+}

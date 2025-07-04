@@ -1,0 +1,87 @@
+﻿@using StandardDevelopment.Models
+@{
+    ViewBag.Title = "title";
+
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        @* Select form *@
+        <div id="Search_form" class="form-horizontal">
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h4 class="box-title">Preview Menu</h4>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <label for="" class="control-label col-sm-4">Roles :</label>
+                        <div class="col-sm-7">
+                            <select class="form-control select2" id="select_Role" name="select_Role">
+                                @foreach(var itm in ViewBag.RoleList)
+                                {
+                                    <option value="@itm">@itm</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* result form *@
+        <div class="Result_form" id="Result_Form">
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h4 class="box-title">Preview Sidebar</h4>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row" id="ListMenu">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('#select_Role').on('change', function () {
+                debugger;
+                CallMenuPreview();
+            });
+        });
+
+        function CallMenuPreview() {
+            $('#ListMenu').empty();
+             $.ajax({
+                    type: "POST",
+                    async: false,
+                    url: '@Url.Action("GetMenuPreview")',
+                    data: {role:$('#select_Role').val()},
+                     success: function (data) {
+                         $.each(data, function (index) {
+                             if (data[index].MainMenuId == 0) {
+                                 $('#ListMenu').append('<div class="col-sm-4" style="color:red">' + data[index].Detail + '</div>');
+                             } else {
+                                  $('#ListMenu').append('<div class="col-sm-4" style="color:blue">' + data[index].Detail + '</div>');
+                             }
+
+                     });
+
+                },
+                error: function (jqXHR, textStatus, error) {
+                    debugger;
+                    //do something if error
+                    console.log(error);
+                }
+                });
+
+        }
+    </script>
+}

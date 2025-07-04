@@ -1,0 +1,128 @@
+﻿@{
+    ViewBag.Title = "รายงานเคลมออนไลน์ทั้งหมด";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-sm-12">
+
+            <div class="box box-warning">
+                <div class="box-header with-border">
+
+                    @*<div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>*@
+                    <!-- /.box-tools -->
+                </div>
+                <div class="box-body">
+                    <div class="form-group">
+                        <div class="col-xs-12 col-md-3">
+                            <label>ประเภท :</label>
+                            <select class="form-control" id="ddlProductGroup" style="width:100%" checkNA="checkNA">
+                                <option value="-1">--โปรดระบุ--</option>
+                                <option value="2">PH</option>
+                                <option value="3">PA</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-xs-12 col-md-3">
+                            <label>ช่วงวันที่ :</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right datepicker" id="dateFrom" name="dateFrom" data-provide="datepicker" data-date-language="th-th" required>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-md-3">
+                            <label>ถึงวันที่ :</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right datepicker" id="dateTo" name="dateTo" data-provide="datepicker" data-date-language="th-th" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-xs-12 col-md-3">
+                            <button type="button" class="btn btn-primary" style="width:100%" id="btnExport">Download</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('#dateFrom').datepicker('setDate', new Date());
+            $('#dateTo').datepicker('setDate', new Date());
+
+            $('#dateFrom').change(function (e) {
+                $(this).valid();
+            })
+
+            $('#dateTo').change(function (e) {
+                $(this).valid();
+            })
+
+            $('#btnExport').click(function (e) {
+                e.preventDefault();
+                if ($('form').valid()) {
+                    Export();
+                }
+            });
+        });
+
+    function Export() {
+          loadingSpinner('fadeIn', 999999);
+            $.ajax({
+                url: "@Url.Action("ExportClaimOnLineAllReport")",
+                type: "GET",
+                data: {
+                    dateFrom: $('#dateFrom').val(),
+                    dateTo: $('#dateTo').val(),
+                    productGroup: $('#ddlProductGroup').val()
+                },
+                success: function (data) {
+                    window.location = "@Url.Action("DownloadExportClaimOnLineAllReport")";
+                    loadingSpinner('fadeOut');
+                },
+                 error: function (jqXHR, exception) {
+                     checkXHRStatus(jqXHR.status);
+                     loadingSpinner('fadeOut');
+                 }
+            });
+        }
+
+        function checkXHRStatus(xhrStatus) {
+           var msg = '';
+              if (xhrStatus === 0) {
+                  msg = 'Not connect.\n Verify Network.';
+              } else if (jqXHR.status == 404) {
+                  msg = 'Requested page not found. [404]';
+              } else if (jqXHR.status == 500) {
+                  msg = 'Internal Server Error [500].';
+              } else if (exception === 'parsererror') {
+                  msg = 'Requested JSON parse failed.';
+              } else if (exception === 'timeout') {
+                  msg = 'Time out error.';
+              } else if (exception === 'abort') {
+                  msg = 'Ajax request aborted.';
+              } else {
+                  msg = 'Uncaught Error.\n' + jqXHR.responseText;
+            }
+
+              alert(msg)
+        }
+    </script>
+
+}

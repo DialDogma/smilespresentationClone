@@ -1,0 +1,80 @@
+﻿@{
+    ViewBag.Title = "ประวัติการคัดกรอง";
+    //Layout = "_Layout";
+}
+
+<div id="UnderwriteHistory_form" class="col-md-12">
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h4 class="box-title">ประวัติคัดกรอง @ViewBag.SchoolName</h4>
+        </div>
+        <div class="box-body">
+            <div class="form-group row">
+                <div class="col-sm-12">
+                    @if(ViewBag.NoData == null)
+                    {
+                        <table id="tblUnderwriteHistory" class="table table-bordered table-striped"></table>
+                    }
+                    else
+                    {
+                        <h2>@ViewBag.NoData</h2>
+                    }
+                </div>
+            </div>
+            <input type="hidden" id="hd_schoolId" name="hd_schoolId" value="@ViewBag.SchoolId" />
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            GetUnderwriteHistory($('#hd_schoolId').val());
+        });
+
+        function GetUnderwriteHistory(schoolId) {
+        $('#tblUnderwriteHistory').empty();
+        var table = $('#tblUnderwriteHistory').DataTable({
+                pageLength: 10,
+                processing: true,
+            serverSide: true,
+                 dom: "lfrti",
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("UnderwriteHistory","PAUnderwriteCall")',
+                    method:'POST',
+                    data: function (d) {
+                                d.pageSize = d.length;
+                                d.pagestart = d.start;
+                                d.sortField = d.columns[d.order[0].column].data;
+                                d.orderType = d.order[0].dir;
+                                d.search = d.search.value;
+                                d.schoolId = schoolId;
+                    }
+                },
+                columns: [
+                    { title: 'วันที่รับคิวงาน', data: 'AssignDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            return moment(data).format('DD/MM/YYYY');
+                        } },
+                    { title:'เลขอ้างอิง', data:'ReferenceCode'},
+                    { title:'ประเภทคิว', data:'QueueTypeDetail'},
+                    { title: 'ผลการโทรคัดกรอง', data: 'UnderwriteStatusDetail' },
+                    { title: 'สถานะคิวงาน', data: 'QueueStatus' },
+                    { title: 'ผู้รับผิดชอบ', data: 'AssignToName' },
+                    {  data: 'QueueId',
+                        title: 'รายละเอียด',
+                        render: function (data) {
+                            return '<button type="button" class="btn btn-block btn-info" id="btnDetail_'+data+'" name="btnDetail_'+data+'" value="'+data+'" onclick="CallDetail('+data+')" >Detail</button>';
+                        }
+                    }
+                ]
+            });
+        }
+        function CallDetail(queueId) {
+            window.open("@Url.Action("Detail","QueueCall")?queueId="+queueId);
+        }
+    </script>
+}

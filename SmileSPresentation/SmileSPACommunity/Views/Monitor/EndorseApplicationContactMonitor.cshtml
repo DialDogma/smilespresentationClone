@@ -1,0 +1,233 @@
+﻿
+@{
+    //Layout = null;
+    ViewBag.Title = "รายการแก้ไขผู้ประสานงานชุมชน";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-primary box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการแก้ไขผู้ประสานงานชุมชน</h3>
+
+                    <!-- /.box-tools -->
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <label>สาขา:</label>
+                            <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlBranch">
+                                @{
+                                    foreach (var item in ViewBag.Role)
+                                    {
+                                        if (item == "Developer" || item == "PACommunity_PAUnderwrite")
+                                        {
+                                            <option value="-1">--ทั้งหมด--</option>
+                                        }
+                                    }
+                                }
+                                @{
+                                    foreach (var item in ViewBag.Branchs)
+                                    {
+                                        <option value="@item.BranchID">@item.Branch</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-xs-3">
+                            <label>สถานะแก้ไข:</label>
+                            <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlApproveStatus">
+                                @{
+                                    foreach (var item in ViewBag.ApproveStatus)
+                                    {
+                                        <option value="@item.ApproveStatusId">@item.ApproveStatus</option>
+                                    }
+
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row" style="padding-top:6px">
+                        <div class="col-xs-6">
+                            <label>AppID หรือ ชื่อกรมธรรม์:</label>
+                            <input type="text" class="form-control" id="txtKeyword" />
+                        </div>
+
+                        <div class="col-xs-2" style="padding-top:26px">
+                            <button type="button" class="btn btn-primary" id="btnSearch">ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+
+            <div class="box box-primary box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายการแก้ไขผู้ประสานงานชุมชน</h3>
+                </div>
+
+                <div class="box-body">
+                    <div>
+                        <table id="dtMain" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xs-3">
+                    <a href="@Url.Action("EndorseApplicationContact","Endorse")" class="btn btn-warning" target="_blank">บันทึกขอแก้ไขผู้ประสานงานชุมชน</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- /.modal-dialog -->
+    <div class="modal fade in" id="modal-RemarkDetail" style="display: none;">
+        <div class="modal-dialog">
+            <div class="box box-danger box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">เหตุผลที่ไม่อนุมัติ</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <input type="text" id="txtCause" class="form-control" disabled>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-12">
+                            <input type="text" id="txtRemark" class="form-control" disabled>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+</form>
+
+@section ViewSpecificJavascript {
+    <script type="text/javascript">
+         var v_role = '@ViewBag.RoleList';
+        var arr = v_role.split(',');
+        $(function () {
+            $('.select2').select2();
+
+            $('#btnSearch').click(function (e) {    
+                e.preventDefault();
+                GetEndorseContactAndAccountDetail();
+            });
+        });
+
+
+        const GetEndorseContactAndAccountDetail = () => {
+            $('#dtMain').empty();
+
+            let t = $('#dtMain').DataTable({
+             pageLength: 5,
+             processing: true,
+             serverSide: true,
+             responsive: true,
+             destroy: true,
+             searching: false,
+             ajax: {
+                 url: '@Url.Action("GetRequestEndorseContactAndAccountDetail", "Monitor")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $("#txtKeyword").val();
+                        d.approveStatusId = $('#ddlApproveStatus').val();
+                        d.branchID = $('#ddlBranch').val();
+                       //------------------------------------------------------
+                        //d.branchID = null;
+                        //d.branchID = @ViewBag.BranchID;
+                       //------------------------------------------------------
+
+                    }
+                },
+                columns: [
+                    { title: 'รหัสรายการ', data: 'RequestEndorseContactAndAccountCode', className: 'h-dt-center d-dt-center' },
+                    { title: 'App ID', data: 'ApplicationCode', className: 'h-dt-center '},
+                    { title: 'ชื่อกรมธรรม์', data: 'ApplicationName', className: 'h-dt-center' },
+                    {
+                        title: 'วันเริ่มคุ้มครอง', data: 'ApplicationStartCoverDate', className: 'h-dt-center d-dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+
+                    { title: 'สถานะการแก้ไข', data: 'ApproveStatus', className: 'h-dt-center d-dt-center' },
+                    {
+                        title: 'สาเหตุการไม่อนุมัติ', data: null, className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) =>
+                        {
+                            if (data.ApproveStatusId == 4)
+                            {
+                                return '<a onclick="ShowUnApproveCause(\'' + data.ApproveCause + '\',\'' + data.ApproveRemark + '\');" class="btn btn-warning btn-sm"><i class="glyphicon glyphicon-info-sign"></i></a>';
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    {
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) => {
+                            let encode_RequestEndorseContactAndAccountId = window.btoa(data.RequestEndorseContactAndAccountId);
+
+                            if (jQuery.inArray("Developer", arr) !== -1 || jQuery.inArray("PACommunity_PAUnderwrite", arr) !== -1) {
+
+                                return '<a href="@Url.Action("EndorseApplicationContactApprove", "Approve")?RequestEndorseContactAndAccountId=' + encode_RequestEndorseContactAndAccountId + '" class="btn btn-warning btn-sm" target="_blank"><i class="fa fa-fw fa-desktop"></i> ตรวจสอบ </a>';
+
+                            } else {
+                                return '<a href="@Url.Action("EndorseApplicationContact", "Endorse")?RequestEndorseContactAndAccountId=' + encode_RequestEndorseContactAndAccountId + '" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-fw fa-desktop"></i> รายละเอียด </a>';
+                            }
+                                
+                        }
+                    }
+                    @*{
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) =>
+                        {
+                            debugger;
+
+                            @*if (jQuery.inArray("Developer", arr) !== -1 || jQuery.inArray("PACommunity_PAUnderwrite", arr) !== -1)
+                            {
+                                //Approve
+                                let encode_RequestCancelApplicationId = window.btoa(data.RequestCancelApplicationId);
+                                return '<a href="@Url.Action("EndorseCancelPolicyApprove", "Approve")?RequestCancelApplicationId=' + encode_RequestCancelApplicationId+'" class="btn btn-warning btn-sm" target="_blank"><i class="fa fa-fw fa-desktop"></i> ตรวจสอบ </a>'
+                            } else {
+                                let encode_RequestCancelApplicationId = window.btoa(data.RequestCancelApplicationId);
+                                     return '<a href="@Url.Action("EndorseCancelPolicy", "Endorse")?RequestCancelApplicationId=' + encode_RequestCancelApplicationId + '" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-fw fa-desktop"></i> รายละเอียด </a>';
+                            }
+
+                        }
+                        , width: '10%'
+                    },*@
+                ],
+                bLengthChange: false,
+            });
+        }
+
+        const ShowUnApproveCause = (approveCause,approveRemark) => {
+            $('#txtCause').val(approveCause);
+            $('#txtRemark').val(approveRemark);
+
+            $('#modal-RemarkDetail').addClass("modal_itemcenter");
+            $('#modal-RemarkDetail').modal('show');
+        }
+    </script>
+}

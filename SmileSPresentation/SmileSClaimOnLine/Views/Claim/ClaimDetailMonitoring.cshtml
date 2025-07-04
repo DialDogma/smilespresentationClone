@@ -1,0 +1,755 @@
+﻿@{
+    ViewBag.Title = "รายละเอียดการแจ้งเคลม";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*<h2>ClaimDetailMonitoring</h2>*@
+<style>
+    .nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
+        color: #555;
+        cursor: default;
+        background-color: #fff;
+        border: 2px solid #3c8dbc !important;
+        border-bottom-color: transparent;
+    }
+</style>
+<form class="form-horizontal">
+    <div class="container" style="width:100%">
+        @*<h4 style="margin-top:0px;margin-bottom:20px">รายละเอียดการแจ้งเคลม</h4>*@
+        <div class="box box-widget widget-user-2">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#OnProcess" aria-controls="OnProcess" role="tab" data-toggle="tab" style="background-color:#f39c12;color:white">ดำเนินการ <span id="lblCountOnprocess" style="color:red;font-weight:bold"> (0)</span></a></li>
+                            <li role="presentation"><a href="#FinishJob" aria-controls="FinishJob" role="tab" data-toggle="tab" style="background-color:#00a65a;color:white">เรียบร้อยแล้ว</a></li>
+                            <li role="presentation"><a href="#Reject" aria-controls="Reject" role="tab" data-toggle="tab" style="background-color:#ed1f4f;color:white">Reject</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            @* Tab ดำเนินการ *@
+                            <div role="tabpanel" class="tab-pane active" id="OnProcess">
+                                <div class="box box-primary">
+                                    <div class="box-header">
+                                        <h3 class="box-title">ค้นหา</h3>
+                                    </div>
+                                    <div class="box-body" style="width: 100%">
+                                        <div class="form-group">
+                                            <div class="col-xs-12 col-md-4">
+                                                <div class="input-group">
+                                                    @*<div class="input-group input-group-sm">*@
+                                                    <input type="text" class="form-control" id="txtSearchOnProcess" name="txtSearchOnProcess" placeholder="ค้นหาจากเลข COL / ชื่อบัญชี">
+                                                    <span class="input-group-btn">
+                                                        <button type="button" id="btnSearchOnProcess" class="btn btn-primary btn-flat"><i class="glyphicon glyphicon-search"></i></button>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-12 col-md-8" style="float:right; text-align:right">
+                                                @if (ViewBag.IsAddClaim)
+                                                {
+                                                    <a class="btn btn-success" style="text-decoration:none;" href="@Url.Action("CreateCOL", "Claim")" target="_blank"><i class="fa fa-fw fa-plus-circle"></i> เพิ่มรายการ PH </a>
+                                                    <a class="btn btn-success" style="text-decoration: none;" href="@Url.Action("CreateCOLPA", "Claim")" target="_blank"><i class="fa fa-fw fa-plus-circle"></i> เพิ่มรายการ PA </a>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="box box-primary">
+                                    <div class="box-header">
+                                        <h3 class="box-title">รายละเอียด</h3>
+                                    </div>
+                                    <div class="box-body" style="width: 100%">
+                                        <div class="col-sm-12">
+                                            <table id="dtOnProcess" class="table table-bordered table-striped display" style="width: 100%"></table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @* Tab เรียบร้อยแล้ว *@
+                            <div role="tabpanel" class="tab-pane" id="FinishJob">
+                                <div class="box box-primary">
+
+                                    <div class="box-body" style="width: 100%">
+                                        <div class="form-group">
+                                            <div class="col-xs-12 col-md-2">
+                                                <label>ค้นหาโดย :</label>
+                                                <select class="form-control" style="width: 100%;" name="searchMode" id="searchMode" data-select2-id="1" tabindex="-1" aria-hidden="true" checkNA="checkNA">
+                                                    <option value="-1">---โปรดระบุ---</option>
+                                                    <option value="1">วันที่สร้าง</option>
+                                                    <option value="2" selected>วันที่โอนเงิน</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-xs-12 col-md-3">
+                                                <label>ช่วงวันที่ :</label>
+                                                <div class="input-group date">
+                                                    <div class="input-group-addon">
+                                                        <i class="fa fa-calendar"></i>
+                                                    </div>
+                                                    <input type="text" class="form-control pull-right datepicker" id="dateFrom" name="dateFrom" data-provide="datepicker" data-date-language="th-th" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-12 col-md-3">
+                                                <label>ถึงวันที่ :</label>
+                                                <div class="input-group date">
+                                                    <div class="input-group-addon">
+                                                        <i class="fa fa-calendar"></i>
+                                                    </div>
+                                                    <input type="text" class="form-control pull-right datepicker" id="dateTo" name="dateTo" data-provide="datepicker" data-date-language="th-th" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-xs-12 col-md-5">
+                                                <label>คำค้นหา :</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="txtSearchFinishJob" name="txtSearchFinishJob" placeholder="ค้นหาจากเลข COL / ชื่อบัญชี">
+                                                    <span class="input-group-btn">
+                                                        <button type="button" id="btnFinishJob" class="btn btn-primary btn-flat"><i class="glyphicon glyphicon-search"></i> ค้นหา</button>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-12 col-md-3">
+                                                <div class="checkbox" style="margin-top: 20px;">
+                                                    <label>
+                                                        <input type="checkbox" id="chkShowBranchData"> ดูข้อมูลงานในสาขาทั้งหมด
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="box box-primary">
+                                    <div class="box-header">
+                                        <h3 class="box-title">รายละเอียด</h3>
+                                    </div>
+                                    <div class="box-body" style="width: 100%">
+                                        <div class="col-sm-12">
+                                            <table id="dtFinishJob" class="table table-bordered table-hover dataTable" style="width:100%;"></table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @* Tab Reject *@
+                            <div role="tabpanel" class="tab-pane" id="Reject">
+                                <div class="box box-primary">
+                                    <div class="box-body" style="width: 100%">
+                                        @if (ViewBag.ShowAll)
+                                        {
+                                            <div class="form-group">
+                                                <div class="col-xs-12 col-md-3">
+                                                    <label class="control-label">ภาค :</label>
+                                                    <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlZone" name="ddlZone">
+                                                    </select>
+                                                </div>
+                                                <div class="col-xs-12 col-md-3">
+                                                    <label class="control-label">สาขา :</label>
+                                                    <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlBranch" name="ddlBranch">
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        <div class="form-group">
+                                            <div class="col-xs-12 col-md-3">
+                                                <label>ช่วงวันที่ :</label>
+                                                <div class="input-group date">
+                                                    <div class="input-group-addon">
+                                                        <i class="fa fa-calendar"></i>
+                                                    </div>
+                                                    <input type="text" class="form-control pull-right datepicker" id="dateFromReject" name="dateFromReject" data-provide="datepicker" data-date-language="th-th" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-12 col-md-3">
+                                                <label>ถึงวันที่ :</label>
+                                                <div class="input-group date">
+                                                    <div class="input-group-addon">
+                                                        <i class="fa fa-calendar"></i>
+                                                    </div>
+                                                    <input type="text" class="form-control pull-right datepicker" id="dateToReject" name="dateToReject" data-provide="datepicker" data-date-language="th-th" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-xs-12 col-md-5">
+                                                <label>คำค้นหา :</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="txtSearchReject" name="txtSearchReject" placeholder="ค้นหาจากเลข COL">
+                                                    <span class="input-group-btn">
+                                                        <button type="button" id="btnSearchReject" class="btn btn-primary btn-flat"><i class="glyphicon glyphicon-search"></i> ค้นหา</button>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            @if (!ViewBag.ShowAll)
+                                            {
+                                                <div class="col-xs-12 col-md-3">
+                                                    <div class="checkbox" style="margin-top: 20px;">
+                                                        <label>
+                                                            <input type="checkbox" id="chkShowBranchDataReject"> ดูข้อมูลงานในสาขาทั้งหมด
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="box box-primary">
+                                    <div class="box-header">
+                                        <h3 class="box-title">รายละเอียด</h3>
+                                    </div>
+                                    <div class="box-body" style="width: 100%">
+                                        <div class="col-sm-12">
+                                            <table id="dtReject" class="table table-bordered table-hover dataTable" style="width:100%;"></table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+
+    <script type="text/javascript">
+        var isShowBranchData;
+        var isShowBranchDataReject;
+
+        $(function () {
+            GetArea();
+            $('#ddlBranch').append('<option value=-1>---ทั้งหมด---</option>');
+            //Select2
+            $('.select2').select2();
+
+            $('#dateFrom').datepicker('setDate', new Date());
+            $('#dateTo').datepicker('setDate', new Date());
+
+            $('#dateFromReject').datepicker('setDate', new Date());
+            $('#dateToReject').datepicker('setDate', new Date());
+
+            //Enter Detection
+            $('#txtSearchOnProcess').keypress(function (event) {
+                var keycode = (event.keyCode ? event.keyCode : event.which);
+                if (keycode == '13') {
+                    if ($('form').valid()) {
+                        event.preventDefault();
+                       // getClaimStatusCount();
+                        getData_OnProcess();
+                    }
+                }
+            });
+
+            //Enter Detection
+            $('#txtSearchFinishJob').keypress(function (event) {
+                var keycode = (event.keyCode ? event.keyCode : event.which);
+                if (keycode == '13') {
+                    if ($('form').valid()) {
+                        event.preventDefault();
+                        getData_FinishJob();
+                    }
+                }
+            });
+
+            $('#txtSearchReject').keypress(function (event) {
+                var keycode = (event.keyCode ? event.keyCode : event.which);
+                if (keycode == '13') {
+                    if ($('form').valid()) {
+                        event.preventDefault();
+                        getData_Reject();
+                    }
+                }
+            });
+
+            //event changed
+            $('#dateFrom').change(function (e) {
+                $(this).valid();
+            });
+            $('#dateTo').change(function (e) {
+                $(this).valid();
+            });
+
+            $('#dateFromReject').change(function (e) {
+                $(this).valid();
+            });
+            $('#dateToReject').change(function (e) {
+                $(this).valid();
+            });
+
+            $('#chkShowBranchData').on('ifChanged', function (event) {
+                isShowBranchData = event.target.checked;
+            });
+
+            $('#chkShowBranchDataReject').on('ifChanged', function (event) {
+                isShowBranchDataReject = event.target.checked;
+            });
+
+            $('#btnSearchOnProcess').click(function (e) {
+                e.preventDefault();
+                if ($('form').valid()) {
+                   // getClaimStatusCount();
+                    getData_OnProcess();
+                }
+            });
+
+            $('#btnFinishJob').click(function (e) {
+                e.preventDefault();
+                if ($('form').valid()) {
+                    getData_FinishJob();
+                }
+            });
+
+            $('#btnSearchReject').click(function (e) {
+                e.preventDefault();
+                if ($('form').valid()) {
+                    getData_Reject();
+                }
+            });
+
+            $('#ddlZone').change(function (e) {
+                e.preventDefault();
+                $('#ddlBranch').empty();
+                GetBranchByAreaId($("#ddlZone").val());
+            });
+
+            $('#ddlBranch').change(function (e) {
+                e.preventDefault();
+                $(this).valid();
+            });
+        });
+
+        const GetBranchByAreaId = (areaId) => {
+            $('#ddlBranch').empty();
+             $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetBranchByAreaId", "Premium")',
+                 data: { areaId: areaId },
+                async: false,
+                success: function (data) {
+                    $('#ddlBranch').append('<option value=-1>---ทั้งหมด---</option>');
+                    for (var i = 0; i < data.length; i++) {
+                        $('#ddlBranch').append('<option value=' + data[i].BranchID + '>' + data[i].Branch + '</option>');
+                    }
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail');
+                }
+            });
+        }
+
+        const GetArea = () => {
+            $('#ddlZone').empty();
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetAreaVersion2", "Premium")",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    //$('#ddlZone').append('<option value=-1>---ทั้งหมด---</option>');
+                    for (var i = 0; i < data.length; i++) {
+                        $('#ddlZone').append('<option value=' + data[i].AreaId + '>' + data[i].AreaDetail + '</option>');
+                    }
+                }
+            });
+        }
+
+        const getData_OnProcess = () => {
+            $('#dtOnProcess').empty();
+            var table = $('#dtOnProcess').DataTable({
+                pageLength: 10,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                order: [[0, 'asc']],
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetMonitorClaimOnLineV2","ClaimOnLine")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $("#txtSearchOnProcess").val();
+                        d.statusId = "2";
+                        d.isShowAll = '@ViewBag.ShowAll';
+                    }, dataSrc: function (json) {
+
+                        $('#lblCountOnprocess').text(`(${json.recordsTotal})`);
+                        return json.data
+                    },
+                    error: function (xhr, error, thrown) {
+                        checkXHRStatus(xhr, error);
+                    }
+                },
+                columns: [
+                    {
+                        title: 'เลขที่ COL',
+                        data: 'ClaimOnLineCode',
+                    },
+                    {
+                        title: 'ประเภทแผน',
+                        data: 'ProductGroupDetail',
+                    },
+                    {
+                        title: 'วันที่ส่ง',
+                        data: 'CreateClaimOnLineDate',
+                        render: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return toBuddhistYear(moment(data), 'DD/MM/YYYY HH:mm:ss');
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'ชื่อบัญชี',
+                        data: 'PayeeAccountName',
+                        orderable: true,
+                    },
+                    {
+                        title: 'จำนวนเคลม',
+                        data: 'ClaimCount',
+                        mRender: function (data) {
+                            if (data == null)
+                                data = 0;
+                            return numberWithCommas(data);
+                        }
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: 'ClaimOnLineStatus',
+                        orderable: true,
+                    },
+                    {
+                        title: 'แอดมินประจำภาค',
+                        data: 'AreaAdmin',
+                        orderable: true,
+                    },
+                    {
+                        title: 'ดำเนินการ',
+                        data: null,
+                        width: '7%',
+                        render: function (data) {
+                            let en_ClaimID = window.btoa(data.ClaimOnLineId);
+                            return '<a href="@Url.Action("ConsiderTransferPremium", "ClaimOnLine")?claimonlineId=' + en_ClaimID +'" target="_blank" style="text-decoration:none;" class="btn btn-primary glyphicon glyphicon-eye-open"></a>'; //ยังไม่มีหน้า
+                        }
+                    }
+                ],
+                'columnDefs': [
+                    {
+                        "targets":"_all", // your case first column
+                        "className": "text-center",
+                    }]
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+
+            //
+            //if (table.rows().length > 0) {
+            //    EnabledButtonCloseQueueAll(false);
+            //}
+
+        }
+
+        const getData_FinishJob = () => {
+            $('#dtFinishJob').empty();
+            var table = $('#dtFinishJob').DataTable({
+                pageLength: 10,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                order: [[0, 'desc']],
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetMonitorClaimOnLineV2","ClaimOnLine")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $("#txtSearchFinishJob").val();
+                        d.statusId = "3";
+                        d.dateSearchMode = $('#searchMode option:selected').val();
+                        d.dateFrom = $('#dateFrom').val();
+                        d.dateTo = $('#dateTo').val();
+                        d.isShowAll = '@ViewBag.ShowAll';
+                        d.isShowBranchData = isShowBranchData;
+                    },
+                    error: function (xhr, error, thrown) {
+                        checkXHRStatus(xhr, error);
+
+                    }
+                },
+                columns: [
+                    {
+                        title: 'เลขที่ COL',
+                        data: 'ClaimOnLineCode',
+                    },
+                    {
+                        //title: 'วันที่ส่ง',
+                        //data: 'CreateClaimOnLineDate',
+                        //render: function (data) {
+                        //    if (data == null) {
+                        //        return "";
+                        //    } else {
+                        //        return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:ss", "LLLL");
+                        //    }
+
+                        //}
+                        'title': 'วันเวลาที่ส่ง', 'data': 'CreateClaimOnLineDate'
+                        , render: function (data) {
+                            return toBuddhistYear(moment(data), 'DD/MM/YYYY HH:mm:ss');
+                        }
+                    },
+                    {
+                        title: 'ชื่อบัญชี',
+                        data: 'PayeeAccountName',
+                        orderable: true,
+                    },
+                    {
+                        title: 'จำนวนเคลม',
+                        data: 'ClaimCount',
+                        mRender: function (data) {
+                            if (data == null)
+                                data = 0;
+                            return numberWithCommas(data);
+                        }
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: 'ClaimOnLineStatus',
+                        orderable: true,
+                    },
+                    {
+                        title: 'ดำเนินการ',
+                        data: null,
+                        width: '7%',
+                        render: function (data) {
+                            let en_ClaimID = window.btoa(data.ClaimOnLineId);//ยังไม่มีหน้า
+                            return '<a href="@Url.Action("ConsiderTransferPremium", "ClaimOnLine")?claimOnlineId=' + en_ClaimID +'" target="_blank" style="text-decoration:none;" class="btn btn-primary glyphicon glyphicon-eye-open"></a>';
+                        }
+                    }
+                ],
+                'columnDefs': [
+                    {
+                        "targets": "_all", // your case first column
+                        "className": "text-center",
+                    }]
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        function toBuddhistYear(moment, format) {
+            var christianYear = moment.format('YYYY')
+            var buddhishYear = (parseInt(christianYear) + 543).toString()
+            return moment
+                .format(format.replace('YYYY', buddhishYear).replace('YY', buddhishYear.substring(2, 4)))
+                .replace(christianYear, buddhishYear)
+        }
+
+        function checkXHRStatus(xhrStatus) {
+            var msg = '';
+            if (xhrStatus === 0) {
+                msg = 'Not connect.\n Verify Network.';
+            } else if (jqXHR.status == 404) {
+                msg = 'Requested page not found. [404]';
+            } else if (jqXHR.status == 500) {
+                msg = 'Internal Server Error [500].';
+            } else if (exception === 'parsererror') {
+                msg = 'Requested JSON parse failed.';
+            } else if (exception === 'timeout') {
+                msg = 'Time out error.';
+            } else if (exception === 'abort') {
+                msg = 'Ajax request aborted.';
+            } else {
+                msg = 'Uncaught Error.\n' + jqXHR.responseText;
+            }
+            swal("ไม่สำเร็จ", msg, "error");
+        }
+
+         const getData_Reject = () => {
+            $('#dtReject').empty();
+             var table = $('#dtReject').DataTable({
+                pageLength: 10,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                order: [[0, 'desc']],
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetMonitorClaimOnLineV2","ClaimOnLine")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $("#txtSearchReject").val();
+                        d.statusId = "4";
+                        d.areaId = $("#ddlZone").val();
+                        d.branchId = $("#ddlBranch").val()
+                        d.dateFrom = $('#dateFromReject').val();
+                        d.dateTo = $('#dateToReject').val();
+                        d.dateSearchMode = 1;//วันสร้าง
+                        d.isShowAll = '@ViewBag.ShowAll';
+                        d.isShowBranchData = isShowBranchDataReject;
+                    },
+                    error: function (xhr, error, thrown) {
+                        checkXHRStatus(xhr, error);
+                    }
+                },
+                columns: [
+                    {
+                        title: 'เลขที่ COL',
+                        data: 'ClaimOnLineCode',
+                    },
+                    {
+                        title: 'ประเภทแผน',
+                        data: 'ProductGroupDetail',
+                    },
+                    {
+                        title: 'วันที่ส่ง',
+                        data: 'CreateClaimOnLineDate',
+                        render: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return toBuddhistYear(moment(data), 'DD/MM/YYYY HH:mm:ss');
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'สาขา',
+                        data: 'BranchDetail',
+                        orderable: true,
+                    },
+                    {
+                        title: 'ผู้ทำเคลมออนไลน์',
+                        data: 'ClaimOnLinePersonName',
+                        orderable: true,
+                    },
+                    {
+                        title: 'จำนวนเคลม',
+                        data: 'ClaimCount',
+                        mRender: function (data) {
+                            if (data == null)
+                                data = 0;
+                            return numberWithCommas(data);
+                        }
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: 'ClaimOnLineStatus',
+                        orderable: true,
+                    },
+                    {
+                        title: 'สาเหตุการยกเลิก',
+                        data: 'CancelCause',
+                        orderable: false,
+                    },
+                    {
+                        title: 'หมายเหตุการยกเลิก',
+                        data: 'CancelRemark',
+                        orderable: false,
+                    },
+                    {
+                        title: 'ผู้ทำการยกเลิก',
+                        data: 'CancelPersonName',
+                        orderable: false,
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        width: '7%',
+                        render: function (data) {
+                            let en_ClaimID = window.btoa(data.ClaimOnLineId);
+                            return '<a href="@Url.Action("ConsiderTransferPremium", "ClaimOnLine")?claimonlineId=' + en_ClaimID +'" target="_blank" style="text-decoration:none;" class="btn btn-primary glyphicon glyphicon-eye-open"></a>'; //ยังไม่มีหน้า
+                        }
+                    }
+                ],
+                'columnDefs': [
+                    {
+                        "targets":"_all", // your case first column
+                        "className": "text-center",
+                    }]
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        function numberWithCommas(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        @*function getClaimStatusCount() {
+            $.get("@Url.Action("GetClaimOnlineStatusCount", "ClaimOnLine")", function (d) {
+                debugger
+                if (d != null) {
+                    $('#lblCountOnprocess').text(`(${d.StatusPending})`);
+                } else {
+                    $('#lblCountOnprocess').text(0);
+                }
+            });
+        }*@
+
+        function checkXHRStatus(xhr, error) {
+            var msg = '';
+            if (xhr === 0) {
+                msg = 'Not connect.\n Verify Network.';
+            } else if (xhr.status == 404) {
+                msg = 'กรุณาลองใหม่อีกครั้งภายหลัง\nRequested page not found. [404]';
+            } else if (xhr.status == 500) {
+                msg = 'กรุณาลองใหม่อีกครั้งภายหลัง\nInternal Server Error. [500].';
+            } else if (error === 'parsererror') {
+                msg = 'กรุณาลองใหม่อีกครั้งภายหลัง\nRequested JSON parse failed.';
+            } else if (error === 'timeout') {
+                msg = 'เนื่องจากมีผู้ใช้งานจำนวนมาก กรุณาลองใหม่อีกครั้งภายหลัง \n Time out error.';
+            } else if (error === 'abort') {
+                msg = 'คำขอถูกยกเลิก กรุณาลองใหม่อีกครั้งภายหลัง\nAjax request aborted.';
+            } else {
+                msg = 'กรุณาลองใหม่อีกครั้งภายหลัง\n' + xhr.responseText;
+            }
+            swal("เกิดข้อผิดพลาด", msg, "error");
+        }
+    </script>
+
+}

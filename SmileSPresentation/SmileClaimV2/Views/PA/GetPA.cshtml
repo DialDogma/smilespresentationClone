@@ -1,0 +1,229 @@
+﻿@{
+    ViewBag.Title = "ค้นหาผู้เอาประกัน";
+}
+
+<form id="form_PA">
+    <div class="row" id="divcontent">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">ข้อมูลสถานศึกษา</h3>
+                    @*<a href="@Url.Action("Index")" class="btn btn-danger" style="float: right; width: 100px;">ย้อนกลับ</a>*@
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-md-3 col-sm-6 col-xs-12">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-blue"><i class="fa fa-tags"></i></span>
+
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Application ID</span>
+                                    <span class="info-box-number">@ViewBag.AppID</span>
+                                </div>
+                                <!-- /.info-box-content -->
+                            </div>
+                            <!-- /.info-box -->
+                        </div>
+
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-aqua"><i class="fa fa-university"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">ชื่อสถานศึกษา</span>
+                                    <span class="info-box-number">@ViewBag.School</span>
+                                    <span class="hidden-xs">ตำบล: @ViewBag.SubDistrict</span>
+                                    <span class="hidden-xs">อำเภอ: @ViewBag.District</span>
+                                    <span class="hidden-xs">จังหวัด: @ViewBag.Province</span>
+                                </div>
+                                <!-- /.info-box-content -->
+                            </div>
+                            <!-- /.info-box -->
+                        </div>
+
+                        <div class="col-md-3 col-sm-6 col-xs-12">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-green"><i class="fa fa-product-hunt"></i></span>
+
+                                <div class="info-box-content">
+                                    <span class="info-box-text">แผน</span>
+                                    <span class="info-box-number">@ViewBag.Product</span>
+                                </div>
+                                <!-- /.info-box-content -->
+                            </div>
+                            <!-- /.info-box -->
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            <span for="input_textsearch" class="col-form-label" style="text-align: right;font-weight: bold">คำค้น</span><span for="input_textsearch" class="col-form-label"> (ชื่อ,นามสกุล,เลขที่บัตรประชาชน/Passport)</span>
+                            <div class="input-group">
+                                <input id="input_textsearch" name="input_textsearch" type="text" class="form-control" required="required" checkStrEmpty="checkStrEmpty" minlength="5" placeholder="ค้นหาโดย ชื่อ,นามสกุล,เลขที่บัตรประชาชน/Passport">
+                                <div class="input-group-btn">
+                                    <button id="button_search" name="button_search" type="button" class="btn btn-primary btn-flat"><i class="fa fa-search"></i> ค้นหา</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <table id="datatable1" class="table table-bordered table-striped" style="width:100%"></table>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-12 hidden-xs">
+            <div class="pull-left">
+                <a href="@Url.Action("Index", "PA")" class="btn btn-warning btn-flat" style="width: 100px"><i class="fa fa-arrow-circle-left"></i> ย้อนกลับ</a>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="appId" name="appId" value="@ViewBag.AppID" />
+    <input type="hidden" id="txtEmptyTable" name="txtEmptyTable" value="@ViewBag.TextEmptyTable" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+
+            $('.select2').select2();
+            $(".datepicker").datepicker();
+            $('#input_textsearch').keypress(function (e) {
+                if (e.keyCode == 13) {
+                    e.preventDefault();
+                    $('#button_search').click();
+                }
+            });
+            $('#button_search').click(function () {
+                if ($('#form_PA').valid()) {
+                    GetDatatables();
+                }
+            });
+        });
+
+        function GetDatatables() {
+            var txt = $('#txtEmptyTable').val();
+            $('#datatable1').empty();
+            $('#datatable1').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                lengthChange: false,
+                responsive: true,
+                destroy: true,
+                language: {
+                    emptyTable: txt,
+                    processing: "กำลังดำเนินการ...",
+                    infoEmpty: "แสดง 0 ถึง 0 จาก 0 แถว",
+                    info: "แสดง _START_ ถึง _END_ จาก _TOTAL_ แถว",
+                    paginate: {
+                        first: "หน้าแรก",
+                        last: "สุดท้าย",
+                        next: "ถัดไป",
+                        previous: "ก่อนหน้า"
+                    }
+                    //url: '/Content/js/plugins/datatable/Thai.json'  //WHEN use attr language call url *** Code check data().nay() not working!!
+                },
+                ajax: {
+                    url: '@Url.Action("GetDatatableStudent")',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $('#input_textsearch').val();
+                        d.appId = $('#appId').val();
+                    }
+                },
+
+                columns: [
+                    {
+                        title: '#',
+                        data: null,
+                        bSortable: false,
+                        render: function (o) {
+                            //encode
+                            var encodeCusId = window.btoa(o.CustomerDetailID);
+                            var encodeProductGroupId = window.btoa(3); //3=PA
+                            if (o.Status_id == "3202" || o.Status_id == "3204") {
+                                return '<a class="btn btn-danger" title="ดูรายละเอียด" disabled="disabled" style="margin: 2px;"><i class="fa fa-search"></i></a>';
+                            } else {
+                                return '<a href="@Url.Action("GetDetail","PA")?cusId=' +
+                                    encodeCusId +
+                                    '&pGroupId=' +
+                                    encodeProductGroupId +
+                                    '" class="btn btn-success" title="ดูรายละเอียด" target="_blank" style="margin: 2px;"><i class="fa fa-search"></i></a>';
+                            }
+
+                        }
+
+                    },
+                    {
+                        title: 'ชื่อ-สกุล',
+                        data: 'FullName'
+                    },
+                    {
+                        title: 'เลขบัตรฯ/Passport',
+                        data: null,
+                        render: function (o) {
+                            if (o.ZCard_ID != "") {
+                                return o.ZCard_ID;
+                            }
+                            else if (o.Passport != ""){
+                                return o.Passport;
+                            }
+                        }
+                    },
+                    {
+                        title: 'ประเภท',
+                        data: null,
+                        render: function (o) {
+                            if (o.CustomerType_id == "8902") {
+                                return 'บุลคากร';
+                            }
+                            else {
+                                return o.CustomerType;
+                            }
+                        }
+
+                    },
+                    {
+                        title: 'ระดับชั้น',
+                        data: 'LevelRoom'
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: null,
+                        bSortable: false,
+                        render: function (o) {
+                            if (o.Status_id == "3202" || o.Status_id == "3204") {
+                                return '<span class="label label-danger">' + 'ยกเลิก' + '</span>';
+                            }
+                            else {
+                                return '<span class="label label-success">' + 'ปกติ' + '</span>';
+                            }
+                        }
+
+                    },
+                    {
+                        title: 'วันที่่มีผลความคุ้มครอง',
+                        data: 'EffectiveDate',
+                        render: function (data) {
+                            return DisplayJsonDateBE(data);
+                        }
+                    },
+                    {
+                        title: 'วันสิ้นสุดคุ้มครอง',
+                        data: 'EndCoverDate',
+                        render: function (data) {
+                            return `${DisplayJsonDateBE(data)}  16.30 น.`;
+                        }
+                    }
+                ]
+            });
+        }
+    </script>
+}

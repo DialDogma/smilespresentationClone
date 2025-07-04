@@ -1,0 +1,114 @@
+﻿@{
+    ViewBag.Title = "รายงานการคัดกรองและมอบบัตรของประธานสาขา";
+    Layout = "~/Views/Shared/_LayoutForTopIndexPH.cshtml";
+}
+
+<div class="row" style="margin-top: 25px">
+    @* top form *@
+    <div class="col-sm-12 col-md-12">
+        @* search form *@
+        <div class="col-sm-12 col-md-6">
+            <div class="box box-info">
+                <div class="box-header">
+                    <h4>รายงานการคัดกรองและมอบบัตรของประธานสาขา</h4>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-offset-1 col-md-10">
+                            <label class="control-label">งวดความคุ้มครอง:</label>
+                            <select class="form-control" id="select_period">
+                                <option value="-1">----กรุณาเลือก----</option>
+                                @foreach (var itm in ViewBag.PeriodList)
+                                {
+                                    <option value="@itm.Value.ToString("yyyy-MM-dd")"> @itm.Display</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-offset-1 col-md-10">
+                            <label class="control-label">สาขา:</label>
+                            <select class="form-control" id="select_branch">
+                                <option value="-1">----กรุณาเลือก----</option>
+                                @foreach (var itm in ViewBag.branch)
+                                {
+                                    <option value="@itm.Branch_ID">@itm.BranchDetail</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end form *@
+    </div>
+    @* end top *@
+    @* right form *@
+    <div class="col-sm-12 col-md-12">
+        @* download form *@
+        <div class="col-sm-12 col-md-6" id="Download_form">
+            <div class="box box-success">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="box-header">
+                            <h4 class="text-center">รายงานการคัดกรองและมอบบัตรของประธานสาขา</h4>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-offset-3 col-md-6">
+                            <button type="button" id="btnDownload1" class="btn btn-block btn-success" onclick="getDownloadLink()">Export to Excel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end download *@
+        @* download form *@
+        <div class="col-sm-12 col-md-6" id="Download2_form">
+            <div class="box box-success">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="box-header">
+                            <h4 class="text-center">รายงาน2</h4>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-offset-3 col-md-6">
+                            <button type="button" id="btnDownload2" class="btn btn-block btn-success">Export to Excel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end download *@
+    </div>
+</div>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('#Download2_form').hide();
+            $('#Download_form').hide();
+            $('#select_period').change((e) => {
+                e.preventDefault();
+                if ($('#select_period').val() != -1 && $('#select_branch').val() != -1) {
+                    $('#Download_form').show();
+                } else {
+                    $('#Download_form').hide();
+                }
+            });
+            $('#select_branch').change((e) => {
+                e.preventDefault();
+                if ($('#select_period').val() != -1 && $('#select_branch').val() != -1) {
+                    $('#Download_form').show();
+                } else {
+                    $('#Download_form').hide();
+                }
+            });
+        });
+
+        const getDownloadLink = () => {
+            window.location.href = `@Url.Action("ExportReportUnderwriteAndInsuranceCardDirector","Report")?period=` + $('#select_period').val() + `&branchId=` + $('#select_branch').val();
+        }
+    </script>
+}

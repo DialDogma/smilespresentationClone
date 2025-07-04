@@ -1,0 +1,379 @@
+﻿@{
+    /**/
+
+    ViewBag.Title = "GenBillPayment";
+}
+<form>
+    <div class="box box-primary">
+        <div class="box-body">
+            <div class="form-group">
+                <fieldset>
+                    <legend>ค้นหา Application:</legend>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <label for="textSearchPhoneNumber">เบอร์โทร</label>
+                            <input class="form-control" id="textSearchPhoneNumber" name="textSearchPhoneNumber" type="text" placeholder="เบอร์โทร" minlength="5" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <label for="textSearchPayer">ชื่อผู้ชำระเบี้ย</label>
+                            <input class="form-control" id="textSearchPayer" name="textSearchPayer" type="text" placeholder="ชื่อ-สกุล ผู้ชำระเบี้ย" minlength="5" />
+                        </div>
+                        <div class="col-sm-3" style="padding-top: 25px;">
+                            <button id="btnSearch" type="button" class="btn btn-primary" style="width: 80px;"><i class="fa fa-search"></i> ค้นหา</button>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="form-group">
+                <fieldset>
+                    <legend>ประวัติการ Gen Bill Payment:</legend>
+                    <div>
+                        <table id="tableHistoryDetail" class="table table-bordered table-striped display responsive" style="width:100%;">
+                            <tbody>
+                                <tr style="text-align:center">
+                                    <td>ไม่พบข้อมูล</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="form-group">
+                <fieldset>
+                    <legend>แสดงรายการ:</legend>
+                    <div>
+                        <table id="tableDetail" name="tableDetail" class="table table-bordered table-striped display responsive" style="width:100%;">
+                            <tbody>
+                                <tr style="text-align:center">
+                                    <td>ไม่พบข้อมูล</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </fieldset>
+                <div>
+                    <button id="btnGenBill" name="btnGenBill" type="button" class="btn btn-warning" disabled style="float: right;"><i class="fa fa-file"></i> Generate Bill Payment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript {
+    <script>
+        var ListCheckBox = [];
+        $(function () {
+            //event button search click
+            $('#btnSearch').on('click', function (e) {
+                e.preventDefault();
+                let s1 = $('#textSearchPhoneNumber').val();
+                let s2 = $('#textSearchPayer').val();
+                if (s1.length >= 5 || s2.length >= 5) {
+                    loadDatatables();
+                    $('#tableDetail').empty();
+                    $('#tableDetail').append('<tr><td style="text-align:center">ไม่พบข้อมูล</td></tr>');
+                } else {
+                    swal("ระบุคำค้นหา!", "โปรดระบุเบอร์โทร หรือ ชื่อผู้ชำระเบี้ย เพื่อค้นหาข้อมูล","warning");
+                }
+            });
+
+            //event button search click
+            $('#btnGenBill').on('click', function (e) {
+                e.preventDefault();
+                swal_confirm("ยืนยันการ Generate Bill Payment", "", function () {
+                    RegenBill();
+                })
+            });
+
+            //event tableHistoryDetail paging
+            $('#tableHistoryDetail').on('page.dt', function () {
+                ListCheckBox = [];
+                $('#tableDetail').empty();
+                $('#tableDetail').append('<tr><td style="text-align:center">ไม่พบข้อมูล</td></tr>');
+            });
+
+            /*checkbox in datatables change*/
+            $('#tableDetail').on('change', 'input[type="checkbox"]', function (e) {
+                //e.preventDefault();
+                let table = $('#tableDetail').DataTable();
+                let rows = table.rows().nodes();
+                switch (this.className) {
+                    case 'chk-row-select-all':
+                        if (this.checked) {
+                            $('input[class="chk-row-select"]', rows).prop('checked', true).change();
+                        } else {
+                            $('input[class="chk-row-select"]', rows).prop('checked', false).change();
+                        }
+                        break;
+                    case 'chk-row-select':
+                        if (this.checked) {
+                                let count = 0;
+                                const value = this.value;
+                                //adds one or more elements to the end of an array and returns the new length of the array.
+                                if (!ListCheckBox.includes(value)) ListCheckBox.push(this.value);
+                                //check count data equal rows.length then checkbox-all is checked
+                            if (!(ListCheckBox.length === rows.length)) {
+                                $('table[name="tableDetail"]').find(".chk-row-select-all").prop('checked', false);
+                            } else {
+                                $('table[name="tableDetail"]').find(".chk-row-select-all").prop('checked', true);
+                            }
+                        } else {
+                            const value = this.value;
+                            //loop every row
+                            table.rows().every(function () {
+                                //check for add class selected
+                                if ((this.data().DebtId.toString() === value) && (this.data().Product === 'P30')) {
+                                    //replaces 1 element at indexOd() returnValue index
+                                    ListCheckBox.splice(ListCheckBox.indexOf(value), 1);
+                                } else {
+                                    $(this.row().node()).find(".chk-row-select").prop('checked', true);
+                                }
+                            });
+                             //check count data equal rows.length then checkbox-all is checked
+                            if (!(ListCheckBox.length === rows.length)) {
+                                $('table[name="tableDetail"]').find(".chk-row-select-all").prop('checked', false);
+                            } else {
+                                $('table[name="tableDetail"]').find(".chk-row-select-all").prop('checked', true);
+                            }
+                        }
+                        break;
+                    default:
+                }
+            });
+        });
+
+       /*function load datatables*/
+       function loadDatatables() {
+           $('#tableHistoryDetail').empty();
+           const table = $('#tableHistoryDetail').DataTable({
+                pageLength: 10,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                ajax: {
+                    url: '@Url.Action("GetBillPaymentHistory")',
+                    method: "GET",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.indexStart = d.start;
+                        d.pageSize = d.length;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.mobileNumber = $('#textSearchPhoneNumber').val();
+                        d.payerName = $('#textSearchPayer').val();
+                    },
+                    dataSrc: function (json) {
+                        if (json.data.length === 0) {
+                            $('#btnGenBill').prop('disabled', true);
+                        }
+                        return json.data;
+                    },
+                },
+               columns: [
+                    {
+                       title: 'ลำดับ',
+                       data: null,
+                       orderable: false,
+                       className:'th-center td-center'
+                    },
+                    {
+                        title: 'รหัส BillPayment',
+                        data: 'BillPaymentCode',
+                        orderable: false,
+                        className: 'th-center'
+                    },
+                    {
+                        title: 'ผู้ชำระเบี้ย',
+                        data: 'PayerName',
+                        orderable: false,
+                        className: 'th-center'
+                   },
+                   {
+                       title: '	เบอร์โทร',
+                       data: 'MobileNumber',
+                       orderable: false,
+                       className: 'th-center'
+                   },
+                   {
+                       title: '	เวลาที่ Gen Bill',
+                       data: 'CreatedDate',
+                       orderable: false,
+                       className: 'th-center td-center',
+                       render: function (data) {
+                           return moment(data).format("DD/MM/YYYY HH:mm");
+                       }
+                   },
+                   {
+                       title: ' สถานะการชำระ',
+                       data: 'BillPaymentStatus',
+                       orderable: false,
+                       className: 'th-center'
+                   },
+                   {
+                       title: '	Re-Generate',
+                       data: null,
+                       orderable: false,
+                       className: 'th-center td-center',
+                       render: function (data) {
+                           let period = moment(data.Period).format("MM/DD/YYYY");
+                           let newDate = new Date(period);
+                           let newPeiod = newDate.getDate() + '-' + (newDate.getMonth()+1) + '-' + (newDate.getFullYear()+543 );
+                           let billId = data.BillPaymentId;
+                           return `<button  id="btn-regen-${data.BillPaymentId}" onclick="loadDatatablesDebtForRegen('${newPeiod}',${billId});return false;" class="btn btn-primary"><i class="fa fa-repeat"></i> Re-Gen</button>`
+                       }
+                   },
+                   {
+                       title: '	ดูรายละเอียด',
+                       data: null,
+                       orderable: false,
+                       className: 'th-center td-center',
+                       render: function (data) {
+                           let encode = btoa(data.BillPaymentCode);
+                           return `<a href="@ViewBag.URL_View_Doc${encode}" target="_blank" id="btn-${data.BillPaymentId}" class="btn btn-info"><i class="fa fa-search"></i></a>`
+                       }
+                   }
+                ]
+           });
+                table.on('draw.dt', function () {
+                   var PageInfo = table.page.info();
+                   table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                       cell.innerHTML = i + 1 + PageInfo.start;
+               })
+           });
+
+             window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+       /*function load datatables DebtForRegen*/
+        function loadDatatablesDebtForRegen(period, billId) {
+            loadingSpinner('fadeIn');
+            ListCheckBox = [];
+            $('#tableDetail').empty();
+            const table = $('#tableDetail').DataTable({
+                pageLength: 999,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: false,
+                paging: false,
+                autoWidth: false,
+                responsive: true,
+                ajax: {
+                    url: '@Url.Action("GetDebtForRegenBillPayment")',
+                    method: "GET",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.indexStart = 0;
+                        d.pageSize = 999;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.period = period;
+                        d.billId = billId;
+                    },
+                    dataSrc: function (json) {
+                        if (json.data.length > 0) {
+                            $('#btnGenBill').prop('disabled', false);
+                        }
+                        loadingSpinner('fadeOut');
+                        return json.data;
+                    },
+                },
+               columns: [
+                   {
+                       title: '<label>เลือก</label><input id="chk-all" name="chk-all" style="cursor:pointer"  class="chk-row-select-all" type="checkbox" />',
+                       data: null,
+                       orderable: false,
+                       className: 'th-center td-center-checkbox nosort',
+                       width:"33px",
+                       render: function (data) {
+                           let Ischecked = "checked";
+                           $('input[class="chk-row-select-all"]').prop('checked', true);
+                           if (!ListCheckBox.includes(data.DebtId.toString())) ListCheckBox.push(data.DebtId.toString());
+                           return `<input type="checkbox" style="cursor:pointer"  class="chk-row-select" ${Ischecked} id="chkdtrow_${data.DebtId}" name="chkdtrow_${data.DebtId}" value="${data.DebtId}">`;
+                       }
+                   },
+                    {
+                        title: 'App ID',
+                        data: 'ApplicationCode',
+                        orderable: false,
+                        className: 'th-center'
+                    },
+                    {
+                        title: 'ผลิตภัณฑ์',
+                        data: 'ProductGroup',
+                        orderable: false,
+                        className: 'th-center'
+                   },
+                   {
+                       title: 'แผนประกัน',
+                       data: 'Product',
+                       orderable: false,
+                       className: 'th-center'
+                   },
+                   {
+                       title: 'เบี้ย',
+                       data: 'PremiumSum',
+                       orderable: false,
+                       className: 'th-center td-center'
+                   },
+                   {
+                       title: 'ผู้เอาประกัน',
+                       data: 'CustName',
+                       orderable: false,
+                       className: 'th-center td-center'
+                   },
+                   {
+                       title: 'ผู้ชำระเบี้ย',
+                       data: 'PayerName',
+                       orderable: false,
+                       className: 'th-center'
+                   },
+                ]
+           });
+             window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        function RegenBill() {
+          loadingSpinner('fadeIn');
+            $.ajax({
+                url: "@Url.Action("RegenBillPaymentAnSentSMS")",
+                type: "POST",
+                data: {
+                    strArray: ListCheckBox
+                },
+                success: function (data) {
+                    ListCheckBox = [];
+                    if (data.IsResult) {
+                        swal_success(function () {
+
+                            window.location.reload();
+                        });
+                    } else {
+                        swal_fail(data.Msg);
+                    }
+                    loadingSpinner('fadeOut');
+                },
+                 error: function (jqXHR, exception) {
+                    checkXHRStatus(jqXHR,exception);
+                 }
+            });
+        }
+    </script>
+}

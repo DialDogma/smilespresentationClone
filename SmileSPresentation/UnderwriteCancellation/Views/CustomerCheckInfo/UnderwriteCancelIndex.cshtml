@@ -1,0 +1,851 @@
+﻿@{
+    ViewBag.Title = "UnderwriteCancelIndex";
+}
+<style>
+    .nav-tabs-custom > .nav-tabs > li.active {
+        border-top-color: #23C3F0;
+    }
+
+    .table-hover {
+        cursor: context-menu;
+    }
+
+    table.dataTable thead {
+        background-color: #337AB7;
+        color: white
+    }
+
+    .modal-footer {
+        text-align: center !important;
+    }
+
+    .close {
+        font-size: 25px;
+        font-weight: bold;
+    }
+</style>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="box-body">
+            <div class="form-group">
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                    <h3>
+                        ตรวจสอบข้อมูลลูกค้ายกเลิก
+                        @*<small>@ViewBag.Description</small>*@
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#tab_1" data-toggle="tab" aria-expanded="true" style="color: #61A6C4">บันทึกการทำงาน</a></li>
+                <li class=""><a href="#tab_2" data-toggle="tab" aria-expanded="false" style="color: #61A6C4">ประวัติคิวงาน</a></li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane active" id="tab_1">
+                    @* start ข้อมูลผู้ชำระเบี้ย *@
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">ข้อมูลผู้ชำระเบี้ย</h3>
+                        </div>
+                        <form class="form-horizontal">
+                            <div class="box-body">
+                                <div class="form-group">
+                                    <label class="col-md-2 control-label">ชื่อผู้ชำระเบี้ย :</label>
+                                    <div class="col-md-2">
+                                        <h5 class="text-muted">@ViewBag.QueueFullDetail.PayerName</h5>
+                                    </div>
+                                    <label class="col-md-2 control-label">เลขบัตรประชาชน/Passport :</label>
+                                    <div class="col-md-2">
+                                        <h5 class="text-muted">@ViewBag.QueueFullDetail.PayerIdCardNo</h5>
+                                    </div>
+                                    <label class="col-md-2 control-label">เบอร์โทรศัพท์ :</label>
+                                    <div class="col-md-2">
+                                        <h5 class="text-muted">@ViewBag.QueueFullDetail.PayerPhone</h5>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-2 control-label">อาชีพ :</label>
+                                    <div class="col-md-2">
+                                        <h5 class="text-muted">@ViewBag.QueueFullDetail.PayerOccupation</h5>
+                                    </div>
+                                    <label class="col-md-2 control-label">ระดับอาชีพ :</label>
+                                    <div class="col-md-2">
+                                        <h5 class="text-muted">@ViewBag.QueueFullDetail.PayerOccupationLevel</h5>
+                                    </div>
+                                    <label class="col-md-2 control-label">สาขา :</label>
+                                    <div class="col-md-2">
+                                        <h5 class="text-muted">@ViewBag.QueueFullDetail.BranchDetail</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    @* end ข้อมูลผู้ชำระเบี้ย *@
+
+                    @* start ข้อมูลผู้เอาประกัน *@
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">ข้อมูลผู้เอาประกัน</h3>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 col-sm-12 col-xs-12" style="width:100%">
+                                <table id="queueDetail" class="table table-bordered table-hover dataTable"></table>
+                            </div>
+                        </div>
+                    </div>
+                    @* end ข้อมูลผู้เอาประกัน *@
+
+                    @* start ตรวจสอบข้อมูลลูกค้ายกเลิก  *@
+                    <div class="box box-warning">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">ตรวจสอบข้อมูลลูกค้ายกเลิก </h3>
+                        </div>
+                        <div class="box-body">
+                            <div id="div-cancelUnderwriteStatus">
+                                <div class="col-md-12 box-title">
+                                    <label style="color: #61A6C4 ">สถานะการตรวจสอบ</label>
+                                </div>
+                                <div class="box-body msg-error form-horizontal">
+                                    <div class="radio">
+                                        <label id="label-UnderwriteStatus_0">
+                                            <input type="radio" name="isAudit" id="cancelUnderwriteStatus_0" value="0" @(ViewBag.QueueFullDetail.IsAudit == null || ViewBag.QueueFullDetail.IsAudit == false ? "checked" : "")>
+                                            รอตรวจสอบ
+                                        </label>
+                                    </div>
+                                    <div class="radio">
+                                        <label id="label-UnderwriteStatus_1">
+                                            <input type="radio" name="isAudit" id="cancelUnderwriteStatus_1" value="1" @(ViewBag.QueueFullDetail.IsAudit == null || ViewBag.QueueFullDetail.IsAudit == false ? "" : "checked")>
+                                            ตรวจสอบแล้ว
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            @* bug valid form ไม่มีคั้นไว้ valid ได้ทีละ form*@
+                            <form class="form-horizontalaaa" id="cancelFormOtheraaa" name="cancelFormOtheraaa" style="display:none"></form>
+
+                            @* start สถานะการโทร *@
+                            <div id="div-cancelUnderwriteStatus_0" @(ViewBag.QueueFullDetail.IsAudit == true ? "hidden" : "")>
+                                <form class="form-horizontal" id="cancelFormCallStatus" name="cancelFormCallStatus" action="@Url.Action("UnderwriteCancelInsert")" method="post">
+                                    <input type="hidden" name="isAudit" id="cancelUnderwriteStatus_1" value="False">
+                                    <input type="hidden" name="queueId" id="queueId" value="@ViewBag.QueueId" />
+                                    <div class="col-md-12 box-title">
+                                        <label style="color: #61A6C4 ">สถานะการโทร<span style="color:red">*</span></label>
+                                    </div>
+                                    <div class="box-body msg-error">
+                                        @foreach (var item in ViewBag.CallStatus)
+                                        {
+                                            if (item.CallStatusId != 7 && item.CallStatusId != 2)
+                                            {
+                                                <div class="radio">
+                                                    <label>
+                                                        <input type="radio" name="cancelCallStatus" id="@String.Format("CallStatusId{0}",item.CallStatusId)" value="@item.CallStatusId" @(item.CallStatusId != ViewBag.QueueFullDetail.CallStatusId ? "" : "checked")>
+                                                        @item.CallStatusDetail
+                                                    </label>
+                                                </div>
+                                            }
+                                        }
+
+                                        <div class="form-group">
+                                            <div class="col-sm-5">
+                                                <span>หมายเหตุการโทร :</span>
+                                                <textarea class="form-control" rows="2" placeholder="โปรดระบุข้อความ ..." id="cancelCallStatusRemark" name="cancelCallStatusRemark"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            @* end สถานะการโทร *@
+
+                            <form class="form-horizontal" id="cancelFormOther" name="cancelFormOther" action="@Url.Action("UnderwriteCancelInsert")" method="post">
+                                <input type="hidden" name="hd-isAudit" id="hd-isAudit" value="" />
+                                @* start มีประเด็นหรือไม่ *@
+                                <div id="div-IssuedQueue" @(ViewBag.QueueFullDetail.IsAudit == true ? "" : "hidden")>
+                                    <div class="col-md-12 box-title">
+                                        <label style="color: #61A6C4 ">มีประเด็นหรือไม่<span style="color:red">*</span></label>
+                                    </div>
+                                    <div class="box-body msg-error">
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="cancelisIssue" id="cancelisIssue0" value="False" @(ViewBag.QueueFullDetail.IsIssue == false ? "checked" : "")>
+                                                ไม่มีประเด็น
+                                            </label>
+                                        </div>
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="cancelisIssue" id="cancelisIssue1" value="True" @(ViewBag.QueueFullDetail.IsIssue == true ? "checked" : "")>
+                                                มีประเด็น
+                                            </label>
+                                        </div>
+                                        <div class="radio">
+                                            <label for="isIssueRemark" class="col-sm-5 ">
+                                                รายละเอียด :
+                                                <textarea class="form-control" rows="2" placeholder="โปรดระบุรายละเอียด ..." id="isIssueRemark" name="isIssueRemark"></textarea>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                @* end มีประเด็นหรือไม่ *@
+
+                                @* start สาเหตุการยกเลิก *@
+                                <input type="hidden" name="isAudit" id="cancelUnderwriteStatus_1" value="True">
+                                <input type="hidden" name="cancelCallStatus" id="CallStatusId7" value="7">
+                                <input type="hidden" name="queueId" id="queueId" value="@ViewBag.QueueId" />
+                                <div id="div-cancelUnderwriteStatus_1" @(ViewBag.QueueFullDetail.IsAudit == true ? "" : "hidden")>
+                                    <div class="col-md-12 box-title">
+                                        <label style="color: #61A6C4 ">สาเหตุการยกเลิก <span style="color:red">ระบุสาเหตุให้สัมพันธ์กับรายละเอียดข้างต้น และสามารถระบุได้มากกว่า 1 สาเหตุ </span></label>
+                                    </div>
+                                    <div class="box-body checkbox-FormOther">
+                                        <div class="col-md-4 msg-error">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause1" value="1" @(ViewBag.QueueFullDetail.IsCancelCause1 == true ? "checked" : "")>
+                                                    ปัญหาด้านการเงิน
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause4" value="4" @(ViewBag.QueueFullDetail.IsCancelCause4 == true ? "checked" : "")>
+                                                    การเคลมสินไหมล่าช้า
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause7" value="7" @(ViewBag.QueueFullDetail.IsCancelCause7 == true ? "checked" : "")>
+                                                    ผลิตภัณฑ์ไม่ตรงตามความต้องการ
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause10" value="10" @(ViewBag.QueueFullDetail.IsCancelCause10 == true ? "checked" : "")>
+                                                    ความน่าเชื่อถือของบริษัทสยามสไมล์
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause13" value="13" @(ViewBag.QueueFullDetail.IsCancelCause13 == true ? "checked" : "")>
+                                                    สถานพยาบาล/คู่สัญญา
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause16" value="16" @(ViewBag.QueueFullDetail.IsCancelCause16 == true ? "checked" : "")>
+                                                    ไม่ให้ข้อมูล
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause2" value="2" @(ViewBag.QueueFullDetail.IsCancelCause2 == true ? "checked" : "")>
+                                                    มีประกันหลายบริษัท/หลายกรมธรรม์
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause5" value="5" @(ViewBag.QueueFullDetail.IsCancelCause5 == true ? "checked" : "")>
+                                                    เบิกเคลมไม่ได้
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause8" value="8" @(ViewBag.QueueFullDetail.IsCancelCause8 == true ? "checked" : "")>
+                                                    การคัดกรองและได้รับกรมธรรม์เป็นไปอย่างล่าช้า
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause11" value="11" @(ViewBag.QueueFullDetail.IsCancelCause11 == true ? "checked" : "")>
+                                                    ความน่าเชื่อถือของบริษัทรับประกัน
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause14" value="14" @(ViewBag.QueueFullDetail.IsCancelCause14 == true ? "checked" : "")>
+                                                    ไม่ทราบว่าถูกยกเลิก
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause17" value="17" @(ViewBag.QueueFullDetail.IsCancelCause17 == true ? "checked" : "")>
+                                                    ประสงค์ยกเลิก
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause3" value="3" @(ViewBag.QueueFullDetail.IsCancelCause3 == true ? "checked" : "")>
+                                                    การบริการผู้แทน/พนักงาน
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause6" value="6" @(ViewBag.QueueFullDetail.IsCancelCause6 == true ? "checked" : "")>
+                                                    ไม่มีการเบิกเคลม
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause9" value="9" @(ViewBag.QueueFullDetail.IsCancelCause9 == true ? "checked" : "")>
+                                                    ช่องทางในการชำระเบี้ยประกันไม่ตอบโจทย์
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause12" value="12" @(ViewBag.QueueFullDetail.IsCancelCause12 == true ? "checked" : "")>
+                                                    การเดินทางและที่ตั้งสาขา
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="isCancelCause" id="isCancelCause15" value="15" @(ViewBag.QueueFullDetail.IsCancelCause15 == true ? "checked" : "")>
+                                                    ปัญหาอื่นๆ
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <div class="form-group">
+                                                    <label for="cancelCauseRemark" class="col-sm-3 control-label">เพิ่มเติม :</label>
+                                                    <div class="col-sm-9">
+                                                        <textarea class="form-control" rows="2" placeholder="โปรดระบุข้อความ ..." @(ViewBag.QueueFullDetail.IsCancelCause15 == true ? "" : "disabled") id="cancelCauseRemark" name="cancelCauseRemark"></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @* end สาเหตุการยกเลิก *@
+                            </form>
+                            <div class="col-md-12">
+                                <input type="button" style=" background-color: green;color:white;" class="btn btn-sm col-md-2 col-md-offset-5 col-xs-3 col-xs-offset-4" name="btnSubmit" id="btnSubmit" value="บันทึกการตรวจสอบ" />
+                            </div>
+                        </div>
+                    </div>
+                    @* end ตรวจสอบข้อมูลลูกค้ายกเลิก  *@
+
+                    <div class="modal fade" id="myModal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header" style="background-color: #40A6D8">
+                                    <h4 class="modal-title" style="color:white">ระบุหมายเหตุ</h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true" style="color:white;">×</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="form-horizontal" id="formQueueDetailRemarkUpdate" name="formQueueDetailRemarkUpdate" action="@Url.Action("QueueDetailRemarkUpdate")" method="post">
+                                        <input type="hidden" name="queueDetailId" id="queueDetailId" value="" />
+                                        <div class="form-group">
+                                            <label for="cancelCauseRemark" class="col-sm-2">หมายเหตุ :</label>
+                                            <div class="col-sm-9">
+                                                <textarea class="form-control" rows="5" placeholder="ระบุหมายเหตุ..." id="modalRemark" name="modalRemark"></textarea>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-sm btn-danger" data-dismiss="modal">ยกเลิก</button>
+                                    <button type="button" class="btn btn-sm btn-success" style="margin-left:30px" id="btn-savemodalRemark">บันทึก</button>
+                                </div>
+                            </div><!-- /.modal-content -->
+                        </div><!-- /.modal-dialog -->
+                    </div><!-- /.modal -->
+                </div>
+
+                <div class="tab-pane" id="tab_2">
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12 col-xs-12" style="width:100%">
+                            <table id="tbl-queueLog" class="table table-bordered table-hover dataTable"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        var ListAppId = [];
+        $((e) => {
+            //สถานะการโทร
+            $('input[name=cancelCallStatus]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                });
+
+            //มีประเด็นหรือไม่
+            $('input[name=cancelisIssue]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                });
+
+            //สาเหตุการยกเลิก
+            $('input[name=isCancelCause').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                });
+
+            //default remark ปัญหาอื่นๆ กรณี ปัญหาอื่นๆ checked
+            if ($('#isCancelCause15').is(":checked")) {
+                $('#cancelCauseRemark').val(`@(ViewBag.QueueFullDetail.CancelCauseRemark)`);
+            };
+
+            //default remark มีประเด็น
+            if ($('#cancelisIssue1').is(":checked")) {
+                $('#isIssueRemark').removeAttr("disabled");
+                $('#isIssueRemark').val(`@(ViewBag.QueueFullDetail.IssueRemark)`);
+            };
+
+            //set text btnSubmit กรณี โทรแล้ว แล้วกลับมาแก้ไขข้อมูล
+            if (`@(ViewBag.QueueFullDetail.CallStatusId)` != 2) {
+                $('#btnSubmit').val("บันทึกการเปลี่ยนแปลง");
+            }
+            //เลือกตรวจสอบแล้วไม่สามารถแก้กลับเป็นรอตรวจ
+            if (`@ViewBag.QueueFullDetail.IsAudit` == 'True') {
+                $("#hd-isAudit").val(`@ViewBag.QueueFullDetail.IsAudit`);
+                $("input[name=isAudit]").prop('disabled', true)
+                $("#label-UnderwriteStatus_0").css("cursor", "not-allowed");
+                $("#label-UnderwriteStatus_1").css("cursor", "not-allowed");
+               // $(".iCheck-helper").css("cursor", "not-allowed");
+            }
+
+            //default CallRemark
+            if (`@ViewBag.QueueFullDetail.CallRemark` != '') {
+                $("#cancelCallStatusRemark").val(`@ViewBag.QueueFullDetail.CallRemark`)
+            }
+
+            //get ข้อมูลผู้เอาประกัน
+            GetQueueDetail()
+        });//end onload
+
+        //สถานะการตรวจสอบ checked show div
+        $('input[name=isAudit]').on("ifChecked", function () {
+            cancelUnderwriteStatus = $(this).val();
+            switch ($(this).val()) {
+                case '1': //ตรวจสอบแล้ว
+                    $('#div-cancelUnderwriteStatus_1').show();//div สาเหตุการยกเลิก
+                    $('#div-cancelUnderwriteStatus_0').hide(); //div สถานะการโทร
+                    $('#div-IssuedQueue').show(); //div มีประเด็นหรือไม่
+                    $("input[name=cancelCallStatus]").iCheck('uncheck');
+                    //ระบุหมายเหตุได้
+                    if (ListAppId.length > 0) {
+                        for (var i = 0; i < ListAppId.length; i++) {
+                            let isId = ListAppId[i]
+                            $(`#btn-Remark-${isId}`).prop("disabled", false)
+                        }
+                    };
+                    break;
+                case '0': //รอตรวจสอบ
+                    $('#div-cancelUnderwriteStatus_1').hide();//div สาเหตุการยกเลิก
+                    $('#div-cancelUnderwriteStatus_0').show();//div สถานะการโทร
+                    $('#div-IssuedQueue').hide();//div มีประเด็นหรือไม่
+
+                    $("input[name=cancelisIssue]").iCheck('uncheck');//มีประเด็นหรือไม่
+                    $("input[name=isCancelCause").iCheck('uncheck');//สาเหตุการยกเลิก
+                     //ระบุหมายเหตุไม่ได้
+                    if (ListAppId.length > 0) {
+                        for (var i = 0; i < ListAppId.length; i++) {
+                            let isId = ListAppId[i];
+                            $(`#btn-Remark-${isId}`).prop("disabled", true);
+                        };
+                    };
+                    break;
+                default:
+            }
+        });
+
+        //สาเหตุการยกเลิก checked ต้องกรอก remark ปัญหาอื่นๆ
+        $('#isCancelCause15').on('ifChanged', function () {
+            if ($(this).is(':checked')) {
+                $('#cancelCauseRemark').removeAttr("disabled");
+            } else {
+                $('#cancelCauseRemark').attr('disabled', 'disabled');
+            }
+        });
+
+        //มีประเด็น ระบุรายละเอียด
+        //$('#cancelisIssue1').on('ifChanged', function () {
+        //    if ($(this).is(':checked')) {
+        //        $('#isIssueRemark').removeAttr("disabled");
+        //    } else {
+        //        $('#isIssueRemark').attr('disabled', 'disabled');
+        //    }
+        //});
+
+        //onClick btn บันทึกการตรวจสอบ
+        $('#btnSubmit').click(() => {
+            //disable btn
+            $('#btnSubmit').attr('disabled', 'disabled');
+            //รอตรวจสอบ
+            if ($("input[name=isAudit]:checked").val() === "0") {
+                let iscancelFormCallStatus = $("#cancelFormCallStatus").valid();
+                if (iscancelFormCallStatus) {
+                    swal_confirm("ยืนยันบันทึกข้อมูล", "", function (e) {
+                        saveFormCancelNoAudit();
+                    }, function (e) {
+                        removeDisableBtn();
+                    });
+                } else {
+                    removeDisableBtn();
+                }
+            //ตรวจสอบแล้ว
+            } else if ($("input[name=isAudit]:checked").val() === "1") {
+                let isValidFormOther = $("#cancelFormOther").valid()
+                //valid form
+                if (isValidFormOther) {
+                    //---เช็ค มีประเด็น หรือ ไม่มีประเด็น---//
+                    //มีประเด็น
+                    if ($('#cancelisIssue1').is(":checked")) {
+                        //ระบุลายละเอียดหรือเปล่า
+                        let issueRemark = $('#isIssueRemark').val()
+                        if (issueRemark == "") {
+                            swal_info("โปรดระบุ รายละเอียด");
+                            removeDisableBtn();
+                        } else {
+                            isCancelCause15()
+                        }
+                        //ไม่มีประเด็น
+                    } else {
+                        isCancelCause15()
+                    }
+                } else {
+                    removeDisableBtn();
+                    return false;
+                }
+            } else {
+                alert("สถานะการตรวจสอบ ไม่ถูกต้อง");
+            }
+        });
+
+        //fn เช้ค valid สาเหตุการยกเลิก และ ติ๊กปัญหาอื่นๆหรือไม่
+        const isCancelCause15 = () => {
+            //---ติ๊กปัญหาอื่นๆ??---//
+            //ติ๊กปัญหาอื่นๆ
+            if ($('#isCancelCause15').is(":checked")) {
+                let isVal = $('#cancelCauseRemark').val();
+                //ติ๊ก ปัญหาอื่นๆ แต่ไม่กรอกข้อมูลเพิ่มเติม
+                if (isVal === "") {
+                    swal_info("โปรดระบุ ข้อมูลเพิ่มเติม");
+                    //remove disable btn
+                    removeDisableBtn();
+                } else {
+                    swal_confirm("ยืนยันบันทึกข้อมูล", "", function (e) {
+                        //save data
+                        saveFormCancelAudit();
+                    }, function (e) {
+                        removeDisableBtn();
+                    });
+                }
+                //ไม่ได้ติ๊กปัญหาอื่นๆ
+            } else {
+                swal_confirm("ยืนยันบันทึกข้อมูล", "", function (e) {
+                    //save data
+                    saveFormCancelAudit();
+                }, function (e) {
+                    //remove disable btn
+                    removeDisableBtn();
+                });
+            }
+        };
+
+        const removeDisableBtn = () => {
+            $('#btnSubmit').removeAttr("disabled");
+        };
+
+        //onClick btn save modale ระบุหมายเหตุ
+        $('#btn-savemodalRemark').click(function (e) {
+            e.preventDefault();
+            onClickSaveModal();
+        });
+
+        //reload dataTable
+        const reloadDatatableQueueDetail = () => {
+            $('#queueDetail').DataTable().ajax.reload();
+            //delay รอ dataTable reload
+            setTimeout(() => {
+                if ($('#cancelUnderwriteStatus_1').is(":checked")) {
+                    if (ListAppId.length > 0) {
+                        for (var i = 0; i < ListAppId.length; i++) {
+                            let isId = ListAppId[i];
+                            $(`#btn-Remark-${isId}`).prop("disabled", false);
+                        };
+                    };
+                };
+            }, 1000);
+        };
+
+        //save modale ระบุหมายเหตุ
+        const onClickSaveModal = () => {
+            $.ajax({
+                type: "POST",
+                url: $('#formQueueDetailRemarkUpdate').attr('action'),
+                data: $('#formQueueDetailRemarkUpdate').serialize(),
+                dataType: "json",
+                success: function (response) {
+                    if (response.IsResult === true) {
+                        $('#myModal').modal('hide');
+                        swal_success(reloadDatatableQueueDetail(), response.Msg);
+                    } else {
+                        swal_fail(response.Msg, reloadDatatableQueueDetail());
+                    }
+
+                }
+            });
+        };
+
+        //save form คัดกรอง ตรวจสอบแล้ว
+        const saveFormCancelAudit = () => {
+            $.ajax({
+                type: "POST",
+                url: $('#cancelFormOther').attr('action'),
+                data: $('#cancelFormOther').serialize(),
+                dataType: "json",
+                success: function (response) {
+                    if (response.IsResult === true) {
+                        swal_success(function () {
+                            let txtbtn =  $('#btnSubmit').val();
+                            if (txtbtn == "บันทึกการเปลี่ยนแปลง") {
+                                setTimeout(()=> window.close(),550);
+                            } else {
+                                setTimeout(() => window.open(`@Url.Action("WaitCloseQueue", "QueueManageAssign", new { callStatusId = -1 })`, "_self"), 550);
+                            };
+                        }, response.Msg);
+                    } else {
+                        swal_fail(response.Msg);
+                        removeDisableBtn();
+                    }
+                }
+            });
+        };
+
+        //save form คัดกรอง ยังไม่ได้ตรวจสอบ
+        const saveFormCancelNoAudit = () => {
+            $.ajax({
+                type: "POST",
+                url: $('#cancelFormCallStatus').attr('action'),
+                data: $('#cancelFormCallStatus').serialize(),
+                dataType: "json",
+                success: function (response) {
+                    if (response.IsResult === true) {
+                        swal_success(function () {
+                            let txtbtn =  $('#btnSubmit').val();
+                            if (txtbtn == "บันทึกการเปลี่ยนแปลง") {
+                                window.close();
+                            } else {
+                                setTimeout(() => window.open(`@Url.Action("WaitCloseQueue", "QueueManageAssign", new { callStatusId = -1 })`, "_self"), 550);
+                            };
+                        }, response.Msg);
+                    } else {
+                        swal_fail(response.Msg);
+                    }
+                }
+            });
+        };
+
+        //onClick tab
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            e.target // newly activated tab
+            e.relatedTarget // previous active tab
+
+            let tabClick = e.target.hash
+            switch (tabClick) {
+                case '#tab_1':
+                    break;
+                case '#tab_2':
+                    GetQueueLog()
+                    break;
+
+                default:
+            }
+        });
+
+        //get data GetQueueLog
+        const GetQueueLog = () => {
+            $('#tbl-queueLog').empty();
+            var tableQueueLog = $('#tbl-queueLog').DataTable({
+                pageLength: 10,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                info: true,
+                orderable: false,
+                language: {
+                    info: "แสดง _START_ ถึง _END_ จาก _TOTAL_ แถว",
+                    infoFiltered: "<span class='quickApproveTable_info_filtered_span'></span>",
+                    emptyTable: "ไม่พบข้อมูล",
+                },
+                ajax: {
+                    url: '@Url.Action("GetQueueLog")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.queueId = $("#queueId").val()
+                    },
+                },
+                columns: [
+                    {
+                        title: 'วันที่ได้รับคิวงาน',
+                        data: 'CreatedDate',
+                        className: "th-center",
+                        render: function (data) {
+                            if (data != null) {
+                                let date = moment(data);
+                                date.add(543, 'years');
+                                return moment(date).format("DD/MM/YYYY HH:mm:SS")
+                            } else {
+                                return '-';
+                            }
+                        }
+                    },
+                    {
+                        title: 'ผู้มอบหมายคิวงาน',
+                        data: 'FromPersonName',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'ผู้รับคิวงาน',
+                        data: 'ToPersonName',
+                        className: "th-center"
+                    },
+                ]
+            });
+
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+
+        }
+
+        //get data queueDetail
+        const GetQueueDetail = () => {
+            $('#queueDetail').empty();
+            var table = $('#queueDetail').DataTable({
+                pageLength: 10,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                info: true,
+                orderable: false,
+                initComplete: function (settings, json) {
+                    $("th").removeClass('sorting_asc'); //remove sorting_desc,sorting_asc class
+                },
+                language: {
+                    info: "แสดง _START_ ถึง _END_ จาก _TOTAL_ แถว",
+                    infoFiltered: "<span class='quickApproveTable_info_filtered_span'></span>"
+                },
+                ajax: {
+                    url: '@Url.Action("GetQueueDetail")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.queueId = $("#queueId").val()
+                    },
+                },
+                columns: [
+                    {
+                        title: 'App ID',
+                        data: null,
+                        className: "th-center",
+                        render: function (data) {
+                            return `<a style="cursor: pointer; text-decoration: underline">${data.ApplicationCode}</a>`;
+                        }
+                    },
+                    {
+                        title: 'Product',
+                        data: 'ProductGroup',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'แผนประกัน',
+                        data: 'Product',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'สถานะการยกเลิก',
+                        data: 'AppStatus',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'ชื่อผู้เอาประกัน',
+                        data: 'InsuredName',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'ความสัมพันธ์',
+                        data: 'PayerRelate',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'ระบุหมายเหตุ',
+                        data: 'QueueDetailRemark',
+                        className: "th-center"
+                    },
+                    {
+                        title: '', data: null,
+                        orderable: false,
+                        render: function (data, type, row, meta) {
+                            if (!(ListAppId.includes(data.ApplicationCode))) {
+                                ListAppId.push(data.ApplicationCode);
+                            }
+                            if (data.IsAudit) {
+                                return `<button type="button" class="btn btn-sm btn-warning" name="btn-Remark" id="btn-Remark-${data.ApplicationCode}">ระบุหมายเหตุ</button >`
+                            } else {
+
+                                return `<button type="button" class="btn btn-sm btn-warning" name="btn-Remark" id="btn-Remark-${data.ApplicationCode}" disabled>ระบุหมายเหตุ</button >`
+                            }
+                        }
+                    }
+                ],
+                columnDefs: [
+                    { targets: [0,1,2,3,4,5,6], orderable: false }
+                ]
+            });
+
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+
+            //on click tbody set val to modal
+            $('#queueDetail tbody').on('click', 'td', function (e) {
+                e.preventDefault();
+                var data = table.row(this, e.preventDefault()).data();
+                let colIndex = $(this).index();
+                switch (colIndex) {
+                    case 0:
+                        let en_AppID = window.btoa(data.ApplicationCode);
+                        window.open('@ViewBag.SSS'+'/Modules/PH/frmPHDetail.aspx?app=' + en_AppID, '_blank');
+                        break;
+                    case 7:
+                        //ต้องติ๊กตรวจสอบแล้ว Modal ถึงจะ show
+                        if ($('#cancelUnderwriteStatus_1').is(":checked")) {
+                            $('#queueDetailId').val(data.QueueDetailId);
+                            $('#modalRemark').val(data.QueueDetailRemark);
+                            $('#myModal').modal('show');
+                        };
+                        break;
+                    default:
+                        break;
+                }
+            });
+        }
+    </script>
+}

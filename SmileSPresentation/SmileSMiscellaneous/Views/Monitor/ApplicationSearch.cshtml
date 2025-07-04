@@ -1,0 +1,144 @@
+﻿@{
+    ViewBag.Title = "ค้นหา Application";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal" id="frmApplicationSearch" name="frmApplicationSearch">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหา</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="form-group">
+                        <div class="col-xs-4" style="padding-left:50px">
+                            <label>คำค้นหา :</label>
+                            <input type="text" id="txtKeyword" style="width:100%" class="form-control" name="txtKeyword" placeholder="ชื่อ / เลขที่ Application / Bill No." />
+                        </div>
+                        <div class="col-xs-2" style="padding-top:25px">
+                            <button id="btnSearch" type="button" class="btn btn-primary" style="width:70%"><i class="fa fa-search" aria-hidden="true"></i>ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+    </div>
+    <div class="row" id="AppTable" hidden>
+        <div class="col-xs-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายการ</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="form-group">
+                        <div class="col-xs-12">
+                            <table id="dtAppDetail" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                $('#AppTable').show();
+                DoShowGrid();
+            });
+            $('#txtKeyword').keypress(function (event) {
+                var keycode = (event.keyCode ? event.keyCode : event.which);
+                if (keycode == '13') {
+                    event.preventDefault();
+                    $('#AppTable').show();
+                    DoShowGrid();
+                }
+            });
+
+        });
+
+        function DoShowGrid() {
+            $('#dtAppDetail').empty();
+
+            let t = $('#dtAppDetail').DataTable({
+                searching: false,
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                "autoWidth": false,
+                ajax: {
+                    url: '@Url.Action("GetAgentMonitor", "Monitor")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.IsFilterUser = false;
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $('#txtKeyword').val();
+                    }
+                },
+                columns: [
+                    { title: 'เลขที่ Application', data: "ApplicationCode", width: '10%', className: 'h-dt-center' },
+                    { title: 'ผู้เอาประกันภัย', data: "InsuredName", width: '15%', className: 'h-dt-center' },
+                    { title: 'รหัสตัวแทน', data: "AgentCode", width: '5%', className: 'h-dt-center text-center' },
+                    { title: 'ประเภท', data: "ProductType", width: '10%', className: 'h-dt-center text-center' },
+                    { title: 'แผน', data: "ProductDetail", width: '11%', className: 'h-dt-center' },
+                    {
+                        title: 'จำนวนคน', data: "CountCustomer", width: '5%', className: 'h-dt-center text-right',
+                        mRender: function (data) { return numberWithCommas(data); }
+                    },
+                    {
+                        title: 'เบี้ยรวม', data: "SumPremiumAmount", width: '9%', className: 'h-dt-center text-right',
+                        mRender: function (data) { return numberWithCommas(data); }
+                    },
+                    {
+                        title: 'วันเริ่มคุ้มครอง', data: 'StartCoverDate', width: '5%', className: 'h-dt-center text-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'วันที่สิ้นสุด', data: "EndCoverDate", width: '5%', className: 'h-dt-center text-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                    { title: 'สถานะ', data: "ApplicationStatus", width: '10%', className: 'h-dt-center text-center' },
+                    { title: 'การชำระเบี้ย', data: "PaymentStatus", width: '10%', className: 'h-dt-center' },
+                    {
+                        title: 'การทำรายการ', data: null, width: '5%', className: 'h-dt-center text-center', orderable: false,
+                        mRender: function (data) {
+                            return '<button type="button" style="width:100%" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="เปิดดู" onclick="Openview(' + data.ApplicationId + ')"><i class="glyphicon glyphicon-list-alt"></i>เปิด</button>';
+
+                        }
+                    }],
+                bLengthChange: false,
+                });
+
+        }
+
+        const Openview = (appid) => {
+            let encode_RequestAppId = window.btoa(appid);
+            window.open('@Url.Action("DetailApp", "Application")?appId=' + encode_RequestAppId, '_blank');
+        }
+
+        function numberWithCommas(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+    </script>
+}

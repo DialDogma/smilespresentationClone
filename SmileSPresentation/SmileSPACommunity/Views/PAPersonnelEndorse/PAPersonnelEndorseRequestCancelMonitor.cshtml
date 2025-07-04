@@ -1,0 +1,263 @@
+﻿
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียดรายการ</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="row " style="padding-left:2%">
+
+                        <div class="col-sm-3">
+                            <label>สาขา :</label>
+                            <select type="text" class="form-control select2" id="ddlBranch">
+                                @if (ViewBag.Branch.Count > 1)
+                                {
+                                    <option value="-1">---ทั้งหมด---</option>
+                                }
+
+                                @foreach (var item in ViewBag.Branch)
+                                {
+                                    <option value="@item.BranchID">@item.Branch</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-3">
+                            <label>ผลการยกเลิกกรมธรรม์ :</label>
+                            <select type="text" class="form-control select2" id="ddlApproveStatus">
+                                @foreach (var item in ViewBag.ApproveStatus)
+                                {
+                                    <option value="@item.ApproveStatusId"> @item.ApproveStatus</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row " style="padding-left:2%;padding-top:1%">
+
+                        <div class="col-sm-3">
+                            <label>ปีการศึกษา :</label>
+                            <select type="text" class="form-control select2" id="ddlYear">
+                                @foreach (var item in ViewBag.PolicyYear)
+                                {
+                                    <option value="@item.Code"> @item.Detail</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-4">
+                            <label>ค้นหาจากเลข App PA ยิ้มแฉ่ง หรือ ชื่อสถานศึกษา :</label>
+                            <input type="text" id="txtSearch" class="form-control" />
+                        </div>
+
+                        <div class="col-sm-1" style="padding-top:2%;padding-bottom:2%">
+                            <button id="btnSearch" type="button" class="btn btn-primary btn-block">ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียดยกเลิกกรมธรรม์</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtRequestCancel" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                        </div>
+                    </div>
+                    @if (ViewBag.Role == "MO" || ViewBag.Role == "Dev")
+                    {
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <button id="btnRequestCancel" type="button" class="btn btn-danger ">
+                                    <i class="fa fa-plus-circle"></i> บันทึกขอยกเลิกกรมธรรม์
+                                </button>
+                            </div>
+                        </div>
+                   } 
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade in" id="modal-RemarkDetail" style="display: none;">
+        <div class="modal-dialog">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">เหตุผลที่ไม่อนุมัติ</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <input type="text" id="txtCause" class="form-control" disabled>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-12">
+                            <input type="text" id="txtRemark" class="form-control" disabled>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;text-align:center">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">ปิด</button>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            var chat = $.connection.myHub;
+
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                debugger;
+                chat.server.joinGroup(@ViewBag.userID);
+            });
+
+            //Show addNewNotice to client
+            chat.client.sendNoticeResult = function (Str1, Str2) {
+                debugger;
+                DoloadRequestCancel();
+            };
+        });
+
+        var v_role = '@ViewBag.RoleList';
+        var arr = v_role.split(',');
+        debugger;
+
+        $(function () {
+            $('.select2').select2();
+
+            //disabled branch for operation role
+            var branchList = @Html.Raw(Json.Encode(ViewBag.Branch));
+            if (branchList.length == 1) {
+                $('#ddlBranch').attr('disabled', true)
+            }
+
+            //default current year
+            var year = moment(new Date()).add(543, 'years').format("YYYY");
+            $('#ddlYear').select2().val(parseInt(year)).trigger('change.select2');
+
+        });
+
+
+        $('#btnRequestCancel').click(function (e) {
+            e.preventDefault();
+            debugger;
+            window.location.href = "@Url.Action("PAPersonnelEndorseSendRequestCancel", "PAPersonnelEndorse")";
+        });
+
+        $('#btnSearch').click(function (e) {
+            e.preventDefault();
+            DoloadRequestCancel();
+        });
+
+        const DoloadRequestCancel = () => {
+             $('#dtRequestCancel').empty();
+
+             let t = $('#dtRequestCancel').DataTable({
+             pageLength: 5,
+             processing: true,
+             serverSide: true,
+             responsive: true,
+             destroy: true,
+             searching: false,
+             ajax: {
+                    url: '@Url.Action("GetRequestCancelApplicationDetail", "PAPersonnelEndorse")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $("#txtSearch").val();
+                        d.approveStatusId = $('#ddlApproveStatus').val();
+                        d.year = $('#ddlYear').val();
+                        d.branchID = $('#ddlBranch').val();
+
+
+                    }
+                 }
+                 ,
+                 columns: [
+                    { title: "รหัสรายการ", data: "RequestCancelPersonnelApplicationCode"  },
+                    { title: "App ID", data: "PersonnelApplicationCode", },
+                    { title: "สถานศึกษา", data: "PersonnelApplicationName", },
+                    { title: "ผลการยกเลิกกรมธรรม์", data: "ApproveStatus",},
+                   {
+                    title: "วันเริ่มคุ้มครอง", data: "ApplicationStartCoverDate",
+                    mRender: function (data) {
+                        moment.locale('th');
+                        return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                    }
+                    },
+                    {
+                        title: "วันสิ้นสุดคุ้มครอง", data: "ApplicationEndCoverDate",
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'สาเหตุการไม่อนุมัติ', data: null, className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) => {
+                            if (data.PersonnelApproveStatusId == 4) {
+                                return '<a onclick="ShowUnApproveCause(\'' + data.ApproveCause + '\',\'' + data.PersonnelApproveRemark + '\');" class="btn btn-danger btn-sm"><i class="glyphicon glyphicon-info-sign"></i></a>';
+
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    {
+
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) =>
+                        {
+                           // return '<a class="btn btn-primary btn-sm"><i class="fa fa-eye"></i> ดูรายละเอียด</a>';
+                            debugger;
+                            let encode_RequestCancelPersonnelApplicationId = window.btoa(data.RequestCancelPersonnelApplicationId);
+                            if (data.PersonnelApproveStatusId == "2") {
+                                if (jQuery.inArray("Developer", arr) !== -1 || jQuery.inArray("PAPersonnel_PAUnderwrite", arr) !== -1) {
+                                    //Approve
+                                    return '<a href="@Url.Action("PAPersonnelEndorseSendRequestCancelApprove", "PAPersonnelApprove")?requestCancelApplicationId=' + encode_RequestCancelPersonnelApplicationId + '" class="btn btn-warning btn-sm" target="_blank"><i class="fa fa-fw fa-desktop"></i> ตรวจสอบ </a>'
+                                } else {
+                                    return '<a href="@Url.Action("PAPersonnelEndorseSendRequestCancelApprove", "PAPersonnelApprove")?requestCancelApplicationId=' + encode_RequestCancelPersonnelApplicationId + '" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-fw fa-desktop"></i> ดูรายละเอียด </a>';
+                                }
+                            } else {
+                                return '<a href="@Url.Action("PAPersonnelEndorseSendRequestCancelApprove", "PAPersonnelApprove")?requestCancelApplicationId=' + encode_RequestCancelPersonnelApplicationId + '" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-fw fa-desktop"></i> ดูรายละเอียด </a>';
+                            }
+
+
+                        }
+                    }
+
+                ],
+                bLengthChange: false,
+            });
+        }
+        const ShowUnApproveCause = (ApproveCause, Remark) => {
+
+            $('#txtCause').val(ApproveCause);
+            $('#txtRemark').val(Remark);
+
+            $('#modal-RemarkDetail').addClass("modal_itemcenter");
+            $('#modal-RemarkDetail').modal('show');
+
+        }
+
+    </script>
+}

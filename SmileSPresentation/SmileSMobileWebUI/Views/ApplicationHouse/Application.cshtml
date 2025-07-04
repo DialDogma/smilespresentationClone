@@ -1,0 +1,1355 @@
+﻿@{
+    ViewBag.Title = "House Application";
+    Layout = "~/Views/Shared/_MasterApplication.cshtml";
+}
+<style>
+    .bgButton {
+        text-align: center;
+        background-color: #337ab7;
+        cursor: pointer;
+        /*height: 69px;*/
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        margin-top: 50px;
+    }
+
+    .btnNext {
+        padding: 10px;
+        font-size: 25px;
+        color: #fff;
+        background-color: #337ab7;
+        border-color: transparent;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+    }
+</style>
+<div class="container-fluid" id="container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 bg-primary text-white">
+            <h3>House Application</h3>
+        </div>
+    </div>
+    <form action="@Url.Action("Application")" method="post" enctype="multipart/form-data" class="form-horizontal" id="main">
+        <fieldset>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <hr />
+                            <label class="col-sm-4 col-lg-4 control-label" for="applicationId">Application ID</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="applicationId" id="applicationId" class="form-control" style="text-align: left; color: blue;" readonly="readonly" value="@ViewBag.App.App_id" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="cardNo">KTB Card No</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="cardNo" id="cardNo" class="form-control" value="@ViewBag.App.Card_no" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="startCoverDate">วันเริ่มคุ้มครอง</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="date" name="startCoverDate" id="startCoverDate" class="form-control" value="@ViewBag.App.StartCoverDate.ToString("yyyy-MM-dd")" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="product">แผนประกัน</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <select name="product" id="product" disabled="disabled" class="form-control select2" required="required">
+                                    @*<option value="@ViewBag.App.Product_id">@ViewBag.App.Product</option>*@
+                                    <option value="@ViewBag.App.Product_id" selected="selected">@ViewBag.App.Product</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="periodType">งวดชำระ</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <select name="periodType" id="periodType" disabled="disabled" class="form-control select2" required="required">
+                                    <option value="1" @(1 == ViewBag.App.YearPaymentMode ? "selected" : "")>รายเดือน</option>
+                                    <option value="12" @(12 == ViewBag.App.YearPaymentMode ? "selected" : "")>รายปี</option>
+                                    <option value="36" @(36 == ViewBag.App.YearPaymentMode ? "selected" : "")>ราย 3 ปี</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="premiumPerMonth">จำนวนเบี้ยประกัน</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="premiumPerMonth" id="premiumPerMonth" class="form-control" readonly="readonly" value="@ViewBag.App.Premium" required="required"> ต่อเดือน
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="premiumTotal">รวมเบี้ยประกัน</label>
+                            <div class="col-sm-5 col-lg-5">
+                                @{
+                                    var results = @ViewBag.App.Premium * @ViewBag.App.YearPaymentMode;
+                                }
+                                <input type="text" name="premiumTotal" id="premiumTotal" class="form-control" readonly="readonly" value="@results" required="required"> บาท
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <hr />
+        <fieldset>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="payMethodType">วิธีการชำระ</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <select name="payMethodType" id="payMethodType" class="form-control select2 checkNA" required="required">
+                                    @foreach (var item in ViewBag.PayMethodType)
+                                    {
+                                        <option value="@item.PayMethodTypeCode" @(item.PayMethodTypeCode == ViewBag.App.PayMethod_id ? "selected" : "")>@item.PayMethodTypeDetail</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="collectSource">ชื่อแหล่งจัดเก็บ</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <select name="collectSource" id="collectSource" class="form-control select2 checkNA" required="required">
+                                    @foreach (var item in ViewBag.CollectSource)
+                                    {
+                                        <option value="@item.OrganizeCode" @(item.OrganizeCode == ViewBag.App.CollectSource_id ? "selected" : "")>@item.OrganizeDetail</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="bank">ธนาคาร</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <select name="bank" id="bank" class="form-control select2 checkNA" required="required">
+                                    @foreach (var item in ViewBag.Bank)
+                                    {
+                                        <option value="@item.BankCode" @(item.BankCode == ViewBag.App.Bank_id ? "selected" : "")>@item.BankDetail</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="bankAccountNo">เลขที่บัญชี</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="bankAccountNo" id="bankAccountNo" class="form-control" value="@ViewBag.App.Account_id" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <hr />
+        <fieldset>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="agentDetail1">ตัวแทนที่</label>
+                            @*<div class="col-sm-5 col-lg-5">
+                                    <input type="text" name="empCode" id="empCode" class="form-control" value="@ViewBag.App.Sale_id1" required="required">
+                                </div>*@
+                            <div class="col-sm-3 col-lg-3">
+                                <input type="text" name="agentDetail1" id="agentDetail1" class="form-control" required="required" readonly="readonly" style="font-size: smaller" value="@ViewBag.empDetail1">
+                            </div>
+                            <div class="col-sm-2 col-lg-2">
+                                <!--นี่นะ-->
+                                <button type="button" id="btnAgent1" name="btnAgent1" class="btn btn-success btn-lg" style="width: 100%" data-toggle="modal" href="#modalAgent1">
+                                    <span name="glypiconAgent1" id="glypiconAgent1" class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                                </button>
+                                <!-- element ที่ซ่อนไว้เพื่อใช้เก็บค่า-->
+                                <input type="hidden" id="empId1" name="empId1" value="@ViewBag.App.Sale_id1" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="zebraCar">หมายเลขรถ</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <select name="zebraCar" id="zebraCar" class="form-control select2" required="required">
+                                    @foreach (var item in ViewBag.ZebraCar)
+                                    {
+                                        <option value="@item.Zebra_Code" @(item.Zebra_Code == ViewBag.App.ZebraCar_id ? "selected" : "")>@item.FullDetail</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <hr />
+        <fieldset>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="houseCardID">เลขรหัสประจำบ้าน</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="houseCardID" id="houseCardID" class="form-control" value="@ViewBag.App.HouseCardID" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="no">ที่อยู่ เลขที่</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="no" id="no" class="form-control" value="@ViewBag.HomeAddress.No" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="buildingName">ชื่อหน่วยงาน</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="buildingName" id="buildingName" class="form-control" value="@ViewBag.HomeAddress.BuildingName" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="villageName">หมู่บ้าน</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="villageName" id="villageName" class="form-control" value="@ViewBag.HomeAddress.VillageName" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="moo">หมู่</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="moo" id="moo" class="form-control" value="@ViewBag.HomeAddress.Moo" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="floor">ชั้น</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="floor" id="floor" class="form-control" value="@ViewBag.HomeAddress.Floor" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="soi">ซอย</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="soi" id="soi" class="form-control" value="@ViewBag.HomeAddress.Soi" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="road">ถนน</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="road" id="road" class="form-control" value="@ViewBag.HomeAddress.Road" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="province">จังหวัด</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <select name="province" id="province" class="form-control select2 checkNA" style="width: 100%" required="required">
+                                    @foreach (var item in ViewBag.ProvinceList)
+                                    {
+                                        <option value="@item.Province_ID" @(item.Province_ID == ViewBag.HomeAddress.Province_id ? "selected" : "")>@item.ProvinceDetail</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="district">อำเภอ</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <select name="district" id="district" class="form-control select2 checkNA" style="width: 100%" required="required">
+                                    @if (ViewBag.HomeAddress.Tumbol_id == null)
+                                    {
+                                        <option value="">n/a</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="subDistrict">ตำบล</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <select name="subDistrict" id="subDistrict" class="form-control select2 checkNA" style="width: 100%" required="required">
+                                    @if (ViewBag.HomeAddress.Tumbol_id == null)
+                                    {
+                                        <option value="">n/a</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="zipCode">รหัสไปรษณีย์</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="zipCode" id="zipCode" class="form-control" value="@ViewBag.HomeAddress.ZipCode" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="phoneNo1">เบอร์โทรศัพท์ (1)</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="phoneNo1" id="phoneNo1" class="form-control" value="@ViewBag.App.HomePhoneNumber" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="phoneNo2">เบอร์โทรศัพท์ (2)</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="phoneNo2" id="phoneNo2" class="form-control" value="@ViewBag.App.MobilePhoneNumber" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <hr />
+        <fieldset>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="ownerCardID">หมายเลขบัตรประชาชน (เจ้าบ้าน/ผู้เช่า)</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="ownerCardID" id="ownerCardID" class="form-control" value="@ViewBag.App.ZCard_id" required="required" checkID="checkID">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="ownerTitleName">คำนำหน้า</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <select name="ownerTitleName" id="ownerTitleName" class="form-control select2 checkNA" required="required">
+                                    @foreach (var item in ViewBag.TitleName)
+                                    {
+                                        <option value="@item.TempCode" @(item.TempCode == ViewBag.App.Title_id ? "selected" : "")>@item.TitleDetail</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="ownerFirstName">ชื่อ</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="ownerFirstName" id="ownerFirstName" class="form-control" value="@ViewBag.App.FirstName" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="ownerLastName">สกุล</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="ownerLastName" id="ownerLastName" class="form-control" value="@ViewBag.App.LastName" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="ownerOccupation">อาชีพ</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <select name="ownerOccupation" id="ownerOccupation" class="form-control select2 checkNA" style="width: 100%" required="required">
+                                    @foreach (var item in ViewBag.Occupation)
+                                    {
+                                        <option value="@item.OccupationCode" @(item.OccupationCode == ViewBag.App.Occupation_id ? "selected" : "")>@item.OccupationDetail</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="ownerOccupationLevel">ระดับอาชีพ</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <select name="ownerOccupationLevel" id="ownerOccupationLevel" class="form-control select2 checkNA" style="width: 100%" required="required">
+                                    @if (ViewBag.App.OccupationLevel_id != null)
+                                    {
+                                        foreach (var item in ViewBag.OccupationLevel)
+                                        {
+                                            <option value="@item.Temp1" @(item.Temp1 == ViewBag.App.OccupationLevel_id ? "selected" : "")>@item.OccupationLevelDetail</option>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <option value="">n/a</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="ownerPhoneNo">โทรศัพท์บ้าน</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="ownerPhoneNo" id="ownerPhoneNo" class="form-control" value="@ViewBag.App.HomePhoneNumber" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="ownerMobileNo">โทรศัพท์มือถือ</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="ownerMobileNo" id="ownerMobileNo" class="form-control" value="@ViewBag.App.MobilePhoneNumber" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <hr />
+        <fieldset>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="payerCardID">หมายเลขบัตรประชาชน (ผู้ชำระเบี้ย)</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="payerCardID" id="payerCardID" class="form-control" value="@ViewBag.App.PayerZcardID" required="required" readonly="readonly">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="payerTitleName">คำนำหน้า</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <select name="payerTitleName" id="payerTitleName" class="form-control select2 checkNA" required="required">
+                                    @foreach (var item in ViewBag.TitleName)
+                                    {
+                                        <option value="@item.TempCode" @(item.TempCode == ViewBag.App.PayerTitle_id ? "selected" : "")>@item.TitleDetail</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="payerFirstName">ชื่อ</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="payerFirstName" id="payerFirstName" class="form-control" value="@ViewBag.App.PayerFirstName" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="payerLastName">สกุล</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="payerLastName" id="payerLastName" class="form-control" value="@ViewBag.App.PayerLastName" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="payerOccupation">อาชีพ</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <select name="payerOccupation" id="payerOccupation" class="form-control select2 checkNA" style="width: 100%" required="required">
+                                    @foreach (var item in ViewBag.Occupation)
+                                    {
+                                        <option value="@item.OccupationCode" @(item.OccupationCode == ViewBag.App.PayerOccupation_id ? "selected" : "")>@item.OccupationDetail</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="payerOccupationLevel">ระดับอาชีพ</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <select name="payerOccupationLevel" id="payerOccupationLevel" class="form-control select2 checkNA" style="width: 100%" required="required">
+                                    @if (ViewBag.App.PayerOccupationLevel_id != null)
+                                    {
+                                        foreach (var item in ViewBag.PayerOccupationLevel)
+                                        {
+                                            <option value="@item.Temp1" @(item.Temp1 == ViewBag.App.PayerOccupationLevel_id ? "selected" : "")>@item.OccupationLevelDetail</option>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <option value="">n/a</option>
+                                    }
+                                    @*@foreach (var item in ViewBag.PayerOccupationLevel)
+                                        {
+                                            <option value="@item.Temp1" @(item.Temp1 == ViewBag.App.PayerOccupationLevel_id ? "selected" : "")>@item.OccupationLevelDetail</option>
+                                        }*@
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="payerMobileNo">โทรศัพท์มือถือ</label>
+                            <div class="col-sm-5 col-lg-5">
+                                <input type="text" name="payerMobileNo" id="payerMobileNo" class="form-control" value="@ViewBag.App.PayerPhoneNumber" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <hr />
+        <fieldset>
+            <div class="container-fluid">
+                @*<div class="row">
+                        <div class="col-sm-12 col-lg-12">
+                            <div class="form-group form-group-lg">
+                                <label class="col-sm-4 col-lg-4 control-label" for="btnAddress">ที่อยู่ที่ทำงาน(ผู้ชำระเบี้ย)</label>
+                                <div class="col-sm-7 col-lg-7">
+                                    <input type="text" name="payerAddress" id="payerAddress" class="form-control" required="required" readonly="readonly" value="@ViewBag.PayerAddress.AddressFullDetail" required="required"><button type="button" id="btnAddress" name="btnAddress" data-toggle="modal" href="#modalPayerAddress" class="btn btn-success">แก้ไข</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>*@
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="btnAddress">ที่อยู่ที่ทำงาน(ผู้ชำระเบี้ย)</label>
+                            <div class="col-sm-3 col-lg-3">
+                                <input type="text" name="payerAddress" id="payerAddress" class="form-control" required="required" readonly="readonly" value="@ViewBag.PayerAddress.AddressFullDetail" style="font-size: smaller">
+                            </div>
+                            <div class="col-sm-2 col-lg-2">
+                                <button type="button" id="btnAddress" name="btnAddress" class="btn btn-success btn-lg" style="width: 100%" data-toggle="modal" href="#modalPayerAddress">
+                                    <span name="glypiconAddress1" id="glypiconAddress1" class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="btnAddress"></label>
+                            <div class="col-sm-5 col-lg-5">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label class="col-sm-4 col-lg-4 control-label" for="btnAddress"></label>
+                            <div class="col-sm-5 col-lg-5">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <hr />
+        <fieldset>
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 bgButton">
+                    <button type="submit" class="btnNext" style="width: 100%">บันทึกข้อมูล</button>
+                </div>
+            </div>
+        </fieldset>
+        <input type="hidden" id="hidden_todetail" name="hidden_todetail" value="@ViewBag.CusTranDetail.To_Detail" />
+        <input type="hidden" id="hidden_districtId" name="hidden_districtId" value="@ViewBag.HomeAddress.Amphoe_id" />
+        <input type="hidden" id="hidden_payerdistrictId" name="hidden_payerdistrictId" value="@ViewBag.PayerAddress.Amphoe_id" />
+        <input type="hidden" id="hidden_product" name="hidden_product" value="@ViewBag.App.Product_id" />
+        <input type="hidden" id="hidden_birthDate" name="hidden_birthDate" value="@ViewBag.App.BirthDate" />
+        @*<input type="hidden" id="hidden_billDate" name="hidden_billDate" value="@ViewBag.App.StartCoverDate" />*@
+        <input type="hidden" id="hidden_yearPaymentMode" name="hidden_yearPaymentMode" value="@ViewBag.App.YearPaymentMode" />
+        <input type="hidden" id="hidden_customerAddressId" name="hidden_customerAddressId" value="@ViewBag.App.HomeAddress_id" />
+        <input type="hidden" id="hidden_payerAddressId" name="hidden_payerAddressId" value="@ViewBag.App.PayerAddress_id" />
+        <input type="hidden" id="hidden_createdByid" name="hidden_createdByid" value="@ViewBag.App.CreatedBy_id" />
+        <input type="hidden" id="hidden_bankId" name="hidden_bankId" value="@ViewBag.App.Bank_id" />
+    </form>
+</div>
+<!--Modal PayerAddress-->
+<form class="form-horizontal" id="formModalPayerAddress" name="formModalPayerAddress">
+    <div class="modal fade" id="modalPayerAddress">
+        <div class="modal-dialog ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title">ที่อยู่ที่ทำงาน(ผู้ชำระเบี้ย)</h4>
+                </div>
+                <div class="modal-body">
+                    <fieldset>
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-sm-12 col-lg-12">
+                                    <div class="form-group form-group-lg">
+                                        <label class="col-sm-4 col-lg-4 control-label" for="payerNo">เลขที่</label>
+                                        <div class="col-sm-5 col-lg-5">
+                                            <input type="text" name="payerNo" id="payerNo" class="form-control" value="@ViewBag.PayerAddress.No" required="required">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12 col-lg-12">
+                                    <div class="form-group form-group-lg">
+                                        <label class="col-sm-4 col-lg-4 control-label" for="payerBuildingName">ชื่อหน่วยงาน</label>
+                                        <div class="col-sm-5 col-lg-5">
+                                            <input type="text" name="payerBuildingName" id="payerBuildingName" class="form-control" value="@ViewBag.PayerAddress.BuildingName" required="required">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12 col-lg-12">
+                                    <div class="form-group form-group-lg">
+                                        <label class="col-sm-4 col-lg-4 control-label" for="payerVillageName">หมู่บ้าน</label>
+                                        <div class="col-sm-5 col-lg-5">
+                                            <input type="text" name="payerVillageName" id="payerVillageName" class="form-control" value="@ViewBag.PayerAddress.VillageName" required="required">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12 col-lg-12">
+                                    <div class="form-group form-group-lg">
+                                        <label class="col-sm-4 col-lg-4 control-label" for="payerMoo">หมู่</label>
+                                        <div class="col-sm-5 col-lg-5">
+                                            <input type="text" name="payerMoo" id="payerMoo" class="form-control" value="@ViewBag.PayerAddress.Moo" required="required">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12 col-lg-12">
+                                    <div class="form-group form-group-lg">
+                                        <label class="col-sm-4 col-lg-4 control-label" for="payerFloor">ชั้น</label>
+                                        <div class="col-sm-5 col-lg-5">
+                                            <input type="text" name="payerFloor" id="payerFloor" class="form-control" value="@ViewBag.PayerAddress.Floor" required="required">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12 col-lg-12">
+                                    <div class="form-group form-group-lg">
+                                        <label class="col-sm-4 col-lg-4 control-label" for="payerSoi">ซอย</label>
+                                        <div class="col-sm-5 col-lg-5">
+                                            <input type="text" name="payerSoi" id="payerSoi" class="form-control" value="@ViewBag.PayerAddress.Soi" required="required">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12 col-lg-12">
+                                    <div class="form-group form-group-lg">
+                                        <label class="col-sm-4 col-lg-4 control-label" for="payerRoad">ถนน</label>
+                                        <div class="col-sm-5 col-lg-5">
+                                            <input type="text" name="payerRoad" id="payerRoad" class="form-control" value="@ViewBag.PayerAddress.Road" required="required">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12 col-lg-12">
+                                    <div class="form-group form-group-lg">
+                                        <label class="col-sm-4 col-lg-4 control-label" for="payerProvince">จังหวัด</label>
+                                        <div class="col-sm-5 col-lg-5">
+                                            <select name="payerProvince" id="payerProvince" class="form-control select2 checkNA" style="width: 100%" required="required">
+                                                @foreach (var item in ViewBag.ProvinceList)
+                                                {
+                                                    <option value="@item.Province_ID" @(item.Province_ID == ViewBag.PayerAddress.Province_id ? "selected" : "")>@item.ProvinceDetail</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12 col-lg-12">
+                                    <div class="form-group form-group-lg">
+                                        <label class="col-sm-4 col-lg-4 control-label" for="payerDistrict">อำเภอ</label>
+                                        <div class="col-sm-5 col-lg-5">
+                                            <select name="payerDistrict" id="payerDistrict" class="form-control select2 checkNA" style="width: 100%" required="required">
+                                                @if (ViewBag.PayerAddress.Tumbol_id == null)
+                                                {
+                                                    <option value="">n/a</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12 col-lg-12">
+                                    <div class="form-group form-group-lg">
+                                        <label class="col-sm-4 col-lg-4 control-label" for="payerSubDistrict">ตำบล</label>
+                                        <div class="col-sm-5 col-lg-5">
+                                            <select name="payerSubDistrict" id="payerSubDistrict" class="form-control select2 checkNA" style="width: 100%" required="required">
+                                                @if (ViewBag.PayerAddress.Tumbol_id == null)
+                                                {
+                                                    <option value="">n/a</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12 col-lg-12">
+                                    <div class="form-group form-group-lg">
+                                        <label class="col-sm-4 col-lg-4 control-label" for="payerZipCode">รหัสไปรษณีย์</label>
+                                        <div class="col-sm-5 col-lg-5">
+                                            <input type="text" name="payerZipCode" id="payerZipCode" class="form-control" value="@ViewBag.PayerAddress.ZipCode" required="required">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @*<div class="row">
+                                    <div class="col-sm-12 col-lg-12">
+                                        <div class="form-group form-group-lg">
+                                            <label class="col-sm-4 col-lg-4 control-label" for="payerPhoneNo1">เบอร์โทรศัพท์ (1)</label>
+                                            <div class="col-sm-5 col-lg-5">
+                                                <input type="text" name="payerPhoneNo1" id="payerPhoneNo1" class="form-control" value="@ViewBag.App.PayerPhoneNumber" required="required">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>*@
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="modal-footer">
+                    <div class="clearfix "></div>
+                    <div class="row">
+                        <div class="col-sm-12 col-lg-12">
+                            <div class="form-group form-group-lg">
+                                <div class="col-xs-6 col-sm-6  col-md-6 col-lg-6  Asetmarginformcontrol">
+                                    <button type="button" class="btn btn-primary btn-lg" name="modal_save" id="modal_save">บันทึก</button>
+                                </div>
+                                <div class="col-xs-6 col-sm-6  col-md-6 col-lg-6  Asetmarginformcontrol setleftt">
+                                    <button type="button" class="btn btn-danger btn-lg" name="modal_close" id="modal_close" data-dismiss="modal">ปิด</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!--Modal Agent-->
+<div class="modal fade" id="modalAgent1">
+    <div class="modal-dialog ">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">ค้นหาตัวแทน</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <fieldset>
+                        <div class="row">
+                            <div class="col-sm-12 col-lg-12">
+                                <div class="form-group form-group-lg">
+                                    <label class="col-sm-4 col-lg-4 control-label" for="modal-inputEmpCode1">รหัสตัวแทน</label>
+                                    <div class="col-sm-6 col-lg-6">
+                                        <input type="number" class="form-control" name="modal-inputEmpCode1" id="modal-inputEmpCode1" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-12 col-lg-12">
+                                <div class="form-group form-group-lg">
+                                    <div class="col-sm-offset-8 col-lg-offset-8 col-sm-2 col-lg-2">
+                                        <span class="btn btn-primary" id="modal_btSearch1" name="modal_btSearch1">ค้นหา</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script>
+        $(function () {
+            //GetOccupationLevel($('#ownerOccupation').val());
+            GetDistrict($('#province').val());
+            GetPayerDistrict($('#payerProvince').val());
+            Get_UI();
+            $('#formModalPayerAddress').validate();
+
+            //Event****************************************************************************************************************************************************************
+            //Province Change
+            $('#province').change(function () {
+                $('#hidden_districtId').val("");
+                $('#hidden_subdistrictId').val("");
+                GetDistrict($('#province').val());
+                $("#main").validate().resetForm();
+                //GetSubDistrict($('#district').val());
+                //GetZipCode($('#subDistrict').val());
+            });
+
+            //District Change
+            $('#district').change(function () {
+                $('#hidden_subdistrictId').val("");
+                GetSubDistrict($('#district').val());
+                $("#main").validate().resetForm();
+                //GetZipCode($('#subDistrict').val());
+            });
+            //SubDistrict Change
+            $('#subDistrict').change(function () {
+                GetZipCode($('#subDistrict').val());
+                $("#main").validate().resetForm();
+            });
+
+            //Payer_Province_Change
+            $('#payerProvince').change(function () {
+                $('#hidden_payerdistrictId').val("");
+                $('#hidden_payersubdistrictId').val("");
+                GetPayerDistrict($('#payerProvince').val());
+                $("#formModalPayerAddress").validate().resetForm();
+                //GetPayerSubDistrict($('#payerDistrict').val());
+                //GetPayerZipCode($('#payerSubDistrict').val());
+            });
+            //PayerDistrict Change
+            $('#payerDistrict').change(function () {
+                GetPayerSubDistrict($('#payerDistrict').val());
+                //GetPayerZipCode($('#payerSubDistrict').val());
+            });
+            //PayerSubDistrict Change
+            $('#payerSubDistrict').change(function () {
+                GetPayerZipCode($('#payerSubDistrict').val());
+            });
+
+            //Owner_Occupation_Change
+            $('#ownerOccupation').change(function () {
+                Get_Owner_OccupationLevel($('#ownerOccupation').val());
+                $("#main").validate().resetForm();
+            });
+            //Payer_Occupation_Change
+            $('#payerOccupation').change(function () {
+                Get_Payer_OccupationLevel($('#payerOccupation').val());
+                $("#main").validate().resetForm();
+            });
+
+            //PayMethodType_Change
+            $('#payMethodType').change(function () {
+                //debugger;
+                //$('#collectSource').validate().resetForm();
+                //$('#bank').validate().resetForm();
+                $("#main").validate().resetForm();
+
+                Get_Payment($('#payMethodType').val());
+            });
+            //CollectSource_Change
+            $('#collectSource').change(function () {
+                $("#main").validate().resetForm();
+            });
+            //Bank_Change
+            $('#bank').change(function () {
+                $("#main").validate().resetForm();
+            });
+
+            //btnModalSave Click
+            $('#modal_save').click(function () {
+                //debugger;
+                //if ($("#modalPayerAddress").valid() == true) {
+                //    debugger;
+                if ($('#formModalPayerAddress').valid() == true) {
+                    SetAddress($('#hidden_payerAddressId').val());//payer address
+                    $('#modal_close').click();
+                }
+
+                //};
+            });
+
+            ////Agent 1
+            $('#btnAgent1').click(function () {
+                //$('#btnAgent1').attr('href', '#modal-SearchAgent1');
+                btnSearchClick(1);
+            });
+
+        });
+
+        //Method****************************************************************************************************************************************************************
+        //Get District
+        function GetDistrict(provinceId) {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetDistrict")?provinceId=" + provinceId,
+                //async: false, //ทำฟังก์ชั่นนี้ให้เสร็จก่อน
+                success: function (response) {
+                    $('#district').empty();
+                    for (var i = 0; i < response.length; i++) {
+                        $('#district').append('<option value="' +
+                            response[i].District_ID +
+                            '">' +
+                            response[i].DistrictDetail +
+                            '</option>');
+                    }
+                    if (provinceId !== "9999999" && $('#hidden_districtId').val() !== "") {
+                        $('#district').val($('#hidden_districtId').val());
+                        GetSubDistrict($('#hidden_districtId').val());
+                    } else {
+                        GetSubDistrict(response[0].District_ID);
+                    }
+                }
+            });
+        }
+
+        //****************************************************************************************************************************************************************
+        //Get SubDistrict
+        function GetSubDistrict(districtId) {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetSubDistrict")?districtId=" + districtId,
+                //async: false, //ทำฟังก์ชั่นนี้ให้เสร็จก่อน
+                success: function (response) {
+                    $('#subDistrict').empty();
+                    for (var i = 0; i < response.length; i++) {
+                        if (response[i].SubDistrict_ID == '@ViewBag.HomeAddress.Tumbol_id') {
+                            $('#subDistrict').append('<option value="' +
+                                response[i].SubDistrict_ID +
+                                '" selected="selected">' +
+                                response[i].SubDistrictDetail +
+                                '</option>');
+
+                        } else {
+                            $('#subDistrict').append('<option value="' +
+                                response[i].SubDistrict_ID +
+                                '">' +
+                                response[i].SubDistrictDetail +
+                                '</option>');
+                        }
+                    }
+                    GetZipCode($('#subDistrict').val());
+                }
+            });
+        }
+
+        //****************************************************************************************************************************************************************
+        //GetPayerDistrict
+        function GetPayerDistrict(provinceId) {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetDistrict")?provinceId=" + provinceId,
+                //async: false, //ทำฟังก์ชั่นนี้ให้เสร็จก่อน
+                success: function (response) {
+                    $('#payerDistrict').empty();
+                    for (var i = 0; i < response.length; i++) {
+                        $('#payerDistrict').append('<option value="' +
+                            response[i].District_ID +
+                            '">' +
+                            response[i].DistrictDetail +
+                            '</option>');
+                    }
+                    if (provinceId !== "9999999" && $('#hidden_payerdistrictId').val() !== "") {
+                        $('#payerDistrict').val($('#hidden_payerdistrictId').val());
+                        GetPayerSubDistrict($('#hidden_payerdistrictId').val());
+                    } else {
+                        GetPayerSubDistrict(response[0].District_ID);
+                    }
+                }
+            });
+        }
+
+        //****************************************************************************************************************************************************************
+        //GetPayerSubDistrict
+        function GetPayerSubDistrict(districtId) {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetSubDistrict")?districtId=" + districtId,
+                //async: false, //ทำฟังก์ชั่นนี้ให้เสร็จก่อน
+                success: function (response) {
+                    $('#payerSubDistrict').empty();
+                    for (var i = 0; i < response.length; i++) {
+                        if (response[i].SubDistrict_ID == '@ViewBag.PayerAddress.Tumbol_id') {
+                            $('#payerSubDistrict').append('<option value="' +
+                                response[i].SubDistrict_ID +
+                                '" selected="selected">' +
+                                response[i].SubDistrictDetail +
+                                '</option>');
+                        } else {
+                            $('#payerSubDistrict').append('<option value="' +
+                                response[i].SubDistrict_ID +
+                                '">' +
+                                response[i].SubDistrictDetail +
+                                '</option>');
+                        }
+                    }
+                    GetPayerZipCode($('#payerSubDistrict').val());
+                }
+            });
+        }
+        //****************************************************************************************************************************************************************
+        //Get zipcode
+        function GetZipCode(subDistrictId) {
+            $.ajax({
+                type: "GET",
+                url: "@ViewBag.APIUrlApplication/MobileApi/Address/zipCode?SubDistrictid=" + subDistrictId,
+                success: function (response) {
+                    $('#zipCode').val(response.zipCode);
+                }
+            });
+        }
+        //****************************************************************************************************************************************************************
+        //Get zipcode
+        function GetPayerZipCode(subDistrictId) {
+            $.ajax({
+                type: "GET",
+                url: "@ViewBag.APIUrlApplication/MobileApi/Address/zipCode?SubDistrictid=" + subDistrictId,
+                success: function (response) {
+                    $('#payerZipCode').val(response.zipCode);
+                }
+            });
+        }
+        //****************************************************************************************************************************************************************
+        //Get_Owner_OccupationLevel
+        function Get_Owner_OccupationLevel(occupationId) {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetOccupationLevel")?occupationId=" + occupationId,
+                //async: false, //ทำฟังก์ชั่นนี้ให้เสร็จก่อน
+                success: function (response) {
+                    $('#ownerOccupationLevel').empty();
+                    for (var i = 0; i < response.length; i++) {
+                        $('#ownerOccupationLevel').append('<option value="' +
+                            response[i].Temp1 +
+                            '">' +
+                            response[i].OccupationLevelDetail +
+                            '</option>');
+                    }
+                }
+            });
+        }
+        @*function GetOccupationLevel(occupationId) {
+                    $.ajax({
+                        type: "GET",
+                        url: "@ViewBag.APIUrlApplication/MobileApi/Mobile/OccupationLevels?occupationCode=" + occupationId,
+                        //async: false, //ทำฟังก์ชั่นนี้ให้เสร็จก่อน
+                        success: function (response) {
+                            $('#ownerOccupationLevel').empty();
+                            for (var i = 0; i < response.length; i++) {
+                                $('#ownerOccupationLevel').append('<option value="' + response[i].temp1 + '">' + response[i].occupationLevelDetail + '</option>');
+                            }
+
+                            if ('@ViewBag.App.OccupationLevel_id' != '' ) {
+                                $('#ownerOccupationLevel').val('@ViewBag.App.OccupationLevel_id');
+                            }
+
+                        }
+                    });
+                }*@
+        //****************************************************************************************************************************************************************
+        //Get_Payer_OccupationLevel
+        function Get_Payer_OccupationLevel(occupationId) {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetOccupationLevel")?occupationId=" + occupationId,
+                //async: false, //ทำฟังก์ชั่นนี้ให้เสร็จก่อน
+                success: function (response) {
+                    $('#payerOccupationLevel').empty();
+                    for (var i = 0; i < response.length; i++) {
+                        $('#payerOccupationLevel').append('<option value="' +
+                            response[i].Temp1 +
+                            '">' +
+                            response[i].OccupationLevelDetail +
+                            '</option>');
+                    }
+                }
+            });
+        }
+        //set address
+        function SetAddress(addressId) {
+            //debugger;
+
+            $.ajax({
+                type: "POST",
+                url: "@ViewBag.APIUrlApplication/MobileApi/Address/AddressPH",
+                data: {
+                    "addressId": addressId,
+                    "buildingName": $('#payerBuildingName').val(),
+                    "villageName": $('#payerVillageName').val(),
+                    "no": $('#payerNo').val(),
+                    "moo": $('#payerMoo').val(),
+                    "floor": $('#payerFloor').val(),
+                    "soi": $('#payerSoi').val(),
+                    "road": $('#payerRoad').val(),
+                    "subDistrictId": $('#payerSubDistrict').val(),
+                    "updateById": $('#hidden_createdByid').val()
+                },
+                success: function (response) {
+                    //debugger;
+                    //get address
+                    GetAddress(response.address_ID);
+
+                },
+                error: function (xhr, error) {
+                    alert(xhr.responseText);
+                }
+            });
+        }
+        //****************************************************************************************************************************************************************
+        //Get_CollectSource
+        function Get_Payment(payMethodTypeId) {
+
+            switch (payMethodTypeId) {
+                case "-1", "9001":
+                    $('#collectSource').val("-1").trigger('change');
+                    $('#collectSource').prop("disabled", true);
+                    $('#bank').val("-1").trigger('change');
+                    $('#bank').prop("disabled", true);
+                    $('#bankAccountNo').val("");
+                    $('#bankAccountNo').prop("disabled", true);
+                    break;
+                case "9002":
+                    $('#collectSource').val("-1").trigger('change');
+                    $('#collectSource').prop("disabled", true);
+                    //$('#bank').val("-1").trigger('change');
+                    $('#bank').prop("disabled", false);
+                    //$('#bankAccountNo').val("");
+                    $('#bankAccountNo').prop("disabled", false);
+                    break;
+                case "9003":
+                    //$('#collectSource').val("-1").trigger('change');
+                    $('#collectSource').prop("disabled", false);
+                    $('#bank').val("-1").trigger('change');
+                    $('#bank').prop("disabled", true);
+                    $('#bankAccountNo').val("");
+                    $('#bankAccountNo').prop("disabled", true);
+                    break;
+                default:
+                    $('#collectSource').val("-1").trigger('change');
+                    $('#collectSource').prop("disabled", true);
+                    $('#bank').val("-1").trigger('change');
+                    $('#bank').prop("disabled", true);
+                    $('#bankAccountNo').val("");
+                    $('#bankAccountNo').prop("disabled", true);
+                    break;
+            }
+        }
+        //****************************************************************************************************************************************************************
+        //Get_UI
+        function Get_UI() {
+
+            switch ($('#payMethodType').val()) {
+                case "-1", "9001":
+                    $('#collectSource').val("-1").trigger('change');
+                    $('#collectSource').prop("disabled", true);
+                    $('#bank').val("-1").trigger('change');
+                    $('#bank').prop("disabled", true);
+                    $('#bankAccountNo').val("");
+                    $('#bankAccountNo').prop("disabled", true);
+                    break;
+                case "9002":
+                    $('#collectSource').val("-1").trigger('change');
+                    $('#collectSource').prop("disabled", true);
+                    //$('#bank').val("-1").trigger('change');
+                    $('#bank').prop("disabled", false);
+                    //$('#bankAccountNo').val("");
+                    $('#bankAccountNo').prop("disabled", false);
+                    break;
+                case "9003":
+                    //$('#collectSource').val("-1").trigger('change');
+                    $('#collectSource').prop("disabled", false);
+                    $('#bank').val("-1").trigger('change');
+                    $('#bank').prop("disabled", true);
+                    $('#bankAccountNo').val("");
+                    $('#bankAccountNo').prop("disabled", true);
+                    break;
+                default:
+                    $('#collectSource').val("-1").trigger('change');
+                    $('#collectSource').prop("disabled", true);
+                    $('#bank').val("-1").trigger('change');
+                    $('#bank').prop("disabled", true);
+                    $('#bankAccountNo').val("");
+                    $('#bankAccountNo').prop("disabled", true);
+                    break;
+            }
+        }
+        //****************************************************************************************************************************************************************
+        //SearchEmp
+        function btnSearchClick() {
+
+            $('#modal_btSearch1').click(function () {
+                var empCode = $('#modal-inputEmpCode1').val();
+                if (empCode != "") {
+                    GetEmployee(empCode, 1);
+                    $('#modalAgent1').modal('hide');
+                } else {
+                    //$('#agentDetail1').val('');
+                    //$('#empId1').val('');
+                    //$('#btnAgent1').removeClass("btn btn-warning").addClass("btn btn-success");
+                    //$('#glypiconAgent1').removeClass("glyphicon glyphicon-pencil").addClass("glyphicon glyphicon-plus");
+                    //$('#modal-SearchAgent1').modal('hide');
+                }
+            });
+
+        }
+        //****************************************************************************************************************************************************************
+        //GetEmployee Detail
+        function GetEmployee(empCode, saleNo) {
+            $.ajax({
+                type: "GET",
+                url: "@ViewBag.APIUrlApplication/MobileApi/Mobile/SearchEmployeeByCode?empCode=" + empCode,
+                //async: false,
+                success: function (response) {
+                    if (response != null) {
+                        switch (saleNo) {
+                            case 1:
+                                $('#agentDetail1').val(response.codeEmployeeName);
+                                $('#empId1').val(response.employeeCode);
+                                $('#btnAgent1').addClass("btn btn-warning");
+                                //$('#glypiconAgent1').addClass("glyphicon glyphicon-pencil");
+                                break;
+                            case 2:
+                                $('#agentDetail2').val(response.codeEmployeeName);
+                                $('#empId2').val(response.employeeCode);
+                                $('#btnAgent2').addClass("btn btn-warning");
+                                //$('#glypiconAgent2').addClass("glyphicon glyphicon-pencil");
+                                break;
+                            default:
+                        }
+
+                    } else {
+                        switch (saleNo) {
+                            case 1:
+                                $('#agentDetail1').val('');
+                                $('#empId1').val('');
+                                $('#btnAgent1').removeClass("btn btn-warning").addClass("btn btn-success");
+                                //$('#glypiconAgent1').removeClass("glyphicon glyphicon-pencil").addClass("glyphicon glyphicon-plus");
+                                break;
+                            case 2:
+                                $('#agentDetail2').val('');
+                                $('#empId2').val('');
+                                $('#btnAgent2').removeClass("btn btn-warning").addClass("btn btn-success");
+                                //$('#glypiconAgent2').removeClass("glyphicon glyphicon-pencil").addClass("glyphicon glyphicon-plus");
+                                break;
+                            default:
+                        }
+
+                    }
+                }
+            });
+        }
+        //****************************************************************************************************************************************************************
+        //GetAddress
+        function GetAddress(addressId) {
+            //debugger;
+            $.ajax({
+                type: "GET",
+                url: "@ViewBag.APIUrlApplication/MobileApi/Address/AddressPH?addressId=" + addressId,
+                success: function (response) {
+                    $('#payerAddress').val(response.addressFullDetail);
+                }
+            });
+        }
+        //*************************************************//
+    </script>
+}

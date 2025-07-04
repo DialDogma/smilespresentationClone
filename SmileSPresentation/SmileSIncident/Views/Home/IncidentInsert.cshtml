@@ -1,0 +1,217 @@
+﻿@using SmileSIncident.Properties;
+@{
+    ViewBag.Title = "Compose";
+    ViewBag.Description = "แจ้งปัญหา";
+
+    var acceptedFileTypes = Settings.Default.AcceptedFileTypes;
+}
+
+<div class="container">
+    <div class="col-xs-12 col-md-12">
+        <div class="box box-primary">
+            <div class="box-body">
+                <div class="form-group col-md-3">
+                    <label class="control-label" for="">กลุ่มงานหลัก :</label>
+                    <select id="select_TaskGroup" class=" form-control">
+                        @foreach (var itm in ViewBag.IncidentTypeList)
+                        {
+                            <option value="@itm.IncidentGroupTypeId">@itm.IncidentGroupType</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-md-5">
+                    <label class="control-label" for="">กลุ่มงานย่อย :</label>
+                    <select id="select_TaskSubGroup" class=" form-control"></select>
+                </div>
+
+                <div class="form-group col-md-8">
+                    <label class="control-label" for="">Subject (หัวข้อ):</label>
+                    <input type="text" class="form-control" required="" maxlength="250" id="txtTitle" placeholder="ระบุหัวข้อเรื่องที่ต้องการแจ้งปัญหา">
+                </div>
+                <div class="form-group col-md-12">
+                    <div id="editor" style="height: 250px">
+                    </div>
+                </div>
+                <div class="form-group col-md-12">
+                    <label class="control-label" for="">แนบไฟล์:</label><small style="color: red">*ขนาดไฟล์ไม่เกิน 30mb</small>
+                    <div id="fileTest">
+                        <form action="@Url.Action("FileUpload")" class="dropzone dz-clickable dz-started" id="testDropzone" enctype="multipart/form-data">
+                            <div class="dz-message">
+                                Drop files here or click to upload.
+                            </div>
+                            @* hidden field *@
+                            <input type="hidden" id="hd_IncidentId" name="hd_IncidentId" value="@ViewBag.IncidentTaskId" />
+                            <input type="hidden" id="hd_IncidentMsgId" name="hd_IncidentMsgId" value="@ViewBag.IncidentMessageId" />
+                        </form>
+                    </div>
+                </div>
+                <div class="form-group col-md-12" style="display: flex; justify-content: flex-end">
+                    <div class="col-xs-6 col-md-2">
+                        <button type="button" class=" btn btn-block btn-danger" id="btnCancel">ยกเลิก</button>
+                    </div>
+                    <div class="col-xs-6  col-md-2">
+                        <button type="button" class="btn btn-block btn-success" id="btnCompose">ส่งแจ้งปัญหา</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        var toolbarOptions = [
+            ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+            ['blockquote', 'code-block'],
+
+            [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
+            [{ 'indent': '-1' }, { 'indent': '+1' }],          // outdent/indent
+            [{ 'direction': 'rtl' }],                         // text direction
+
+            [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+            [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+
+            ['clean']                                         // remove formatting button
+        ];
+
+        Dropzone.options.testDropzone = {
+            paramName: "file",
+            maxFilesize: 31,
+            maxFiles: 4,
+            dictMaxFilesExceeded: "ไฟล์เกินจำนวน",
+            dictResponseError: "ไม่สามารถอัพโหลดไฟล์ได้",
+            dictFallbackMessage:"ไม่รองรับไฟล์",
+            addRemoveLinks: true,
+            acceptedFiles: "@acceptedFileTypes",
+            init: function () {
+                this.on("success", function (file, response) {
+                    //add id
+                    file.serverId = response.id;
+                    $(".dz-preview:last-child").attr('id', response.id);
+                });
+                this.on('error', function(file, errorMessage) {
+                    if (errorMessage.indexOf('Error 404') !== -1) {
+                        var errorDisplay = document.querySelectorAll('[data-dz-errormessage]');
+                        errorDisplay[errorDisplay.length - 1].innerHTML = 'Error 404: ไม่สามารถอัพโหลดไฟล์ได้';
+                    }
+                    if (errorMessage.indexOf('Server Error') !== -1) {
+                        var errorDisplay = document.querySelectorAll('[data-dz-errormessage]');
+                        errorDisplay[errorDisplay.length - 1].innerHTML = 'Error 404: ไม่สามารถอัพโหลดไฟล์ได้';
+                    }
+                });
+            },
+            removedfile: function (file) {
+                //call ajax to remove file from server
+                var fileId = file.serverId;
+                $.post('@Url.Action("File_delete")', { attachId: fileId }, (data) => {
+                    if (data.IsResult) {
+                        var _ref;
+                        return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;
+                    } else {
+                        return swal_fail("กรุณาลองอีกครั้ง");
+                    }
+                });
+
+            }
+        }
+        //save quill rich text editor value
+        var quill = new Quill('#editor', {
+            modules: {
+                toolbar: toolbarOptions
+            },
+
+            theme: 'snow',
+            placeholder: 'ระบุรายละเอียด....',
+
+        });
+
+        $(function () {
+
+            $('.content-header').addClass('container');
+            $('.content-header').removeClass('content-header');
+
+             // Reference the auto-generated proxy for the hub.
+            chat = $.connection.chatHub;
+
+            //create dropzone
+            var testDropZone = new Dropzone("#fileTest", { url: '@Url.Action("FileUpload")' });
+
+            //Start Connection
+            $.connection.hub.start().done(function(){
+                $('#btnCompose').click(() => {
+                    if ($('#txtTitle').val() != '') {
+                        swal_confirm("ยืนยันการทำรายการ?", "", () => {
+                            Incident_update();
+                            chat.server.sendGroupMessage("New Job" ,'มีงานใหม่เข้ามา!', 'dev');
+                        });
+                    } else {
+                        swal_info("กรุณากรอกหัวข้อ!");
+                        $('txtTitle').focus();
+                    }
+                });
+            });
+
+            $('#btnCancel').click(() => {
+                window.location = ('@Url.Action("Index")');
+            });
+
+            GetIncidentGroupType();
+        });
+
+        const Incident_update = () => {
+            var textEditorValue = quill.root.innerHTML;
+            var incidentTaskId = $('#hd_IncidentId').val();
+            var incidentMsgId = $('#hd_IncidentMsgId').val();
+            var incidentTypeId = $('#select_TaskSubGroup').val();
+            var incidentSubject = $('#txtTitle').val();
+
+            $.post('@Url.Action("ComposeIncident_Update","Home")',
+                {
+                    incidentTaskId: incidentTaskId,
+                    incidentMsgId: incidentMsgId,
+                    incidentTypeId: incidentTypeId,
+                    incidentSubject: incidentSubject,
+                    msg: textEditorValue
+                }, (data) => {
+                    if (data.IsResult) {
+                        swal_success("สร้างคิวงานสำเร็จ");
+                        setTimeout(() => { window.location = ('@Url.Action("Index","Home")'); },2500);
+
+                    } else {
+                        swal_fail("Error:" + data.Msg);
+                    }
+                });
+        }
+
+        $('#select_TaskGroup').change(function (e) {
+            e.preventDefault();
+            GetIncidentGroupType();
+        });
+
+        const GetIncidentGroupType = () => {
+         $('#select_TaskSubGroup').empty();
+            $.ajax({
+                 type: "GET",
+                 url: "@Url.Action("GetIncidentGroupType", "Home")",
+                 data: {
+                 incidentGroupTypeId: $('#select_TaskGroup').val()
+             },
+                async: false,
+                dataType: "json",
+                success: function (response) {
+                    for (var i = 0; i < response.length; i++) {
+                         $('#select_TaskSubGroup').append('<option value=' + response[i].IncidentTypeId + '>' + response[i].IncidentType +'</option>')
+                    }
+                }
+            });
+        }
+    </script>
+}

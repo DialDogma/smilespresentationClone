@@ -1,0 +1,185 @@
+﻿@{
+    ViewBag.Title = "Supervisor Queue";
+    Layout = "~/Views/Shared/_LayoutForTop.cshtml";
+}
+<style>
+    html > /**/ body table {
+        font-size: 12px !important;
+    }
+</style>
+
+<div class="row">
+    <div class="form-group col-md-12 col-sm-12">
+        <div class="col-md-4">
+            <span style="font-weight:600;font-size:16px;display:block">รอบความคุ้มครอง </span>
+            <label id="lbl_dcr" style="font-size:20px;margin-top:5px"> @ViewBag.PeriodText </label>
+        </div>
+
+        <div class="col-md-4 col-md-offset-4">
+            <span style="font-weight:600;font-size:16px;">สถานะคิวงาน</span>
+            <select id="select_queue_status" class="form-control">
+                <option value="-1">ทั้งหมด</option>
+                @if (ViewBag.QueueStatus != null)
+                {
+                    foreach (var item in ViewBag.QueueStatus)
+                    {
+                        <option value="@item.QueueStatusId">@item.QueueStatus</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="col-md-12">
+            <div class="box box-info">
+                <div class="box-body">
+                    <div class="col-sm-12 col-md-12">
+                        <div class="box box-solid">
+                            <div class="box-body">
+                                <div class="row" style="background-color: #f7f7f7; text-align: center; padding: 7px 10px; margin-top: 0;">
+                                    @if (ViewBag.Branch != null)
+                                    {
+                                        <label style="font-weight: bold;font-size:16px">รายละเอียด สาขา @ViewBag.Branch.BranchDetail</label>
+                                        ViewBag.Title = "Supervisor Queue - สาขา";
+                                    }
+
+                                    @if (ViewBag.Address != null)
+                                    {
+                                        <label style="font-weight: bold;font-size:16px">รายละเอียด - @(ViewBag.Address.ProvinceDetail == "กรุงเทพมหานคร" ? "เขต" : "อำเภอ" )@ViewBag.Address.DistrictDetail  จังหวัด @ViewBag.Address.ProvinceDetail</label>
+                                        ViewBag.Title = "Supervisor Queue - อำเภอ/เขต";
+                                    }
+                                </div>
+                                <table id="supervisor_queue_datatable" class="table table-bordered table-striped display responsive" style="width: 100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="branch_hidden" value="@(ViewBag.Branch != null ? ViewBag.Branch.Branch_ID : "")" />
+<input type="hidden" id="district_hidden" value="@(ViewBag.District != null ? ViewBag.District : "")" />
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+            SupervisorQueue();
+
+            $('#select_queue_status').change(function (e) {
+                e.preventDefault();
+                SupervisorQueue();
+            });
+        });
+
+        const SupervisorQueue = () => {
+            $('#supervisor_queue_datatable').empty();
+            const table = $('#supervisor_queue_datatable').DataTable({
+                pageLength: 5,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: true,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("SupervisorQueueDT")',
+                    method: "POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.period ='@ViewBag.Period';
+                        d.queueStatus = $('#select_queue_status').val();
+                        d.branch = $('#branch_hidden').val();
+                        d.district = $('#district_hidden').val();
+                    }
+                },
+                columns: [
+                    {
+                        title: 'AppCode',
+                        data: 'ApplicationCode',
+                        orderable: true,
+                    },
+                    {
+                        title: 'ผุ้เอาประกัน',
+                        data: 'CustomerName',
+                        orderable: true,
+                    },
+                    {
+                        title: 'ผู้ชำระเบี้ย',
+                        data: 'PayerName',
+                        orderable: true,
+                    },
+                    {
+                        title: 'วันที่สร้างคิวงาน',
+                        data: 'CreatedDate',
+                        orderable: true,
+                        render: function (data) {
+                            return moment(data).format("DD/MM/YYYY HH:mm");
+                        }
+                    },
+                    {
+                        title: 'วันครบกำหนดคิวงาน',
+                        data: 'QueueExpireDate',
+                        orderable: true,
+                        render: function (data) {
+                            return moment(data).format("DD/MM/YYYY HH:mm:ss");
+                        }
+                    },
+                    {
+                        title: 'แผน',
+                        data: 'Product',
+                        orderable: true,
+                    },
+                    {
+                        title: 'เบี้ย',
+                        data: 'Premium',
+                        orderable: true,
+                    },
+                    {
+                        title: 'สถานะคิวงาน',
+                        data: 'QueueStatus',
+                        orderable: true,
+                    },
+                    {
+                        title: 'ช่องทางคัดกรอง',
+                        data: 'UnderwriteType',
+                        orderable: true,
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        orderable: false,
+                        render: (d) => {
+                            const app = btoa(d.ApplicationCode);
+                            return `<button  class="btn btn-info" onclick="toDetail('${app}')"><i class="fa fa-search"></i> เปิด</button>`;
+                        }
+                    }
+                ]
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        //goto see detail
+        const toDetail = (app) => {
+           window.open(encodeURI(`@Url.Action("UnderwriteDetail","Underwrite")?appcode=${app}`),'_blank');
+        }
+    </script>
+}

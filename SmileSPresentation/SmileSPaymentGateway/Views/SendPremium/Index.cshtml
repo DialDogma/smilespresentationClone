@@ -1,0 +1,181 @@
+﻿@{
+    ViewBag.Title = "ส่งเบี้ยเข้าสำนักงานใหญ่";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="box">
+            <div class="box-header with-border">
+                <h3 class="box-title">รายการนำส่งเบี้ยเฉพาะเงินสดเข้าสำนักงานใหญ่</h3>
+            </div>
+            <div class="box-body">
+                <form class="form-horizontal">
+                    <div class="col-md-6">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="col-md-6 control-label">ยอดนำส่งวันที่ :</label>
+                                <label class="col-md-6 control-label" style="text-align:left;">@ViewBag.CurrentDate</label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="col-md-6 control-label">รวมยอดที่ต้องนำส่ง :</label>
+                                <label id="lbl_sumPremium" class="col-md-6 control-label" style="text-align:left;"><span style="color: blue">@(@ViewBag.PremiumTotal != 0 ? @ViewBag.PremiumTotal.ToString("##,###") : @ViewBag.PremiumTotal )</span>  บาท</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-md-offset-3">
+                        <button id="btn_history" type="button" class="btn btn-warning btn-flat" style="width: 100%"><i class="fa fa-history"></i> ประวัติการนำส่ง</button>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="table-responsive">
+                            <table id="datatable1" class="table table-bordered display responsive nowrap" style="width: 100%"></table>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 col-md-offset-9">
+                        <button type="button" id="btn_confirm" class="btn btn-success btn-flat" style="width: 100%"><i class="fa fa-check"></i> ยืนยันการนำส่งเบี้ย</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="hidden_Premiumtotal" value="@ViewBag.PremiumTotal" />
+
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+            const tt = $('#hidden_Premiumtotal').val();
+            DrawTable();
+            check_zero(tt,
+                function () {
+                    $('#btn_confirm').css('display', 'none');
+                });
+
+            $('#btn_confirm').click(function (e) {
+                e.preventDefault();
+                swal_confirm('ยืนยันการนำส่ง',
+                    "สรุปยอดนำส่งเบี้ยเงินสด " + $('#hidden_Premiumtotal').val() + " บาท",
+                    function () {
+                        SubmitToCenter(tt);
+                    });
+            });
+
+            $('#btn_history').click(function () {
+                window.open('@Url.Action("DeliverToCenterHistory", "SendPremium")', '_self');
+            });
+        });
+
+        function SubmitToCenter(tt) {
+            if (tt != 0) {
+                $.ajax({
+                    type: "POST",
+                    beforeSend: function (request) {
+                        request.setRequestHeader("Authorization", '@ViewBag.Token');
+                    },
+                    url: '@ViewBag.URL_API' + '/mobileapi/Premiums/PremiumDeliverToCenter',
+                    data: {
+                        deliverMethod: "9010",
+                        netAmount: $('#hidden_Premiumtotal').val(),
+                        empCode: '@ViewBag.EmpCode'
+                    },
+                    success: function (response) {
+                        if (response[0].result == "Success") {
+                            swal_success(function () {
+                                window.location.reload();
+                            });
+                        } else {
+                            swal_fail(response[0].msg);
+                        }
+
+                    },
+                    error: function (xhr, error) {
+                        alert(xhr.responseText);
+                    }
+                });
+            } else {
+                swal_fail("ยอดเท่ากับ 0 ยืนยันไม่ได้!");
+            }
+        }
+
+        function DrawTable() {
+            $('#datatable1').empty();
+            var t = $('#datatable1').DataTable({
+                processing: true,
+                serverSide: true,
+                searching: false,
+                info: false,
+                lengthChange: false,
+                responsive: true,
+                destroy: true,
+                paging: false,
+                ordering: false,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetDatatablePremiumDeliverToCenter")',
+                    type: "POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 10000;
+                        d.pageStart = d.start;
+                        d.sortField = null;
+                        d.orderType = null;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ลำดับที่',
+                        data: null,
+                        className: "dt-center"
+                    },
+                    {
+                        title: 'App ID',
+                        data: 'AppID',
+                        className: 'dt-left'
+                    },
+                    {
+                        title: 'ชื่อผู้ชำระเบี้ย',
+                        data: 'Payer'
+                    },
+                    {
+                        title: 'ชื่อผู้เอาประกัน',
+                        data: 'Insured'
+                    },
+                    {
+                        title: 'แผน',
+                        data: 'ProductName',
+                        className: 'dt-center'
+                    },
+                    {
+                        title: 'งวด',
+                        data: 'MoreDetail',
+                        className: 'dt-center'
+
+                    },
+                    {
+                        title: 'เบี้ย',
+                        data: 'Premium',
+                        className: 'dt-right',
+                        render: function (data) {
+                            return data + " บาท";
+                        }
+                    }
+                ]
+
+            });
+            t.on('draw.dt',
+                function () {
+                    var PageInfo = $('#datatable1').DataTable().page.info();
+                    t.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                        cell.innerHTML = i + 1 + PageInfo.start;
+                    });
+                });
+        }
+    </script>
+}

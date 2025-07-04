@@ -1,0 +1,3542 @@
+﻿<style>
+    .bs-example:before {
+        position: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        color: #808080;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        content: "ประเภท ID";
+    }
+
+    .default {
+        cursor: default;
+    }
+
+        .default:hover {
+            background-color: #CACFD2;
+        }
+</style>
+<!-- Main Tab -->
+<div id="rootwizard">
+    <div class="navbar">
+        <div class="navbar-inner">
+            <ul class="nav nav-pills" role="tablist">
+                <li role="presentation" id="li_tab1" class="active"><a href="#tab1" aria-controls="tab1" role="tab" data-toggle="tab">ข้อมูลผู้เอาประกัน</a></li>
+                <li role="presentation" id="li_tab2"><a href="#tab2" aria-controls="tab2" role="tab" data-toggle="tab">ข้อมูลผู้ชำระเบี้ย</a></li>
+                <li role="presentation" id="li_tab3"><a href="#tab3" aria-controls="tab3" role="tab" data-toggle="tab">ข้อมูลกรมธรรม์</a></li>
+                <li role="presentation" id="li_tab4"><a href="#tab4" aria-controls="tab4" role="tab" data-toggle="tab">ข้อมูลผู้รับผลประโยชน์</a></li>
+                <li role="presentation" id="li_tab5"><a href="#tab5" aria-controls="tab5" role="tab" data-toggle="tab">ข้อมูลด้านสุขภาพ</a></li>
+                <li role="presentation" id="li_tab6"><a href="#tab6" aria-controls="tab6" role="tab" data-toggle="tab">Scan เอกสาร</a></li>
+                <li role="presentation" id="li_tab7"><a href="#tab7" aria-controls="tab7" role="tab" data-toggle="tab">บันทึกข้อความ</a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- Tab panes -->
+    <div class="tab-content">
+        @* ผู้เอาประกัน tab 1 *@
+        <div role="tabpanel" class="tab-pane active" id="tab1">
+            <form id="formCustomer">
+                <section>
+                    <div class="box box-default">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">ค้นหา</h3>
+                        </div>
+                        <div class="box-body">
+                            <div class="bs-example">
+                                <div class="form-group row">
+                                    <div class="col-lg-3">
+                                        <select id="cardTypeSelect" type="text" class="form-control">
+                                            @if (ViewBag.CardType != null)
+                                            {
+                                                foreach (var item in ViewBag.CardType)
+                                                {
+                                                    <option value="@item.CardTypeId" @(item.CardTypeId == 2 ? "selected" : "")>@item.CardType</option>
+                                                }
+
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="input-group">
+                                            <input id="txtNumber" type="text" class="form-control">
+                                            <div class="input-group-btn">
+                                                <button id="btnSearchPerson" name="btnSearchPerson" class="btn btn-warning">ค้นหา</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="box box-default">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">ข้อมูลผู้เอาประกัน</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                    <i class="fa fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="form-group row">
+                                <div class="col-lg-4">
+                                    <label for="titleName">คำนำหน้า</label>
+                                    <select class="form-control" id="titleName" name="titleName">
+                                        @if (ViewBag.TitleName != null)
+                                        {
+                                            foreach (var item in ViewBag.TitleName)
+                                            {
+                                                <option value="@item.TitleId">@item.Title</option>
+                                            }
+
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-lg-4">
+                                    <label for="fName">ชื่อ</label>
+                                    <input class="form-control" type="text" id="fName" name="fName" required="required" checkText="checkText">
+                                </div>
+                                <div class="col-lg-4">
+                                    <label for="lName">นามสกุล</label>
+                                    <input class="form-control" type="text" id="lName" name="lName" required="required" checkText="checkText">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-4">
+                                    <label for="passport">Passport</label>
+                                    <input class="form-control" type="text" id="passport" name="passport">
+                                </div>
+                                <div class="col-lg-4">
+                                    <label for="identityCard">บัตรประจำตัวประชาชน</label>
+                                    <input class="form-control" type="number" maxlength="13" minlength="13" id="identityCard" name="identityCard" checkID="checkID">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-4">
+                                    <label for="birthDate">วันเกิด</label>
+                                    <input class="form-control datepicker" type="text" id="birthDate" name="birthDate" data-date-language="th-th" data-provide="datepicker" required="required">
+                                </div>
+                                <div class="col-lg-4">
+                                    <label for="ageCurrent">อายุปัจจุบัน</label>
+                                    <label class="form-control" id="ageCurrent" name="ageCurrent" readonly="readonly"></label>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-4">
+                                    <label for="sex">เพศ</label>
+                                    <select class="form-control" id="sex" name="sex" checkNA="checkNA">
+                                        @if (ViewBag.Sex != null)
+                                        {
+                                            foreach (var item in ViewBag.Sex)
+                                            {
+                                                <option value="@item.SexId">@item.Sex</option>
+                                            }
+
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-lg-4">
+                                    <label for="status">สถานภาพ</label>
+                                    <select class="form-control" id="status" name="status" checkNA="checkNA">
+                                        @if (ViewBag.MaritalStatus != null)
+                                        {
+                                            foreach (var item in ViewBag.MaritalStatus)
+                                            {
+                                                <option value="@item.MaritalStatusId">@item.MaritalStatus</option>
+                                            }
+
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-lg-4">
+                                    <label for="bloodGroup">หมู่เลือด</label>
+                                    <select class="form-control" id="bloodGroup" name="bloodGroup">
+                                        @if (ViewBag.BloodType != null)
+                                        {
+                                            foreach (var item in ViewBag.BloodType)
+                                            {
+                                                <option value="@item.BloodTypeId">@item.BloodType</option>
+                                            }
+
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-4">
+                                    <label for="position">ตำแหน่ง</label>
+                                    <input class="form-control" type="text" id="position" name="position" required="required">
+                                </div>
+                                <div class="col-lg-4">
+                                    <label for="occupation">อาชีพ</label>
+                                    <select class="form-control" id="occupation" name="occupation" checkNA="checkNA">
+                                        @if (ViewBag.Occupation != null)
+                                        {
+                                            foreach (var item in ViewBag.Occupation)
+                                            {
+                                                <option value="@item.OccupationId">@item.Occupation</option>
+                                            }
+
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-lg-4">
+                                    <label for="occupationLevel">ระดับอาชีพ</label>
+                                    <select class="form-control" id="occupationLevel" name="occupationLevel" checkNA="checkNA"></select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-4">
+                                    <label for="jobDescription">ลักษณะงานที่ทำ</label>
+                                    <input class="form-control" type="text" id="jobDescription" name="jobDescription" required="required">
+                                </div>
+                                <div class="col-lg-4">
+                                    <label for="income">รายได้/เดือน</label>
+                                    <input type="number" class="form-control" id="income" name="income" required="required" checkOnlyNum="checkOnlyNum">
+                                </div>
+                                <div class="col-lg-4">
+                                    <label for="otherIncome">รายได้อื่นๆ/เดือน</label>
+                                    <input type="number" class="form-control" id="otherIncome" name="otherIncome" required="required" checkOnlyNum="checkOnlyNum">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-4">
+                                    <label for="weight">น้ำหนัก</label>
+                                    <input class="form-control" type="text" id="weight" name="weight" required="required" checkOnlyNum="checkOnlyNum">
+                                </div>
+                                <div class="col-lg-4">
+                                    <label for="height">ส่วนสูง</label>
+                                    <input class="form-control" type="text" id="height" name="height" required="required" checkOnlyNum="checkOnlyNum">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-4">
+                                    <label for="mobilePhone">โทรศัพท์มือถือ</label>
+                                    <input class="form-control" type="number" id="mobilePhone" name="mobilePhone" required="required" maxlength="10">
+                                </div>
+                                <div class="col-lg-4">
+                                    <label for="officePhone">โทรศัพท์ที่ทำงาน</label>
+                                    <input class="form-control" type="number" id="officePhone" name="officePhone" required="required">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-4">
+                                    <label for="email">Email</label>
+                                    <input class="form-control" type="email" id="email" name="email">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-12">
+                                    <div style="margin-top: 25px !important">
+                                        <!-- Nav tabs -->
+                                        <ul class="nav nav-tabs" role="tablist">
+                                            <li role="presentation" class="active"><a href="#address_C" aria-controls="address_C" role="tab" data-toggle="tab">ที่อยู่ปัจจุบัน</a></li>
+                                            <li role="presentation"><a href="#address_H" aria-controls="address_H" role="tab" data-toggle="tab">ที่อยู่ตามบัตรประชาชน</a></li>
+                                            <li role="presentation"><a href="#address_W" aria-controls="address_W" role="tab" data-toggle="tab">ที่อยู่ที่ทำงาน</a></li>
+                                        </ul>
+
+                                        <!-- Tab panes -->
+                                        <div class="tab-content">
+                                            @* ที่อยู่ปัจจุบัน *@
+                                            <div role="tabpanel" class="tab-pane active" id="address_C">
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="addressNo_C">เลขที่</label>
+                                                        <input class="form-control address_C" type="text" name="addressNo_C" id="addressNo_C" required="required" />
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="organizationName3">ชื่อหน่วยงาน</label>
+                                                        <input class="form-control address_C" type="text" name="organizationName_C" id="organizationName_C" required="required" />
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="village3">หมู่บ้าน</label>
+                                                        <input class="form-control address_C" type="text" name="village_C" id="village_C" required="required" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="unit3">หมู่</label>
+                                                        <input class="form-control address_C" type="text" name="unit_C" id="unit_C" required="required" />
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="floor3">ชั้น</label>
+                                                        <input class="form-control address_C" type="text" name="floor_C" id="floor_C" required="required" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="alley3">ซอย</label>
+                                                        <input class="form-control address_C" type="text" name="alley_C" id="alley_C" required="required" />
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="road3">ถนน</label>
+                                                        <input class="form-control address_C" type="text" name="road_C" id="road_C" required="required" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="province3">จังหวัด</label>
+                                                        <select class="form-control address_C" name="province_C" id="province_C" checkNA="checkNA">
+                                                            @if (ViewBag.Province != null)
+                                                            {
+                                                                foreach (var item in ViewBag.Province)
+                                                                {
+                                                                    <option value="@item.ProvinceId">@item.Province</option>
+                                                                }
+
+                                                            }
+                                                        </select>
+                                                        <input type="hidden" value="" name="province_C_hidden" id="province_C_hidden">
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="district3">อำเภอ</label>
+                                                        <select class="form-control address_C" name="district_C" id="district_C"></select>
+                                                        <input type="hidden" value="" name="district_C_hidden" id="sub-district_C_hidden">
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="sub-district3">ตำบล</label>
+                                                        <select class="form-control address_C" name="sub-district_C" id="sub-district_C"></select>
+                                                        <input type="hidden" value="" name="sub-district_C_hidden" id="sub-district_C_hidden">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="zipcode3">ไปรษณีย์</label>
+                                                        <input class="form-control address_C" type="text" name="zipcode_C" id="zipcode_C" required="required" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @* ที่อยู่ตามบัตรประชาชน *@
+                                            <div role="tabpanel" class="tab-pane" id="address_H">
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="chkCopyAddress_H" style="cursor:pointer;margin-top: 15px;">
+                                                            <input class="form-control" type="button" name="chkCopyAddress_H" id="chkCopyAddress_H" value="คัดลอกที่อยู่ปัจจุบัน" />
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="addressNo_H">เลขที่</label>
+                                                        <input class="form-control address_H" type="text" name="addressNo_H" id="addressNo_H" required="required" />
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="organizationName_H">ชื่อหน่วยงาน</label>
+                                                        <input class="form-control address_H" type="text" name="organizationName_H" id="organizationName_H" required="required" />
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="village_H">หมู่บ้าน</label>
+                                                        <input class="form-control address_H" type="text" name="village_H" id="village_H" required="required" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="unit_H">หมู่</label>
+                                                        <input class="form-control address_H" type="text" name="unit_H" id="unit_H" required="required" />
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="floor_H">ชั้น</label>
+                                                        <input class="form-control address_H" type="text" name="floor_H" id="floor_H" required="required" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="alley_H">ซอย</label>
+                                                        <input class="form-control address_H" type="text" name="alley_H" id="alley_H" required="required" />
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="road_H">ถนน</label>
+                                                        <input class="form-control address_H" type="text" name="road_H" id="road_H" required="required" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="province_H">จังหวัด</label>
+                                                        <select class="form-control address_H" id="province_H" checkNA="checkNA">
+                                                            @if (ViewBag.Province != null)
+                                                            {
+                                                                foreach (var item in ViewBag.Province)
+                                                                {
+                                                                    <option value="@item.ProvinceId">@item.Province</option>
+                                                                }
+
+                                                            }
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="district_H">อำเภอ</label>
+                                                        <select class="form-control address_H" name="district_H" id="district_H"></select>
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="sub-district_H">ตำบล</label>
+                                                        <select class="form-control address_H" name="sub-district_H" id="sub-district_H"></select>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="zipcode_H">ไปรษณีย์</label>
+                                                        <input class="form-control address_H" type="text" name="zipcode_H" id="zipcode_H" required="required" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @* ที่อยู่ที่ทำงาน *@
+                                            <div role="tabpanel" class="tab-pane" id="address_W">
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="chkCopyAddress_W" style="cursor:pointer;margin-top: 15px;">
+                                                            <input class="form-control" type="button" name="chkCopyAddress_W" id="chkCopyAddress_W" value="คัดลอกที่อยู่ปัจจุบัน" />
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="addressNo_W">เลขที่</label>
+                                                        <input class="form-control address_W" type="text" name="addressNo_W" id="addressNo_W" required="required" />
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="organizationName_W">ชื่อหน่วยงาน</label>
+                                                        <input class="form-control address_W" type="text" name="organizationName_W" id="organizationName_W" required="required" />
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="village_W">หมู่บ้าน</label>
+                                                        <input class="form-control address_W" type="text" name="village_W" id="village_W" required="required" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="unit_W">หมู่</label>
+                                                        <input class="form-control address_W" type="text" name="unit_W" id="unit_W" required="required" />
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="floor_W">ชั้น</label>
+                                                        <input class="form-control address_W" type="text" name="floor_W" id="floor_W" required="required" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="alley_W">ซอย</label>
+                                                        <input class="form-control address_W" type="text" name="alley_W" id="alley_W" required="required" />
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="road_W">ถนน</label>
+                                                        <input class="form-control address_W" type="text" name="road_W" id="road_W" required="required" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="province_W">จังหวัด</label>
+                                                        <select class="form-control address_W" name="province_W" id="province_W" checkNA="checkNA">
+                                                            @if (ViewBag.Province != null)
+                                                            {
+                                                                foreach (var item in ViewBag.Province)
+                                                                {
+                                                                    <option value="@item.ProvinceId">@item.Province</option>
+                                                                }
+                                                            }
+                                                        </select>
+                                                        <input type="hidden" value="" name="province_W_hidden" id="province_W_hidden">
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="district_W">อำเภอ</label>
+                                                        <select class="form-control address_W" name="district_W" id="district_W"></select>
+                                                        <input type="hidden" value="" name="district_W_hidden" id="district_W_hidden">
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="sub-district_W">ตำบล</label>
+                                                        <select class="form-control address_W" name="sub-district_W" id="sub-district_W"></select>
+                                                        <input type="hidden" value="" name="sub-district_W_hidden" id="sub-district_W_hidden">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-lg-4">
+                                                        <label for="zipcode_W">ไปรษณีย์</label>
+                                                        <input class="form-control address_W" type="text" name="zipcode_W" id="zipcode_W" required="required" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="applicationId_hidden" id="applicationId_hidden" />
+                    <input type="hidden" name="LeadId_hidden" id="LeadId_hidden" value="@ViewBag.LeadId" />
+                </section>
+            </form>
+        </div>
+        @* ผู้ชำระเบี้ย tab 2 *@
+        <div role="tabpanel" class="tab-pane" id="tab2">
+            <form id="formPayer">
+                <section>
+                    <div class="box box-default">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">ความสัมพันธ์</h3>
+                        </div>
+                        <div class="box-body">
+                            <div class="form-group row">
+                                <div class="col-lg-3">
+                                    <select id="relationType" name="relationType" type="text" class="form-control" checkNA="checkNA">
+                                        @if (ViewBag.RelationType != null)
+                                        {
+                                            foreach (var item in ViewBag.RelationType)
+                                            {
+                                                <option value="@item.RelationTypeId">@item.RelationType</option>
+                                            }
+
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="sectionDetailPayer">
+                        <div class="box box-default">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">ค้นหา</h3>
+                            </div>
+                            <div class="box-body">
+                                <div class="bs-example">
+                                    <div class="form-group row">
+                                        <div class="col-lg-3">
+                                            <select id="cardTypeSelectPayer" name="cardTypeSelectPayer" type="text" class="form-control">
+                                                @if (ViewBag.CardType != null)
+                                                {
+                                                    foreach (var item in ViewBag.CardType)
+                                                    {
+                                                        <option value="@item.CardTypeId" @(item.CardTypeId == 2 ? "selected" : "")>@item.CardType</option>
+                                                    }
+
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="input-group">
+                                                <input id="txtNumberPayer" type="text" class="form-control">
+                                                <div class="input-group-btn">
+                                                    <button id="btnSearchPersonPayer" name="btnSearchPersonPayer" class="btn btn-warning">ค้นหา</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="box box-default">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">ข้อมูลผู้ชำระเบี้ย</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                        <i class="fa fa-minus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="form-group row">
+                                    <div class="col-lg-4">
+                                        <label for="titleNamePayer">คำนำหน้า</label>
+                                        <select class="form-control" id="titleNamePayer" name="titleNamePayer" checkNA="checkNA">
+                                            @if (ViewBag.TitleName != null)
+                                            {
+                                                foreach (var item in ViewBag.TitleName)
+                                                {
+                                                    <option value="@item.TitleId">@item.Title</option>
+                                                }
+
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label for="fNamePayer">ชื่อ</label>
+                                        <input class="form-control" type="text" id="fNamePayer" name="fNamePayer" required="required" checkText="checkText">
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label for="lNamePayer">นามสกุล</label>
+                                        <input class="form-control" type="text" id="lNamePayer" name="lNamePayer" required="required" checkText="checkText">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-lg-4">
+                                        <label for="passportPayer">Passport</label>
+                                        <input class="form-control" type="text" id="passportPayer" name="passportPayer">
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label for="identityCardPayer">บัตรประจำตัวประชาชน</label>
+                                        <input class="form-control" type="number" maxlength="13" minlength="13" id="identityCardPayer" name="identityCardPayer" checkID="checkID">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-lg-4">
+                                        <label for="occupationPayer">อาชีพ</label>
+                                        <select class="form-control" id="occupationPayer" name="occupationPayer" checkNA="checkNA">
+                                            @if (ViewBag.Occupation != null)
+                                            {
+                                                foreach (var item in ViewBag.Occupation)
+                                                {
+                                                    <option value="@item.OccupationId">@item.Occupation</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label for="occupationLevelPayer">ระดับอาชีพ</label>
+                                        <select class="form-control" id="occupationLevelPayer" name="occupationLevelPayer" checkNA="checkNA"></select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <div class="col-lg-4">
+                                        <label for="mobilePhonePayer">โทรศัพท์มือถือ</label>
+                                        <input class="form-control" type="text" id="mobilePhonePayer" name="mobilePhonePayer" required="required" maxlength="10">
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label for="emailPayer">Email</label>
+                                        <input class="form-control" type="email" id="emailPayer" name="emailPayer">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-lg-12">
+                                        <div style="margin-top: 25px !important">
+                                            <!-- Nav tabs -->
+                                            <ul class="nav nav-tabs" role="tablist">
+                                                <li role="presentation" class="active"><a href="#addressPayer_H" aria-controls="addressPayer_H" role="tab" data-toggle="tab">ที่อยู่ตามบัตรประชาชน</a></li>
+                                                <li role="presentation"><a href="#addressPayer_W" aria-controls="addressPayer_W" role="tab" data-toggle="tab">ที่อยู่ที่ทำงาน</a></li>
+                                            </ul>
+
+                                            <!-- Tab panes -->
+                                            <div class="tab-content">
+                                                @* ที่อยู่ตามบัตรประชาชน *@
+                                                <div role="tabpanel" class="tab-pane active" id="addressPayer_H">
+                                                    <div class="form-group row">
+                                                        <div class="col-lg-4">
+                                                            <label for="addressNoPayer_H">เลขที่</label>
+                                                            <input class="form-control" type="text" name="addressNoPayer_H" id="addressNoPayer_H" required="required" />
+                                                        </div>
+                                                        <div class="col-lg-4">
+                                                            <label for="organizationNamePayer_H">ชื่อหน่วยงาน</label>
+                                                            <input class="form-control" type="text" name="organizationNamePayer_H" id="organizationNamePayer_H" required="required" />
+                                                        </div>
+                                                        <div class="col-lg-4">
+                                                            <label for="villagePayer_H">หมู่บ้าน</label>
+                                                            <input class="form-control" type="text" name="villagePayer_H" id="villagePayer_H" required="required" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group row">
+                                                        <div class="col-lg-4">
+                                                            <label for="unitPayer_H">หมู่</label>
+                                                            <input class="form-control" type="text" name="unitPayer_H" id="unitPayer_H" required="required" />
+                                                        </div>
+                                                        <div class="col-lg-4">
+                                                            <label for="floorPayer_H">ชั้น</label>
+                                                            <input class="form-control" type="text" name="floorPayer_H" id="floorPayer_H" required="required" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group row">
+                                                        <div class="col-lg-4">
+                                                            <label for="alleyPayer_H">ซอย</label>
+                                                            <input class="form-control" type="text" name="alleyPayer_H" id="alleyPayer_H" required="required" />
+                                                        </div>
+                                                        <div class="col-lg-4">
+                                                            <label for="roadPayer_H">ถนน</label>
+                                                            <input class="form-control" type="text" name="roadPayer_H" id="roadPayer_H" required="required" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group row">
+                                                        <div class="col-lg-4">
+                                                            <label for="provincePayer_H">จังหวัด</label>
+                                                            <select class="form-control" id="provincePayer_H" checkNA="checkNA">
+                                                                @if (ViewBag.Province != null)
+                                                                {
+                                                                    foreach (var item in ViewBag.Province)
+                                                                    {
+                                                                        <option value="@item.ProvinceId">@item.Province</option>
+                                                                    }
+
+                                                                }
+                                                            </select>
+                                                            <input type="hidden" value="" name="provincePayer_H_hidden" id="provincePayer_H_hidden">
+                                                        </div>
+                                                        <div class="col-lg-4">
+                                                            <label for="districtPayer_H">อำเภอ</label>
+                                                            <select class="form-control" name="districtPayer_H" id="districtPayer_H"></select>
+                                                            <input type="hidden" value="" name="districtPayer_H_hidden" id="districtPayer_H_hidden">
+                                                        </div>
+                                                        <div class="col-lg-4">
+                                                            <label for="sub-districtPayer_H">ตำบล</label>
+                                                            <select class="form-control" name="sub-districtPayer_H" id="sub-districtPayer_H"></select>
+                                                            <input type="hidden" value="" name="sub-districtPayer_H_hidden" id="sub-districtPayer_H_hidden">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group row">
+                                                        <div class="col-lg-4">
+                                                            <label for="zipcodePayer_H">ไปรษณีย์</label>
+                                                            <input class="form-control" type="text" name="zipcodePayer_H" id="zipcodePayer_H" required="required" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                @* ที่อยู่ที่ทำงาน *@
+                                                <div role="tabpanel" class="tab-pane" id="addressPayer_W">
+                                                    <div class="form-group row">
+                                                        <div class="col-lg-4">
+                                                            <label for="chkCopyAddressPayer_W" style="cursor:pointer;margin-top: 15px;">
+                                                                <input class="form-control" type="button" name="chkCopyAddressPayer_W" id="chkCopyAddressPayer_W" value=" คัดลอกที่อยู่ตามบัตรประชาชน" />
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group row">
+                                                        <div class="col-lg-4">
+                                                            <label for="addressNoPayer_W">เลขที่</label>
+                                                            <input class="form-control addressPayer_W" type="text" name="addressNoPayer_W" id="addressNoPayer_W" required="required" />
+                                                        </div>
+                                                        <div class="col-lg-4">
+                                                            <label for="organizationNamePayer_W">ชื่อหน่วยงาน</label>
+                                                            <input class="form-control addressPayer_W" type="text" name="organizationNamePayer_W" id="organizationNamePayer_W" required="required" />
+                                                        </div>
+                                                        <div class="col-lg-4">
+                                                            <label for="villagePayer_W">หมู่บ้าน</label>
+                                                            <input class="form-control addressPayer_W" type="text" name="villagePayer_W" id="villagePayer_W" required="required" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group row">
+                                                        <div class="col-lg-4">
+                                                            <label for="unitPayer_W">หมู่</label>
+                                                            <input class="form-control addressPayer_W" type="text" name="unitPayer_W" id="unitPayer_W" required="required" />
+                                                        </div>
+                                                        <div class="col-lg-4">
+                                                            <label for="floorPayer_W">ชั้น</label>
+                                                            <input class="form-control addressPayer_W" type="text" name="floorPayer_W" id="floorPayer_W" required="required" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group row">
+                                                        <div class="col-lg-4">
+                                                            <label for="alleyPayer_W">ซอย</label>
+                                                            <input class="form-control addressPayer_W" type="text" name="alleyPayer_W" id="alleyPayer_W" required="required" />
+                                                        </div>
+                                                        <div class="col-lg-4">
+                                                            <label for="roadPayer_W">ถนน</label>
+                                                            <input class="form-control addressPayer_W" type="text" name="roadPayer_W" id="roadPayer_W" required="required" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group row">
+                                                        <div class="col-lg-4">
+                                                            <label for="provincePayer_W">จังหวัด</label>
+                                                            <select class="form-control addressPayer_W" name="provincePayer_W" id="provincePayer_W" checkNA="checkNA">
+                                                                @if (ViewBag.Province != null)
+                                                                {
+                                                                    foreach (var item in ViewBag.Province)
+                                                                    {
+                                                                        <option value="@item.ProvinceId">@item.Province</option>
+                                                                    }
+
+                                                                }
+                                                            </select>
+                                                            <input type="hidden" value="" name="provincePayer_W_hidden" id="provincePayer_W_hidden">
+                                                        </div>
+                                                        <div class="col-lg-4">
+                                                            <label for="districtPayer_W">อำเภอ</label>
+                                                            <select class="form-control addressPayer_W" name="districtPayer_W" id="districtPayer_W"></select>
+                                                            <input type="hidden" value="" name="districtPayer_W_hidden" id="districtPayer_W_hidden">
+                                                        </div>
+                                                        <div class="col-lg-4">
+                                                            <label for="sub-districtPayer_W">ตำบล</label>
+                                                            <select class="form-control addressPayer_W" name="sub-districtPayer_W" id="sub-districtPayer_W"></select>
+                                                            <input type="hidden" value="" name="sub-districtPayer_W_hidden" id="sub-districtPayer_W_hidden">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group row">
+                                                        <div class="col-lg-4">
+                                                            <label for="zipcode2Payer">ไปรษณีย์</label>
+                                                            <input class="form-control addressPayer_W" type="text" name="zipcodePayer_W" id="zipcodePayer_W" required="required" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <input type="hidden" name="applicationIdPayer_hidden" id="applicationIdPayer_hidden" />
+            </form>
+        </div>
+        @* ข้อมูลกรมธรรม์ tab 3 *@
+        <div role="tabpanel" class="tab-pane" id="tab3">
+            <form id="formApplication">
+                <section>
+                    <div class="box box-default">
+                        <div class="box-header with-border">
+                            <div class="box-title">
+                                ข้อมูล Application
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="form-group row">
+                                <div class="col-lg-3">
+                                    <label for="insuranceCompany">บริษัทประกัน</label>
+                                    <select type="text" class="form-control" id="insuranceCompany" name="insuranceCompany" checkNA="checkNA">
+                                        @if (ViewBag.InsuranceCompany != null)
+                                        {
+                                            foreach (var item in ViewBag.InsuranceCompany)
+                                            {
+                                                <option value="@item.OrganizeId">@item.Organize</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-lg-3">
+                                    <label for="product">แผนประกัน</label>
+                                    <select type="text" class="form-control" id="product" name="product" checkNA="checkNA"></select>
+                                </div>
+                                <div class="col-lg-3">
+                                    <label id="lblValidMaxCover" style="color:red;padding-top: 30px;"></label>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-3">
+                                    <label for="startCoverDate">วันที่เริ่มคุ้มครอง</label>
+                                    <input type="text" class="form-control" id="startCoverDate" name="startCoverDate" data-date-language="th-th" data-provide="datepicker" />
+                                </div>
+                                <div class="col-lg-3">
+                                    <label for="endCoverDate">วันที่สิ้นสุดความคุ้มครอง</label>
+                                    <input type="text" class="form-control" id="endCoverDate" name="endCoverDate" readonly="readonly" />
+                                </div>
+                                <div class="col-lg-3">
+                                    <label id="lblValidBMI" style="padding-top: 30px;"></label>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-3">
+                                    <label for="coverage">ทุนประกัน</label>
+                                    <label class="form-control" id="coverage" name="coverage" readonly="readonly"></label>
+                                </div>
+                                <div class="col-lg-3">
+                                    <label for="premium">เบี้ยประกัน</label>
+                                    <label class="form-control" id="premium" name="premium" readonly="readonly"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="box box-default">
+                        <div class="box-header with-border">
+                            <div class="box-title">ข้อมูลตัวแทน</div>
+                        </div>
+                        <div class="box-body">
+                            <div class="form-group row">
+                                <div class="col-lg-4">
+                                    <label for="agentCode">รหัสตัวแทน</label>
+                                    <select class="form-control select-agen" type="text" name="agentCode" id="agentCode" required="required" style="width: 100%" checkNA="checkNA"></select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-4">
+                                    <label for="carCode">รหัสเจ้าของรถ</label>
+                                    <select class="form-control select-car" type="text" name="carCode" id="carCode" required="required" style="width: 100%" checkNA="checkNA"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="box box-default">
+                        <div class="box-header with-border">
+                            <div class="box-title">ข้อมูลการชำระเบี้ย</div>
+                        </div>
+                        <div class="box-body">
+                            <div class="form-group row">
+                                <div class="col-lg-3">
+                                    <label for="billBook">เล่มที่ใบรับฝากเงิน</label>
+                                    <input class="form-control" type="text" name="billBook" id="billBook" required="required" />
+                                </div>
+                                <div class="col-lg-3">
+                                    <label for="billNo">เลขที่ใบรับฝากเงิน</label>
+                                    <input class="form-control" type="text" name="billNo" id="billNo" required="required" />
+                                </div>
+                                <div class="col-lg-3">
+                                    <label for="billDate">วันที่ใบรับฝากเงิน</label>
+                                    <input class="form-control datepicker" type="text" name="billDate" id="billDate" data-date-language="th-th" data-provide="datepicker" required="required" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="box box-default">
+                        <div class="box-header with-border">
+                            <div class="box-title">ความประสงค์และเปิดเผยข้อมูลต่อสรรพากร</div>
+                        </div>
+                        <div class="box-body">
+                            <div class="form-group row">
+                                <div class="col-lg-5">
+                                    <ul class="answerList">
+                                        <li>
+
+                                            <label>
+                                                <input type="radio" name="allowRD" id="allowRD_TRUE" value="2">
+                                                &nbsp; &nbsp; มีความประสงค์และเปิดเผยข้อมูลเบี้ยต่อสรรพากร
+                                            </label>
+                                        </li>
+                                        <li>
+                                            <label>
+                                                <input type="radio" name="allowRD" id="allowRD_FALSE" value="3">
+                                                &nbsp;&nbsp; ไม่มีความประสงค์และเปิดเผยข้อมูลเบี้ยต่อสรรพากร
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <input type="hidden" name="applicationIdPolicy_hidden" id="applicationIdPolicy_hidden" />
+            </form>
+        </div>
+        @* ข้อมูลผู้รับผลประโยชน์ tab 4 *@
+        <div role="tabpanel" class="tab-pane" id="tab4">
+            <form id="formHeirs">
+                <div class="box box-default">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">ข้อมูลผู้รับผลประโยชน์</h3>
+                    </div>
+                    <div class="box-body">
+                        <table id="tableHeirs" class="table table-bordered table-striped" style="width:100%"></table>
+                        <br />
+                        <button class="btn btn-info" data-toggle="modal" data-target="#myModalAddHeirs" id="btnAddHeirs"><i class="fa fa-plus"></i>เพิ่ม</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        @* ข้อมูลด้านสุขภาพ tab 5 *@
+        <div role="tabpanel" class="tab-pane" id="tab5">
+            <form id="formQuestionnaire">
+                <!--A1-->
+                <div class="box box-default">
+                    <div class="box-header with-border">
+                        <div class="box-title" style="font-size: 16px;">1.พ่อ แม่ พี่หรือน้องของผู้เอาประกันภัย เคยเป็นหรือเสียชีวิตจากโรคมะเร็งดังต่อไปนี้ก่อนอายุ 50 ปีหรือไม่? โปรดระบุคคลที่เคยเป็นและโรคมะเร็งที่เป็น</div>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <ul class="answerList">
+                            <li>
+                                <label>
+                                    <input type="radio" name="A1" id="A1_TRUE" value="1">
+                                    &nbsp; &nbsp; เคย
+                                </label>
+                            </li>
+                            <li id="Sub_A1" style="padding-left:30px;display:none">
+                                <label class="col-lg-3" style="display: inline-block;float: none !important;">
+                                    <input type="checkbox" name="child_A1" id="A1_01" value="A1_01"> มะเร็งเต้านม
+                                </label>
+
+                                <label class="col-lg-3" style="display: inline-block;float: none !important;">
+                                    <input type="checkbox" name="child_A1" id="A1_02" value="A1_02"> มะเร็งมดลูกหรือมะเร็งปากมดลูก
+                                </label>
+
+                                <label class="col-lg-3" style="display: inline-block;float: none !important;">
+                                    <input type="checkbox" name="child_A1" id="A1_03" value="A1_03"> มะเร็งรังไข่
+                                </label>
+                                <label class="col-lg-3" style="display: inline-block;float: none !important;">
+                                    <input type="checkbox" name="child_A1" id="A1_04" value="A1_04"> มะเร็งลำไส้
+                                </label>
+                                <label class="col-lg-3" style="display: inline-block;float: none !important;">
+                                    <input type="checkbox" name="child_A1" id="A1_05" value="A1_05"> มะเร็งจอตา
+                                </label>
+                                <label class="col-lg-3" style="display: inline-block;float: none !important;">
+                                    <input type="checkbox" name="child_A1" id="A1_06" value="A1_06"> มะเร็งเม็ดเลือดขาว
+                                </label>
+                                <label class="col-lg-12" style="display: inline-block;float: none !important;">
+                                    <span style="color:red">*</span>โปรดระบุบุคคลที่เคยเป็น..
+                                    <textarea name="A1_07" id="A1_07" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px"></textarea>
+                                </label>
+                            </li>
+                            <li>
+                                <label>
+                                    <input type="radio" name="A1" id="A1_FALSE" value="0">
+                                    &nbsp; &nbsp; ไม่มีท่านใดตามที่กล่าว เคยเป็นมะเร็งตามที่ระบุไว้
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <!--END A1-->
+                <!--A2-->
+                <div class="box box-default">
+                    <div class="box-header with-border">
+                        <div class="box-title" style="font-size: 16px;">2.ประวัติการสูบบุหรี่</div>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <ul class="answerList">
+                            <li>
+                                <label>
+                                    <input type="radio" name="A2" id="A2_TRUE" value="1">
+                                    &nbsp; &nbsp; สูบ
+                                </label>
+                            </li>
+                            <li id="Sub_A2" style="padding-left:30px;display:none">
+                                <label>
+                                    <input type="radio" name="child_A2" id="A2_01" value="A2_01"> สูบน้อยกว่า 15 มวน/วัน
+                                </label>
+
+                                <label>
+                                    <input type="radio" name="child_A2" id="A2_02" value="A2_02"> สูบมากกว่า 15 มวน/วัน
+                                </label>
+                            </li>
+                            <li>
+                                <label>
+                                    <input type="radio" name="A2" id="A2_FALSE" value="0">
+                                    &nbsp; &nbsp; ไม่สูบ
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <!--END A2-->
+                <!--A3-->
+                <div class="box box-default">
+                    <div class="box-header with-border">
+                        <div class="box-title" style="font-size: 16px;">3.ผู้ขอเอาประกันภัยเคยป่วย หรือได้รับการรักษาจากแพทย์ด้วยโรคต่อไปนี้ หรือได้รับเชื้อต่อไปนี้หรือไม่</div>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <ul class="answerList">
+                            <li>
+                                <label>
+                                    <input type="radio" name="A3" id="A3_TRUE" value="1">
+                                    &nbsp; &nbsp; เคย
+                                </label>
+                            </li>
+                            <li id="Sub_A3" style="padding-left:30px;display:none">
+                                <label class="col-lg-4" style="display:inline-block;float:none">
+                                    <input type="radio" name="child_A3" id="A3_01" value="A3_01"> โรคไวรัสตับอักเสบชนิด B,C
+                                </label>
+                                <label class="col-lg-4" style="display:inline-block;float:none">
+                                    <input type="radio" name="child_A3" id="A3_02" value="A3_02"> โรคเอดส์ หรือมีเลือดบวกต่อไวรัส HIV
+                                </label>
+                                <label class="col-lg-4" style="display:inline-block;float:none">
+                                    <input type="radio" name="child_A3" id="A3_03" value="A3_03"> ปอดอักเสบเรื้อรัง(ยังต้องรักษาต่อเนื่อง)
+                                </label>
+                                <label class="col-lg-4" style="display:inline-block;float:none">
+                                    <input type="radio" name="child_A3" id="A3_04" value="A3_04"> ลำไส้ใหญ่อักเสบเรื้อรัง(ยังต้องรักษาต่อเนื่อง)
+                                </label>
+                                <label class="col-lg-4" style="display:inline-block;float:none">
+                                    <input type="radio" name="child_A3" id="A3_05" value="A3_05"> ตับแข็ง ตับอักเสบ
+                                </label>
+                                <label class="col-lg-5" style="display:inline-block;float:none">
+                                    <input type="radio" name="child_A3" id="A3_06" value="A3_06"> ปากมดลูก หรือ ช่องคลอดอักเสบเรื้อรัง(ยังต้องรักษาต่อเนื่อง)
+                                </label>
+                                <label class="col-lg-4" style="display:inline-block;float:none">
+                                    <input type="radio" name="child_A3" id="A3_07" value="A3_07"> โรคมะเร็ง
+                                </label>
+                                <label class="col-lg-4" style="float:none">
+                                    <input type="radio" name="child_A3" id="A3_08" value="A3_08"> เนื้องอก ก้อนเนื้อ ตุ่มเนื้อ
+                                </label>
+                                <div id="Sub_A3_08" style="display:none">
+                                    <label class="col-lg-4" style="display: inline-block;float: none !important;margin-left: 30px;">
+                                        <span style="color:red">*</span>โปรดระบุประเภท
+                                        <input type="text" class="form-control" name="A3_08_01" id="A3_08_01" style="display: block;">
+                                    </label>
+                                    <label class="col-lg-4" style="display: inline-block;float: none !important;margin-left: 30px;">
+                                        <span style="color:red">*</span>เป็นที่อวัยวะ
+                                        <input type="text" class="form-control" name="A3_08_02" id="A3_08_02" style="display: block;">
+                                    </label>
+
+                                    <label class="col-lg-4" style="float:none;margin-left: 30px;">
+                                        <input type="radio" name="child_A3_08" id="A3_08_03" value="A3_08_03"> ปัจจุบันยังเป็นอยู่และไม่ได้ผ่าตัด
+                                    </label>
+                                    <label class="col-lg-4" style="float:none;margin-left: 30px;">
+                                        <input type="radio" name="child_A3_08" id="A3_08_04" value="A3_08_04"> ผ่าตัดออกแล้วแต่ไม่เกิน 2 ปี ก่อนขอเอาประกันภัย
+                                    </label>
+                                    <label class="col-lg-4" style="float:none;margin-left: 30px;">
+                                        <input type="radio" name="child_A3_08" id="A3_08_05" value="A3_08_05"> ผ่าตัดออกแล้วเกินกว่า 2 ปี ก่อนขอเอาประกันภัย
+                                    </label>
+                                    <label class="col-lg-4" style="display: inline-block;float: none !important;margin-left: 30px;">
+                                        <span style="color:red">*</span>เมื่อเดือน/ปี
+                                        <input type="text" class="form-control datepicker" data-date-language="th-th" data-provide="15705" name="A3_08_06" id="A3_08_06" style="display: block;">
+                                    </label>
+                                    <label class="col-lg-4" style="display: inline-block;float: none !important;margin-left: 30px;">
+                                        <span style="color:red">*</span>โรงพยาบาล
+                                        <input type="text" class="form-control" name="A3_08_07" id="A3_08_07" style="display: block;">
+                                    </label>
+
+                                    <span style="display:block;margin-left: 30px;"><strong>ผลตรวจชิ้นเนื้อ</strong></span>
+                                    <label class="col-lg-2" style="display:inline-block;float:none;margin-left: 30px;">
+                                        <input type="radio" name="childA3_08_Sub_08_09" id="A3_08_08" value="A3_08_08"> ปกติ
+                                    </label>
+                                    <label class="col-lg-2" style="display:inline-block;float:none;margin-left: 30px;">
+                                        <input type="radio" name="childA3_08_Sub_08_09" id="A3_08_09" value="A3_08_09"> ไม่ปกติ
+                                    </label>
+
+                                    <span style="display:block;margin-left: 30px;"><strong>แพทย์นัดติดตามผลเรื่องเนื้องอก ก้อนเนื้อ ตุ่มเนื้อ ทุกๆ</strong></span>
+                                    <label class="col-lg-2" style="display:inline-block;float:none;margin-left: 30px;">
+                                        <input type="radio" name="childA3_08_Sub_10_11_12_13" id="A3_08_10" value="A3_08_10"> 3 เดือน
+                                    </label>
+                                    <label class="col-lg-2" style="display:inline-block;float:none;margin-left: 30px;">
+                                        <input type="radio" name="childA3_08_Sub_10_11_12_13" id="A3_08_11" value="A3_08_11"> 6 เดือน
+                                    </label>
+                                    <label class="col-lg-2" style="display:inline-block;float:none;margin-left: 30px;">
+                                        <input type="radio" name="childA3_08_Sub_10_11_12_13" id="A3_08_12" value="A3_08_12"> 1 ปี
+                                    </label>
+                                    <label class="col-lg-2" style="display:inline-block;float:none;margin-left: 30px;">
+                                        <input type="radio" name="childA3_08_Sub_10_11_12_13" id="A3_08_13" value="A3_08_13"> มากกว่า 1 ปี
+                                    </label>
+                                </div>
+
+                                <label class="col-lg-4" style="float:none">
+                                    <input type="radio" name="child_A3" id="A3_09" value="A3_09"> ซีสต์
+                                </label>
+                                <div id="Sub_A3_09" style="display:none">
+                                    <label class="col-lg-4" style="display: inline-block;float: none !important;margin-left: 30px;">
+                                        <span style="color:red">*</span>โปรดระบุประเภท
+                                        <input type="text" class="form-control" name="A3_09_01" id="A3_09_01" style="display: block;">
+                                    </label>
+                                    <label class="col-lg-4" style="display: inline-block;float: none !important;margin-left: 30px;">
+                                        <span style="color:red">*</span>เป็นที่อวัยวะ
+                                        <input type="text" class="form-control" name="A3_09_02" id="A3_09_02" style="display: block;">
+                                    </label>
+
+                                    <label class="col-lg-4" style="float:none;margin-left: 30px;">
+                                        <input type="radio" name="child_A3_09" id="A3_09_03" value="A3_09_03"> ปัจจุบันยังเป็นอยู่และไม่ได้ผ่าตัด
+                                    </label>
+                                    <label class="col-lg-4" style="float:none;margin-left: 30px;">
+                                        <input type="radio" name="child_A3_09" id="A3_09_04" value="A3_09_04"> ผ่าตัดออกแล้วแต่ไม่เกิน 2 ปี ก่อนขอเอาประกันภัย
+                                    </label>
+                                    <label class="col-lg-4" style="float:none;margin-left: 30px;">
+                                        <input type="radio" name="child_A3_09" id="A3_09_05" value="A3_09_05"> ผ่าตัดออกแล้วเกินกว่า 2 ปี ก่อนขอเอาประกันภัย
+                                    </label>
+                                    <label class="col-lg-4" style="display: inline-block;float: none !important;margin-left: 30px;">
+                                        <span style="color:red">*</span>เมื่อเดือน/ปี
+                                        <input type="text" class="form-control datepicker" data-date-language="th-th" data-provide="datepicker" name="A3_09_06" id="A3_09_06" style="display: block;">
+                                    </label>
+                                    <label class="col-lg-4" style="display: inline-block;float: none !important;margin-left: 30px;">
+                                        <span style="color:red">*</span>โรงพยาบาล
+                                        <input type="text" class="form-control" name="A3_09_07" id="A3_09_07" style="display: block;">
+                                    </label>
+
+                                    <span style="display:block;margin-left: 30px;"><strong>ผลตรวจชิ้นเนื้อ</strong></span>
+                                    <label class="col-lg-2" style="display:inline-block;float:none;margin-left: 30px;">
+                                        <input type="radio" name="childA3_09_Sub_08_09" id="A3_09_08" value="A3_09_08"> ปกติ
+                                    </label>
+                                    <label class="col-lg-2" style="display:inline-block;float:none;margin-left: 30px;">
+                                        <input type="radio" name="childA3_09_Sub_08_09" id="A3_09_09" value="A3_09_09"> ไม่ปกติ
+                                    </label>
+
+                                    <span style="display:block;margin-left: 30px;"><strong>แพทย์นัดติดตามผลเรื่องเนื้องอก ก้อนเนื้อ ตุ่มเนื้อ ทุกๆ</strong></span>
+                                    <label class="col-lg-2" style="display:inline-block;float:none;margin-left: 30px;">
+                                        <input type="radio" name="childA3_09_Sub_10_11_12_13" id="A3_09_10" value="A3_09_10"> 3 เดือน
+                                    </label>
+                                    <label class="col-lg-2" style="display:inline-block;float:none;margin-left: 30px;">
+                                        <input type="radio" name="childA3_09_Sub_10_11_12_13" id="A3_09_11" value="A3_09_11"> 6 เดือน
+                                    </label>
+                                    <label class="col-lg-2" style="display:inline-block;float:none;margin-left: 30px;">
+                                        <input type="radio" name="childA3_09_Sub_10_11_12_13" id="A3_09_12" value="A3_09_12"> 1 ปี
+                                    </label>
+                                    <label class="col-lg-2" style="display:inline-block;float:none;margin-left: 30px;">
+                                        <input type="radio" name="childA3_09_Sub_10_11_12_13" id="A3_09_13" value="A3_09_13"> มากกว่า 1 ปี
+                                    </label>
+                                </div>
+                            </li>
+
+                            <li>
+                                <label>
+                                    <input type="radio" name="A3" id="A3_FALSE" value="0">
+                                    &nbsp; &nbsp; ไม่เคยเป็นโรคใดๆตามที่ระบุ
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <!--END A3-->
+                <!--A4-->
+                <div class="box box-default">
+                    <div class="box-header with-border">
+                        <div class="box-title" style="font-size: 16px;">4.ท่านมีหรือกำลังขอเอาประกันภัยโรคมะเร็งกับ บริษัท ธนชาตประกันภัย จำกัด(มหาชน) หรือมีการประกันภัยอื่นใดที่ให้ความคุ้มครองโรคมะเร็งหรือไม่ ถ้ามี โปรดแถลงรายละเอียด</div>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <ul class="answerList">
+                            <li>
+                                <label>
+                                    <input type="radio" name="A4" id="A4_FALSE" value="0">
+                                    &nbsp; &nbsp; ไม่มี
+                                </label>
+                            </li>
+                            <li>
+                                <label>
+                                    <input type="radio" name="A4" id="A4_TRUE" value="1">
+                                    &nbsp; &nbsp; มี
+                                </label>
+                            </li>
+
+                            <li id="Sub_A4" style="padding-left:30px;display:none">
+                                <label class="col-lg-4" style="display: inline-block;float: none !important;margin-left: 30px;">
+                                    <span style="color:red">*</span>ชื่อบริษัท
+                                    <input type="text" class="form-control" name="A4_01" id="A4_01" style="display: block;">
+                                </label>
+                                <label class="col-lg-4" style="display: inline-block;float: none !important;margin-left: 30px;">
+                                    <span style="color:red">*</span>จำนวนคนเอาประกันภัย
+                                    <input type="text" class="form-control" name="A4_02" id="A4_02" style="display: block;">
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <!--END A4-->
+                <input type="hidden" name="applicationIdQuestionnaire_hidden" id="applicationIdQuestionnaire_hidden" />
+            </form>
+        </div>
+        @* เอกสาร tab 6 *@
+        <div role="tabpanel" class="tab-pane" id="tab6">
+            <section>
+                <div class="box box-default">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">เอกสาร</h3>
+                    </div>
+                    <div class="box-body">
+                        <div class="col-md-12 col-sm-12">
+                            <table id="dtDoc" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                        <div class="col-sm-2 col-md-2 pull-right">
+                            <button type="button" class="btn btn-block btn-info" id="btnRefresh" onclick="RefreshDoc()">Refresh</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        @* บันทึกข้อความ tab 7 *@
+        <div role="tabpanel" class="tab-pane" id="tab7">
+            <div class="box box-default">
+                <div class="box-header with-border">
+                    <h3 class="box-title">บันทึกข้อความ</h3>
+                </div>
+                <div class="box-body">
+                    <div class="col-sm-12 col-md-12">
+                        <table id="dtMemo" class="table table-bordered table-striped" style="width: 100%"></table>
+                    </div>
+                    <div class="col-sm-2 col-md-2 pull-left">
+                        <button class="btn btn-info" data-toggle="modal" data-target="#myModalAddMessage"><i class="fa fa-plus"></i>เพิ่ม</button>
+                    </div>
+                    @if (ViewBag.AppStatus == 2)
+                    {
+                        <div class="col-sm-2 col-md-2 pull-right">
+                            <button type="button" class="btn btn-block btn-success" id="btnSendToApprove" onclick="SendToApprove()">บันทึกและส่งพิจารณา</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <ul class="pager wizard">
+            <li class="previous"><span class="default" style="color:gray"><i class="fa fa-arrow-circle-left"></i> ย้อนกลับ</span></li>
+            <li class="next"><span class="default" style="color:#1693dc" id="btnNext">ถัดไป <i class="fa fa-arrow-circle-right"></i> </span></li>
+        </ul>
+    </div>
+</div>
+@* modal add message *@
+<!-- Modal -->
+<div class="modal fade" id="myModalAddMessage" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color:#1693dc">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">เพิ่มบันทึกข้อความ</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>ประเภทข้อความ</label>
+                    <select class="form-control" id="select_memoType" checkNA="checkNA">
+                        @foreach (var itm in ViewBag.MemoTypeList)
+                        {
+                            <option value="@itm.MemoTypeId">@itm.MemoType</option>
+                        }
+                    </select>
+                </div>
+                <textarea class="form-control" id="txtMemo" style="width:100%;height:10em"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-primary" id="btnSaveMemo">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Add Heirs -->
+<div class="modal fade" id="myModalAddHeirs" tabindex="-1" role="dialog" aria-labelledby="myModalAddHeirs">
+    <div class="modal-dialog" role="document">
+        <form id="formModalHeirs">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color:#1693dc">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">เพิ่มผู้รับผลประโยชน์</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="box box-default">
+                        <div class="box-header with-border">
+                            <div class="box-title">เพิ่มข้อมูล</div>
+                        </div>
+                        <div class="box-body">
+                            <div class="form-group row">
+                                <div class="col-lg-4">
+                                    <label for="relationHeirs" style="white-space: nowrap;">ความสัมพันธ์กับผู้เอาประกัน</label>
+                                    <select class="form-control" id="relationHeirs" name="relationHeirs" checkNA="checkNA">
+                                        @if (ViewBag.RelationType != null)
+                                        {
+                                            foreach (var item in ViewBag.RelationType)
+                                            {
+                                                <option value="@item.RelationTypeId">@item.RelationType</option>
+                                            }
+
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="sectionDetailHeirs1">
+                                <div class="form-group row">
+                                    <div class="col-lg-4">
+                                        <label for="titleNameHeirs">คำนำหน้า</label>
+                                        <select class="form-control" id="titleNameHeirs" name="titleNameHeirs" checkNA="checkNA">
+                                            @if (ViewBag.TitleName != null)
+                                            {
+                                                foreach (var item in ViewBag.TitleName)
+                                                {
+                                                    <option value="@item.TitleId">@item.Title</option>
+                                                }
+
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label for="fNameHeirs">ชื่อ</label>
+                                        <input class="form-control" type="text" id="fNameHeirs" name="fNameHeirs" required="required">
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label for="lNameHeirs">นามสกุล</label>
+                                        <input class="form-control" type="text" id="lNameHeirs" name="lNameHeirs" required="required">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box box-default">
+                        <div class="box-header with-border">
+                            <div class="box-title">ที่อยู่ตามบัตรประชาชนผู้รับผลประโยชน์</div>
+                        </div>
+                        <div id="sectionDetailHeirs2">
+                            <div class="box-body">
+                                <div class="form-group row">
+                                    <div class="col-lg-4">
+                                        <label for="addressNoHeirs">เลขที่</label>
+                                        <input class="form-control" type="text" name="addressNoHeirs" id="addressNoHeirs" required="required" />
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label for="organizationNameHeirs">ชื่อหน่วยงาน</label>
+                                        <input class="form-control" type="text" name="organizationNameHeirs" id="organizationNameHeirs" required="required" />
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label for="villageHeirs">หมู่บ้าน</label>
+                                        <input class="form-control" type="text" name="villageHeirs" id="villageHeirs" required="required" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <div class="col-lg-4">
+                                        <label for="unitHeirs">หมู่</label>
+                                        <input class="form-control" type="text" name="unitHeirs" id="unitHeirs" required="required" />
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label for="floorHeirs">ชั้น</label>
+                                        <input class="form-control" type="text" name="floorHeirs" id="floorHeirs" required="required" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <div class="col-lg-4">
+                                        <label for="alleyHeirs">ซอย</label>
+                                        <input class="form-control" type="text" name="alleyHeirs" id="alleyHeirs" required="required" />
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label for="roadHeirs">ถนน</label>
+                                        <input class="form-control" type="text" name="roadHeirs" id="roadHeirs" required="required" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <div class="col-lg-4">
+                                        <label for="provinceHeirs">จังหวัด</label>
+                                        <select class="form-control" id="provinceHeirs" checkNA="checkNA">
+                                            @if (ViewBag.Province != null)
+                                            {
+                                                foreach (var item in ViewBag.Province)
+                                                {
+                                                    <option value="@item.ProvinceId">@item.Province</option>
+                                                }
+
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label for="districtHeirs">อำเภอ</label>
+                                        <select class="form-control" name="districtHeirs" id="districtHeirs"></select>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label for="sub-districtHeirs">ตำบล</label>
+                                        <select class="form-control" name="sub-districtHeirs" id="sub-districtHeirs"></select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-lg-4">
+                                        <label for="zipcodeHeirs">ไปรษณีย์</label>
+                                        <input class="form-control addressHeirs" type="text" name="zipcodeHeirs" id="zipcodeHeirs" required="required" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">ยกเลิก</button>
+                    <button type="button" id="btnSaveHeirs" class="btn btn-primary">บันทึก</button>
+                </div>
+            </div>
+            <input type="hidden" name="applicationIdHeirs_hidden" id="applicationIdHeirs_hidden" />
+            <input type="hidden" name="personRelateApplicationId_hidden" id="personRelateApplicationId_hidden" />
+            
+            
+        </form>
+    </div>
+</div>
+@section ViewSpecificJavascript
+{
+    <script>
+        var appId = null;
+        var countHeirs;
+        var ManageHeirsType;
+        $(function () {
+            DisableNewApp();
+            LoadDefault();
+            loadSelectAgen();
+            loadSelectCar();
+
+            $('#formCustomer').validate().settings.ignore = "";
+            $('#formPayer').validate().settings.ignore = "";
+            $('#startCoverDate').datepicker({ format: 'dd/mm/yyyy', viewMode: "months", minViewMode: "months" ,autoclose:true});
+            $('#formApplication').validate({
+                rules:
+                {
+                    allowRD: { required: true },
+                },
+                messages:
+                {
+                    allowRD: { required: "<br>กรุณาเลือก..<br />" }
+                },
+                errorPlacement: function (error, element) {
+                    if (element.is(":radio")) {
+                        error.prependTo(element.parents('.answerList'));
+                    } else if (element.is(":checkbox")) {
+                        error.prependTo(element.parents('.answerList'));
+                    }
+                    else { // This is the default behavior
+                        error.insertAfter(element);
+                    }
+                }
+            });
+
+            $('#formQuestionnaire').validate({
+                rules:
+                {
+                    A1: { required: true },
+                    child_A1: { required: true },
+                    A1_07: { required: true },
+
+                    A2: { required: true },
+                    child_A2: { required: true },
+
+                    A3: { required: true },
+                    child_A3: { required: true },
+
+                    A3_08_01: { required: true },
+                    A3_08_02: { required: true },
+                    child_A3_08: { required: true },
+                    A3_08_06: { required: true  },
+                    A3_08_07: { required: true },
+                    childA3_08_Sub_08_09: { required: true },
+                    childA3_08_Sub_10_11_12_13: { required: true },
+
+                    A3_09_01: { required: true },
+                    A3_09_02: { required: true },
+                    child_A3_09: { required: true },
+                    A3_09_06: { required: true  },
+                    A3_09_07: { required: true },
+                    childA3_09_Sub_08_09: { required: true },
+                    childA3_09_Sub_10_11_12_13: { required: true },
+
+                    A4: { required: true },
+                    A4_01: { required: true },
+                    A4_02: { required: true }
+                },
+                messages:
+                {
+                    A1: { required: "<br>กรุณาเลือก..<br />" },
+                    child_A1: { required: "<br>กรุณาเลือก..<br />" },
+                    A1_07: { required: "<br>โปรดระบุ..<br />" },
+
+                    A2: { required: "<br>กรุณาเลือก..<br />" },
+                    child_A2: { required: "<br>กรุณาเลือก..<br />" },
+
+                    A3: { required: "<br>กรุณาเลือก..<br />" },
+                    child_A3: { required: "<br>กรุณาเลือก..<br />" },
+
+                    A3_08_01: { required: "<br>โปรดระบุ..<br />"  },
+                    A3_08_02: { required: "<br>โปรดระบุ..<br />" },
+                    child_A3_08: { required: "<br>กรุณาเลือก..<br />" },
+                    A3_08_06: { required: "<br>โปรดระบุ..<br />"  },
+                    A3_08_07: { required: "<br>โปรดระบุ..<br />" },
+                    childA3_08_Sub_08_09: { required: "<br>กรุณาเลือก..<br />" },
+                    childA3_08_Sub_10_11_12_13: { required: "<br>กรุณาเลือก..<br />" },
+
+                    A3_09_01: { required: "<br>โปรดระบุ..<br />"  },
+                    A3_09_02: { required: "<br>โปรดระบุ..<br />" },
+                    child_A3_09: { required: "<br>กรุณาเลือก..<br />" },
+                    A3_09_06: { required: "<br>โปรดระบุ..<br />"  },
+                    A3_09_07: { required: "<br>โปรดระบุ..<br />" },
+                    childA3_09_Sub_08_09: { required: "<br>กรุณาเลือก..<br />" },
+                    childA3_09_Sub_10_11_12_13: { equired: "<br>กรุณาเลือก..<br />" },
+
+                    A4: { required: "<br>กรุณาเลือก..<br />" },
+                    A4_01: { required: "<br>โปรดระบุ..<br />" },
+                    A4_02: { required: "<br>โปรดระบุ..<br />" }
+                },
+                errorPlacement: function (error, element) {
+                    if (element.is(":radio")) {
+                        error.prependTo(element.parents('.answerList'));
+                    } else if (element.is(":checkbox")) {
+                        error.prependTo(element.parents('.answerList'));
+                    }
+                    else { // This is the default behavior
+                        error.insertAfter(element);
+                    }
+                }
+            });
+
+            $('#rootwizard').bootstrapWizard({
+                onNext: function (tab, navigation, index) {
+                    if (tab[0].id == "li_tab1") {
+                        if (!checkOnline()) return false;
+                        if ($('#formCustomer').valid()) {
+                            var resultIDorPassport = checkIDorPassport($('#identityCard').val(), $('#passport').val());
+                             if (resultIDorPassport) {
+                                 if (appId == null) {
+                                     //ยังไม่มี appId  = INSERT
+                                     var result = InsertNewApp();
+                                     if (result) {
+                                         //get payer
+                                         GetNewAppPayer();
+                                         $('#btnPrevious').css('color', '#1693dc');
+                                     }
+                                     return result;
+                                 } else {
+                                     //มีแล้วให้ UPDATE
+                                     var result = UpdateNewApp();
+                                     if (result) {
+                                         //get payer โดย appid เช็คว่าถ้ามีข้อมูล payer จะโหลดข้อมูล payer ถ้าไม่มีจะเป็น บุคคลเดียวกัน
+                                         GetNewAppPayer();
+                                         $('#btnPrevious').css('color', '#1693dc');
+                                     }
+                                     return result;
+                                 }
+                             }
+                             return resultIDorPassport;
+                        }
+                        window.scrollTo(0, 0);
+                        return $('#formCustomer').valid();
+                    }
+                    else if (tab[0].id == "li_tab2") {
+                        if (!checkOnline()) return false;
+                        if ($('#formPayer').valid()) {
+                            debugger;
+                           var resultIDorPassport = checkIDorPassport($('#identityCardPayer').val(), $('#passportPayer').val());
+                            if (resultIDorPassport) {
+                                //update payer tab2
+                                var result = UpdateNewAppPayer();
+                                if (result) {
+                                    //load policy tab3
+                                    GetNewAppPolicy();
+                                }
+                                return result;
+                            }
+                            return resultIDorPassport;
+                        }
+
+                        return $('#formPayer').valid();
+                    }
+                    else if (tab[0].id == "li_tab3") {
+                        if (!checkOnline()) return false;
+                         if ($('#formApplication').valid()) {
+                             //update policy
+                             const result = UpdateNewAppPolicy();
+                             if (result) {
+                                 //load datatables heirs tab4
+                                 loadDatatablesHeirs();
+                             }
+                             return result;
+                        }
+
+                        return $('#formApplication').valid();
+                    }
+                    else if (tab[0].id == "li_tab4") {
+                        if (!checkOnline()) return false;
+                         var result = CheckHeirs();
+                         if (result) {
+                             //LOAD TAB 5 ข้อมูลสุขภาพ
+                             GetNewAppQuestionnaire();
+                         }
+                         return result;
+                    }
+                    else if (tab[0].id == "li_tab5") {
+                        if (!checkOnline()) return false;
+                         if ($('#formQuestionnaire').valid()) {
+                             //insert or update
+                             var result = InsertOrUpdateQuestionnaire();
+                             if (result) {
+                                 //LOAD TAB 6 เอกสาร
+                                 //get doc
+                                 GetDocEditDetail_DT();
+                             }
+                             return result;
+                         }
+
+                          return $('#formQuestionnaire').valid();
+                    }
+                    else if (tab[0].id == "li_tab6") {
+                        if (!checkOnline()) return false;
+                         var result = CheckDoc();
+                         if (result) {
+                             //get memo
+                             //LOAD TAB 7 บันทึกข้อความ
+                             GetMemo_dt();
+
+                             $('#btnNext').hide();
+                         }
+                         return result;
+                    }
+                        window.scrollTo(0, 0);
+                },
+                onTabClick: function (tab, navigation, index) {
+                    return false;
+                },
+                onPrevious: function (tab, navigation, index) {
+
+                    if (tab[0].id == "li_tab2") {
+                        //LOAD DATA CUSTOMER
+                        GetNewAppCustomer();
+                        $('#btnPrevious').css('color', 'gray');
+                    }
+                    else if (tab[0].id == "li_tab3") {
+
+                        //LOAD DATA PAYER
+                        GetNewAppPayer();
+                    }
+                    else if (tab[0].id == "li_tab4") {
+                         //LOAD DATA Application
+                         GetNewAppPolicy();
+                    }
+                    else if (tab[0].id == "li_tab5") {
+                          //LOAD DATA Heirs
+                         loadDatatablesHeirs();
+                    }
+                    else if (tab[0].id == "li_tab6") {
+                          //LOAD DATA Questionnaire
+                          GetNewAppQuestionnaire();
+                    }
+                    else if (tab[0].id == "li_tab7") {
+                          //LOAD DATA Document
+                         //get doc
+                        GetDocEditDetail_DT();
+                        $('#btnNext').show();
+                    }
+                     window.scrollTo(0, 0);
+                }
+            });
+
+            //***Event***
+            //Customer
+            //OccupationLevel
+            GetOccupationLevel('occupationLevel', $('#occupation').val());
+            //Default ที่อยู่ 1
+            LoadDistrict('district_C', null, $('#province_C').val());
+            //Default ที่อยู่ 2
+            LoadDistrict('district_H', null, $('#province_H').val());
+            //Default ที่อยู่ 3
+            LoadDistrict('district_W', null, $('#province_W').val());
+
+            //ค้นหา
+            $('#btnSearchPerson').on('click', function (e) {
+                e.preventDefault();
+                if ($('#txtNumber').val() != "") {
+                    PersonSearch();
+                }
+            });
+
+            //ค้นหา
+            $('#btnSearchPersonPayer').on('click', function (e) {
+                e.preventDefault();
+                if ($('#txtNumberPayer').val() != "") {
+                    PersonSearchPayer();
+                }
+            });
+
+            //วันเกิด
+            $('#birthDate').change(function(e){
+                  CalculateAge($(this).val())
+            });
+
+            //ที่อยู่ ปัจจุบัน Customer
+            $('#province_C').change(function (e) {
+                LoadDistrict('district_C',null, $(this).val());
+            });
+             $('#district_C').change(function (e) {
+                LoadSubDistrict('sub-district_C',null, $(this).val(),null);
+            });
+            $('#sub-district_C').change(function (e) {
+                LoadZipCode('zipcode_C', $(this).val());
+            });
+            //ที่อยู่ ตามบัตร ปชช Customer
+            $('#province_H').change(function (e) {
+                LoadDistrict('district_H',null, $(this).val());
+            });
+             $('#district_H').change(function (e) {
+                LoadSubDistrict('sub-district_H',null, $(this).val(),null);
+            });
+            $('#sub-district_H').change(function (e) {
+                LoadZipCode('zipcode_H', $(this).val());
+            });
+            //ที่อยู่ ที่ทำงาน Customer
+            $('#province_W').change(function (e) {
+                LoadDistrict('district_W',null, $(this).val());
+            });
+             $('#district_W').change(function (e) {
+                LoadSubDistrict('sub-district_W',null, $(this).val(),null);
+            });
+            $('#sub-district_W').change(function (e) {
+                LoadZipCode('zipcode_W', $(this).val());
+            });
+
+            //อาชีพผู้เอาประกัน
+             $('#occupation').change(function (e) {
+                GetOccupationLevel('occupationLevel', $(this).val());
+            });
+
+            $('#chkCopyAddress_H').on('click', function () {
+                LoadDistrict(`district_H`, null, $('#province_C').val());
+                CopyFromMainAddress("H");
+            });
+
+             $('#chkCopyAddress_W').on('click', function () {
+                  LoadDistrict(`district_W`, null, $('#province_C').val());
+                  CopyFromMainAddress("W");
+            });
+            //End Customer
+
+            //Payer
+            //ที่อยู่ ตามบัตร Payer
+            $('#provincePayer_H').change(function (e) {
+                LoadDistrict('districtPayer_H',null, $(this).val());
+            });
+            $('#districtPayer_H').change(function (e) {
+                LoadSubDistrict('sub-districtPayer_H',null ,$(this).val(),null);
+            });
+            $('#sub-districtPayer_H').change(function (e) {
+                LoadZipCode('zipcodePayer_H', $(this).val());
+            });
+            //ที่อยู่ ที่ทำงาน Payer
+            $('#provincePayer_W').change(function (e) {
+                LoadDistrict('districtPayer_W',null, $(this).val());
+            });
+            $('#districtPayer_W').change(function (e) {
+                LoadSubDistrict('sub-districtPayer_W',null, $(this).val(),null);
+            });
+            $('#sub-districtPayer_W').change(function (e) {
+                LoadZipCode('zipcodePayer_W', $(this).val());
+            });
+
+            //อาชีพผู้ชำระเบี้ย
+            $('#relationType').change(function (e) {
+                if ($(this).val() == 39) {
+                    GetNewAppCustomerSamePerson();
+                    //disabled input
+                    $("#sectionDetailPayer :input").prop("disabled", true);
+                } else {
+                    ClearDatailPayer();
+                    $("#sectionDetailPayer :input").prop("disabled", false);
+                }
+
+            });
+
+            $('#occupationPayer').change(function (e) {
+                GetOccupationLevel('occupationLevelPayer', $(this).val());
+            });
+
+            $('#chkCopyAddressPayer_W').on('click', function () {
+                LoadDistrict(`districtPayer_W`, null, $('#provincePayer_H').val());
+                CopyFromMainAddressPayer("W");
+            });
+
+            //End Payer
+
+            //TAB 4  กรมธรรม์
+            //วันเริ่มคุ้มครอง
+            $('#startCoverDate').change(function (e) {
+                GetProductByProductId($('#product').val());
+                CalculateBMI($(this).val());
+            });
+
+            $('#product').change(function (e) {
+                GetProductByProductId($(this).val());
+                CheckMaxCover($(this).val());
+            });
+            //ความประสงค์
+            $('input[name=allowRD').on('ifChecked',
+                function (e) {
+                        $(this).valid();
+                });
+
+            //TAB 5 ผุ้รับผลประโยชน์
+            $('#relationHeirs').change(function (e) {
+                if ($(this).val() == 39) {
+                    GetNewAppHeirsSamePerson();
+                    //disabled input
+                    $("#sectionDetailHeirs1 :input").prop("disabled", true);
+                    $("#sectionDetailHeirs2 :input").prop("disabled", true);
+                } else {
+                   ClearDatailModalHeirs()
+                    $("#sectionDetailHeirs1 :input").prop("disabled", false);
+                    $("#sectionDetailHeirs2 :input").prop("disabled", false);
+                }
+
+            });
+
+            $('#btnAddHeirs').on('click', function (e) {
+                e.preventDefault();
+                ManageHeirsType = "INSERT";
+                $('#relationHeirs').val(39).trigger('change');
+            });
+            $('#btnSaveHeirs').on('click', function (e) {
+                if ($('#formModalHeirs').valid()) {
+                    switch (ManageHeirsType) {
+                        case "INSERT":
+                            InsertHeirs();
+                            break;
+                          case "UPDATE":
+                            UpdateHeirs();
+                            break;
+                        default:
+                    }
+
+                }
+            });
+            $('#provinceHeirs').change(function (e) {
+                LoadDistrict('districtHeirs',null, $(this).val());
+            });
+            $('#districtHeirs').change(function (e) {
+                LoadSubDistrict('sub-districtHeirs',null ,$(this).val(),null);
+            });
+            $('#sub-districtHeirs').change(function (e) {
+                LoadZipCode('zipcodeHeirs', $(this).val());
+            });
+
+            //TAB 6 ข้อมูลด้านสุขภาพ
+            //A1
+            $('input[name=A1]').on('ifChecked',
+                function (e) {
+                    if ($(this).valid()) {
+                        switch ($(this).val()) {
+                            case '1':
+                                $('#Sub_A1').show();
+                                break;
+                            case '0': //เข้าพบ
+                                $('#Sub_A1').hide();
+                                $('input[name=child_A1]').iCheck('uncheck');
+                                $('textarea[name=A1_07]').val('');
+                                break;
+                            default:
+                        }
+                    }
+                });
+            //A2
+            $('input[name=A2]').on('ifChecked',
+                function (e) {
+                    if ($(this).valid()) {
+                        switch ($(this).val()) {
+                            case '1':
+                                $('#Sub_A2').show();
+                                break;
+                            case '0':
+                                $('#Sub_A2').hide();
+                                $('input[name=child_A2]').iCheck('uncheck');
+                                break;
+                            default:
+                        }
+                    }
+                });
+
+            //child_A2
+            $('input[name=child_A2]').on('ifChecked',
+                function (e) {
+                    $(this).valid()
+                });
+
+            //A3
+            $('input[name=A3]').on('ifChecked',
+                function (e) {
+                    if ($(this).valid()) {
+                        switch ($(this).val()) {
+                            case '1':
+                                $('#Sub_A3').show();
+                                break;
+                            case '0':
+                                $('#Sub_A3').hide();
+                                $('input[name=child_A3]').iCheck('uncheck');
+                                $('#Sub_A3_08').hide();
+                                $('#Sub_A3_09').hide();
+                                $('div#Sub_A3_08>label>div>input[type=radio],div#Sub_A3_09>label>div>input[type=radio]').iCheck('uncheck');
+                                $('div#Sub_A3_08>label>input[type=text],div#Sub_A3_09>label>input[type=text]').val('');
+                                break;
+                            default:
+                        }
+                    }
+                });
+            //Child A3
+            $('input[name=child_A3]').on('ifChecked',
+                function (e) {
+                    if ($(this).valid()) {
+                        switch (e.target.id) {
+                            case 'A3_08':
+                                $('#Sub_A3_08').show();
+                                $('#Sub_A3_09').hide();
+                                $('div#Sub_A3_09>label>div>input[type=radio]').iCheck('uncheck');
+                                $('div#Sub_A3_09>label>input[type=text]').val('');
+                                break;
+                            case 'A3_09':
+                                $('#Sub_A3_08').hide();
+                                $('#Sub_A3_09').show();
+                                $('div#Sub_A3_08>label>div>input[type=radio]').iCheck('uncheck');
+                                $('div#Sub_A3_08>label>input[type=text]').val('');
+                                break;
+                            default:
+                                $('#Sub_A3_08').hide();
+                                $('#Sub_A3_09').hide();
+                                $('div#Sub_A3_08>label>div>input[type=radio],div#Sub_A3_09>label>div>input[type=radio]').iCheck('uncheck');
+                                $('div#Sub_A3_08>label>input[type=text],div#Sub_A3_09>label>input[type=text]').val('');
+                                break;
+                        }
+                    }
+                });
+             $('input[name=child_A3_08]').on('ifChecked',
+                 function (e) {
+                     $(this).valid();
+                });
+                $('input[name=childA3_08_Sub_08_09]').on('ifChecked',
+                 function (e) {
+                     $(this).valid();
+                });
+                $('input[name=childA3_08_Sub_10_11_12_13]').on('ifChecked',
+                 function (e) {
+                     $(this).valid();
+                });
+            //A4
+            $('input[name=A4]').on('ifChecked',
+                function (e) {
+                    if ($(this).valid()) {
+                        switch ($(this).val()) {
+                            case '1':
+                                $('#Sub_A4').show();
+                                break;
+                            case '0':
+                                $('#Sub_A4').hide();
+                                $('input[name=child_A4]').iCheck('uncheck');
+                                break;
+                            default:
+                        }
+                    }
+                });
+            //END TAB 6
+
+            //save memo
+            $('#btnSaveMemo').click(() => {
+                if ($('#txtMemo').val() != "") {
+                    InsertMemo();
+                } else {
+                    swal_fail('กรุณาใส่ข้อความ');
+                }
+            });
+
+        });
+
+        function CopyFromMainAddress(addressType) {
+            $(`#addressNo_${addressType}`).val($('#addressNo_C').val());
+            $(`#organizationName_${addressType}`).val($('#organizationName_C').val());
+            $(`#village_${addressType}`).val($('#village_C').val());
+            $(`#unit_${addressType}`).val($('#unit_C').val());
+            $(`#floor_${addressType}`).val($('#floor_C').val());
+            $(`#alley_${addressType}`).val($('#alley_C').val());
+            $(`#road_${addressType}`).val($('#road_C').val());
+            $(`#province_${addressType}`).val($('#province_C').val());
+            $(`#province_${addressType}_hidden`).val($('#province_C').val());
+            $(`#district_${addressType}_hidden`).val($('#district_C').val());
+            $(`#sub-district_${addressType}_hidden`).val($('#sub-district_C').val());
+            //trigger
+            $(`#district_${addressType}`).val($('#district_C').val()).trigger('change');
+            $(`#sub-district_${addressType}`).val($('#sub-district_C').val()).trigger('change');
+
+        };
+
+        function ClearAddress(addressType) {
+            $(`.address_${addressType}`).val('');
+            $(`.address_${addressType}`).prop('readonly', false);
+            $(`#province_${addressType}`).prop('disabled', false);
+            $(`#district_${addressType}`).prop('disabled', false);
+            $(`#sub-district_${addressType}`).prop('disabled', false);
+        }
+
+        function CopyFromMainAddressPayer(addressType) {
+            $(`#addressNoPayer_${addressType}`).val($('#addressNoPayer_H').val());
+            $(`#organizationNamePayer_${addressType}`).val($('#organizationNamePayer_H').val());
+            $(`#villagePayer_${addressType}`).val($('#villagePayer_H').val());
+            $(`#unitPayer_${addressType}`).val($('#unitPayer_H').val());
+            $(`#floorPayer_${addressType}`).val($('#floorPayer_H').val());
+            $(`#alleyPayer_${addressType}`).val($('#alleyPayer_H').val());
+            $(`#roadPayer_${addressType}`).val($('#roadPayer_H').val());
+            $(`#provincePayer_${addressType}`).val($('#provincePayer_H').val());
+            $(`#provincePayer_${addressType}_hidden`).val($('#provincePayer_H').val());
+            $(`#districtPayer_${addressType}_hidden`).val($('#districtPayer_H').val());
+            $(`#sub-districtPayer_${addressType}_hidden`).val($('#sub-districtPayer_H').val());
+            //trigger
+            $(`#districtPayer_${addressType}`).val($('#districtPayer_H').val()).trigger('change');
+            $(`#sub-districtPayer_${addressType}`).val($('#sub-districtPayer_H').val()).trigger('change');
+        };
+
+        function ClearAddressPayer(addressType) {
+            $(`.addressPayer_${addressType}`).val('');
+            $(`.addressPayer_${addressType}`).prop('readonly', false);
+            $(`#provincePayer_${addressType}`).prop('disabled', false);
+            $(`#districtPayer_${addressType}`).prop('disabled', false);
+            $(`#sub-districtPayer_${addressType}`).prop('disabled', false);
+        }
+
+        function PersonSearch() {
+            $.get('@Url.Action("PersonSearch")', { cardTypeId: $('#cardTypeSelect').val(), cardDetail: $('#txtNumber').val() }
+                , function (data) {
+                 //Set Data
+                LoadDistrict('district_H',null, data.H_ProvinceId);
+                LoadDistrict('district_W',null, data.W_ProvinceId);
+                LoadDistrict('district_C', null, data.C_ProvinceId);
+                SetDataPerson(data);
+                }).fail(function () {
+                 //FAIL DATA = NULL
+                 swal("ไม่พบข้อมูล", "กรุณาตรวจสอบข้อมูลประเภท ID,หมายเลข อีกครั้ง", "error");
+                });
+        }
+
+        function PersonSearchPayer() {
+            $.get('@Url.Action("PersonSearch")', { cardTypeId: $('#cardTypeSelectPayer').val(), cardDetail: $('#txtNumberPayer').val() }
+                , function (data) {
+                 //Set Data
+                LoadDistrict('districtPayer_H',null, data.H_ProvinceId);
+                LoadDistrict('districtPayer_W',null, data.W_ProvinceId);
+                SetPayerByAppId(data);
+                }).fail(function () {
+                 //FAIL DATA = NULL
+                 swal("ไม่พบข้อมูล", "กรุณาตรวจสอบข้อมูลประเภท ID,หมายเลข อีกครั้ง", "error");
+                });
+        }
+
+        function SetDataPerson(data) {
+
+            let birthDateMoment = moment(data.BirthDate)._d;
+            let yearBE = birthDateMoment.getFullYear() + 543;
+            let birthDateBE = moment(birthDateMoment.setFullYear(yearBE)).format("DD/MM/YYYY");
+
+            CalculateAge(birthDateBE)
+
+            $('#titleName').val(data.TitleId);
+            $('#fName').val(data.FirstName);
+            $('#lName').val(data.LastName);
+            $('#passport').val(data.PassportNo);
+            $('#identityCard').val(data.IdentityCardNo);
+            $('#birthDate').val(birthDateBE);
+            $('#sex').val(data.SexId);
+            $('#status').val(data.MaritalStatusId);
+            $('#bloodGroup').val(data.BloodTypeId);
+            $('#occupation').val(data.OccupationId).trigger('change');
+            $('#occupationLevel').val(data.OccupationLevelId);
+            $('#weight').val(data.Weight);
+            $('#height').val(data.Height);
+            $('#mobilePhone').val(data.MobileNumber);
+            $('#officePhone').val(data.OfficePhoneNumber);
+            $('#email').val(data.Email);
+
+            $('#addressNo_H').val(data.H_No);
+            $('#organizationName_H').val(data.H_BuildingName);
+            $('#village_H').val(data.H_VillageName);
+            $('#unit_H').val(data.H_Moo);
+            $('#floor_H').val(data.H_Floor);
+            $('#alley_H').val(data.H_Soi);
+            $('#road_H').val(data.H_Road);
+            $('#province_H').val(data.H_ProvinceId).trigger('change');;
+            $('#district_H').val(data.H_DistrictId).trigger('change');
+            $('#sub-district_H').val(data.H_SubDistrictId).trigger('change');
+            $('#zipcode_H').val(data.H_ZipCode);
+
+            $('#addressNo_W').val(data.W_No);
+            $('#organizationName_W').val(data.W_BuildingName);
+            $('#village_W').val(data.W_VillageName);
+            $('#unit_W').val(data.W_Moo);
+            $('#floor_W').val(data.W_Floor);
+            $('#alley_W').val(data.W_Soi);
+            $('#road_W').val(data.W_Road);
+            $('#province_W').val(data.W_ProvinceId).trigger('change');;
+            $('#district_W').val(data.W_DistrictId).trigger('change');
+            $('#sub-district_W').val(data.W_SubDistrictId).trigger('change');
+            $('#zipcode_W').val(data.W_ZipCode);
+
+            $('#addressNo_C').val(data.C_No);
+            $('#organizationName_C').val(data.C_BuildingName);
+            $('#village_C').val(data.C_VillageName);
+            $('#unit_C').val(data.C_Moo);
+            $('#floor_C').val(data.C_Floor);
+            $('#alley_C').val(data.C_Soi);
+            $('#road_C').val(data.C_Road);
+            $('#province_C').val(data.C_ProvinceId).trigger('change');;
+            $('#district_C').val(data.C_DistrictId).trigger('change');
+            $('#sub-district_C').val(data.C_SubDistrictId).trigger('change');
+            $('#zipcode_C').val(data.C_ZipCode);
+
+            $('#formCustomer').valid();
+        }
+
+         function SetCustomerByAppId(data) {
+            let birthDateMoment = moment(data.BirthDate)._d;
+            let yearBE = birthDateMoment.getFullYear() + 543;
+            let birthDateBE = moment(birthDateMoment.setFullYear(yearBE)).format("DD/MM/YYYY");
+
+            CalculateAge(birthDateBE)
+            $('#title-header').text(data.ApplicationCode);
+            $('#titleName').val(data.TitleId);
+            $('#fName').val(data.FirstName);
+            $('#lName').val(data.LastName);
+            $('#passport').val(data.PassportNo);
+            $('#identityCard').val(data.IdentityCardNo);
+            $('#birthDate').val(birthDateBE);
+            $('#sex').val(data.SexId);
+            $('#status').val(data.MaritalStatusId);
+            $('#bloodGroup').val(data.BloodTypeId);
+            $('#position').val(data.Position);
+            $('#jobDescription').val(data.JobDetail);
+            $('#income').val(data.Salary1);
+            $('#otherIncome').val(data.Salary2);
+            $('#occupation').val(data.OccupationId).trigger('change');
+            $('#occupationLevel').val(data.OccupationLevelId);
+            $('#weight').val(data.Weight);
+            $('#height').val(data.Height);
+            $('#mobilePhone').val(data.MobilePhoneNumber);
+            $('#officePhone').val(data.OfficePhoneNumber);
+            $('#email').val(data.Email);
+
+            $('#addressNo_H').val(data.H_No);
+            $('#organizationName_H').val(data.H_BuildingName);
+            $('#village_H').val(data.H_VillageName);
+            $('#unit_H').val(data.H_Moo);
+            $('#floor_H').val(data.H_Floor);
+            $('#alley_H').val(data.H_Soi);
+            $('#road_H').val(data.H_Road);
+            $('#province_H').val(data.H_ProvinceId).trigger('change');;
+            $('#district_H').val(data.H_DistrictId).trigger('change');
+            $('#sub-district_H').val(data.H_SubDistrictId).trigger('change');
+            $('#zipcode_H').val(data.H_ZipCode);
+
+            $('#addressNo_W').val(data.W_No);
+            $('#organizationName_W').val(data.W_BuildingName);
+            $('#village_W').val(data.W_VillageName);
+            $('#unit_W').val(data.W_Moo);
+            $('#floor_W').val(data.W_Floor);
+            $('#alley_W').val(data.W_Soi);
+            $('#road_W').val(data.W_Road);
+            $('#province_W').val(data.W_ProvinceId).trigger('change');;
+            $('#district_W').val(data.W_DistrictId).trigger('change');
+            $('#sub-district_W').val(data.W_SubDistrictId).trigger('change');
+            $('#zipcode_W').val(data.W_ZipCode);
+
+            $('#addressNo_C').val(data.C_No);
+            $('#organizationName_C').val(data.C_BuildingName);
+            $('#village_C').val(data.C_VillageName);
+            $('#unit_C').val(data.C_Moo);
+            $('#floor_C').val(data.C_Floor);
+            $('#alley_C').val(data.C_Soi);
+            $('#road_C').val(data.C_Road);
+            $('#province_C').val(data.C_ProvinceId).trigger('change');;
+            $('#district_C').val(data.C_DistrictId).trigger('change');
+            $('#sub-district_C').val(data.C_SubDistrictId).trigger('change');
+            $('#zipcode_C').val(data.C_ZipCode);
+
+            $('#formCustomer').valid();
+        }
+
+        function SetPayerByAppId(data) {
+            $('#title-header').text(data.ApplicationCode);
+            $('#titleNamePayer').val(data.TitleId);
+            $('#fNamePayer').val(data.FirstName);
+            $('#lNamePayer').val(data.LastName);
+            $('#passportPayer').val(data.PassportNo);
+            $('#identityCardPayer').val(data.IdentityCardNo);
+
+            $('#occupationPayer').val(data.OccupationId).trigger('change');
+            $('#occupationLevelPayer').val(data.OccupationLevelId);
+            $('#mobilePhonePayer').val(data.MobilePhoneNumber);
+            $('#emailPayer').val(data.Email);
+
+            $('#addressNoPayer_H').val(data.H_No);
+            $('#organizationNamePayer_H').val(data.H_BuildingName);
+            $('#villagePayer_H').val(data.H_VillageName);
+            $('#unitPayer_H').val(data.H_Moo);
+            $('#floorPayer_H').val(data.H_Floor);
+            $('#alleyPayer_H').val(data.H_Soi);
+            $('#roadPayer_H').val(data.H_Road);
+            $('#provincePayer_H').val(data.H_ProvinceId).trigger('change');
+            $('#districtPayer_H').val(data.H_DistrictId).trigger('change');
+            $('#sub-districtPayer_H').val(data.H_SubDistrictId).trigger('change');
+            $('#zipcodePayer_H').val(data.H_ZipCode);
+
+            $('#addressNoPayer_W').val(data.W_No);
+            $('#organizationNamePayer_W').val(data.W_BuildingName);
+            $('#villagePayer_W').val(data.W_VillageName);
+            $('#unitPayer_W').val(data.W_Moo);
+            $('#floorPayer_W').val(data.W_Floor);
+            $('#alleyPayer_W').val(data.W_Soi);
+            $('#roadPayer_W').val(data.W_Road);
+            $('#provincePayer_W').val(data.W_ProvinceId).trigger('change');
+            $('#districtPayer_W').val(data.W_DistrictId).trigger('change');
+            $('#sub-districtPayer_W').val(data.W_SubDistrictId).trigger('change');
+            $('#zipcodePayer_W').val(data.W_ZipCode);
+
+            $('#formPayer').valid();
+        }
+
+        function ClearDatailPayer() {
+            $('#titleNamePayer').val("");
+            $('#fNamePayer').val("");
+            $('#lNamePayer').val("");
+            $('#passportPayer').val("");
+            $('#identityCardPayer').val("");
+            $('#occupationPayer').val(1).trigger('change');
+            $('#mobilePhonePayer').val("");
+            $('#emailPayer').val("");
+
+            $('#addressNoPayer_H').val("");
+            $('#organizationNamePayer_H').val("");
+            $('#villagePayer_H').val("");
+            $('#unitPayer_H').val("");
+            $('#floorPayer_H').val("");
+            $('#alleyPayer_H').val("");
+            $('#roadPayer_H').val("");
+            $('#provincePayer_H').val(9999999).trigger('change');
+            $('#zipcodePayer_H').val("");
+
+            $('#addressNoPayer_W').val("");
+            $('#organizationNamePayer_W').val("");
+            $('#villagePayer_W').val("");
+            $('#unitPayer_W').val("");
+            $('#floorPayer_W').val("");
+            $('#alleyPayer_W').val("");
+            $('#roadPayer_W').val("");
+            $('#provincePayer_W').val(9999999).trigger('change');
+            $('#zipcodePayer_W').val("");
+        }
+
+        function SetHeirsSameByAppId(data) {
+            $('#titleNameHeirs').val(data.TitleId);
+            $('#fNameHeirs').val(data.FirstName);
+            $('#lNameHeirs').val(data.LastName);
+
+            $('#addressNoHeirs').val(data.H_No);
+            $('#organizationNameHeirs').val(data.H_BuildingName);
+            $('#villageHeirs').val(data.H_VillageName);
+            $('#unitHeirs').val(data.H_Moo);
+            $('#floorHeirs').val(data.H_Floor);
+            $('#alleyHeirs').val(data.H_Soi);
+            $('#roadHeirs').val(data.H_Road);
+            $('#provinceHeirs').val(data.H_ProvinceId).trigger('change');
+            $('#districtHeirs').val(data.H_DistrictId).trigger('change');
+            $('#sub-districtHeirs').val(data.H_SubDistrictId).trigger('change');
+            $('#zipcodeHeirs').val(data.H_ZipCode);
+
+            $('#formModalHeirs').valid();
+        }
+
+        function SetHeirsByAppId(data) {
+            ManageHeirsType = "UPDATE";
+            $('#titleNameHeirs').val(data.TitleId);
+            $('#fNameHeirs').val(data.FirstName);
+            $('#lNameHeirs').val(data.LastName);
+
+            $('#addressNoHeirs').val(data.No);
+            $('#organizationNameHeirs').val(data.BuildingName);
+            $('#villageHeirs').val(data.VillageName);
+            $('#unitHeirs').val(data.Moo);
+            $('#floorHeirs').val(data.Floor);
+            $('#alleyHeirs').val(data.Soi);
+            $('#roadHeirs').val(data.Road);
+            $('#provinceHeirs').val(data.ProvinceId).trigger('change');
+            $('#districtHeirs').val(data.DistrictId).trigger('change');
+            $('#sub-districtHeirs').val(data.SubDistrictId).trigger('change');
+            $('#zipcodeHeirs').val(data.ZipCode);
+
+            $('#formModalHeirs').valid();
+        }
+
+        function ClearDatailModalHeirs() {
+            $('#titleNameHeirs').val("");
+            $('#fNameHeirs').val("");
+            $('#lNameHeirs').val("");
+
+            $('#addressNoHeirs').val("");
+            $('#organizationNameHeirs').val("");
+            $('#villageHeirs').val("");
+            $('#unitHeirs').val("");
+            $('#floorHeirs').val("");
+            $('#alleyHeirs').val("");
+            $('#roadHeirs').val("");
+            $('#provinceHeirs').val(9999999).trigger('change');
+            $('#zipcodeHeirs').val("");
+        }
+
+        function SetQuestionnaireByAppId(data) {
+            //A1
+            if (data.A1) {
+                $('#A1_TRUE').iCheck('check');
+                   if (data.A1_01)   $('#A1_01').iCheck('check');
+                   if (data.A1_02)   $('#A1_02').iCheck('check');
+                   if (data.A1_03)   $('#A1_03').iCheck('check');
+                   if (data.A1_04)   $('#A1_04').iCheck('check');
+                   if (data.A1_05)   $('#A1_05').iCheck('check');
+                   if (data.A1_06)   $('#A1_06').iCheck('check');
+                   $('#A1_07').val(data.A1_07);
+
+            } else {
+                $('#A1_FALSE').iCheck('check');
+            }
+            //A2
+            if (data.A2) {
+                $('#A2_TRUE').iCheck('check');
+                   if (data.A2_01)   $('#A2_01').iCheck('check');
+                   if (data.A2_02)   $('#A2_02').iCheck('check');
+            } else {
+                $('#A2_FALSE').iCheck('check');
+            }
+            //A3
+            if (data.A3) {
+                $('#A3_TRUE').iCheck('check');
+                if (data.A3_01) $('#A3_01').iCheck('check');
+                if (data.A3_02) $('#A3_02').iCheck('check');
+                if (data.A3_03) $('#A3_03').iCheck('check');
+                if (data.A3_04) $('#A3_04').iCheck('check');
+                if (data.A3_05) $('#A3_05').iCheck('check');
+                if (data.A3_06) $('#A3_06').iCheck('check');
+                if (data.A3_07) $('#A3_07').iCheck('check');
+                if (data.A3_08) {
+                    $('#A3_08').iCheck('check');
+                    if (data.A3_08_01) $('#A3_08_01').val(data.A3_08_01);
+                    if (data.A3_08_02) $('#A3_08_02').val(data.A3_08_02);
+                    if (data.A3_08_03) $('#A3_08_03').iCheck('check');
+                    if (data.A3_08_04) $('#A3_08_04').iCheck('check');
+                    if (data.A3_08_05) $('#A3_08_05').iCheck('check');
+                    if (data.A3_08_06) $('#A3_08_06').val(data.A3_08_06);
+                    if (data.A3_08_07) $('#A3_08_07').val(data.A3_08_07);
+                    if (data.A3_08_08) $('#A3_08_08').iCheck('check');
+                    if (data.A3_08_09) $('#A3_08_09').iCheck('check');
+                    if (data.A3_08_10) $('#A3_08_10').iCheck('check');
+                    if (data.A3_08_11) $('#A3_08_11').iCheck('check');
+                    if (data.A3_08_12) $('#A3_08_12').iCheck('check');
+                    if (data.A3_08_13) $('#A3_08_13').iCheck('check');
+                }
+                if (data.A3_09) {
+                    $('#A3_09').iCheck('check');
+                    if (data.A3_09_01) $('#A3_09_01').val(data.A3_09_01);
+                    if (data.A3_09_02) $('#A3_09_02').val(data.A3_09_02);
+                    if (data.A3_09_03) $('#A3_09_03').iCheck('check');
+                    if (data.A3_09_04) $('#A3_09_04').iCheck('check');
+                    if (data.A3_09_05) $('#A3_09_05').iCheck('check');
+                    if (data.A3_09_06) $('#A3_09_06').val(data.A3_09_06);
+                    if (data.A3_09_07) $('#A3_09_07').val(data.A3_09_07);
+                    if (data.A3_09_08) $('#A3_09_08').iCheck('check');
+                    if (data.A3_09_09) $('#A3_09_09').iCheck('check');
+                    if (data.A3_09_10) $('#A3_09_10').iCheck('check');
+                    if (data.A3_09_11) $('#A3_09_11').iCheck('check');
+                    if (data.A3_09_12) $('#A3_09_12').iCheck('check');
+                    if (data.A3_09_13) $('#A3_09_13').iCheck('check');
+                }
+            } else {
+                $('#A3_FALSE').iCheck('check');
+            }
+            //A4
+            if (data.A4) {
+                $('#A4_TRUE').iCheck('check');
+                   $('#A4_01').val(data.A4_01);
+                   $('#A4_02').val(data.A4_02);
+            } else {
+                $('#A4_FALSE').iCheck('check');
+            }
+            $('#formQuestionnaire').valid();
+        }
+
+        function GetOccupationLevel(elementId, occupationId) {
+            $.ajax({
+                url : "@Url.Action("GetOccupationLevel")",
+                type: "GET",
+                async: false,
+                data: {
+                    occupationId : occupationId,
+                },
+                success: function (data) {
+                     $(`#${elementId}`).empty();
+                     for (let i = 0; i < data.length; i++) {
+                           $(`#${elementId}`).append(`<option value="${data[i].OccupationLevelId}">${data[i].OccupationLevel}</option>`);
+                        }
+
+                },
+                error: function (jqXHR,exception) {
+                   alert(exception);
+                 }
+            });
+        }
+
+        function GetProduct(productId,insuranceCompanyId,cusBirthDate,startCoverDate) {
+            $.ajax({
+                url : "@Url.Action("GetProduct")",
+                type: "GET",
+                async: false,
+                data: {
+                    productId:productId,
+                    insuranceCompanyId:insuranceCompanyId,
+                    cusBirthDate:cusBirthDate,
+                    startCoverDate : startCoverDate,
+                },
+                success: function (data) {
+                     $(`#product`).empty();
+                     for (let i = 0; i < data.length; i++) {
+                           $(`#product`).append(`<option value="${data[i].ProductId}">${data[i].Product}</option>`);
+                    }
+
+                    $('#product').trigger('change');
+                },
+                 error: function (jqXHR,exception) {
+                    checkXHRStatus(jqXHR.status);
+                 }
+            });
+        }
+
+        function GetProductByProductId(productId) {
+            $.ajax({
+                url : "@Url.Action("GetProductByProductId")",
+                type: "GET",
+                async: false,
+                data: {
+                    productId:productId
+                },
+                success: function (data) {
+                    $('#coverage').text(`${formatNumber(data.MaxCover)} บาท`);
+                    $('#premium').text(`${formatNumber(data.PremiumPerPolicy)} บาท`);
+                    AddMonthEndCoverDate($('#startCoverDate').val(),data.MonthPerPolicy);
+                },
+                 error: function (jqXHR,exception) {
+                    checkXHRStatus(jqXHR.status);
+                 }
+            });
+        }
+
+        function AddMonthEndCoverDate(startCoverDate, MonthPerPolicy) {
+            let dateParts = startCoverDate.split("/");
+            // month is 0-based, that's why we need dataParts[1] - 1
+            let dateObject = new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]);
+            let startCoverDateMoment = moment(dateObject)._d;
+            let month = startCoverDateMoment.getMonth() + MonthPerPolicy;
+            let startCoverDateBE = moment(startCoverDateMoment.setMonth(month)).format("DD/MM/YYYY");
+            $('#endCoverDate').val(startCoverDateBE);
+        }
+
+        function CalculateAge(date) {
+            $.get("@Url.Action("CalculateAge")", { birthDate: date},
+                function (data) {
+                        const age = `${data.Year} ปี ${data.Month} เดือน ${data.Day} วัน`;
+                        $('#ageCurrent').text(age);
+                }).fail(function (e) {
+                     alert('fail');
+                });
+        }
+
+        function LoadDistrict(elementId, districtId, provinceId) {
+            $.ajax({
+                url : "@Url.Action("GetDistrict")",
+                type: "GET",
+                async: false,
+                data: {
+                    districtId : districtId,
+                    provinceId : provinceId,
+                },
+                success: function (data) {
+                switch (elementId) {
+                   case 'district_C':
+                        $(`#district_C`).empty();
+                        for (let i = 0; i < data.length; i++) {
+                            $(`#district_C`).append(`<option value="${data[i].DistrictId}">${data[i].District}</option>`);
+                        }
+                        LoadSubDistrict('sub-district_C',null, $('#district_C').val(),null);
+                    break;
+                   case 'district_H':
+                        $(`#district_H`).empty();
+                        for (let i = 0; i < data.length; i++) {
+                            $(`#district_H`).append(`<option value="${data[i].DistrictId}">${data[i].District}</option>`);
+                        }
+                       LoadSubDistrict('sub-district_H',null, $('#district_H').val(),null);
+                    break;
+                   case 'district_W':
+                        $(`#district_W`).empty();
+                        for (let i = 0; i < data.length; i++) {
+                            $(`#district_W`).append(`<option value="${data[i].DistrictId}">${data[i].District}</option>`);
+                        }
+                        LoadSubDistrict('sub-district_W',null, $('#district_W').val(),null);
+                        break;
+                     case 'districtPayer_H':
+                        $(`#districtPayer_H`).empty();
+                        for (let i = 0; i < data.length; i++) {
+                            $(`#districtPayer_H`).append(`<option value="${data[i].DistrictId}">${data[i].District}</option>`);
+                        }
+                        LoadSubDistrict('sub-districtPayer_H',null, $('#districtPayer_H').val(),null);
+                    break;
+                   case 'districtPayer_W':
+                        $(`#districtPayer_W`).empty();
+                        for (let i = 0; i < data.length; i++) {
+                            $(`#districtPayer_W`).append(`<option value="${data[i].DistrictId}">${data[i].District}</option>`);
+                        }
+                       LoadSubDistrict('sub-districtPayer_W',null, $('#districtPayer_W').val(),null);
+                        break;
+                   case 'districtHeirs':
+                        $(`#districtHeirs`).empty();
+                        for (let i = 0; i < data.length; i++) {
+                            $(`#districtHeirs`).append(`<option value="${data[i].DistrictId}">${data[i].District}</option>`);
+                        }
+                       LoadSubDistrict('sub-districtHeirs',null, $('#districtHeirs').val(),null);
+                    break;
+                    default:
+                    }
+                },
+                  error: function (jqXHR,exception) {
+                     checkXHRStatus(jqXHR.status);
+                 }
+            });
+        }
+
+        function LoadSubDistrict(elementId, subDistrictId, districtId, provinceId) {
+            $.ajax({
+                url : "@Url.Action("GetSubDistrict")",
+                type: "GET",
+                async: false,
+                data: {
+                    subDistrictId : subDistrictId,
+                    districtId : districtId,
+                    provinceId : provinceId,
+                },
+                success: function (data) {
+                switch (elementId) {
+                   case 'sub-district_C':
+                        $(`#sub-district_C`).empty();
+                        for (let i = 0; i < data.length; i++) {
+                            $(`#sub-district_C`).append(`<option value="${data[i].SubDistrictId}">${data[i].SubDistrict}</option>`);
+                        }
+                        LoadZipCode('zipcode_C',$(`#sub-district_C`).val());
+                    break;
+                   case 'sub-district_H':
+                        $(`#sub-district_H`).empty();
+                        for (let i = 0; i < data.length; i++) {
+                            $(`#sub-district_H`).append(`<option value="${data[i].SubDistrictId}">${data[i].SubDistrict}</option>`);
+                        }
+                      LoadZipCode('zipcode_H',$(`#sub-district_H`).val());
+                    break;
+                   case 'sub-district_W':
+                        $(`#sub-district_W`).empty();
+                        for (let i = 0; i < data.length; i++) {
+                            $(`#sub-district_W`).append(`<option value="${data[i].SubDistrictId}">${data[i].SubDistrict}</option>`);
+                        }
+                       LoadZipCode('zipcode_W',$(`#sub-district_W`).val());
+                        break;
+                    case 'sub-districtPayer_H':
+                        $(`#sub-districtPayer_H`).empty();
+                        for (let i = 0; i < data.length; i++) {
+                            $(`#sub-districtPayer_H`).append(`<option value="${data[i].SubDistrictId}">${data[i].SubDistrict}</option>`);
+                        }
+                        LoadZipCode('zipcodePayer_H',$(`#sub-districtPayer_H`).val());
+                    break;
+                   case 'sub-districtPayer_W':
+                        $(`#sub-districtPayer_W`).empty();
+                        for (let i = 0; i < data.length; i++) {
+                            $(`#sub-districtPayer_W`).append(`<option value="${data[i].SubDistrictId}">${data[i].SubDistrict}</option>`);
+                        }
+                      LoadZipCode('zipcodePayer_W',$(`#sub-districtPayer_W`).val());
+                        break;
+                    case 'sub-districtHeirs':
+                        $(`#sub-districtHeirs`).empty();
+                        for (let i = 0; i < data.length; i++) {
+                            $(`#sub-districtHeirs`).append(`<option value="${data[i].SubDistrictId}">${data[i].SubDistrict}</option>`);
+                        }
+                      LoadZipCode('zipcodeHeirs',$(`#sub-districtHeirs`).val());
+                    break;
+                    default:
+                  }
+                },
+                  error: function (jqXHR,exception) {
+                     checkXHRStatus(jqXHR.status);
+                 }
+            });
+        }
+
+        function LoadZipCode(element, subDistrictId) {
+            $.get("@Url.Action("GetSubDistrict")", {subDistrictId:subDistrictId, districtId: null, provinceId: null },
+                function (data) {
+                    $(`#${element}`).val(data[0].ZipCode);
+                });
+        }
+
+        //ผู้เอาประกัน
+        function GetNewAppCustomer() {
+            if (appId != null) {
+                $.ajax({
+                url : "@Url.Action("GetNewAppCustomer")",
+                type: "GET",
+                data: {
+                    applicationId: appId
+                },
+                success: function (data) {
+                    SetCustomerByAppId(data);
+                },
+                 error: function (jqXHR,exception) {
+                   checkXHRStatus(jqXHR.status);
+                 }
+            });
+            }
+        }
+
+        //ผู้ชำระเบี้ย
+        function GetNewAppPayer() {
+            if (appId != null) {
+                $.ajax({
+                url : "@Url.Action("GetNewAppPayer")",
+                type: "GET",
+                data: {
+                    applicationId: appId
+                },
+                success: function (data) {
+                        if (data.RelationTypeId != null) {
+                           $('#relationType').val(data.RelationTypeId);
+                            SetPayerByAppId(data);
+
+                            if (data.RelationTypeId == 39) {
+                                $("#sectionDetailPayer :input").prop("disabled", true);
+                            }
+                        } else {
+                            $('#relationType').val(39).trigger('change');
+                        }
+
+                },
+                  error: function (jqXHR,exception) {
+                     checkXHRStatus(jqXHR.status);
+                 }
+            });
+            }
+        }
+
+        //ผู้ชำระเบี้ย บุคคลเดียวกันกับผู้เอาประกัน
+        function GetNewAppCustomerSamePerson() {
+            if (appId != null) {
+                $.ajax({
+                url : "@Url.Action("GetNewAppCustomer")",
+                type: "GET",
+                data: {
+                    applicationId: appId
+                },
+                success: function (data) {
+                    SetPayerByAppId(data);
+                },
+                 error: function (jqXHR,exception) {
+                    checkXHRStatus(jqXHR.status);
+                 }
+            });
+            }
+        }
+
+        //ผู้รับผลประโยชน์ บุคคลเดียวกันกับผู้เอาประกัน
+        function GetNewAppHeirsSamePerson() {
+            if (appId != null) {
+                $.ajax({
+                url : "@Url.Action("GetNewAppCustomer")",
+                type: "GET",
+                data: {
+                    applicationId: appId
+                },
+                success: function (data) {
+                    SetHeirsSameByAppId(data);
+                },
+                 error: function (jqXHR,exception) {
+                     checkXHRStatus(jqXHR.status);
+                 }
+            });
+            }
+        }
+
+        //ข้อมูลกรมธรรม์
+        function GetNewAppPolicy() {
+            if (appId != null) {
+               $.ajax({
+                url : "@Url.Action("GetNewAppPolicy")",
+                type: "GET",
+                data: {
+                    applicationId: appId
+                },
+                success: function (data) {
+                    if (data != null) {
+                        let startCoverDate = moment(data.StartCoverDate)._d;
+                        let yearBE = startCoverDate.getFullYear() + 543;
+                        let startCoverDateBE = moment(startCoverDate.setFullYear(yearBE)).format("DD/MM/YYYY");
+
+                        let cusBirthDate = moment(data.CustBirthDate)._d;
+                        let cusYearBE = cusBirthDate.getFullYear() + 543;
+                        let cusBirthDateBE = moment(cusBirthDate.setFullYear(cusYearBE)).format("DD/MM/YYYY");
+
+                        $("#startCoverDate").val(startCoverDateBE).trigger('change');
+                        GetProduct(null, $('#insuranceCompany').val(), cusBirthDateBE, $("#startCoverDate").val());
+
+                        if (data.ProductId != null) {
+                            $('#product').val(data.ProductId).trigger('change');
+                        }
+
+                        if (data.BillDate != null) {
+                            let billDate = moment(data.BillDate)._d;
+                            let billDateYearBE = billDate.getFullYear() + 543;
+                            let billDateBE = moment(billDate.setFullYear(billDateYearBE)).format("DD/MM/YYYY");
+                            $('#billDate').val(billDateBE);
+                        }
+
+                        $('#billBook').val(data.BillBook);
+                        $('#billNo').val(data.BillNo);
+
+                        GetEmployee(data.SaleEmployeeCode);
+                        GetCar(data.ZebraCarOwnerEmployeeCode);
+
+                        switch (data.DisclosureStatusId) {
+                            case 2:
+                                $('#allowRD_TRUE').iCheck('check');
+                                break;
+                            case 3:
+                                $('#allowRD_FALSE').iCheck('check');
+                                break;
+                            default:
+                        }
+                    } else {
+
+                    }
+                },
+                error: function (jqXHR,exception) {
+                     checkXHRStatus(jqXHR.status);
+                 }
+                });
+            }
+        }
+
+        //ผู้รับผลประโยชน์ datatables
+        function GetNewAppHeirsById(relateAppId) {
+            if (relateAppId != null) {
+                $.ajax({
+                url : "@Url.Action("GetNewAppHeirsById")",
+                type: "GET",
+                data: {
+                    personRelateApplicationId: relateAppId
+                },
+                success: function (data) {
+                    SetHeirsByAppId(data);
+                    $('#personRelateApplicationId_hidden').val(data.PersonRelateApplicationId);
+                    $('#relationHeirs').val(data.RelationTypeId);
+                    $('#myModalAddHeirs').modal('show');
+
+                    if (data.RelationTypeId == 39) {
+                        $("#sectionDetailHeirs1 :input").prop("disabled", true);
+                        $("#sectionDetailHeirs2 :input").prop("disabled", true);
+                    }
+                },
+                error: function (jqXHR,exception) {
+                    checkXHRStatus(jqXHR.status);
+                 }
+                });
+            }
+        }
+
+        //แบบสอบถามด้านสุขภาพ
+        function GetNewAppQuestionnaire() {
+            if (appId != null) {
+                $.ajax({
+                url : "@Url.Action("GetNewAppQuestionnaire")",
+                type: "GET",
+                data: {
+                    applicationId: appId
+                },
+                success: function (data) {
+                    //โหลดแบบสอบถาม
+                    if (data != 0) {
+                        SetQuestionnaireByAppId(data);
+                    }
+                },
+                 error: function (jqXHR,exception) {
+                    checkXHRStatus(jqXHR.status);
+                 }
+                });
+            }
+        }
+
+        function InsertNewApp() {
+            var result;
+            var dataObj = $('#formCustomer').serialize();
+             $.ajax({
+                url : "@Url.Action("InsertNewApp")",
+                type: "POST",
+                async: false,
+                data: dataObj,
+                success: function (data) {
+                    if (data.IsResult == 1) {
+                        result = true;
+                        appId = data.Result;
+                        $('#applicationId_hidden').val(appId);
+                        $('#applicationIdPayer_hidden').val(appId);
+                        $('#applicationIdPolicy_hidden').val(appId);
+                        $('#applicationIdHeirs_hidden').val(appId);
+                        $('#applicationIdQuestionnaire_hidden').val(appId);
+                    } else {
+                        result = false;
+                        swal(data.Result, data.Msg, "error");
+                    }
+                },
+                 error: function (jqXHR, exception) {
+                         result = false;
+                    checkXHRStatus(jqXHR.status);
+                 }
+            });
+
+            return result;
+        }
+
+        function  InsertHeirs() {
+            var dataObj = $('#formModalHeirs').serialize();
+             $.ajax({
+                url : "@Url.Action("InsertHeirs")",
+                type: "POST",
+                async: false,
+                data: dataObj,
+                success: function (data) {
+                    if (data.IsResult == 1) {
+                        $('.modal').modal('hide');
+                        loadDatatablesHeirs();
+                        swal(data.Result, "บันทึกเรียบร้อยแล้ว", "success");
+                    } else {
+                        swal(data.Result, "เกิดข้อผิดพลาด บันทึกไม่สำเร็จ!", "error");
+                    }
+                },
+                  error: function (jqXHR,exception) {
+                     checkXHRStatus(jqXHR.status);
+                 }
+            });
+        }
+
+        function UpdateHeirs() {
+            var dataObj = $('#formModalHeirs').serialize();
+             $.ajax({
+                url : "@Url.Action("UpdateHeirs")",
+                type: "POST",
+                data: dataObj,
+                success: function (data) {
+                    if (data.IsResult == 1) {
+                        $('.modal').modal('hide');
+                        loadDatatablesHeirs();
+                        swal(data.Result, "บันทึกเรียบร้อยแล้ว", "success");
+                    } else {
+                        swal(data.Result, "เกิดข้อผิดพลาด อัพเดตข้อมูลผู้ชำระเบี้ยไม่สำเร็จ!", "error");
+                    }
+
+                },
+                  error: function (jqXHR,exception) {
+                    checkXHRStatus(jqXHR.status);
+                 }
+            });
+        }
+
+        function EditHeirs(e,relateApplicationId) {
+            e.preventDefault();
+            GetNewAppHeirsById(relateApplicationId);
+        }
+
+        function DeleteHeirs(e,relateApplicationId) {
+            e.preventDefault();
+            $.ajax({
+                url: "@Url.Action("DeleteHeirs")",
+                type: "POST",
+                data: {
+
+                    relateApplicationId: relateApplicationId
+                },
+                success: function (data) {
+                    if (data.IsResult == 1) {
+                        swal(data.Result, "ลบเรียบร้อยแล้ว!", "success");
+                        loadDatatablesHeirs();
+                    } else {
+                        swal(data.Result, "เกิดข้อผิดพลาด อัพเดตข้อมูลผู้ชำระเบี้ยไม่สำเร็จ!", "error");
+                    }
+
+                },
+                  error: function (jqXHR,exception) {
+                    checkXHRStatus(jqXHR.status);
+                 }
+            });
+        }
+
+        function UpdateNewApp() {
+            var result;
+            var dataObj = $('#formCustomer').serialize();
+             $.ajax({
+                url : "@Url.Action("UpdateNewApp")",
+                type: "POST",
+                data: dataObj,
+                async: false,
+                success: function (data) {
+                    if (data.IsResult == 1) {
+                        result = true;
+                        GetNewAppPayer();
+                    } else {
+                        result = false;
+                        swal(data.Result, data.Msg, "error");
+                    }
+
+                },
+                 error: function (jqXHR, exception) {
+                    result = false;
+                    checkXHRStatus(jqXHR.status);
+                 }
+            });
+
+            return result;
+        }
+
+        function UpdateNewAppPayer() {
+            var result;
+            var dataObj = $('#formPayer').serialize();
+             $.ajax({
+                url : "@Url.Action("UpdateNewAppPayer")",
+                type: "POST",
+                data: dataObj,
+                async: false,
+                 success: function (data) {
+                     debugger;
+                    if (data.IsResult == 1) {
+                        result = true;
+                    } else {
+                        swal(data.Result, data.Msg, "error");
+                        result = false;
+                    }
+
+                },
+                 error: function (jqXHR, exception) {
+                        result = false;
+                   checkXHRStatus(jqXHR.status);
+                 }
+            });
+            return result;
+        }
+
+        function UpdateNewAppPolicy() {
+            var result;
+            var dataObj = $('#formApplication').serialize();
+             $.ajax({
+                url : "@Url.Action("UpdateNewAppPolicy")",
+                type: "POST",
+                data: dataObj,
+                async: false,
+                success: function (data) {
+                    if (data.IsResult == 1) {
+                        result = true;
+                    } else {
+                        swal(data.Result, data.Msg, "error");
+                        result = false;
+                    }
+
+                },
+                 error: function (jqXHR, exception) {
+                         result = false;
+                     checkXHRStatus(jqXHR.status);
+                 }
+            });
+
+            return result;
+        }
+
+        function InsertOrUpdateQuestionnaire() {
+            var result;
+            var dataObj = $('#formQuestionnaire').serialize();
+             $.ajax({
+                url : "@Url.Action("InsertQuestionnaire")",
+                type: "POST",
+                async: false,
+                data: dataObj,
+                 success: function (data) {
+                    if (data.IsResult == 1) {
+                        result = true;
+                    } else {
+                        swal(data.Result, data.Msg, "error");
+                        result = false;
+                    }
+                },
+                 error: function (jqXHR, exception) {
+                    result = false;
+                     checkXHRStatus(jqXHR.status);
+                 }
+            });
+
+            return result;
+        }
+
+        /*fn load select2 ajax*/
+        function loadSelectAgen() {
+            $('.select-agen').select2({
+                ajax: {
+                    url: '@Url.Action("AgentSearch")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term,
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: $.map(data,
+                                function (item) {
+                                    return {
+                                        id: item.EmployeeId,
+                                        text: `${item.Detail}`
+                                    }
+                                })
+                        };
+                    },
+                    cache: true
+                },
+                templateResult: function (item) {
+                    if (item.loading) return item.text;
+                    return item.text;
+                },
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 3,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 3 ตัวอักษร'; } }
+            });
+        }
+
+        /*fn load select2 ajax*/
+        function loadSelectCar() {
+            $('.select-car').select2({
+                ajax: {
+                    url: '@Url.Action("CarSearch")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term,
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: $.map(data,
+                                function (item) {
+                                    return {
+                                        id: item.OwnerEmployeeId,
+                                        text: `${item.Detail}`
+                                    }
+                                })
+                        };
+                    },
+                    cache: true
+                },
+                templateResult: function (item) {
+                    if (item.loading) return item.text;
+                    return item.text;
+                },
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 3,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 3 ตัวอักษร'; } }
+            });
+        }
+
+         /*load datatables heirs*/
+       function loadDatatablesHeirs() {
+             $('#tableHeirs').empty();
+            const table = $('#tableHeirs').DataTable({
+                pageLength: 10,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                responsive: true,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetNewAppHeirs")',
+                    method: "POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.applicationId = appId;
+                        d.search = d.search.value;
+                    },
+                    dataSrc: function (json) {
+                        countHeirs = json.data.length;
+                        if (countHeirs == 2) {
+                            $('#btnAddHeirs').prop('disabled', true);
+                        } else {
+                             $('#btnAddHeirs').prop('disabled', false);
+                        }
+                        return json.data;
+                    }
+                },
+                columns: [
+                    {
+                         title: 'ลำดับ',
+                         data:null,
+                         orderable: false,
+                     },
+                    {
+                        title: 'รหัส',
+                        data: 'PersonRelateApplicationCode',
+                        orderable: false,
+                    },
+                    {
+                        title: 'ชื่อ-สกุล',
+                        data: null,
+                        orderable: false,
+                        render: function (d) {
+                            return `${d.Title}${d.FirstName} ${d.LastName}`
+                        }
+                    },
+                    {
+                        title: 'ความสัมพันธ์กับผู้เอาประกัน',
+                        data: 'RelationType',
+                        orderable: false,
+                    },
+                    {
+                        title: 'จัดการ',
+                        data: null,
+                        orderable: false,
+                        render: (d) => {
+                            return `<button  class="btn btn-warning" onclick="EditHeirs(event,'${d.PersonRelateApplicationId}');" style="margin:2px"></i> แก้ไข</button><button class="btn btn-danger" onclick="DeleteHeirs(event,'${d.PersonRelateApplicationId}');" style="margin:2px"></i> ลบ</button>`;
+                        }
+                    }
+                ]
+           });
+           table.on('draw.dt', function () {
+                var PageInfo = table.page.info();
+                table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                })
+            })
+
+        }
+
+        function DisableNewApp() {
+               //get today date
+                var today = new Date();
+                var dd = today.getDate();
+                var mm = today.getMonth();
+                var yy = today.getFullYear();
+                //max date newApp
+                var mydate = new Date('2022-02-28');
+                var mydd = mydate.getDate();
+                var mymm = mydate.getMonth();
+                var myyy = mydate.getFullYear();
+                if (yy > myyy) {
+
+                swal_confirm("ปิดการขาย", "ปิดการขายประกันมะเร็ง 28-02-2565 เวลา 24: 00 น.", function () {
+                    swal.close();
+
+                $('#btnSearchPerson').attr('disabled', 'disabled');
+                $('#btnNext').hide();
+
+            }, function () {
+                $('#btnSearchPerson').attr('disabled', 'disabled');
+                $('#btnNext').hide();
+            });
+
+                } else if (mm > mymm || ((mm == mymm) && (dd > mydd))) {
+
+                swal_confirm("ปิดการขาย", "ปิดการขายประกันมะเร็ง 28-02-2565 เวลา 24: 00 น.", function () {
+
+                swal.close();
+                $('#btnSearchPerson').attr('disabled', 'disabled');
+                $('#btnNext').hide();
+
+            }, function () {
+                $('#btnSearchPerson').attr('disabled', 'disabled');
+                $('#btnNext').hide();
+            });
+
+                } 
+        }
+
+        function LoadDefault () {
+            if ('@ViewBag.AppId' != null && '@ViewBag.AppId' != '') {
+                appId = '@ViewBag.AppId';
+                $('#applicationId_hidden').val(appId);
+                $('#applicationIdPayer_hidden').val(appId);
+                $('#applicationIdPolicy_hidden').val(appId);
+                $('#applicationIdHeirs_hidden').val(appId);
+                $('#applicationIdQuestionnaire_hidden').val(appId);
+                GetNewAppCustomer();
+            }
+        }
+
+        const GetDocEditDetail_DT = () => {
+            //call api
+            $('#dtDoc').empty();
+            var appTable = $('#dtDoc').DataTable({
+                lengthChange: false,
+                info:false,
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetMonitorDoc_DT","Monitor")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.applicationId = appId;
+                        d.documentTypeIdList = null;
+                    }
+                },
+                columns: [
+                    { title: 'รหัสเอกสาร', data: 'DocumentCode' },
+                    { title: 'ประเภท', data: 'DocumentType' },
+                    { title: 'รายละเอียด', data: 'DocumentDetail' },
+                    { title: 'หมายเหตุ', data: 'Remark' },
+                    {
+                        title: 'scan',
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        mRender: function (data) {
+                            return  '<a type="button" class="btn btn-block btn-info" id="btnDocScan_'+data.DocumentId+'" ' +
+                                    'href="'+data.UrlScan+'" target="_blank">Scan</a>'
+                                    +'<a type="button" class="btn btn-block btn-success" id="btnDocCount_' + data.DocumentId
+                                 + '" href="'+data.UrlOpen+'" target="_blank" >เอกสาร('+data.DocumentFileCount+') </a>';
+
+                        }
+                    }
+                ]
+            });
+        }
+
+        const GetMemo_dt = () => {
+            $('#dtMemo').empty();
+            var appTable = $('#dtMemo').DataTable({
+                lengthChange: false,
+                 info:false,
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("MemoSelect_dt","Monitor")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.appId = appId;
+                    }
+                },
+                columns: [
+                    { title: 'รหัส', data: 'ApplicationMemoCode' },
+                    { title: 'ประเภทข้อความ', data: 'MemoType' },
+                    { title: 'รายละเอียด', data: 'MemoText' },
+                    { title: 'บันทึกโดย', data: 'CreatedByFullName' }
+
+                ]
+            });
+        }
+
+        const InsertMemo = () => {
+            $.post('@Url.Action("MemoInsert","Application")',
+                {
+                    applicationId: appId,
+                    memoTypeId: $('#select_memoType').val(),
+                    memoText:$('#txtMemo').val()
+                }, (data) => {
+                    if (data.IsResult) {
+                       swal_success(data.Msg);
+                        setTimeout(() => { swal.close(); }, 1500);
+                        GetMemo_dt();
+                        $('#myModalAddMessage').modal('toggle');
+                   } else {
+                       swal_fail(data.Msg);
+                   }
+                });
+        }
+
+        function GetEmployee(empCode) {
+            var agen = $('#agentCode');
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("AgentSearch")',
+                dataType: 'json',
+                data: {
+                    search: empCode
+                },
+                success: function (data) {
+                    // create the option and append to Select2
+                    var option = new Option(data[0].Detail, data[0].EmployeeId, true, true);
+                    agen.append(option).trigger('change');
+
+                    // manually trigger the `select2:select` event
+                    agen.trigger({
+                        type: 'select2:select',
+                        params: {
+                            data: data
+                        }
+                    });
+                },
+                error: function (jqXHR,exception) {
+                     checkXHRStatus(jqXHR.status);
+                 }
+            });
+        }
+
+        function GetCar(empCode) {
+            var car = $('#carCode');
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("CarSearch")',
+                dataType: 'json',
+                data: {
+                    search: empCode
+                },
+                success: function (data) {
+                    // create the option and append to Select2
+                    var option = new Option(data[0].Detail, data[0].OwnerEmployeeId, true, true);
+                    car.append(option).trigger('change');
+
+                    // manually trigger the `select2:select` event
+                    car.trigger({
+                        type: 'select2:select',
+                        params: {
+                            data: data
+                        }
+                    });
+                },
+                error: function (jqXHR,exception) {
+                     checkXHRStatus(jqXHR.status);
+                 }
+            });
+        }
+
+        function CheckDoc() {
+            var result;
+            $.ajax({
+                url : "@Url.Action("CheckDoc")",
+                type: "GET",
+                async: false,
+                data: {
+                    applicationId:appId
+                },
+                success: function (data) {
+                     if (!data.IsResult) {
+                        swal_fail(data.Msg);
+                        result = false;
+                      } else {
+                        result = true;
+                      }
+                },
+                error: function (jqXHR, exception) {
+                       result = false;
+                     checkXHRStatus(jqXHR.status);
+                 }
+            });
+
+             return result;
+        }
+
+        function RefreshDoc()  {
+            GetDocEditDetail_DT();
+        }
+
+        function CheckHeirs() {
+          if (countHeirs > 0 && countHeirs < 3) {
+
+              return true;
+          } else {
+              swal("Warning", "กรุณาเพิ่มผู้รับผลประโยชน์อย่างน้อย 1 คน", "warning");
+              return false;
+          }
+        }
+
+        const SendToApprove = () => {
+            swal_confirm("ยืนยันการส่งพิจารณาเอกสาร", "ต้องการส่งข้อมูลเพื่อพิจารณาเอกสาร", () => {
+                $.post('@Url.Action("SendToApprove","Application")', { applicationId: appId }, (data) => {
+                     if (!data.IsResult) {
+                     swal_fail(data.Msg);
+                    } else {
+                        swal_success(data.Msg);
+                        setTimeout(() => { window.location = "@Url.Action("ApplicationMonitor","Monitor")"; }, 1500);
+                    }
+                });
+            });
+        }
+
+        //เช็ค MaxCover
+        function CheckMaxCover(productId) {
+            if (appId != null) {
+                $.ajax({
+                url : "@Url.Action("CheckMaxCover")",
+                type: "GET",
+                data: {
+                    applicationId: appId,
+                    productId:productId
+                },
+                 success: function (data) {
+                        $('#lblValidMaxCover').text(data.Msg);
+                },
+                error: function (jqXHR,exception) {
+                    checkXHRStatus(jqXHR.status);
+                 }
+                });
+            }
+        }
+
+        //เช็ค BMI
+        function CalculateBMI(startCoverDate) {
+            if (appId != null) {
+                $.ajax({
+                url : "@Url.Action("CalculateBMI")",
+                type: "GET",
+                data: {
+                    applicationId: appId,
+                    startCoverDate:startCoverDate
+                },
+                success: function (data) {
+                        if (data.IsResult == 1) {
+                            $('#lblValidBMI').text(data.Msg).css('color','green');
+                        } else {
+                            $('#lblValidBMI').text(data.Msg).css('color','red');
+                        }
+
+                },
+                error: function (jqXHR,exception) {
+                   checkXHRStatus(jqXHR.status);
+                 }
+                });
+            }
+        }
+        //เช็ค id หรือ passport ต้องกรอกอย่างน้อย 1 อย่าง
+        function checkIDorPassport(identityId, passport) {
+            if (identityId.trim() == '' && passport.trim() == '') {
+                swal("แจ้งเตือน", "กรุณาระบุหมายเลขบัตรประชาชน หรือ Passport ", "warning");
+               return false;
+            }
+            return true;
+        }
+
+        function checkOnline() {
+            var status = navigator.onLine;
+            if (!status) {
+                alert("Connection not available")
+                return false;
+            }
+            return true;
+        }
+
+        function checkXHRStatus(xhrStatus) {
+           var msg = '';
+              if (xhrStatus === 0) {
+                  msg = 'Not connect.\n Verify Network.';
+              } else if (jqXHR.status == 404) {
+                  msg = 'Requested page not found. [404]';
+              } else if (jqXHR.status == 500) {
+                  msg = 'Internal Server Error [500].';
+              } else if (exception === 'parsererror') {
+                  msg = 'Requested JSON parse failed.';
+              } else if (exception === 'timeout') {
+                  msg = 'Time out error.';
+              } else if (exception === 'abort') {
+                  msg = 'Ajax request aborted.';
+              } else {
+                  msg = 'Uncaught Error.\n' + jqXHR.responseText;
+            }
+
+              alert(msg)
+        }
+    </script>
+}

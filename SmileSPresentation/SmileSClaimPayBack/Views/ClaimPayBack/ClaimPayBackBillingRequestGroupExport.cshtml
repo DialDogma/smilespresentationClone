@@ -1,0 +1,349 @@
+﻿
+@{
+    ViewBag.Title = "Export ไฟล์นำส่ง บริษัทประกัน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+</head>
+<body>
+    <form id="formExport">
+        @*<div class="row" style="text-align: right;padding-right:0.5rem">
+                <button type="button" class="btn bg-green margin" id="btnExportBOHO" name="btnExportBOHO" onclick="OpenExport()"><i class="glyphicon glyphicon-export"></i> Export ใบนำส่ง บ.ประกัน</button>
+            </div>*@
+
+        <div class="box" style="border-color:#65aadb">
+            <div class="box-header with-border">
+                <h3 class="box-title" style="color: #2B7ABA "><i class="glyphicon glyphicon-filter"></i> ค้นหาข้อมูล</h3>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="form-group">
+                            <div class="col-xs-12 col-sm-6 col-md-4">
+
+                                <label>บริษัทประกัน:</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" tabindex="-1" data-select2-id="1" aria-hidden="true" id="ddlInsuranceCompany" name="ddlInsuranceCompany">
+                                    <option value="-1">---ทั้งหมด---</option>
+                                    @{
+                                        foreach (var item in ViewBag.InsuranceCompany)
+                                        {
+                                            <option value="@item.OrganizeId">@item.OrganizeDetail</option>
+                                        }
+                                    }
+                                </select>
+
+
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-2">
+                                <div class="form-group">
+                                    <label>วันที่ส่งวางบิล:</label>
+                                    <div class="input-group date">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
+                                        <input type="text" name="dpkBillingDate" data-date-language="th-th" data-provide="datepicker" class="form-control" id="dpkBillingDate" style="width:100%">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-2">
+
+                                <label>สถานะ:</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" tabindex="-1" data-select2-id="1" aria-hidden="true" id="ddlStatus" name="ddlStatus" checkNA="checkNA">
+                                    <option value="-1">---โปรดระบุ---</option>
+                                    @{
+                                        foreach (var item in ViewBag.BillingRequestGroupStatus)
+                                        {
+                                            <option value="@item.BillingRequestGroupStatusId">@item.BillingRequestGroupStatusName</option>
+                                        }
+                                    }
+                                </select>
+
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3">
+                                <div class="form-group">
+                                    <label>คำค้นหา:</label>
+                                    <div class="input-group">
+                                        <input type="text" name="txtSearchDetail" data-date-language="th-th" class="form-control" id="txtSearchDetail" placeholder="ค้นหาจากเลขที่ BillingRequestGroups" style="width:100%" onkeypress="return /[0-9a-zA-Z]/i.test(event.key)">
+                                        <span class="input-group-btn">
+                                            <button type="button" id="btnSearch" class="btn btn-primary btn-flat"><i class="glyphicon glyphicon-search"></i></button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="margin-top:15px">
+                    <div class="col-xs-12">
+                        <table id="dtExportMonitor" class="table table-bordered dataTable table-hover" style="text-align: center;"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</body>
+</html>
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        var dateTimeToday;
+
+        $(function () {
+
+            $('.select2').select2();
+
+            //---------------------------------Date-----------------------------------//
+            var date = new Date();
+            var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            dateTimeToday = new Date().toLocaleDateString('en-CA');
+
+            var dateDefault = {
+                format: 'dd/mm/yyyy',
+                autoclose: true,
+            }
+
+            $('#dpkBillingDate').datepicker(dateDefault);
+
+            $('#dpkBillingDate,#dphBillingDateEnd').datepicker('setDate', today);
+
+            //-------------------------------Search--------------------------------//
+            $('#btnSearch').click(function(e) {
+                e.preventDefault();
+                if ($('#formExport').valid()) {
+                    if (isValidate())
+                        DoLoadMonitor();
+                }
+
+            });
+
+            $('#txtSearchDetail').keypress(function (event) {
+                var keycode = (event.keyCode ? event.keyCode : event.which);
+                if (keycode == '13') {
+                    if ($('#formExport').valid()) {
+                        event.preventDefault();
+                        if (isValidate())
+                            DoLoadMonitor();
+                    }
+                }
+            });
+
+        })
+
+         //---------------------------- Validate ------------------------------//
+        isValidate = () => {
+            //valid Specail Chars
+            const re = /[`!#$%^&*()_+\=\[\]{};':"\\|,.<>\/?~]/;
+            var searchDetail = $('#txtSearchDetail').val();
+            if (re.test(searchDetail)) {
+                swal('ตรวจสอบ', 'รูปแบบตัวอักษรไม่ถูกต้อง', 'error');
+                return false;
+            }
+
+            return true;
+        }
+
+        $('#ddlStatus').change(function (e) {
+            $(this).valid();
+        });
+
+        //---------------------------- Nomal Function --------------------------//
+        function ExportClaimPayBackBillingRequestGroupTOSFTP(BillingRequestGroupId, BillingRequestGroupCode, InsuranceCompanyCode, InsuranceCompanyName) {
+            var ExcelName = `Report-BillingRequestGroup-${dateTimeToday}.xlsx`;
+            console.log("ExcelName:", ExcelName);
+            loadingSpinner('fadeIn', 999999);
+            $.ajax({
+                url: "@Url.Action("ExportExcelClaimPayBackBillingRequestGroup", "ClaimPayBack")",
+                type: "POST",
+                data:{
+                    billingRequestGroupId: BillingRequestGroupId,
+                    billingRequestGroupCode: BillingRequestGroupCode,
+                    actionId: 1,  //1 is SFTP
+                    insuranceCompanyCode: InsuranceCompanyCode,
+                    insuranceCompanyName: InsuranceCompanyName
+                },
+                success: function (response) {
+                    console.log(response);
+                    console.log("response.Data:",response.Data);
+                    if (response.IsSuccess) {
+                        swal('สำเร็จ', response.Message, 'success');
+                    } else {
+                        swal('เกิดข้อผิดพลาด', response.Message, 'error');
+                    }
+
+                    loadingSpinner('fadeOut');
+                    DoLoadMonitor();
+                }
+            });
+        }
+
+        function ExportExcelClaimPayBackBillingRequestGroup(BillingRequestGroupId, BillingRequestGroupCode, InsuranceCompanyCode, InsuranceCompanyName) {
+            var ExcelName = `Report-BillingRequestGroup-${dateTimeToday}.xlsx`;
+            console.log("ExcelName:", ExcelName);
+            loadingSpinner('fadeIn', 999999);
+            $.ajax({
+                url: "@Url.Action("ExportExcelClaimPayBackBillingRequestGroup", "ClaimPayBack")",
+                type: "POST",
+                data:{
+                    billingRequestGroupId: BillingRequestGroupId,
+                    billingRequestGroupCode: BillingRequestGroupCode,
+                    actionId: 2,    //2 is export excel
+                    insuranceCompanyCode: InsuranceCompanyCode,
+                    insuranceCompanyName: InsuranceCompanyName
+                },
+                success: function (response) {
+                    var fileName = "";
+                    fileName = response.Data;
+
+                    if (response.IsSuccess == true) {
+                        window.open(`@Url.Action("ExportExcelClaimPayBackBillingRequestGroupDownload", "ClaimPayBack")?fileName=` + fileName, '_self');
+                        swal('สำเร็จ', 'ดาวโหลดไฟล์สำเร็จ', 'success');
+                    } else {
+                        swal('เกิดข้อผิดพลาด', response.Message, 'error');
+                    }
+                    loadingSpinner('fadeOut');
+                }
+            });
+        }
+
+        //----------------------------Data Table------------------------------//
+        const DoLoadMonitor = () => {
+            $('#dtExportMonitor').empty();
+            var table = $('#dtExportMonitor').dataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                "order": [[1, "asc"]],
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetBillingRequestMonitor", "ClaimPayBack")',
+                    type: 'POST',
+                    async: true,
+                    data: function (d) {
+                        d.insuranceCompanyId = $('#ddlInsuranceCompany').val();
+                        d.billingDate = $('#dpkBillingDate').val();
+                        d.statusId = $('#ddlStatus').val();
+                        d.draw = d.draw;
+                        d.indexStart = d.start;
+                        d.pageSize = d.length;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchDetail = $('#txtSearchDetail').val();
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ', data: null, className: 'h-dt-center text-center', width: '5%', orderable: false,
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        title: 'BillingRequestGroup', data: "BillingRequestGroupCode", className: 'h-dt-center text-center',
+                        mRender: (data, type, full) => {
+                            var encode_BillingRequestGroupId = window.btoa(full.BillingRequestGroupId)
+                            var encode_BillingRequestGroupCode = window.btoa(full.BillingRequestGroupCode)
+                            return '<a href="@Url.Action("ClaimPayBackBillingRequestItem", "ClaimPayBack")?BillingRequestGroupId=' + encode_BillingRequestGroupId + '&BillingRequestGroupCode=' + encode_BillingRequestGroupCode + '" target="_blank" style="text-decoration: none;">' + full.BillingRequestGroupCode +'</a>';
+                        }
+                    },
+                    { title: 'กลุ่มเคลม', data: 'ClaimHeaderGroupTypeName', className: 'h-dt-center text-left' },
+                    { title: 'บริษัทประกัน', data: 'InsuranceCompanyName', className: 'h-dt-center text-left' },
+                    {
+                        title: 'จำนวน',
+                        data: 'ItemCount',
+                        className: "h-dt-center text-center",
+                        mRender: function (data) {
+                            return numberWithCommas(data);
+                        }
+                    },
+                    {
+                        title: 'จำนวนเงิน',
+                        data: 'TotalAmount',
+                        className: "h-dt-center text-right",
+                        mRender: function (data) {
+                            return numberWithCommas(data.toFixed(2));
+                        }
+                    },
+                    {
+                        title: 'ประเภทเคลม',
+                        data: 'ClaimType',
+                        className: "h-dt-center text-left",
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: null,
+                        className: "h-dt-center text-center",
+                        mRender: (data, type, full) => {
+
+                            switch (data.BillingRequestGroupStatusId) {
+                                //รอส่ง
+                                case 2:
+                                    return `<span class="badge bg-yellow" style="font-size:14px;width: 100px"><i class="fa fa-hourglass-2"></i>&nbsp${data.BillingRequestGroupStatusName}</span>`;
+                                    break;
+                                //ส่งแล้ว
+                                case 3:
+                                    return `<span class="badge bg-green" style="font-size:14px;width: 100px"><i class="fa fa-check-circle-o"></i> ${data.BillingRequestGroupStatusName}</span>`;
+                                    break;
+                                default:
+                                    return `<span >-</span>`;
+                            }
+                        }
+
+                    },
+                    {
+                        title: 'วันที่วางบิล', data: 'BillingDate', className: 'h-dt-center text-font-small', width: '15%',
+                        className: "h-dt-center text-center",
+                        mRender: function (data) {
+                            return toBuddhistYear(moment(data), 'DD/MM/YYYY');
+                        }
+                    },
+                    {
+                        title: 'Export',
+                        data: null,
+                        className: 'h-dt-center text-center',
+                        orderable: false,
+                        render: function (data) {
+                            switch (data.BillingRequestGroupStatusId) {
+                                //รอส่ง
+                                case 2:
+                                    return `<a href="javascript:ExportExcelClaimPayBackBillingRequestGroup('${data.BillingRequestGroupId}','${data.BillingRequestGroupCode}','${data.OrganizeCode}','${data.InsuranceCompanyName}')" data-toggle="tooltip" data-placement="top" title="" data-original-title="Export to excel"><i class="fa fa-file-excel-o" style="font-size: 20px; color:green"></i></a> &nbsp <a href="javascript:ExportClaimPayBackBillingRequestGroupTOSFTP('${data.BillingRequestGroupId}','${data.BillingRequestGroupCode}','${data.OrganizeCode}','${data.InsuranceCompanyName}')" data-toggle="tooltip" data-placement="top" title="" data-original-title="Export to SFTP" class="btnExportSFTP"><i class="glyphicon glyphicon-paste" style="font-size: 20px; color:#3C8DBC"></i></a>`
+                                    break;
+                                //ส่งแล้ว
+                                case 3:
+                                    return `<a href="javascript:ExportExcelClaimPayBackBillingRequestGroup('${data.BillingRequestGroupId}','${data.BillingRequestGroupCode}','${data.OrganizeCode}','${data.InsuranceCompanyName}')" data-toggle="tooltip" data-placement="top" title="" data-original-title="Export to excel"><i class="fa fa-file-excel-o" style="font-size: 20px; color:green"></i></a>`
+                                    break;
+                                default:
+                                    return `<span >-</span>`;
+                            }
+                        }
+                    },
+
+                ],
+                initComplete: function () {
+                },
+                drawCallback: function () {
+                    // Reinitialize tooltips on draw
+                    $('[data-toggle="tooltip"]').tooltip();
+                },
+                bLengthChange: false,
+            });
+
+            function toBuddhistYear(moment, format) {
+                var christianYear = moment.format('YYYY')
+                var buddhishYear = (parseInt(christianYear) + 543).toString()
+                return moment
+                    .format(format.replace('YYYY', buddhishYear).replace('YY', buddhishYear.substring(2, 4)))
+                    .replace(christianYear, buddhishYear)
+            }
+
+        }
+    </script>
+}
+

@@ -1,0 +1,203 @@
+﻿
+@{
+    ViewBag.Title = "รายการไม่อนุมัติกรมธรรม์";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+            @*ค้นหา*@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="col-xs-4">
+                            <label>ปีการศึกษา :</label>
+                            <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlStudyYear">
+                                @{ 
+                                    foreach (var item in ViewBag.PolicyYear)
+                                    {
+                                        <option value="@item.Code">@item.Detail</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-xs-6">
+                            <label>ค้นหาจากรายการ App PA ยิ้มแฉ่ง หรือ ชื่อสถานศึกษา :</label>
+                            <input class="form-control" id="txtSearch" placeholder="">
+                        </div>
+                        <div class="col-xs-2" style="padding-top:25px">
+                            <button type="button" style="text-decoration:none" class="btn btn-primary" id="btnSearch"><i class="fa fa-fw fa-search"></i> ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* ตารางข้อมูล *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียดรายการ</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="box-group">
+                        <table id="dtMonitor" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* popup หลังกดปุ่มสาเหตุ *@
+    <!-- /.modal-dialog -->
+    <div class="modal fade in" id="modal-RemarkDetail" style="display: none;">
+        <div class="modal-dialog">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">เหตุผลที่ไม่อนุมัติกรมธรรม์</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <label>สาเหตุการไม่อนุมัติ :</label>
+                            <input type="text" id="txtCause" class="form-control" disabled>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-12">
+                            <label>หมายเหตุ :</label>
+                            <textarea id="txtRemark" class="form-control" rows="10" disabled></textarea>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="box-group" style="text-align:center">
+                            <button class="btn btn-danger" id="btnCloseModal" name="btnCloseModal" type="button" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <input type="hidden" value="@ViewBag.BranchId" id="hdfBranchId" />
+</form>
+
+@section ViewSpecificJavascript
+    {
+    <script>
+    //--------------------------------------Event-------------------------------------------------
+        $(function () {
+            $('.select2').select2();
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+
+                if ($('#ddlStudyYear').val() == "-1") {
+                    swal("ตรวจสอบข้อมูล", "กรุณาเลือกปีการศึกษา", "warning");
+                    $('#dtMonitor').empty();
+                }
+                else {
+                    GetMonitorUnApprove();
+                }
+
+            });
+        })
+
+    //--------------------------------------Method---------------------------------------------
+        function GetMonitorUnApprove() {
+            $('#dtMonitor').empty();
+
+            var t = $('#dtMonitor').dataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                async: false,
+                ajax: {
+                    url: '@Url.Action("GetApplicationRoundMonitor", "PAPersonnel")',
+                    type: 'POST',
+                    data: function (d) {
+                        debugger
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.appRoundStatusIdList = "5";
+                        d.searchDetail = $('#txtSearch').val();
+                        d.year = $('#ddlStudyYear').val();
+                        d.branchId = $('#hdfBranchId').val();
+                    }
+                },
+                columns: [
+                    { title: 'AppID', data: 'PersonnelApplicationCode' },
+                    { title: 'สถานศึกษา', data: 'PersonnelApplicationName', width: '15%' },
+                    { title: 'สถานะ', data: 'PersonnelApplicationRoundStatusName', width: '15%' },
+                    { title: 'แผนประกัน', data: 'Product', width: '15%' },
+                    { title: 'จำนวนผู้เอาประกัน', data: 'CustomerCount', width: '20%'},
+                    {
+                        title: 'วันที่เริ่มคุ้มครอง', data: 'StartCoverDate', className: 'dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }, width: '10%'
+                    },
+                    {
+                        title: 'วันที่สิ้นสุดคุ้มครอง', data: 'EndCoverDate', className: 'dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }, width: '10%'
+                    },
+                    {
+                        title: "สาเหตุการไม่อนุมัติ",
+                        data: null,
+                        className: 'h-dt-center',
+                        mRender: (data, type, full) =>
+                        {
+                            let str = data.PersonnelApplicationRoundApproveRemark;
+                            if (str != null && str != "") {
+                                str = str.replaceAll('.', /\r/).replaceAll('/', '');
+                            }
+                            return '<a onclick="ShowRemarkDetail(\'' + data.PersonnelApplicationRoundApproveCause + '\',\'' + str + '\');" class="btn btn-danger btn-sm" target="_blank"> <i class="fa fa-fw fa-exclamation"></i> สาเหตุ </a>';
+                        }, width: '10%'
+                    },
+
+                    {
+                        data: null,
+                        mRender: (data, type, full) =>
+                        {
+                            let en_code = window.btoa(data.PersonnelApplicationRoundId);
+                                    return '<a href="@Url.Action("PAPersonnelNewAppForEdit", "PAPersonnel")?roundID=' + en_code + '" class="btn btn-warning btn-sm" target="_blank"><i class="fa fa-fw fa-edit"></i> แก้ไข </a>';
+                        }, width: '5%'
+                  },
+
+                ],
+                bLengthChange: false,
+            })
+        }
+
+        function ShowRemarkDetail(ApplicationApproveCause, ApplicationUnApproveRemark) {
+            if (ApplicationApproveCause == null) {
+                ApplicationApproveCause == ""
+            }
+            if (ApplicationUnApproveRemark == null) {
+                ApplicationUnApproveRemark == ""
+            }
+            $('#modal-RemarkDetail').modal('show');
+            $('#txtCause').val(ApplicationApproveCause);
+            $('#txtRemark').val(ApplicationUnApproveRemark);
+        }
+
+    </script>
+    }
+
+

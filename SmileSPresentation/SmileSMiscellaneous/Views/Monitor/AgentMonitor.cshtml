@@ -1,0 +1,237 @@
+﻿@{
+    ViewBag.Title = "ประกันภัยเบ็ดเตล็ด";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal" id="frmAgentMonitor" name="frmAgentMonitor">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหา</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="form-group">
+                        <div class="col-xs-4" style="padding-left:50px">
+                            <label>ประเภท :</label>
+                            <select class="form-control select2  select2-hidden-accessible" style="width:100%" tabindex="-1" aria-hidden="true" id="ddlType">
+                                <option value="-1">-----ทั้งหมด-----</option>
+                                @{
+                                    foreach (var item in ViewBag.Type)
+                                    {
+                                        <option value="@item.ProductTypeID">@item.ProductType</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-xs-4" style="padding-left:50px">
+                            <label>คำค้นหา :</label>
+                            <input type="text" id="txtKeyword" style="width:100%" class="form-control" name="txtKeyword" placeholder="ชื่อ / เลขที่ Application / Bill No. " />
+                        </div>
+                        <div class="col-xs-2" style="padding-top:25px">
+                            <button id="btnSearch" type="button" class="btn btn-primary" style="width:70%"><i class="fa fa-search" aria-hidden="true"></i>ค้นหา</button>
+                        </div>
+                        <div class="col-xs-2 col-xs-offset-4" style="padding-top:25px">
+                            <button id="btnCreateNew" type="button" class="btn btn-success" style="text-decoration:none; float:right;"><i class="fa fa-plus" aria-hidden="true"></i>สร้าง New App</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+    </div>
+    <div class="row" id="AgentTable" hidden>
+        <div class="col-xs-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายการ</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="form-group">
+                        <div class="col-xs-2 col-xs-offset-10">
+                            <button id="btnExport" type="button" class="btn btn-warning pull-right" style="width:70%"><i class="fa fa-download" aria-hidden="true"></i>Export</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-xs-12">
+                            <table id="dtAgentMonitor" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('#txtKeyword').keypress(function (event) {
+                var keycode = (event.keyCode ? event.keyCode : event.which);
+                if (keycode == '13') {
+                    event.preventDefault();
+                    $('#AgentTable').show();
+                    DoShowGrid();
+                }
+            });
+            $('[data-toggle="tooltip"]').tooltip();
+            $('#ddlType').select2();
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                $('#AgentTable').show();
+                DoShowGrid();
+
+            });
+
+            $('#btnCreateNew').click(function () {
+                OpenCreateNewApp();
+            });
+            $('#btnExport').click(function () {
+                DownloadExcel();
+            });
+        });
+
+        function DoShowGrid() {
+            $('#dtAgentMonitor').empty();
+
+            let t = $('#dtAgentMonitor').DataTable({
+                searching: false,
+                 pageLength: 10,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                 destroy: true,
+                "autoWidth": false,
+                 ajax: {
+                     url: '@Url.Action("GetAgentMonitor", "Monitor")',
+                        type: 'POST',
+                     data: function (d) {
+                         d.typeid = $('#ddlType').val();
+                         d.IsFilterUser = true;
+                            d.draw = d.draw;
+                            d.pageSize = d.length;
+                            d.pageStart = d.start;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.search = $('#txtKeyword').val();
+                        }
+                    },
+                    columns: [
+                        { title: 'เลขที่ Application', data: "ApplicationCode", width: '10%', className: 'h-dt-center' },
+                        { title: 'ผู้เอาประกันภัย', data: "InsuredName", width: '15%', className: 'h-dt-center' },
+                        { title: 'รหัสตัวแทน', data: "AgentCode", width: '5%', className: 'h-dt-center text-center' },
+                        { title: 'ประเภท', data: "ProductType", width: '9%', className: 'h-dt-center text-center' },
+                        { title: 'แผน', data: "ProductDetail", width: '11%', className: 'h-dt-center' },
+                        {
+                            title: 'จำนวนคน', data: "CountCustomer", width: '5%', className: 'h-dt-center text-right',
+                            mRender: function (data) { return numberWithCommas(data); }
+                        },
+                        {
+                            title: 'เบี้ยรวม', data: "SumPremiumAmount", width: '9%', className: 'h-dt-center text-right',
+                            mRender: function (data) { return numberWithCommas(data); }
+                        },
+                        {
+                            title: 'วันเริ่มคุ้มครอง', data: 'StartCoverDate', width: '5%', className: 'h-dt-center text-center',
+                            mRender: function (data) {
+                                moment.locale('th');
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                            }
+                        },
+                        {
+                            title: 'วันที่สิ้นสุด', data: "EndCoverDate", width: '5%', className: 'h-dt-center text-center',
+                            mRender: function (data) {
+                                moment.locale('th');
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                            }
+                        },
+                        { title: 'สถานะ', data: "ApplicationStatus", width: '8%', className: 'h-dt-center text-center' },
+                        { title: 'การชำระเบี้ย', data: "PaymentStatus", width: '10%', className: 'h-dt-center' },
+                        {
+                            title: 'การทำรายการ', data: null, width: '8%', className: 'h-dt-center text-center',orderable:false,
+                            mRender: function (data) {
+                                if (data.ApplicationStatusId == 2) {
+                                    return '<button type="button" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="เปิดดู" onclick="OpenReKey(' + data.ApplicationId + ')"><i class="glyphicon glyphicon-list-alt"></i></button>&nbsp;&nbsp;' +
+                                        '<button type="button" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="top" title="ลบ" onclick="DoDelete(' + data.ApplicationId + ')"><i class="fa fa-trash"></i></button>'
+                                }
+                                else {
+                                    return '<button type="button" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="เปิดดู" onclick="Openview(' + data.ApplicationId + ')"><i class="glyphicon glyphicon-list-alt"></i></button>&nbsp;&nbsp;' +
+                                           '<button type="button" class="btn btn-default btn-sm" disabled><i class="fa fa-trash"></i></button>'
+                                }
+
+                            }
+                        }],
+                bLengthChange: false,
+            });
+
+        }
+
+        const OpenCreateNewApp = () => {
+            var premiumUrl = '@(SmileSMiscellaneous.Properties.Settings.Default.PremiumOrderURL)'
+
+            window.location.href = premiumUrl + 'premiumnoticepages';
+        }
+
+        const OpenReKey = (appid) => {
+            let encode_RequestAppId = window.btoa(appid);
+            window.open('@Url.Action("NewApp", "Application")?appId=' + encode_RequestAppId, '_blank');
+        }
+
+        const Openview = (appid) => {
+            let encode_RequestAppId = window.btoa(appid);
+            window.open('@Url.Action("DetailApp", "Application")?appId=' + encode_RequestAppId, '_blank');
+        }
+
+        const DoDelete = (appid) => {
+            swal({
+                title: "",
+                text: "ยืนยันลบรายการ ?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-warning",
+                confirmButtonText: "ตกลง",
+                cancelButtonText: "ยกเลิก",
+                closeOnConfirm: false,
+                closeOnCancel: true
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        $.ajax({
+                            type: "GET",
+                            url: '@Url.Action("DeleteRequestCancelApplication", "Monitor")',
+                            data: {
+                                applicationId: appid
+                            },
+                            dataType: "json",
+                            success: function (response) {
+                                if (response[0] == "True") {
+                                    DoShowGrid();
+                                    swal("สำเร็จ", response[2], "success");
+                                } else {
+                                    swal("ไม่สำเร็จ", response[2], "error");
+                                }
+                            }
+                        });
+                    }
+                }
+            );
+
+        }
+
+        const DownloadExcel = () => {
+            let typeid = $('#ddlType').val();
+            let keywordtext = $('#txtKeyword').val();
+            var url = '@Html.Raw(Url.Action("ExporAgentMonitor", "Monitor", new { typeid = "__typeId__", search = "__txt__", IsFilterUser=true}))';
+            var params = url.replace('__typeId__', typeid).replace('__txt__', keywordtext);
+            window.location.href = params;
+        }
+
+        function numberWithCommas(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+    </script>
+}

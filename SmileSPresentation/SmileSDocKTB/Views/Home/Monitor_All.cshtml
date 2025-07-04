@@ -1,0 +1,610 @@
+﻿
+@{
+//ViewBag.Title = "Monitor_All";
+//Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*<h2>Monitor_All</h2>*@
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ปริมาณงานรายวัน</h3>
+                </div>
+
+                <div class="box-body">
+
+                    <div class="form-group">
+
+                        <div class="col-sm-3">
+                            <label class="control-label">วันที่ :</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right datepicker" name="dtpDateFrom" id="dtpDateFrom" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" required="required">
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label class="control-label">ถึง :</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right datepicker" name="dtpDateTo" id="dtpDateTo" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" required="required">
+                            </div>
+                        </div>
+                        <div class="col-sm-3" style="padding-top:27px">
+                            <input id="btnSreach" name="btnSreach" class="btn btn-primary" type="button" value="ค้นหา" style="width:30%" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <canvas id="Chart_DocumentCount" width="100" height="20" ></canvas>
+                            @*<canvas id="Chart_DocumentCount" class="chartjs-render-monitor" style="display: block; "></canvas>*@
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ปริมาณงานทั้งหมด</h3>
+                </div>
+            </div>
+
+
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="box box-primary">
+                        @*<div class="box-header with-border">
+                            <h3 class="box-title">xxx</h3>
+                        </div>*@
+
+                        <div class="box-body">
+
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <canvas id="Chart_Pie" width="100" height="50"></canvas>
+                                </div>
+                                
+                            </div>
+
+                           <div class="form-group">
+                               <div class="col-sm-4 col-sm-offset-4" style="text-align:center">
+                                <label class="control-label" style="font-size:23px;">TOTAL : </label> <label class="control-label" id="lblCount" style="font-size:23px;"></label>
+                               </div>
+                           </div>
+
+
+                        </div>
+
+
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="box box-primary">
+                        
+                        <div class="box-body" style="padding-top:37px">
+
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <canvas id="Chart_Check" width="100" height="50"></canvas>
+                                </div>
+                                
+                            </div>
+
+                            <div class="form-group" style="padding-top:10px">
+                                <div class="col-sm-4 col-sm-offset-4" >
+                                    @*<label class="control-label" style="font-size:28px;">TOTAL : </label> <label class="control-label" id="lblCount" style="font-size:30px;"></label>*@
+                                </div>
+                            </div>
+
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            
+            <div class="box box-primary">
+                @*<div class="box-header with-border">
+                    <h3 class="box-title">xxx</h3>
+                </div>*@
+                <div class="box-body">
+
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <canvas id="Chart_AmountDoc" width="100" height="20"></canvas>
+                        </div>
+                        
+                    </div>
+
+
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+   <script type="text/javascript">
+       var dateData = [];
+       var dateValue = [];
+       //var ctx, config, mychart;
+
+
+       $(function () {
+
+           var d = new Date();
+           $("#dtpDateFrom").datepicker("setDate", new Date(d.getFullYear(), d.getMonth(), 1));
+           $("#dtpDateTo").datepicker("setDate", d);
+
+
+
+           GetChart_DocumentCount();
+           GetChart_CheckDocument();
+           GetChart_Check();
+           GetChart_AmountDoc();
+
+           $("#btnSreach").click(function () {
+               GetChart_DocumentCount();
+               GetChart_CheckDocument();
+               GetChart_Check();
+               GetChart_AmountDoc();
+           });
+
+
+           Chart.pluginService.register({
+               afterDatasetsDraw: function (chart, easing) {
+                   // To only draw at the end of animation, check for easing === 1
+                   var ctx = chart.ctx;
+
+                   chart.data.datasets.forEach(function (dataset, i) {
+                       var meta = chart.getDatasetMeta(i);
+                       if (!meta.hidden) {
+                           meta.data.forEach(function (element, index) {
+                               // Draw the text in black, with the specified font
+                               ctx.fillStyle = 'rgb(0, 0, 0)';
+
+                               var fontSize = 12;
+                               var fontStyle = 'normal';
+                               var fontFamily = 'Helvetica Neue';
+                               ctx.font = Chart.helpers.fontString(fontSize, fontStyle, fontFamily);
+
+                               // Just naively convert to string for now
+                               var dataString = dataset.data[index].toString();
+
+                               // Make sure alignment settings are correct
+                               ctx.textAlign = 'center';
+                               ctx.textBaseline = 'middle';
+
+                               var position = element.tooltipPosition();
+
+                               if (ctx.canvas.id == 'Chart_Check') {
+                                   ctx.fillText(dataString, position.x + 10, position.y);
+                               } else {
+                                   ctx.fillText(dataString, position.x , position.y - (fontSize / 2) - 6);
+                               }
+
+                               
+
+                               //ctx.backgroundColor("#d3e1ff");
+                               //if (chart === 'pie') {
+                               //    padding = 0;
+                               //}
+
+                               //ctx.fillStyle = "#FF0000";
+                               //ctx.fillRect(20, 20, 150, 100);
+
+                               //var position = element.tooltipPosition();
+
+                               
+                           });
+                       }
+                   });
+               },
+               beforeDraw: function (chart, easing) {
+                   var ctx = chart.ctx;
+                          if (chart.options.chartArea && chart.options.chartArea.backgroundColor) {
+                              var helpers = chart.helpers;
+                              //var ctx = chart.ctx;
+                              var chartArea = chart.chartArea;
+
+                              ctx.save();
+                              ctx.fillStyle = chart.options.chartArea.backgroundColor;
+                              ctx.fillRect(chartArea.left, chartArea.top, chartArea.right - chartArea.left, chartArea.bottom - chartArea.top);
+                              ctx.restore();
+                          }
+               }
+           });
+
+
+       });
+
+
+
+       function GetChart_DocumentCount() {
+           var data = GetDataDaily();
+
+
+
+           var ctx = document.getElementById("Chart_DocumentCount").getContext("2d");
+           //ctx.style.backgroundColor = '#FF0000';
+           var myChart = new Chart(ctx, {
+               type: "line",
+               data: {
+                   labels: data.dataValue,
+                   datasets: [{
+                       label: "สรุปการทำงานในแต่ละวัน",
+                       fill: false,
+                       backgroundColor: "#DF7401",
+                       borderColor: "#DF7401",
+                       data: data.CountValue,
+                       pointRadius: 7,
+                       pointHoverRadius: 7
+                   }]
+               },
+               options: {
+                   responsive: true,
+                   chartArea: {
+                       backgroundColor: 'rgba(17, 59, 197, 0.12)'
+                   },
+                   //title: {
+                   //    display: true,
+                   //    text: 'ChartJS'
+                   //},
+                   //tooltips: {
+                   //    mode: 'index',
+                   //    intersect: false,
+                   //    axis: 'y'
+                   //},
+
+                   //hover: {
+                   //    mode: 'nearest',
+                   //    intersect: true
+                   //},
+
+
+                   scales: {
+                       xAxes: [{
+                           display: true,
+                           scaleLabel: {
+                               display: true,
+                               labelString: 'วันที่',
+                               fontSize:15
+                           }
+                           //gridLines: {
+                           //    color: "rgba(231, 230, 228, 1)",
+                           //    lineWidth: 2
+                           //}
+                       }],
+                       yAxes: [{
+                           display: true,
+                           scaleLabel: {
+                               display: true,
+                               labelString: 'จำนวนเอกสาร',
+                               fontSize: 15
+                               //position: "top"
+                           }
+                           //gridLines: {
+                           //    color: "rgba(231, 230, 228, 1)",
+                           //    lineWidth: 2,
+                           //    zeroLineColor: "rgba(231, 230, 228, 1)",
+                           //    zeroLineWidth: 2
+                           //},
+                           //stacked: true
+                           //ticks: {
+                           //    stepSize: 5,
+                           //    //max: 5+1
+                           //    max: 10
+                           //}
+                       }]
+                   }
+               }
+           });
+
+           //mychart = new Chart(ctx, config);
+           //Chart.defaults.global.elements.rectangle.backgroundColor = "#2E64FE";
+
+           //Chart.plugins.register({
+           //    afterDatasetsDraw: function (chart, easing) {
+           //        // To only draw at the end of animation, check for easing === 1
+           //        var ctx = chart.ctx;
+
+           //        chart.data.datasets.forEach(function (dataset, i) {
+           //            var meta = chart.getDatasetMeta(i);
+           //            if (!meta.hidden) {
+           //                meta.data.forEach(function (element, index) {
+           //                    // Draw the text in black, with the specified font
+           //                    ctx.fillStyle = 'rgb(0, 0, 0)';
+
+           //                    var fontSize = 12;
+           //                    var fontStyle = 'normal';
+           //                    var fontFamily = 'Helvetica Neue';
+           //                    ctx.font = Chart.helpers.fontString(fontSize, fontStyle, fontFamily);
+
+           //                    // Just naively convert to string for now
+           //                    var dataString = dataset.data[index].toString();
+
+           //                    // Make sure alignment settings are correct
+           //                    ctx.textAlign = 'center';
+           //                    ctx.textBaseline = 'middle';
+
+
+           //                    //if (ctx.canvas.id == 'Chart_Check') {
+           //                    //    ctx.fillText(dataString, position.x + 10, position.y);
+           //                    //}
+
+
+
+           //                    var position = element.tooltipPosition();
+
+           //                    ctx.fillText(dataString, position.x+10, position.y - (fontSize / 2) - 6);
+           //                });
+           //            }
+           //        });
+           //    }
+           //});
+
+
+
+
+       }
+
+
+       function GetChart_CheckDocument() {
+           var ChartData1 = {
+               labels: ['ถูกต้อง', 'ไม่ถูกต้อง'],
+               datasets: [
+                   {
+                       data: [0, 0],
+                       backgroundColor: ['#678ccc', '#e59d6d']
+                   }
+
+               ]
+           }
+
+           var donutChartResult = new Chart("Chart_Pie",
+               {
+                   type: 'pie',
+                   data: ChartData1,
+                   options: {
+
+                       responsive: true,
+                       elements: {
+                           rectangle: {
+                               borderWidth: 2,
+                           }
+                       }
+                   }
+               });
+
+
+           RefreshPieChart(donutChartResult);
+
+       }
+
+
+
+       function GetChart_Check() {
+           var ChartData2 = {
+               labels: ['เอกสารถูกต้อง', 'ลายเซ็นไม่เหมือนกัน', 'เลขที่บัญชีไม่ถูกต้อง', 'โปรดติดต่อเจ้าของบัญชี'
+                   , 'บัญชีปิดแล้ว', 'บัญชีนี้ไม่สามารถใช้หักบัญชีได้', 'เลขที่บัญชีกับชื่อบัญชีไม่ตรงกัน', 'อื่นๆ'],
+               datasets: [
+                   {
+                       label: ['ผลตรวจ'],
+                       data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                       backgroundColor: ['#A9D0F5', '#A9BCF5', '#819FF7', '#8181F7', '#58ACFA', '#5882FA', '#2E64FE', '#2E2EFE']
+                   }
+
+               ]
+           }
+
+           var myhorizontalBarChart = new Chart("Chart_Check", {
+               type: 'horizontalBar',
+               //backgroundColor: "#A9BCF5",
+               data: ChartData2,
+               options: {
+                   scales: {
+                       xAxes: [{
+                           display: true,
+                           scaleLabel: {
+                               display: true,
+                               labelString: 'จำนวน',
+                               fontSize: 15
+                           },
+                           ticks: {
+
+                           }
+                       }],
+                       yAxes: [{
+                           display: true,
+                           scaleLabel: {
+                               display: true,
+                               //type: 'linear',
+                               labelString: 'ผลตรวจ',
+                               fontSize: 15
+                               
+
+                           }
+                       }]
+                   },
+                   elements: {
+                       rectangle: {
+                           borderWidth: 2,
+                       }
+                   },
+                   responsive: true,
+                   legend: {
+                       position: 'right',
+                       display: false
+                   },
+                   title: {
+                       display: false,
+                       text: 'Chart.js Horizontal Bar Chart'
+                   }
+               }
+           });
+
+           RefreshHorizontalBarChart(myhorizontalBarChart);
+
+       }
+
+       function GetChart_AmountDoc() {
+           var data = RefreshBarChar();
+
+           var ChartData3 = {
+               labels: data.dataValue,
+               datasets: [
+                   {
+                       label: ['จำนวน'],
+                       data: data.CountValue,
+                       backgroundColor: "#0b3376"
+                   }
+
+               ]
+           }
+
+           var myBarChart = new Chart("Chart_AmountDoc", {
+               type: 'bar',
+               data: ChartData3,
+               options: {
+                   scales: {
+                       xAxes: [{
+                           display: true,
+                           scaleLabel: {
+                               display: true,
+                               labelString: 'BOX',
+                               fontSize: 15
+                           },
+                           ticks: {
+
+                           }
+                       }],
+                       yAxes: [{
+                           display: true,
+                           scaleLabel: {
+                               display: true,
+                               labelString: 'จำนวนเอกสาร',
+                               fontSize: 15
+                           }
+                       }]
+                   },
+                   elements: {
+                       rectangle: {
+                           borderWidth: 2,
+                       }
+                   },
+                   responsive: true,
+                   legend: {
+                       position: 'right',
+                       display: false
+                   },
+                   title: {
+                       display: true,
+                       text: 'จำนวนเอกสารในแต่ละกล่อง',
+                       fontSize: 15,
+                       fontColor: "#0b3376"
+                   }
+               }
+           });
+       }
+
+       function addData(chart, data, datasetIndex) {
+           chart.data.datasets[datasetIndex].data = data;
+           chart.update();
+       }
+
+       function RefreshPieChart(chart) {
+           $.ajax({
+               type: "POST",
+               url: "@Url.Action("RefreshPieBarChart")",
+                success: function (response) {
+
+                    addData(chart, [response[0], response[1]], 0);
+                    //var c = response[0] + response[1];
+
+                    $("#lblCount").text(response[2]);
+                }
+
+            });
+       }
+
+       function RefreshHorizontalBarChart(chart) {
+            $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("RefreshHBarChar")",
+                    success: function (response) {
+                        addData(chart, [response[0], response[1], response[2], response[3], response[4]
+                            , response[5],response[6], response[7]], 0);
+                    }
+
+            });
+       }
+
+       function RefreshBarChar() {
+           var dataValue = [];
+           var CountValue = [];
+
+            $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("GetAccountKTBGraphBoxCountQuantity")",
+                    dataType: 'json',
+                    async: false,
+                    success: function (response) {
+                        response.forEach(function (obj) {
+                            dataValue.push(obj.BoxName);
+                            CountValue.push(obj.countQuantity);
+                        });
+                    }
+
+           });
+            return {
+                dataValue: dataValue,
+                CountValue: CountValue
+            };
+       }
+
+
+       function GetDataDaily()
+       {
+           var dataValue = [];
+           var CountValue = [];
+
+            $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("GetAccountKTBGraphDaily")",
+                    data: {
+                        dfrom: $("#dtpDateFrom").val(),
+                        dto: $("#dtpDateTo").val()
+                    },
+                    dataType: 'json',
+                    async: false,
+                    success: function (response) {
+                        response.forEach(function (obj) {
+                            dataValue.push(moment(obj.ActionDate).format('DD/MM/YYYY'));
+                            CountValue.push(obj.countId);
+                        });
+                    }
+
+           });
+            return {
+                dataValue: dataValue,
+                CountValue: CountValue
+            };
+       }
+
+
+
+    </script>
+}
+

@@ -1,0 +1,381 @@
+﻿@*
+    Functions: GetBenefitDe(appid,productId)
+*@
+<div class="row">
+    <div class="col-xs-12">
+        <h3>ตารางผลประโยชน์และความคุ้มครองแผน <label id="lblProdName"></label></h3>
+        <div id="bene1">
+            <div class="box box-primary">
+                <div class="box-header with-border" style="background-color:#3987b4; color:white">
+                    <h3 class="box-title">เสียชีวิต</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                    <!-- /.box-tools -->
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-12" style="padding-top:6px">
+                            <table id="dtBenefit1" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+        <div id="bene2">
+            <div class="box box-primary">
+                <div class="box-header with-border" style="background-color:#3987b4; color:white">
+                    <h3 class="box-title">ทุพพลภาพโดยถาวร</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                    <!-- /.box-tools -->
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-12" style="padding-top:6px">
+                            <table id="dtBenefit2" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+        <div id="bene3">
+            <div class="box box-primary">
+                <div class="box-header with-border" style="background-color:#3987b4; color:white">
+                    <h3 class="box-title">สูญเสียอวัยวะ (อบ.2)</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                    <!-- /.box-tools -->
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-12" style="padding-top:6px">
+                            <table id="dtBenefit3" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+
+        <div id="bene5">
+            <div class="box box-primary">
+                <div class="box-header with-border" style="background-color:#3987b4; color:white">
+                    <h3 class="box-title">ค่ารักษาพยาบาล</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                    <!-- /.box-tools -->
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-12" style="padding-top:6px">
+                            <table id="dtBenefit5" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+
+        <div id="bene4">
+            <div class="box box-primary">
+                <div class="box-header with-border" style="background-color:#3987b4; color:white">
+                    <h3 class="box-title">ค่าชดเชยกรณีใช้สิทธิ์อื่นที่ไม่ได้ใช้ค่ารักษาจากโครงการ</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                    <!-- /.box-tools -->
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-12" style="padding-top:6px">
+                            <table id="dtBenefit4" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+    const GetBenefitDe = (appId, productId) => {
+        debugger
+        let proid = "";
+        if (productId == undefined) {
+            proid = GetProduct(appId);
+        }
+        else {
+            proid = productId;
+            GetProductDetail(proid);
+        }
+            $('#dtBenefit1').empty();
+            $('#dtBenefit2').empty();
+            $('#dtBenefit3').empty();
+        $('#dtBenefit4').empty();
+        $('#dtBenefit5').empty();
+        if (proid != "") {
+            var appTable1 = $('#dtBenefit1').DataTable({
+                lengthChange: false,
+                info: false,
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                "autoWidth": false,
+                ajax: {
+                    url: '@Url.Action("GetBenefitList", "PartialView")',
+                    method: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.proId = proid;
+                        d.beneTypeid = 2;
+                    }
+                },
+                columns: [
+                    { title: 'ผลประโยชน์', data: 'BenefitDetail', className: 'h-dt-center', width: '70%' },
+                    {
+                        title: 'ความคุ้มครอง', data: 'Coverage', className: 'h-dt-center text-right', width: '30%',
+                        mRender: function (data) {
+                            return numberWithCommas(data);
+                        }
+                    }
+                ],
+
+            });
+
+            var appTable2 = $('#dtBenefit2').DataTable({
+                lengthChange: false,
+                info: false,
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                "autoWidth": false,
+                ajax: {
+                    url: '@Url.Action("GetBenefitList", "PartialView")',
+                    method: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.proId = proid;
+                        d.beneTypeid = 3;
+                    }
+                },
+                columns: [
+                    { title: 'ผลประโยชน์', data: 'BenefitDetail', className: 'h-dt-center', width: '70%' },
+                    {
+                        title: 'ความคุ้มครอง', data: 'Coverage', className: 'h-dt-center text-right', width: '30%',
+                        mRender: function (data) {
+                            return numberWithCommas(data);
+                        }
+                    }
+                ],
+            });
+            var appTable3 = $('#dtBenefit3').DataTable({
+                lengthChange: false,
+                info: false,
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                "autoWidth": false,
+                ajax: {
+                    url: '@Url.Action("GetBenefitList", "PartialView")',
+                    method: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.proId = proid;
+                        d.beneTypeid = 4;
+                    }
+                },
+                columns: [
+                    { title: 'ผลประโยชน์', data: 'BenefitDetail', className: 'h-dt-center', width: '70%' },
+                    {
+                        title: 'ความคุ้มครอง', data: 'Coverage', className: 'h-dt-center text-right', width: '30%',
+                        mRender: function (data) {
+                            return numberWithCommas(data);
+                        }
+                    }
+                ],
+            });
+            var appTable4 = $('#dtBenefit4').DataTable({
+                lengthChange: false,
+                info: false,
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                "autoWidth": false,
+                ajax: {
+                    url: '@Url.Action("GetBenefitList", "PartialView")',
+                    method: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.proId = proid;
+                        d.beneTypeid = 5;
+                    }
+                },
+                columns: [
+                    { title: 'ผลประโยชน์', data: 'BenefitDetail', className: 'h-dt-center', width: '70%' },
+                    {
+                        title: 'ความคุ้มครอง', data: 'Coverage', className: 'h-dt-center text-right', width: '30%',
+                        mRender: function (data) {
+                            return numberWithCommas(data);
+                        }
+                    }
+                ],
+            });
+            var appTable5 = $('#dtBenefit5').DataTable({
+                lengthChange: false,
+                info: false,
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                "autoWidth": false,
+                ajax: {
+                    url: '@Url.Action("GetBenefitList", "PartialView")',
+                    method: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.proId = proid;
+                        d.beneTypeid = 6;
+                    }
+                },
+                columns: [
+                    { title: 'ผลประโยชน์', data: 'BenefitDetail', className: 'h-dt-center', width: '70%' },
+                    {
+                        title: 'ความคุ้มครอง', data: 'Coverage', className: 'h-dt-center text-right', width: '30%',
+                        mRender: function (data) {
+                            return numberWithCommas(data);
+                        }
+                    }
+                ],
+
+            });
+        }
+        //Show or hide
+        if (appTable1.rows().count() > 0) { $('#bene1').show(); }
+        else { $('#bene1').hide(); }
+        if (appTable2.rows().count() > 0) { $('#bene2').show(); }
+        else { $('#bene2').hide(); }
+        if (appTable3.rows().count() > 0) { $('#bene3').show(); }
+        else { $('#bene3').hide(); }
+        if (appTable4.rows().count() > 0) { $('#bene4').show(); }
+        else { $('#bene4').hide(); }
+        if (appTable5.rows().count() > 0) { $('#bene5').show(); }
+        else { $('#bene5').hide(); }
+
+    }
+
+    function numberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function GetProduct(appid) {
+        var reProid;
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("GetApplicationDetail", "PartialView")',
+                data: {
+                    applicationID: appid
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    document.getElementById('lblProdName').innerHTML = response.Product;
+                    reProid= response.ProductId;
+                },
+                error: function (response) {
+                    document.getElementById('lblProdName').innerHTML = "ไม่พบผลิตภัณฑ์";
+                    reProid= "";
+                }
+
+        });
+        return reProid;
+    }
+
+    const GetProductDetail = (prodid) => {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("GetProductDetail", "PartialView")',
+                data: {
+                    proid: prodid
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    document.getElementById('lblProdName').innerHTML = response.Product;
+                },
+                error: function (response) {
+
+                    document.getElementById('lblProdName').innerHTML = "ไม่พบผลิตภัณฑ์";
+                }
+
+        });
+     }
+</script>

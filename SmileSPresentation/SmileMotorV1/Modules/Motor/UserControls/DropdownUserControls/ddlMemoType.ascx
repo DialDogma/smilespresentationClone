@@ -1,0 +1,2 @@
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="ddlMemoType.ascx.cs" Inherits="SmileMotorV1.Modules.Motor.UserControls.DropdownUserControls.ucMemoTypeDropdownlist" %>
+<asp:DropDownList ID="ddlMemoType1" runat="server" OnSelectedIndexChanged="OnSelectIndexChanged"></asp:DropDownList>

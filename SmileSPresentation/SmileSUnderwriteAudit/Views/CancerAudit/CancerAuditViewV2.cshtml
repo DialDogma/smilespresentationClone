@@ -1,0 +1,2222 @@
+﻿@{
+    ViewBag.Title = "CancerAuditViewV2";
+    Layout = "~/Views/Shared/_LayoutForTopCancer.cshtml";
+}
+
+<style>
+    .marker {
+        list-style-type: circle;
+        color: #005484
+    }
+
+    th.sorting_asc::after {
+        content: "" !important;
+    }
+
+    strong {
+        color: red;
+        
+    }
+
+    label.title {
+        font-family: Sarabun;
+        color: #3F8FBD
+    }
+
+
+    label.fonts-box {
+        font-family: Sarabun;
+        font-size: 14px;
+        font-weight: lighter;
+    }
+    h4 {
+        font-family: Sarabun;
+    }
+    h3 {
+        font-family: Sarabun;
+    }
+    h4.font-custom {
+        font-family: Sarabun;
+    }
+
+    h5.font-custom {
+        font-family: Sarabun;
+    }
+</style>
+<div class="row">
+    <div class="col-xs-12" style="background-color: #1E90FF; color: white; text-align: center">
+        <h4>รายละเอียดกรมธรรม์</h4>
+    </div>
+    <br />
+    <br />
+    <br />
+    <section class="">
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#tab_1" data-toggle="tab">บันทึกผลการทำงาน</a></li>
+                <li class=""><a href="#tab_2" data-toggle="tab">ผลการมอบบัตรสาขา</a></li>
+                <li class=""><a href="#tab_3" data-toggle="tab">เอกสาร</a></li>
+                @if (ViewBag.AccessRole == "AUDIT_DEV" || ViewBag.AccessRole == "AUDIT_BPT" || ViewBag.AccessRole == "AUDIT_INSURE")
+                {
+                    <li class=""><a href="#tab_4" data-toggle="tab">ประวัติคิวงาน(ฝ่าย QC)</a></li>
+                }
+            </ul>
+            @if (ViewBag.QueueCancerFullDetail != null)
+            {
+                <div class="tab-content">
+                    <div class="tab-pane active view-detail" id="tab_1">
+                        <div class="row">
+                            <div class="col-sm-12 ">
+                                <div class="card" style="background-color: #E0F7FF; border-radius: 8px 8px; ">
+                                    <div class="box-header" style="color: #3F8FBD; border-bottom: 1px solid #D2D6DE">
+                                        <i class="fa fa-user"></i>
+                                        <h4 class="box-title font-custom">ข้อมูลผู้เอาประกัน </h4>
+                                    </div>
+                                    <div class="box-body" style="align-items: center;">
+                                        <div class="row">
+                                            <h5 class="font-custom col-md-3"><b>App ID</b> : <a  id="openSSS" style="text-decoration: underline; color: #2833FF " onclick="OpenSSSView('@ViewBag.QueueCancerFullDetail.ApplicationCode')">@ViewBag.QueueCancerFullDetail.ApplicationCode</a></h5>
+                                            <h5 class="font-custom col-md-3">
+                                                <b>วันเริ่มคุ้มครอง</b>  : @(String.Format("{0:dd MMM yyyy}", ViewBag.QueueCancerFullDetail.StartCoverDate) )
+                                            </h5>
+                                            <h5 class="font-custom col-md-3"><b>แผนประกัน</b> : @ViewBag.QueueCancerFullDetail.ProductDetail</h5>
+                                            <h5 class="font-custom col-md-3"><b>เบี้ย</b> : @ViewBag.QueueCancerFullDetail.Premium บาท</h5>
+                                        </div>
+                                        <div class="row">
+                                            <h5 class="font-custom col-md-3 "><b>ชื่อ</b> : @(String.Format("{0}", ViewBag.QueueCancerFullDetail.InsuredName)) </h5>
+                                            <h5 class="font-custom col-md-3"><b>วันเกิด</b> : @(String.Format("{0:dd MMM yyyy}", ViewBag.QueueCancerFullDetail.InsuredBirthDate))</h5>
+                                            <h5 class="font-custom col-md-3"><b>อายุวันสมัคร</b> : @ViewBag.QueueCancerFullDetail.AgesAtRegister </h5>
+                                            <h5 class="font-custom col-md-3"><b>อายุปัจจุบัน</b> : @ViewBag.QueueCancerFullDetail.AgesCurrent</h5>
+                                        </div>
+                                        <div class="row">
+                                            <h5 class="font-custom col-md-3"><b>เบอร์โทร</b> : @ViewBag.QueueCancerFullDetail.InsuredPhone</h5>
+                                            <h5 class="font-custom col-md-3"><b>สถานะ</b> : @(ViewBag.QueueCancerFullDetail.ApplicationStatus != null ? ViewBag.QueueCancerFullDetail.ApplicationStatus : "-")</h5>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-md-12" style="text-align:right">
+                                                <a href="#" id="btnPolicyOther" data-toggle="modal" data-target="#modal-warning-policy" style="text-decoration: underline; color: #2833FF; display: none "></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12" style="margin-top:15px;margin-bottom :15px">
+                                <div class="card" style="background-color: #E0F7FF; border-radius: 8px 8px">
+                                    @*<a href="~/Models/Documents.cs">~/Models/Documents.cs</a>*@
+                                    <div class="box-header" style="color: #3F8FBD; border-bottom: 1px solid #D2D6DE">
+                                        <i class="fa fa-user"></i>
+                                        <h4 class="font-custom box-title">ข้อมูลผู้ชำระเบี้ย </h4>
+                                    </div>
+                                    <div class="box-body " style="align-items: center;">
+                                        <div class="row">
+                                            <h5 class="font-custom col-md-4 "><b>ชื่อผู้ชำระเบี้ย</b> : @(String.Format("{0}", ViewBag.QueueCancerFullDetail.PayerName)) </h5>
+
+                                            <h5 class="font-custom col-md-4"><b>ความสัมพันธ์</b> : @(ViewBag.QueueCancerFullDetail.PayerRelate != null ? ViewBag.QueueCancerFullDetail.PayerRelate : "-")</h5>
+                                            @*<h5 class="font-custom col-md-4"><b>เลขบัตรประชาชน/Passport</b> : @(ViewBag.QueueCancerFullDetail.PayerCardId != null ? ViewBag.QueueCancerFullDetail.PayerCardId : "-") </h5>*@
+                                            <h5 class="font-custom col-md-4"><b>เลขบัตรประชาชน/Passport</b> : @(ViewBag.QueueCancerFullDetail.PayerCardId != null ? ViewBag.QueueCancerFullDetail.PayerCardId : "-") </h5>
+                                        </div>
+                                        <div class="row">
+
+                                            <h5 class="font-custom col-md-4"><b>อาชีพ</b> : @(ViewBag.QueueCancerFullDetail.PayerOccupationLevel != null ? ViewBag.QueueCancerFullDetail.PayerOccupationLevel : "-")</h5>
+                                            <h5 class="font-custom col-md-4"><b>เบอร์โทร</b> : @(ViewBag.QueueCancerFullDetail.PayerPhone != null ? ViewBag.QueueCancerFullDetail.PayerPhone : "-")</h5>
+                                            <h5 class="font-custom col-md-4"><b>เบอร์โทรที่ทำงาน</b> : @(ViewBag.QueueCancerFullDetail.PayerBuildingPhone != null ? ViewBag.QueueCancerFullDetail.PayerBuildingPhone : "-")</h5>
+                                        </div>
+
+                                        <div class="row">
+                                            <h5 class="font-custom col-md-4"><b>ชื่อหน่วยงาน</b> : @(ViewBag.QueueCancerFullDetail.PayerBuildingName != null ? ViewBag.QueueCancerFullDetail.PayerBuildingName : "-")</h5>
+                                            <h5 class="font-custom col-md-4"><b>การชำระ</b> : @(ViewBag.QueueCancerFullDetail.PayMethodType != null ? ViewBag.QueueCancerFullDetail.PayMethodType : "-")</h5>
+                                            <h5 class="font-custom col-md-4"><b>ธนาคาร</b> : @(ViewBag.QueueCancerFullDetail.PayerBankName != null ? ViewBag.QueueCancerFullDetail.PayerBankName : "-")</h5>
+                                        </div>
+                                        <div class="row">
+                                            <h5 class="font-custom col-md-4"><b>เลขบัญชี</b> : @(ViewBag.QueueCancerFullDetail.PayerBankAccountNo != null ? ViewBag.QueueCancerFullDetail.PayerBankAccountNo : "-")</h5>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-md-12" style="text-align:right">
+                                                <a href="#" id="btnPayerOther" data-toggle="modal" data-target="#modal-warning" style="text-decoration: underline; color: #2833FF; display: none "></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            @* end ข้อมูลผู้ชำระเบี้ย *@
+                            <!-- #region แถลงสุขภาพ -->
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    @*<div class="box box-solid box-default @(ViewBag.AccessRole2.Contains("UnderwriteAudit_Insure") ? "" : "collapsed-box") ">*@
+                                    <div class="box box-solid box-default  collapsed-box ">
+                                        <div class="box-header" style="background-color: #b3eeff; text-align: center">
+                                            <h4 class="box-title">แถลงสุขภาพ</h4>
+                                            <div class="box-tools pull-right">
+                                                <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                                    <i class="@(ViewBag.AccessRole2.Contains("UnderwriteAudit_Insure") ? "fa fa-minus" : "fa fa-plus") "></i>
+
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="box-body" style="padding:20px">
+                                            <form class="form-horizontal">
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ท่านมีหรือเคยมีประกันชีวิต หรือประกันสุขภาพ หรือประกันอุบัติเหตุ หรือกำลังขอเอาประกันภัยดังกล่าวไว้กับบริษัทนี้หรือบริษัทอื่นหรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value1) ? "-" : ViewBag.QueueCancerFullDetail.Value1)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ บริษัท / จำนวนเงินเอาประกันภัย (บาท) / เงินชดเชยรายวัน (บาท) / ขณะนี้สัญญามีผลบังคับหรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value2) ? "-" : ViewBag.QueueCancerFullDetail.Value2)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>
+                                                        ท่านเคยถูกปฏิเสธ เลื่อนการรับประกันภัย เพิ่มอัตราเบี้ยประกันภัย เปลี่ยนแปลงเงื่อนไข สำหรับการขอเอาประกันภัยหรือการขอกลับคืนสู่สถานะเดิม หรือการขอต่ออายุของกรมธรรม์ จากบริษัทนี้
+                                                        หรือบริษัทอื่นบ้างหรือไม่
+                                                    </span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value3) ? "-" : ViewBag.QueueCancerFullDetail.Value3)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ บริษัท / สาเหตุ / เมื่อใด</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value4) ? "-" : ViewBag.QueueCancerFullDetail.Value4)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ท่านเคยมีส่วนเกี่ยวข้องกับการค้ายาเสพติดหรือเคยต้องโทษเกี่ยวกับคดียาเสพติดหรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value5) ? "-" : ViewBag.QueueCancerFullDetail.Value5)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ท่านเสพหรือเคยเสพยาเสพติด หรือสารเสพติดหรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value6) ? "-" : ViewBag.QueueCancerFullDetail.Value6)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ ชนิด / ปริมาณ / ความถี่ (ครั้ง:สัปดาห์) / เสพมานาน (ปี) / เลิกเสพเมื่อ</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value7) ? "-" : ViewBag.QueueCancerFullDetail.Value7)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ท่านดื่มหรือเคยดื่มเครื่องดื่มที่มีแอลกอฮอล์เป็นประจำหรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value8) ? "-" : ViewBag.QueueCancerFullDetail.Value8)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ ชนิด / ปริมาณ (ขวด:ครั้ง) / ความถี่ (ครั้ง:สัปดาห์) / ดื่มมานาน (ปี) / เลิกดื่มเมื่อ</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value9) ? "-" : ViewBag.QueueCancerFullDetail.Value9)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ท่านสูบหรือเคยสูบบุหรี่ หรือยาสูบชนิดอื่นหรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value10) ? "-" : ViewBag.QueueCancerFullDetail.Value10)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ ปริมาณ (มวน:วัน) / สูบมานาน (ปี) / เลิกสูบเมื่อ</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value11) ? "-" : ViewBag.QueueCancerFullDetail.Value11)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ส่วนสูงและน้ำหนัก</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span class="control-label" style="margin-bottom: 10px; color: #005484">ส่วนสูง</span>
+                                                    &nbsp;
+                                                    <span class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value12) ? "-" : ViewBag.QueueCancerFullDetail.Value12)</span>
+                                                    &nbsp;
+                                                    <span class="control-label" style="margin-bottom: 10px; color: #005484">ซ.ม.</span>
+                                                    &nbsp;
+                                                    &nbsp;
+                                                    <span class="control-label" style="margin-bottom: 10px; color: #005484">น้ำหนัก</span>
+                                                    &nbsp;
+                                                    <span class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value13) ? "-" : ViewBag.QueueCancerFullDetail.Value13)</span>
+                                                    &nbsp;
+                                                    <span class="control-label" style="margin-bottom: 10px; color: #005484">ก.ก.</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ในรอบ 6 เดือนที่ผ่านมา น้ำหนักตัวของท่านเปลี่ยนแปลงหรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value14) ? "-" : ViewBag.QueueCancerFullDetail.Value14)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ เพิ่มขึ้น (กก.) / ลดลง (กก.) / สาเหตุที่น้ำหนักเปลี่ยนแปลง</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value15) ? "-" : ViewBag.QueueCancerFullDetail.Value15)</span>
+                                                </div>
+                                                <div class="row" style="background-color: #3C8DBC;color:white">
+                                                    <label>คำถามเกี่ยวกับประวัติการเจ็บป่วยหรือการรักษาโรคของผู้ขอเอาประกัน</label>
+                                                </div>
+                                                <div class="row" style="background-color: #9BDAFF;">
+                                                    <label>ท่านเคยได้รับการวินิจฉัย หรือรับการรักษา หรือตั้งข้อสังเกตโดยแพทย์ว่าป่วยเป็นโรคตามรายการท้ายคำถามนี้หรือไม่</label>
+                                                </div>
+                                                <div class="row">
+                                                    <ul class="list-unstyled">
+                                                        หากเคย กรุณาระบุโรคและการรักษาตามรายละเอียดด้านล่าง
+                                                        <li>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>สายตาพิการ</li>
+                                                                    <li>โรคจอประสาทตา</li>
+                                                                    <li>โรคต้อหิน</li>
+                                                                    <li>โรคหลอดเลือดในสมอง</li>
+                                                                    <li>โรคอัมพฤกษ์ / โรคอัมพาต</li>
+                                                                    <li>โรคพาร์กินสัน</li>
+                                                                    <li>โรคความจำเสื่อม</li>
+                                                                    <li>โรคชัก</li>
+                                                                    <li>โรคปอดหรือปอดอักเสบ</li>
+                                                                    <li>โรควัณโรค</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>โรคหอบหืด</li>
+                                                                    <li>โรคปอดอุดกั้นเรื้อรัง</li>
+                                                                    <li>โรคถุงลมโป่งพอง</li>
+                                                                    <li>ภาวะหยุดหายใจขณะหลับ</li>
+                                                                    <li>โรคความดันโลหิตสูง</li>
+                                                                    <li>โรคหัวใจ</li>
+                                                                    <li>โรคเส้นเลือดหัวใจตีบ</li>
+                                                                    <li>โรคหลอดเลือด</li>
+                                                                    <li>โรคแผลในทางเดินอาหาร</li>
+                                                                    <li>โรคตับหรือทางเดินน้ำดี</li>
+                                                                    <li>โรคพิษสุราเรื้อรัง</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>ดีซ่าน</li>
+                                                                    <li>ม้ามโต</li>
+                                                                    <li>โรคตับอ่อนอักเสบ</li>
+                                                                    <li>โรคไต</li>
+                                                                    <li>โรคข้ออักเสบ</li>
+                                                                    <li>โรคเก๊าท์</li>
+                                                                    <li>โรคหนังแข็ง</li>
+                                                                    <li>โรคเอสแอลอี</li>
+                                                                    <li>โรคเลือด</li>
+                                                                    <li>โรคเบาหวาน</li>
+                                                                    <li>โรคไทรอยด์</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>โรคต่อมน้ำเหลืองโต</li>
+                                                                    <li>เนื้องอก ก้อนหรือถุงน้ำ</li>
+                                                                    <li>โรคมะเร็ง</li>
+                                                                    <li>โรคเอดส์หรือภูมิคุ้มกันบกพร่อง</li>
+                                                                    <li>โรคกามโรค (ภายใน 2 ปี)</li>
+                                                                    <li>พิการทางร่างกาย</li>
+                                                                    <li>โรคจิต</li>
+                                                                    <li>โรคประสาท</li>
+                                                                    <li>โรคซึมเศร้า</li>
+                                                                    <li>ดาวน์ซินโดรม</li>
+                                                                </ul>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                @* end row *@
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value16) ? "-" : ViewBag.QueueCancerFullDetail.Value16)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุโรค/วันเดือนปีที่รักษา/การรักษาและอาการปัจจุบัน/สถานพยาบาลที่รักษา</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value17) ? "-" : ViewBag.QueueCancerFullDetail.Value17)</span>
+                                                </div>
+                                                <div class="row" style="background-color: #9BDAFF;">
+                                                    <label>ท่านเคยมี หรือกำลังมีอาการ ดังต่อไปนี้หรือไม่</label>
+                                                </div>
+                                                <div class="row">
+                                                    <ul class="list-unstyled">
+                                                        หากเคยมี หรือกำลังมี กรุณาระบุอาการและการรักษาตามรายละเอียดด้านล่าง
+                                                        <li>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>การมองเห็นผิดปกติ</li>
+                                                                    <li>กล้ามเนื้ออ่อนแรง</li>
+                                                                    <li>ร่างกายสูญเสียประสาทรับความรู้สึก</li>
+                                                                    <li>ปวดศีรษะรุนแรงเรื้อรัง</li>
+                                                                    <li>ไอเรื้อรัง</li>
+                                                                    <li>ไอเป็นเลือด</li>
+                                                                    <li>เหนื่อยง่ายผิดปกติ</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>เจ็บหรือแน่นหน้าอก</li>
+                                                                    <li>ปวดท้องเรื้อรัง</li>
+                                                                    <li>อาเจียนหรือถ่ายเป็นเลือด</li>
+                                                                    <li>ท้องมาน</li>
+                                                                    <li>มีเลือดปนในปัสสาวะ</li>
+                                                                    <li>ปวดข้อเรื้อรัง</li>
+                                                                    <li>เคยพยายามทำร้ายร่างกายตนเอง</li>
+                                                                    <li>คลำพบก้อนเนื้อ</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <b>อาการในระหว่าง 6 เดือนที่ผ่านมา</b>
+                                                                <ul class="marker">
+                                                                    <li>อาการอ่อนเพลีย</li>
+                                                                    <li>น้ำหนักลด</li>
+                                                                    <li>ท้องเดินเรื้อรัง</li>
+                                                                    <li>ไข้เรื้อรัง</li>
+                                                                    <li>โรคผิวหนังเรื้อรัง</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <b>เฉพาะสตรี</b>
+                                                                <ul class="marker">
+                                                                    <li>กำลังตั้งครรภ์(โปรดระบุเดือน)</li>
+                                                                    <li>โรคแทรกซ้อนในการตั้งครรภ์และคลอดบุตร</li>
+                                                                    <li>เลือดออกผิดปกติทางช่องคลอด</li>
+                                                                </ul>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value18) ? "-" : ViewBag.QueueCancerFullDetail.Value18)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุอาการ/วันเดือนปีที่เริ่มมีอาการ/อาการปัจจุบัน</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value19) ? "-" : ViewBag.QueueCancerFullDetail.Value19)</span>
+                                                </div>
+                                                <div class="row" style="background-color: #9BDAFF;">
+                                                    <label>ในระหว่าง 5 ปีที่ผ่านมา ท่านเคยได้รับ</label>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ก. การตรวจสุขภาพ การตรวจชิ้นเนื้อ หรือการตรวจเพื่อวินิจฉัยโรค เช่น การเอ็กซเรย์ การตรวจคลื่นหัวใจ การตรวจเลือดหรือการตรวจด้วยเครื่องมือพิเศษอื่นๆ หรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value20) ? "-" : ViewBag.QueueCancerFullDetail.Value20)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ ตรวจอะไร / เมื่อใด / สถานที่ตรวจ / ผลการตรวจ / ข้อสังเกตโดยแพทย์</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value21) ? "-" : ViewBag.QueueCancerFullDetail.Value21)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ข. การบาดเจ็บ เจ็บป่วย การผ่าตัด การปรึกษาแพทย์ การแนะนำจากแพทย์เกี่ยวกับสุขภาพ การรักษาในสถานพยาบาลที่มิได้ระบุไว้ข้างต้น</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value22) ? "-" : ViewBag.QueueCancerFullDetail.Value22)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ อาการ / วันเดือนปีที่รับการรักษา / สถานพยาบาล / ผลการรักษา</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value23) ? "-" : ViewBag.QueueCancerFullDetail.Value23)</span>
+                                                </div>
+                                                <div class="row" style="background-color: #9BDAFF;">
+                                                    <label>คำถามเพิ่มเติมสำหรับการขอเอาประกันภัยสัญญาเพิ่มเติมเกี่ยวกับสุขภาพหรือโรคร้ายแรง</label>
+                                                </div>
+                                                <div class="row">
+                                                    <ul class="list-unstyled">
+                                                        ท่านเคยได้รับการวินิจฉัย หรือรับการรักษา หรือตั้งข้อสังเกตจากแพทย์ว่าป่วยเป็นโรคตามรายการท้ายคำถามนี้หรือไม่
+                                                        <li>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>ติดเชื้อในหูชั้นกลาง</li>
+                                                                    <li>ต่อมทอนซิลอักเสบเรื้อรัง</li>
+                                                                    <li>ไซนัสอักเสบ</li>
+                                                                    <li>ปวดศีรษะไมเกรน</li>
+                                                                    <li>ภูมิแพ้</li>
+                                                                    <li>หลอดลมอักเสบเรื้อรัง</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>กรดไหลย้อน</li>
+                                                                    <li>นิ่ว</li>
+                                                                    <li>ถุงน้ำดีอักเสบ</li>
+                                                                    <li>ไส้เลื่อน</li>
+                                                                    <li>ริดสีดวงทวาร</li>
+                                                                    <li>ฝีคันฑสูตร</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>เยื่อบุโพรงมดลูกเจริญผิดที่</li>
+                                                                    <li>กระดูกสันหลังเคลื่อน</li>
+                                                                    <li>หมอนรองกระดูกเคลื่อนหรือทับเส้นประสาท</li>
+                                                                    <li>ข้อเสื่อม</li>
+                                                                    <li>เส้นเอ็นอักเสบเรื้อรัง</li>
+                                                                    <li>เส้นประสาทอักเสบหรือถูกเบียดทับ</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>ออทิสติก</li>
+                                                                    <li>สมาธิสั้น</li>
+                                                                </ul>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value24) ? "-" : ViewBag.QueueCancerFullDetail.Value24)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ โรค / วันเดือนปีที่รักษา / การรักษาและอาการปัจจุบัน / สถานพยาบาลที่รักษา</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value25) ? "-" : ViewBag.QueueCancerFullDetail.Value25)</span>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        @* end box body*@
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- #endregion -->
+                            <!-- #region การใช้รถจักรยานยนต์ -->
+                            <div class="col-sm-12">
+                                <div class="box box-solid box-default  collapsed-box ">
+                                    <div class="box-header with-border" style="background-color: #B3EEFE;text-align:center">
+                                        <h3 class="box-title">การใช้รถจักรยานยนต์</h3>
+
+                                        <div class="box-tools pull-right">
+                                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                                <i class="@(ViewBag.AccessRole2.Contains("UnderwriteAudit_Insure") ? "fa fa-minus" : "fa fa-plus")"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="box-body" style="">
+                                        <div class="row">
+                                            <span class="control-label" style="margin-bottom: 10px; color: #005484;padding: 3px;margin-left:7px">ท่านใช้รถจักรยานยนต์ในการทำงานหรือไม่ :</span>
+                                            &nbsp;
+                                            <span class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value26) ? "-" : ViewBag.QueueCancerFullDetail.Value26)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- #endregion -->
+
+
+                        </div>
+                        <div class="row ">
+                            <div class="col-sm-12">
+                                @if (ViewBag.QueueCancerFullDetail.IsBeware == true)
+                                {
+                                    <div class="box-header" style="background-color: #F12D15; color :#edfcfc ; border-radius:8px 8px">
+                                        <h4 class="font-custom col-md-5 box-title "><i class=" fa fa-exclamation-circle" aria-hidden="true"></i> ข้อมูลเฝ้าระวัง : @(ViewBag.QueueCancerFullDetail.IsBeware != true ? "ไม่มี" : "มี") </h4>
+                                        <h4 class="font-custom col-md-7 box-title ">หมายเหตุ : @(ViewBag.QueueCancerFullDetail.BewareRemark != null ? ViewBag.QueueCancerFullDetail.BewareRemark : "-") </h4>
+                                    </div>
+                                }
+                                <div class="box-header" style="background-color: #B3EEFF; border-radius: 8px 8px; margin-top:15px ">
+                                    <h4 class="box-title ">ผลการตรวจสอบของฝ่าย QC </h4>
+                                </div>
+                                <form id="QuestionCIAuditUpdateV2" action="@Url.Action("QuestionCIAuditUpdateV2")" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" id="queueAuditId" name="queueAuditId" value="@ViewBag.QueueCancerFullDetail.QueueAuditId" />
+                                    <div class="box-body shadow  bodyQuestion" style="height: auto;width: auto;margin-top:15px">
+                                        <div class="form-group text col-md-12 radio-check status-checked">
+                                            <label class="col-md-2 control-label title ">สถานะการตรวจสอบ : </label>
+                                            @foreach (var item in ViewBag.QueueAuditStatus)
+                                            {
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="queueAuditStatusId" value="@item.QueueAuditStatusId" id="queueAuditStatusId_@item.QueueAuditStatusId" @(item.QueueAuditStatusId == ViewBag.QueueCancerFullDetail.QueueAuditStatusId ? "checked" : "")> @item.QueueAuditStatusDetail
+                                                </label>
+                                                <input type="hidden" name="queueAuditStatusId_checked" value="@ViewBag.QueueCancerFullDetail.QueueAuditStatusId" id="queueAuditStatusId_checked">
+
+                                            }
+                                        </div>
+                                    </div>
+                                    <div id="audit_wait" class="box-body shadow" style="height: auto;width: auto;margin-top:15px ;display:none">
+                                        <div class="form-group text col-md-12">
+                                            <div class="col-md-4">
+                                                <select class="form-control" id="callStatusId" name="callStatusId" required>
+                                                    <option value="-1">กรุณาเลือก</option>
+                                                    @foreach (var item in ViewBag.CallStatusList)
+                                                    {
+
+                                                        <option value="@item.CallStatusId" @(item.CallStatusId == ViewBag.QueueCancerFullDetail.AuditCallStatusId ? "selected" : "")>@item.CallStatusDetail</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group text col-md-12">
+                                            <label class="col-md-2 control-label title">หมายเหตุ : </label>
+                                            <div class="col-md-10">
+                                                <textarea name="auditRemark" id="auditRemark" style="display: block;border-radius: 5px;width: 80%;height: 80px">@(ViewBag.QueueCancerFullDetail.AuditRemark)</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="audit_NotAudit" class="box-body shadow" style="height: auto;width: auto;margin-top:15px ;display:none">
+                                        <div class="form-group text col-md-12">
+                                            <label class="col-md-2 control-label title">สาเหตุ : </label>
+                                            <div class="col-md-4">
+                                                <select class="form-control" id="notAuditedCause" name="notAuditedCause" required>
+                                                    <option value="-1">กรุณาเลือก</option>
+                                                    @foreach (var item in ViewBag.NotAuditedCause)
+                                                    {
+                                                        <option value="@item.NotAuditedCauseId" @(item.NotAuditedCauseId == ViewBag.QueueCancerFullDetail.NotAuditedCauseId ? "selected" : "")>@item.NotAuditedCauseDetail</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group text col-md-12">
+                                            <label class="col-md-2 control-label title">หมายเหตุ : </label>
+                                            <div class="col-md-10">
+                                                <textarea name="auditRemarkNotAuditedCause" id="auditRemarkNotAuditedCause" style="display: block;border-radius: 5px;width: 80%;height: 80px">@(ViewBag.QueueCancerFullDetail.AuditRemark)</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="audit_complete" class="box-body shadow bodyQuestionForm" style="height: auto; width: auto; display: none">
+                                        @* ----------------1. การนำเสนอขาย และบริการหลังการขาย---------------- *@
+                                        <div class="box-header" style="background-color: #F39C12; color:azure; border-radius: 8px 8px">
+                                            <h4 class="box-title ">1. การนำเสนอขาย และบริการหลังการขาย </h4>
+                                        </div>
+                                        <div class="box-body">
+                                            <div class="form-group text col-md-12 radio-check bodyQuestion" style="margin-top:15px">
+                                                <label class="col-md-12 control-label title">1.1 วิธีการขาย : </label>
+                                                @foreach (var item in ViewBag.SaleMethodType)
+                                                {
+                                                    <label class="col-md-2 fonts-box">
+                                                        <input type="radio" name="saleMethodType" value="@item.SaleMethodTypeId" id="saleMethod_@item.SaleMethodTypeId" @(item.SaleMethodTypeId == ViewBag.QueueCancerFullDetail.SaleMethodTypeId ? "checked" : "")> @item.SaleMethodTypeDetail
+                                                    </label>
+                                                }
+                                                <label class="saleMethodTypeRemarkLabel col-md-4 fonts-box " id="saleMethodTypeRemarkLabel" style="">
+                                                    <input class="form-control" id="saleMethodTypeRemark" name="saleMethodTypeRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.SaleMethodTypeRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                                <label class="col-md-12 control-label title">1.2 บริการหลังการขาย : </label>
+                                                @foreach (var item in ViewBag.SaleServiceType)
+                                                {
+                                                    <label class="col-md-2 fonts-box">
+                                                        <input type="radio" name="saleServiceType" value="@item.SaleServiceTypeId" id="saleServiceType_@item.SaleServiceTypeId" @(item.SaleServiceTypeId == ViewBag.QueueCancerFullDetail.SaleServiceTypeId ? "checked" : "")> @item.SaleServiceTypeDetail
+
+                                                    </label>
+                                                }
+
+                                                <label class="saleServiceTypeRemarkLabel col-md-4 fonts-box " id="saleServiceTypeRemarkLabel" style="">
+                                                    <input class="form-control" id="saleServiceTypeRemark" name="saleServiceTypeRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.SaleServiceTypeRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                                <label class="col-md-12 control-label title">
+                                                    1.3 ได้รับกรมธรรม์ :
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isReceivedInsurance" value="1" id="isReceivedInsurance_1" @(ViewBag.QueueCancerFullDetail.IsReceivedInsurance == true ? "checked" : "")> ได้รับ
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isReceivedInsurance" value="0" id="isReceivedInsurance_2" @(ViewBag.QueueCancerFullDetail.IsReceivedInsurance == false ? "checked" : "")> ไม่ได้รับ
+                                                </label>
+
+                                                <div class="col-md-4 receivingInsurance" id="receivingInsurance" style="display:none">
+                                                    <select class="form-control" id="receivingInsuranceTypeId" name="receivingInsuranceTypeId">
+                                                        <option value="-1">กรุณาเลือก</option>
+                                                        @foreach (var item in ViewBag.ReceivingInsuranceType)
+                                                        {
+                                                            <option value="@item.ReceivingInsuranceTypeId" @(item.ReceivingInsuranceTypeId == ViewBag.QueueCancerFullDetail.ReceivingInsuranceTypeId ? "selected" : "")>@item.ReceivingInsuranceTypeDetail</option>
+                                                            //<option value="@item.ReceivingInsuranceTypeId">@item.ReceivingInsuranceTypeDetail</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                                <label class="col-md-12 control-label title">1.4 มอบกรมกรรมธรรม์ให้กับ: <text style="color:black;font-weight:100">@ViewBag.QueueCancerFullDetail.GiveInsuranceTo </text></label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="insuranceInsuredIsValid" value="1" id="insuranceInsuredIsValid_1" @(ViewBag.QueueCancerFullDetail.InsuranceInsuredIsValid == true ? "checked" : "")> ถูกต้อง
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="insuranceInsuredIsValid" value="0" id="insuranceInsuredIsValid_2" @(ViewBag.QueueCancerFullDetail.InsuranceInsuredIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                                </label>
+                                                <label class="insuranceInsuredRemarkLabel col-md-4 fonts-box bodyQuestion" id="insuranceInsuredRemarkLabel" style="">
+                                                    <input class="form-control" id="insuranceInsuredRemark" name="insuranceInsuredRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value=" @(ViewBag.QueueCancerFullDetail.InsuranceInsuredRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                                <label class="col-md-12 control-label title">หมายเหตุการมอบกรมธรรม์ : <text style="color:black;font-weight:100">  </text></label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                                <label class="col-md-4 control-label title">1.5 ข้อมูล ผอ.บล : <text style="color:black;font-weight:100">@ViewBag.QueueCancerFullDetail.UnderwriteByUserPersonName </text> </label>
+                                                <input type="hidden" class="form-control" id="underwriteByUserId" name="underwriteByUserId" value="@ViewBag.QueueCancerFullDetail.UnderwriteByUserId" placeholder="รายละเอียดเพิ่มเติม" />
+                                                <label class="underwriteByUserRemarkLabel col-md-4 fonts-box " id="underwriteByUserRemarkLabel" style="">
+                                                    <input class="form-control" id="underwriteByUserRemark" name="underwriteByUserRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.UnderwriteByUserRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                                <label class="col-md-12 control-label title">1.6 เพิ่มเพื่อนกับสยามสไมล์ทาง line OA :</label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="addLINEIsSuccess" value="1" id="addLINEIsSuccess_1" @(ViewBag.QueueCancerFullDetail.AddLINEIsSuccess == true ? "checked" : "")> เรียบร้อย
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="addLINEIsSuccess" value="0" id="addLINEIsSuccess_2" @(ViewBag.QueueCancerFullDetail.AddLINEIsSuccess == false ? "checked" : "")> ไม่เรียบร้อย
+                                                </label>
+                                            </div>
+
+                                            <div class="form-group text col-md-12 bodyQuestion">
+                                                <label class="col-md-12 control-label title">1.7 คะแนนความพึงพอใจ :</label>
+                                                <div class="col-md-4">
+                                                    <select name="feedbackRate" id="feedbackRate" class="form-control">
+                                                        <option value="1" id="1" @(1 == ViewBag.QueueCancerFullDetail.FeedbackRate ? "selected" : "")>1</option>
+                                                        <option value="2" id="2" @(2 == ViewBag.QueueCancerFullDetail.FeedbackRate ? "selected" : "")>2</option>
+                                                        <option value="3" id="3" @(3 == ViewBag.QueueCancerFullDetail.FeedbackRate ? "selected" : "")>3</option>
+                                                        <option value="4" id="4" @(4 == ViewBag.QueueCancerFullDetail.FeedbackRate ? "selected" : "")>4</option>
+                                                        <option value="5" id="5" @(5 == ViewBag.QueueCancerFullDetail.FeedbackRate ? "selected" : "")>5</option>
+                                                        <option value="6" id="6" @(6 == ViewBag.QueueCancerFullDetail.FeedbackRate ? "selected" : "")>ไม่ประเมิน</option>
+                                                    </select>
+                                                </div>
+                                                <label class="feedbackRemarkLabel col-md-4  fonts-box " id="feedbackRemarkLabel" style="">
+                                                    <input class="form-control" id="feedbackRemark" name="feedbackRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value=" @(ViewBag.QueueCancerFullDetail.FeedbackRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                                <label class="col-md-12 control-label title">1.8 ผลด้านบริการ : </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="serviceResultIsIssue" value="0" id="serviceResultIsIssue_1" @(ViewBag.QueueCancerFullDetail.ServiceResultIsIssue == true ? "checked" : "")> ไม่มีประเด็น
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="serviceResultIsIssue" value="1" id="serviceResultIsIssue_2" @(ViewBag.QueueCancerFullDetail.ServiceResultIsIssue == false ? "checked" : "")> มีประเด็น
+                                                </label>
+                                                <label class="serviceResultRemarkLabel col-md-4 fonts-box" id="serviceResultRemarkLabel" style="">
+                                                    <input class="form-control" id="serviceResultRemark" name="serviceResultRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.ServiceResultRemark)" />
+                                                </label>
+                                            </div>
+
+
+                                        </div>
+                                        @* ----------------2. ยืนยันข้อมูลส่วนบุคคล---------------- *@
+                                        <div class="box-header" style="background-color: #FFF38F; border-radius: 8px 8px">
+                                            <h4 class="box-title ">2. ยืนยันข้อมูลส่วนบุคคล </h4>
+                                        </div>
+                                        <div class="box-body">
+                                            <div class="form-group text col-md-12 radio-check" style="margin-top:15px">
+                                                <label class="col-md-12 control-label title ">
+                                                    2.1 ชื่อ-สกุล ผู้เอาประกัน : <text style="color:black;font-weight:100">@(String.Format("{0}", ViewBag.QueueCancerFullDetail.InsuredName))</text>
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="insuredNameIsValid" value="1" id="insuredNameIsValid_1" @(ViewBag.QueueCancerFullDetail.InsuredNameIsValid == true ? "checked" : "")> ถูกต้อง
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="insuredNameIsValid" value="0" id="insuredNameIsValid_2" @(ViewBag.QueueCancerFullDetail.InsuredNameIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                                </label>
+                                                <label class="insuredNameRemarkLabel col-md-4 fonts-box" id="insuredNameRemarkLabel" style="">
+                                                    <input class="form-control" id="insuredNameRemark" name="insuredNameRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.InsuredNameRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">2.2 ชื่อ-สกุล ผู้ชำระเบี้ย : <text style="color:black;font-weight:100"> @(String.Format("{0}", ViewBag.QueueCancerFullDetail.PayerName))</text> </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="payerNameIsValid" value="1" id="payerNameIsValid_1" @(ViewBag.QueueCancerFullDetail.PayerNameIsValid == true ? "checked" : "")> ถูกต้อง
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="payerNameIsValid" value="0" id="ipayerNameIsValid_2" @(ViewBag.QueueCancerFullDetail.PayerNameIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                                </label>
+                                                <label class="payerNameRemarkLabel col-md-4 fonts-box" id="payerNameRemarkLabel" style="">
+                                                    <input class="form-control" id="payerNameRemark" name="payerNameRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.PayerNameRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">2.3 วันเดือนปีเกิด : <text style="color:black;font-weight:100"> @(String.Format("{0:dd MMM yyyy}", ViewBag.QueueCancerFullDetail.InsuredBirthDate))</text></label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="birthDateIsValid" value="1" id="birthDateIsValid_1" @(ViewBag.QueueCancerFullDetail.BirthDateIsValid == true ? "checked" : "")> ถูกต้อง
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="birthDateIsValid" value="0" id="birthDateIsValid_2" @(ViewBag.QueueCancerFullDetail.BirthDateIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                                </label>
+                                                <label class="birthDateRemarkLabel col-md-4 fonts-box" id="birthDateRemarkLabel" style="">
+                                                    <input class="form-control" id="birthDateRemark" name="birthDateRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.BirthDateRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">2.4 น้ำหนักส่วนสูง : <text style="color:black;font-weight:100">@(ViewBag.QueueCancerFullDetail.InsuredWeightHeight)</text> </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="weightHeightIsValid" value="1" id="isBeware_1" @(ViewBag.QueueCancerFullDetail.WeightHeightIsValid == true ? "checked" : "")> ถูกต้อง
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="weightHeightIsValid" value="0" id="isBeware_2" @(ViewBag.QueueCancerFullDetail.WeightHeightIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                                </label>
+                                                <label class="weightHeightRemarkLabel col-md-4 fonts-box" id="weightHeightRemarkLabel" style="">
+                                                    <input class="form-control" id="weightHeightRemark" name="weightHeightRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.WeightHeightRemark)" />
+                                                </label>
+                                            </div>
+                                        </div>
+                                        @* ----------------3. ประวัติสุขภาพ---------------- *@
+                                        <div class="box-header" style="background-color: #C2F8C5; border-radius: 8px 8px">
+                                            <h4 class="box-title ">3. ประวัติสุขภาพ </h4>
+                                        </div>
+                                        <div class="box-body">
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">3.1 ประวัติการแพ้ : แพ้ยา แพ้อาหาร แพ้อากาศ หรือประวัติการแพ้อื่นๆ : </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isAllergyHistory" value="1" @(ViewBag.QueueCancerFullDetail.IsAllergyHistory == true ? "checked" : "") id="isAllergyHistory_1"> มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isAllergyHistory" value="0" @(ViewBag.QueueCancerFullDetail.IsAllergyHistory == false ? "checked" : "") id="isAllergyHistory_2"> ไม่มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isAllergyHistory" value="2" @(ViewBag.QueueCancerFullDetail.IsAllergyHistory == null ? "checked" : "") id="isAllergyHistory_3"> จำไม่ได้
+                                                </label>
+                                                <label class="allergyHistoryRemarkLabel col-md-4 fonts-box" id="allergyHistoryRemarkLabel" style="">
+                                                    <input class="form-control" id="allergyHistoryRemark" name="allergyHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.AllergyHistoryRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">3.2 ประวัติการตรวจพบความผิดปกติของตับ, ไต, หัวใจ, ปอด และสมอง หรือโรคอื่นๆ ที่ต้องทานยาเป็นประจำ  : </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isCriticalIllnessHistory" value="1" id="isCriticalIllnessHistory_1" @(ViewBag.QueueCancerFullDetail.IsCriticalIllnessHistory == true ? "checked" : "")> มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isCriticalIllnessHistory" value="0" id="isCriticalIllnessHistory_2" @(ViewBag.QueueCancerFullDetail.IsCriticalIllnessHistory == false ? "checked" : "")> ไม่มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isCriticalIllnessHistory" value="2" id="isCriticalIllnessHistory_3" @(ViewBag.QueueCancerFullDetail.IsCriticalIllnessHistory == null ? "checked" : "")> จำไม่ได้
+                                                </label>
+                                                <label class="criticalIllnessHistoryRemarkLabel col-md-4 fonts-box" id="criticalIllnessHistoryRemarkLabel" style="">
+                                                    <input class="form-control" id="criticalIllnessHistoryRemark" name="criticalIllnessHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value=" @(ViewBag.QueueCancerFullDetail.CriticalIllnessHistoryRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">3.3 ประวัติอุบัติเหตุ : กระดูกแตก/หัก/ร้าว/เข้าเฝือก/ดามเหล็ก : </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isAccidentHistory" value="1" id="isAccidentHistory_1" @(ViewBag.QueueCancerFullDetail.IsAccidentHistory == true ? "checked" : "")> มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isAccidentHistory" value="0" id="isAccidentHistory_2" @(ViewBag.QueueCancerFullDetail.IsAccidentHistory == false ? "checked" : "")> ไม่มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isAccidentHistory" value="2" id="isAccidentHistory_3" @(ViewBag.QueueCancerFullDetail.IsAccidentHistory == null ? "checked" : "")> จำไม่ได้
+                                                </label>
+                                                <label class="accidentHistoryRemarkLabel col-md-4 fonts-box" id="accidentHistoryRemarkLabel" style="">
+                                                    <input class="form-control" id="accidentHistoryRemark" name="accidentHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.AccidentHistoryRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">3.4 ประวัติการผ่าตัด : ฝี/ซีสต์/ถุงน้ำ/ก้อนเนื้อ/ก้อนไขมัน/ไส้ติ่ง/ใส้เลื่อน หรือการผ่าตัดอื่นๆ  : </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isSurgeryHistory" value="1" id="isSurgeryHistory_1" @(ViewBag.QueueCancerFullDetail.IsSurgeryHistory == true ? "checked" : "")> มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isSurgeryHistory" value="0" id="isSurgeryHistory_2" @(ViewBag.QueueCancerFullDetail.IsSurgeryHistory == false ? "checked" : "")> ไม่มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isSurgeryHistory" value="2" id="isSurgeryHistory_3" @(ViewBag.QueueCancerFullDetail.IsSurgeryHistory == null ? "checked" : "")> จำไม่ได้
+                                                </label>
+                                                <label class="surgeryHistoryRemarkLabel col-md-4 fonts-box" id="surgeryHistoryRemarkLabel" style="">
+                                                    <input class="form-control" id="surgeryHistoryRemark" name="surgeryHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.SurgeryHistoryRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">3.5 ประวัติการตรวจสุขภาพประจำปี : </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isHealthCheckHistory" value="1" id="isHealthCheckHistory_1" @(ViewBag.QueueCancerFullDetail.IsHealthCheckHistory == true ? "checked" : "")> มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isHealthCheckHistory" value="0" id="isHealthCheckHistory_2" @(ViewBag.QueueCancerFullDetail.IsHealthCheckHistory == false ? "checked" : "")> ไม่มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isHealthCheckHistory" value="2" id="isHealthCheckHistory_3" @(ViewBag.QueueCancerFullDetail.IsHealthCheckHistory == null ? "checked" : "")> จำไม่ได้
+                                                </label>
+                                                <label class="healthCheckHistoryRemarkLabel col-md-4 fonts-box" id="healthCheckHistoryRemarkLabel" style="">
+                                                    <input class="form-control" id="healthCheckHistoryRemark" name="healthCheckHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.HealthCheckHistoryRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">3.6 ประวัติโรคเรื้อรัง : ความดันโลหิตสูง ไขมัน ไตรกลีเซอไรด์ น้ำตาลในเลือด กรดยูริค หรือค่าอื่นๆ  : </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isChronicDiseaseHistory" value="1" id="isChronicDiseaseHistory_1" @(ViewBag.QueueCancerFullDetail.IsChronicDiseaseHistory == true ? "checked" : "")> มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isChronicDiseaseHistory" value="0" id="isChronicDiseaseHistory_2" @(ViewBag.QueueCancerFullDetail.IsChronicDiseaseHistory == false ? "checked" : "")> ไม่มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isChronicDiseaseHistory" value="2" id="isChronicDiseaseHistory_3" @(ViewBag.QueueCancerFullDetail.IsChronicDiseaseHistory == null ? "checked" : "")> จำไม่ได้
+                                                </label>
+                                                <label class="chronicDiseaseHistoryRemarkLabel col-md-4 fonts-box" id="chronicDiseaseHistoryRemarkLabel" style="">
+                                                    <input class="form-control" id="chronicDiseaseHistoryRemark" name="chronicDiseaseHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.IsChronicDiseaseHistory)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">3.7 ประวัติการรักษาครั้งล่าสุด : </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isMedicalLatestHistory" value="1" id="isMedicalLatestHistory_1" @(ViewBag.QueueCancerFullDetail.IsMedicalLatestHistory == true ? "checked" : "")> มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isMedicalLatestHistory" value="0" id="isMedicalLatestHistory_2" @(ViewBag.QueueCancerFullDetail.IsMedicalLatestHistory == false ? "checked" : "")> ไม่มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isMedicalLatestHistory" value="2" id="isMedicalLatestHistory_3" @(ViewBag.QueueCancerFullDetail.IsMedicalLatestHistory == null ? "checked" : "")> จำไม่ได้
+                                                </label>
+                                                <label class="medicalLatestHistoryRemarkLabel col-md-4 fonts-box" id="medicalLatestHistoryRemarkLabel" style="">
+                                                    <input class="form-control" id="medicalLatestHistoryRemark" name="medicalLatestHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.IsMedicalLatestHistory)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">3.8 ประวัติสูบบุหรี่ : </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isSmokingHistory" value="1" id="isSmokingHistory_1" @(ViewBag.QueueCancerFullDetail.IsSmokingHistory == true ? "checked" : "")> สูบ
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isSmokingHistory" value="0" id="isSmokingHistory_2" @(ViewBag.QueueCancerFullDetail.IsSmokingHistory == false ? "checked" : "")> ไม่สูบ
+                                                </label>
+                                                <label class="smokingHistoryRemarkLabel col-md-4 fonts-box" id="smokingHistoryRemarkLabel" style="">
+                                                    <input class="form-control" id="smokingHistoryRemark" name="smokingHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.SmokingHistoryRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">3.9 ประวัติดื่มสุรา : </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isDrinkingHistory" value="1" id="isDrinkingHistory_1" @(ViewBag.QueueCancerFullDetail.IsDrinkingHistory == true ? "checked" : "")> ดื่ม
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isDrinkingHistory" value="0" id="isDrinkingHistory_2" @(ViewBag.QueueCancerFullDetail.IsDrinkingHistory == false ? "checked" : "")> ไม่ดื่ม
+                                                </label>
+
+                                                <label class="drinkingHistoryRemarkLabel col-md-4 fonts-box" id="drinkingHistoryRemarkLabel" style="">
+                                                    <input class="form-control" id="drinkingHistoryRemark" name="drinkingHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.DrinkingHistoryRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">3.10 ค่าการมองเห็น  : </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isVisionValue" value="1" id="isVisionValue_1" @(ViewBag.QueueCancerFullDetail.IsVisionValue == true ? "checked" : "")> มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isVisionValue" value="0" id="isVisionValue_2" @(ViewBag.QueueCancerFullDetail.IsVisionValue == false ? "checked" : "")> ไม่มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isVisionValue" value="2" id="isVisionValue_3" @(ViewBag.QueueCancerFullDetail.IsVisionValue == null ? "checked" : "")> จำไม่ได้
+                                                </label>
+                                                <label class="visionValueRemarkLabel col-md-4 fonts-box" id="visionValueRemarkLabel" style="">
+                                                    <input class="form-control" id="visionValueRemark" name="visionValueRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.VisionValueRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">3.11 ค่าการได้ยิน : </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isHearingValue" value="1" id="isHearingValue_1" @(ViewBag.QueueCancerFullDetail.IsHearingValue == true ? "checked" : "")> มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isHearingValue" value="0" id="isHearingValue_2" @(ViewBag.QueueCancerFullDetail.IsHearingValue == false ? "checked" : "")> ไม่มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isHearingValue" value="2" id="IsHearingValue_3" @(ViewBag.QueueCancerFullDetail.IsHearingValue == null ? "checked" : "")> จำไม่ได้
+                                                </label>
+                                                <label class="hearingValueRemarkLabel col-md-4 fonts-box" id="hearingValueRemarkLabel" style="">
+                                                    <input class="form-control" id="hearingValueRemark" name="hearingValueRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.HearingValueRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">3.12 ประวัติการตั้งครรภ์(เพศหญิง)  : </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isPregnantHistory" value="1" id="isPregnantHistory_1" @(ViewBag.QueueCancerFullDetail.IsPregnantHistory == true ? "checked" : "")> มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isPregnantHistory" value="0" id="isPregnantHistory_2" @(ViewBag.QueueCancerFullDetail.IsPregnantHistory == false ? "checked" : "")> ไม่มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isPregnantHistory" value="2" id="isPregnantHistory_3" @(ViewBag.QueueCancerFullDetail.IsPregnantHistory == null ? "checked" : "")> จำไม่ได้
+                                                </label>
+                                                <label class="pregnantHistoryRemarkLabel col-md-4 fonts-box" id="pregnantHistoryRemarkLabel" style="">
+                                                    <input class="form-control" id="pregnantHistoryRemark" name="pregnantHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.PregnantHistoryRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">3.13 ประวัติสุขภาพอื่นๆ(เพิ่มเติม) : </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isOtherHealthHistory" value="1" id="isOtherHealthHistory_1" @(ViewBag.QueueCancerFullDetail.IsOtherHealthHistory == true ? "checked" : "")> มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isOtherHealthHistory" value="0" id="isOtherHealthHistory_2" @(ViewBag.QueueCancerFullDetail.IsOtherHealthHistory == false ? "checked" : "")> ไม่มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isOtherHealthHistory" value="2" id="isOtherHealthHistory_3" @(ViewBag.QueueCancerFullDetail.IsOtherHealthHistory == null ? "checked" : "")> จำไม่ได้
+                                                </label>
+                                                <label class="otherHealthHistoryRemarkLabel col-md-4 fonts-box" id="otherHealthHistoryRemarkLabel" style="">
+                                                    <input class="form-control" id="otherHealthHistoryRemark" name="otherHealthHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.OtherHealthHistoryRemark)" />
+                                                </label>
+                                            </div>
+                                        </div>
+                                        @* ----------------4. ข้อมูลการชำระเบี้ยประกัน---------------- *@
+                                        <div class="box-header" style="background-color: #FFF38F; border-radius: 8px 8px">
+                                            <h4 class="box-title ">4. ข้อมูลการชำระเบี้ยประกัน </h4>
+                                        </div>
+                                        <div class="box-body">
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">4.1 อาชีพผู้ชำระเบี้ย : <text style="color:black;font-weight:100">@(ViewBag.QueueCancerFullDetail.PayerOccupationLevel)</text></label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="payerOccupationIsValid" value="1" id="payerOccupationIsValid_1" @(ViewBag.QueueCancerFullDetail.PayerOccupationIsValid == true ? "checked" : "")> ถูกต้อง
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="payerOccupationIsValid" value="0" id="payerOccupationIsValid_2" @(ViewBag.QueueCancerFullDetail.PayerOccupationIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                                </label>
+                                                <label class="payerOccupationRemarkLabel col-md-4 fonts-box" id="payerOccupationRemarkLabel" style="">
+                                                    <input class="form-control" id="payerOccupationRemark" name="payerOccupationRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.PayerOccupationRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">4.2 หน่วยงานผู้ชำระเบี้ย : <text style="color:black;font-weight:100"> @(ViewBag.QueueCancerFullDetail.PayerBuildingName) </text></label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="payerBuildingNameIsValid" value="1" id="payerBuildingNameIsValid_1" @(ViewBag.QueueCancerFullDetail.PayerBuildingNameIsValid == true ? "checked" : "")> ถูกต้อง
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="payerBuildingNameIsValid" value="0" id="payerBuildingNameIsValid_2" @(ViewBag.QueueCancerFullDetail.PayerBuildingNameIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                                </label>
+                                                <label class="payerBuildingNameRemarkLabel col-md-4 fonts-box" id="payerBuildingNameRemarkLabel" style="">
+                                                    <input class="form-control" id="payerBuildingNameRemark" name="payerBuildingNameRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.PayerBuildingNameRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">4.3 แผนประกัน : <text style="color:black;font-weight:100"> @(ViewBag.QueueCancerFullDetail.ProductDetail)"</text></label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="productIsValid" value="1" id="productIsValid_1" @(ViewBag.QueueCancerFullDetail.ProductIsValid == true ? "checked" : "")> ถูกต้อง
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="productIsValid" value="0" id="productIsValid_2" @(ViewBag.QueueCancerFullDetail.ProductIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                                </label>
+                                                <label class="productRemarkLabel col-md-4 fonts-box" id="productRemarkLabel" style="">
+                                                    <input class="form-control" id="productRemark" name="productRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.ProductRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">4.4 เบี้ยประกัน  : <text style="color:black;font-weight:100">@(ViewBag.QueueCancerFullDetail.Premium).00  บาท</text></label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="premiumIsValid" value="1" id="premiumIsValid_1" @(ViewBag.QueueCancerFullDetail.PremiumIsValid == true ? "checked" : "")> ถูกต้อง
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="premiumIsValid" value="0" id="premiumIsValid_2" @(ViewBag.QueueCancerFullDetail.PremiumIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                                </label>
+                                                <label class="premiumRemarkLabel col-md-4 fonts-box" id="premiumRemarkLabel" style="">
+                                                    <input class="form-control" id="premiumRemark" name="premiumRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.PremiumRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+                                                <label class="col-md-12 control-label title">4.5 ประเภทการชำระเบี้ยประกัน : <text style="color:black;font-weight:100">@(ViewBag.QueueCancerFullDetail.PeriodType)</text>  </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="periodTypeIsValid" value="1" id="periodTypeIsValid_1" @(ViewBag.QueueCancerFullDetail.PeriodTypeIsValid == true ? "checked" : "")> ถูกต้อง
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="periodTypeIsValid" value="0" id="periodTypeIsValid_2" @(ViewBag.QueueCancerFullDetail.PeriodTypeIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                                </label>
+                                                <label class="PeriodTypeRemarkLabel col-md-4 fonts-box" id="PeriodTypeRemarkLabel" style="">
+                                                    <input class="form-control" id="PeriodTypeRemark" name="PeriodTypeRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.PeriodTypeRemark)" />
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12 radio-check">
+
+                                                <label class="col-md-12 control-label title">4.6 ช่องทางการชำระเบี้ยประกัน : <text style="color:black;font-weight:100">@(ViewBag.QueueCancerFullDetail.PayMethodType)</text> </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="payMethodTypeIsValid" value="1" id="payMethodTypeIsValid_1" @(ViewBag.QueueCancerFullDetail.PayMethodTypeIsValid == true ? "checked" : "")> ถูกต้อง
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="payMethodTypeIsValid" value="0" id="payMethodTypeIsValid_2" @(ViewBag.QueueCancerFullDetail.PayMethodTypeIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                                </label>
+                                                <label class="payMethodTypeRemarkLabel col-md-4 fonts-box" id="payMethodTypeRemarkLabel" style="">
+                                                    <input class="form-control" id="payMethodTypeRemark" name="payMethodTypeRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.PayMethodTypeRemark)" />
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        @* ----------------5. การตรวจสอบด้านสุขภาพ---------------- *@
+                                        <div class="box-header" style="background-color: #B3EEFF; border-radius: 8px 8px">
+                                            <h4 class=" box-title ">5. การตรวจสอบด้านสุขภาพ </h4>
+                                        </div>
+                                        <div class="box-body">
+                                            <div class="form-group text col-md-12">
+                                                <label class="col-md-12 control-label title">5.1 ผลการตรวจสอบ : </label>
+                                                <input type="hidden" name="auditCIStatusIdChecked" value="2" id="auditCIStatusIdChecked">
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="auditCIStatusId" value="2" id="auditCIStatusId_1" @(ViewBag.QueueCancerFullDetail.AuditCIStatusId == 2 ? "checked" : "")> ผ่าน
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="auditCIStatusId" value="3" id="auditCIStatusId_2" @(ViewBag.QueueCancerFullDetail.AuditCIStatusId == 3 ? "checked" : "")> รอพิจารณา
+                                                </label>
+                                                <div class="col-md-offset-3 audit-Specify radio-check" id="auditCISpecifyStatusLabel" style="display:none">
+
+                                                    @foreach (var item in ViewBag.AuditHealthSpecifyStatus)
+                                                    {
+                                                        <label class="col-md-12 fonts-box">
+                                                            <input type="radio" name="auditCISpecifyStatusId" value="@item.AuditCISpecifyStatusId" id="auditCIStatusIdCheckeduditCISpecifyStatusId_@item.AuditCISpecifyStatusId" @(item.AuditCISpecifyStatusId == ViewBag.QueueCancerFullDetail.AuditCISpecifyStatusId ? "checked" : "")> @item.AuditCISpecifyStatusDetail
+                                                        </label>
+                                                    }
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                        <div class="box-body">
+                                            <div class="form-group text col-md-12">
+                                                <label class="col-md-12 control-label fonts-box ">หมายเหตุประวัติคัดกรอง  </label>
+                                                <label class="auditCIRemarkLabel col-md-12 fonts-box" id="auditHealthRemarkLabel" style="">
+                                                    <textarea name="auditCIRemark" id="auditCIRemark" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px" value="">@(ViewBag.QueueCancerFullDetail.AuditCIRemark)</textarea>
+                                                </label>
+                                            </div>
+                                            <div class="form-group text col-md-12">
+                                                <label class="col-md-12 control-label title">5.2  : พฤติกรรมการคัดกรอง(MA) : </label>
+
+                                                <div class="col-md-4">
+                                                    <select class="col-md-4 form-control" id="underwritingBehaviorTypeId" name="underwritingBehaviorTypeId">
+                                                        <option value="0">กรุณาเลือก</option>
+                                                        @foreach (var item in ViewBag.UnderwritingBehaviorType)
+                                                        {
+                                                            <option value="@item.UnderwritingBehaviorTypeId" @(item.UnderwritingBehaviorTypeId == ViewBag.QueueCancerFullDetail.UnderwritingBehaviorTypeId ? "selected" : "")>@item.UnderwritingBehaviorTypeDetail</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <label class="underwritingBehaviorRemarkLabel col-md-4 fonts-box" id="underwritingBehaviorRemarkLabel" style="">
+                                                    <input class="form-control" id="underwritingBehaviorRemark" name="underwritingBehaviorRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueCancerFullDetail.UnderwritingBehaviorRemark)" />
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="box-header" style="background-color: #D8FFDE; border-radius: 8px 8px">
+                                            <h4 class=" box-title ">หมายเหตุอื่นๆ </h4>
+                                        </div>
+                                        <div class="box-body">
+                                            <div class="form-group text col-md-12">
+                                                <label class="col-md-12 control-label fonts-box">หมายเหตุอื่นๆ  </label>
+                                                <label class="auditOtherCIRemarkLabel col-md-12 fonts-box" id="auditOtherCIRemarkLabel" style="">
+                                                    <textarea name="auditOtherCIRemark" id="auditOtherCIRemark" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px" value="@(ViewBag.QueueCancerFullDetail.AuditOtherCIRemark)">@(ViewBag.QueueCancerFullDetail.AuditOtherCIRemark)</textarea>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                </form>
+                            </div>
+
+
+                            @* form ผลการตพิจารณาของฝ่ายรับประกัน //ต้องตรวจสอบแล้ว 3 //การตรวจสอบด้านสุขภาพ รอพิจารณา 3 จะแสดง/ส่งไปรับประกัน1พิจารณา *@
+                            @if ((ViewBag.QueueAuditStatusId == 3 || ViewBag.QueueAuditStatusId == 4) && (ViewBag.AccessRole == "AUDIT_DEV" || ViewBag.AccessRole == "AUDIT_INSURE"))
+
+                            {
+                                <form id="formAuditInsure" action="@Url.Action("QuestionAuditInsureUpdateV2")" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" id="QueueAuditId_formInsure" name="QueueAuditId_formInsure" value="@ViewBag.QueueCancerFullDetail.QueueAuditId" />
+                                    <div id="box-audit-insure-1" class="col-sm-12">
+                                        <div id="bodyAuditInsure" class="">
+                                            <div class="box-header" style="background-color: #B3EEFF; border-radius: 8px 8px; margin-top: 15px; margin-left: 10px; margin-right: 10px ">
+                                                <h4 class="font-custom box-title col-md-5 ">ผลการพิจารณาของฝ่ายรับประกัน </h4>
+                                            </div>
+                                            <div class="box-body">
+                                                <div class="form-group text col-md-12">
+                                                    @if (ViewBag.AuditInsureStatus != null)
+                                                    {
+                                                        foreach (var i in ViewBag.AuditInsureStatus)
+                                                        {
+                                                            <label class="col-md-2 fonts-box">
+                                                                <input type="radio" name="AuditInsureStatus" value="@i.AuditInsureStatusId" id="AuditInsureStatus_@(i.AuditInsureStatusId)" @(i.AuditInsureStatusId == ViewBag.QueueCancerFullDetail.AuditInsureStatusId ? "checked" : "")> @i.AuditInsureStatusDetail
+                                                            </label>
+                                                        }
+                                                    }
+
+                                                    <br />
+                                                    <div class="col-md-offset-3 audit-insure-Specify radio-check" id="AuditInsureConsiderStatusLabel" style="padding-left:30px;display:@(ViewBag.QueueCancerFullDetail.AuditInsureStatusId == 3 ? "block":"none")">
+                                                        @foreach (var j in ViewBag.AuditInsureConsiderStatus)
+                                                        {
+                                                            if (j.AuditInsureConsiderStatusId != 1)
+                                                            {
+                                                                <label class="col-md-12 fonts-box">
+                                                                    <input type="radio" name="AuditInsureConsiderStatus" value="@j.AuditInsureConsiderStatusId" id="AuditInsureConsiderStatus_@(j.AuditInsureConsiderStatusId)" @(j.AuditInsureConsiderStatusId == ViewBag.QueueCancerFullDetail.AuditInsureConsiderStatusId ? "checked" : "")> @j.AuditInsureConsiderStatusDetail
+                                                                </label>
+                                                            }
+                                                        }
+                                                    </div>
+                                                </div>
+                                                <div class="form-group text col-md-12">
+                                                    <label class="col-md-12 control-label fonts-box " style="margin-left:20px;margin-top:10px">หมายเหตุ<span class="" style="color:red">*</span></label>
+                                                    <label class="AuditInsureConsiderStatusRemarkLabel col-md-12 fonts-box" id="AuditInsureConsiderStatusRemarkLabel" style="margin-left:16px">
+                                                        <textarea name="AuditInsureConsiderStatusRemark" id="AuditInsureConsiderStatusRemark" style="display: block; border-radius: 5px; margin: 10px; width: 80%; height: 80px; resize: none;">@ViewBag.QueueCancerFullDetail.AuditInsureConsiderRemark</textarea>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="box-audit-insure-2" class="col-sm-12 audit-insure-2" style="display:@(ViewBag.insuredCheck == true ? "block" : "none")">
+                                        <div id="bodyAuditInsureRespond" class="">
+                                            <div class="box-header" style="background-color: #FCD5D5; border-radius: 8px 8px; margin-top: 15px; margin-left: 10px; margin-right: 10px ">
+                                                <h4 class="font-custom box-title col-md-5 ">ผลการติดตามลูกค้า </h4>
+                                            </div>
+                                            <div class="box-body">
+                                                <div class="form-group text col-md-12">
+                                                    @if (ViewBag.QueueCancerFullDetail.AuditInsureConsiderStatusId == 4)
+                                                    {
+                                                        <div class="form-group text col-md-12">
+
+                                                            <label class="col-md-2 fonts-box">ผลการติดตาม : </label>
+                                                            @if (ViewBag.AuditInsureNotConsideredResultStatus != null)
+                                                            {
+                                                                foreach (var i in ViewBag.AuditInsureNotConsideredResultStatus)
+                                                                {
+                                                                    <div class="radio-check">
+
+                                                                        <label class="col-md-2 fonts-box" id="inputAuditInsureNotConsideredResultStatus">
+                                                                            <input type="radio" name="AuditInsureNotConsideredResultStatusId" value="@i.AuditInsureNotConsideredResultStatusId" id="AuditInsureNotConsidered_@(i.AuditInsureNotConsideredResultStatusId)" @(i.AuditInsureNotConsideredResultStatusId == ViewBag.QueueCancerFullDetail.AuditInsureNotConsideredResultStatusId ? "checked" : "")> @i.AuditInsureNotConsideredResultStatusDetail
+                                                                        </label>
+                                                                    </div>
+                                                                }
+                                                            }
+                                                            <br />
+                                                            <div class="col-md-offset-5 audit-insure-VerifiedType radio-check" id="AuditInsureNotConsideredVerifiedTypeIdLabel" style="padding-left:30px;display:@(ViewBag.QueueCancerFullDetail.AuditInsureNotConsideredResultStatusId == 3 ? "block" : "none")">
+                                                                @foreach (var j in ViewBag.AuditInsureNotConsideredVerifiedType)
+                                                                {
+                                                                    <label class="col-md-12 fonts-box">
+                                                                        <input type="radio" name="AuditInsureNotConsideredVerifiedTypeId" value="@j.AuditInsureNotConsideredVerifiedTypeId" id="AuditInsureNotConsideredVerified_@(j.AuditInsureNotConsideredVerifiedTypeId)" @(j.AuditInsureNotConsideredVerifiedTypeId == ViewBag.QueueCancerFullDetail.AuditInsureNotConsideredVerifiedTypeId ? "checked" : "")> @j.AuditInsureNotConsideredVerifiedTypeDetail
+                                                                    </label>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    }
+
+                                                    <label class="col-md-12 control-label fonts-box " style="margin-left:30px;margin-top:10px">หมายเหตุ<span class="" style="color:red">*</span></label>
+                                                    <input type="hidden" id="AuditInsureClose" name="AuditInsureClose" value="0" />
+
+                                                    <input type="hidden" name="AuditInsureStatus2" value="@ViewBag.QueueCancerFullDetail.AuditInsureStatusId">
+                                                    <input type="hidden" name="AuditInsureConsiderStatus2" value="@ViewBag.QueueCancerFullDetail.AuditInsureConsiderStatusId">
+                                                    <input type="hidden" name="AuditInsureConsiderStatusRemark2" value="@ViewBag.QueueCancerFullDetail.AuditInsureConsiderRemark">
+                                                    <label class="AuditInsureCloseRemarkLabel col-md-12 fonts-box" id="AuditInsureCloseRemarkLabel" style="margin-left:16px">
+                                                        <textarea name="AuditInsureCloseRemark" id="AuditInsureCloseRemark" style="display: block; border-radius: 5px; margin: 10px; width: 80%; height: 80px; resize: none;">@(ViewBag.QueueCancerFullDetail.AuditInsureCloseRemark )</textarea>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            }
+
+
+
+
+
+                        </div>
+                    </div>
+                    @* end tab_1 *@
+
+                    @* tab_2 *@
+                    <div class="tab-pane " id="tab_2">
+                        <div class="row">
+
+                            <div class="col-sm-12">
+                                <div class="card" style="background-color: #E0F7FF; border-radius: 8px 8px; ">
+                                    <div class="box-header" style="color: #3F8FBD; border-bottom: 1px solid #bbb">
+                                        <i class="fa fa-user"></i>
+                                        <h4 class="box-title">ข้อมูลผู้เอาประกัน </h4>
+                                    </div>
+                                    <div class="box-body" style="align-items: center;">
+                                        <div class="row">
+                                            <h5 class=" col-md-3">App ID : <a href="#" target="_blank" id="openSSS" style="text-decoration: underline; color: #2833FF " onclick="OpenSSSView(`@ViewBag.QueueCancerFullDetail.ApplicationCode`)">@ViewBag.QueueCancerFullDetail.ApplicationCode</a></h5>
+
+                                            <h5 class=" col-md-3">วันเริ่มคุ้มครอง :  @(String.Format("{0:dd MMM yyyy}", ViewBag.QueueCancerFullDetail.StartCoverDate))</h5>
+
+                                            <h5 class=" col-md-3">แผนประกัน : @ViewBag.QueueCancerFullDetail.ProductDetail</h5>
+                                            <h5 class=" col-md-3">เบี้ย : @ViewBag.QueueCancerFullDetail.Premium</h5>
+                                        </div>
+                                        <div class="row">
+                                            <h5 class=" col-md-3 ">ชื่อ : @(String.Format("{0}", ViewBag.QueueCancerFullDetail.InsuredName))</h5>
+                                            <h5 class="col-md-3">
+                                                วันเกิด :     <span class="control-label" display: inline-block; max-width: 100%; text-align: right">@(ViewBag.InsuredBirthDate != null ? String.Format("{0:dd MMM yyyy}", ViewBag.QueueCancerFullDetail.InsuredBirthDate) : "-")</span>
+                                            </h5>
+                                            <h5 class="col-md-3">อายุวันสมัคร : @ViewBag.QueueCancerFullDetail.AgesAtRegister </h5>
+                                            <h5 class="col-md-3">อายุปัจจุบัน :  @ViewBag.QueueCancerFullDetail.AgesCurrent </h5>
+                                            <h5 class="col-md-3">เบอร์โทร : @ViewBag.QueueCancerFullDetail.InsuredPhone</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12" style="margin-top:15px;margin-bottom :15px">
+                                <div class="card" style="background-color: #E0F7FF; border-radius: 8px 8px">
+                                    <div class="box-header" style="color: #3F8FBD; border-bottom: 1px solid #bbb">
+                                        <i class="fa fa-user"></i>
+                                        <h4 class="box-title">ข้อมูลผู้ชำระเบี้ย </h4>
+                                    </div>
+                                    <div class="box-body" style="align-items: center;">
+                                        <div class="row">
+
+                                            <h5 class=" col-md-4">ชื่อผู้ชำระเบี้ย : @(String.Format("{0}", ViewBag.QueueCancerFullDetail.PayerName))</h5>
+                                            <h5 class=" col-md-4">ความสัมพันธ์ : @(ViewBag.QueueCancerFullDetail.PayerRelate != null ? ViewBag.QueueCancerFullDetail.PayerRelate : "-")</h5>
+                                            <h5 class=" col-md-4">เบอร์โทร : @(ViewBag.QueueCancerFullDetail.PayerPhone != null ? ViewBag.QueueCancerFullDetail.PayerPhone : "-")</h5>
+                                        </div>
+                                        <div class="row">
+                                            <h5 class=" col-md-4">อาชีพ : @(ViewBag.QueueCancerFullDetail.PayerOccupationLevel != null ? ViewBag.QueueCancerFullDetail.PayerOccupationLevel : "-")</h5>
+                                            <h5 class=" col-md-4">ชื่อหน่วยงาน : @(ViewBag.QueueCancerFullDetail.PayerBuildingName != null ? ViewBag.QueueCancerFullDetail.PayerBuildingName : "-")</h5>
+                                            <h5 class=" col-md-4">เบอร์โทรที่ทำงาน :  @(ViewBag.QueueCancerFullDetail.PayerBuildingPhone != null ? ViewBag.QueueCancerFullDetail.PayerBuildingPhone : "-")</h5>
+                                        </div>
+                                        <div class="row">
+                                            <h5 class=" col-md-4">การชำระ : @(ViewBag.QueueCancerFullDetail.PayMethodType != null ? ViewBag.QueueCancerFullDetail.PayMethodType : "-")</h5>
+                                            <h5 class=" col-md-4">ธนาคาร : @(ViewBag.QueueCancerFullDetail.PayerBankName != null ? ViewBag.QueueCancerFullDetail.PayerBankName : "-")</h5>
+                                            <h5 class=" col-md-4">เลขบัญชี : @(ViewBag.QueueCancerFullDetail.PayerBankAccountNo != null ? ViewBag.QueueCancerFullDetail.PayerBankAccountNo : "-")</h5>
+
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-md-12" style="text-align:right">
+                                                <a href="#" id="btnPayerOther" data-toggle="modal" data-target="#modal-warning" style="text-decoration: underline; color: #2833FF; display: none "></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            @* end ข้อมูลผู้ชำระเบี้ย *@
+                            <!-- #region แถลงสุขภาพ -->
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="box box-solid box-default">
+                                        <div class="box-header" style="background-color: #b3eeff; text-align: center;">
+                                            <h4 class="box-title">แถลงสุขภาพ</h4>
+                                            <div class="box-tools pull-right">
+                                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                            </div>
+                                        </div>
+                                        <div class="box-body" style="padding:20px">
+                                            <form class="form-horizontal">
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ท่านมีหรือเคยมีประกันชีวิต หรือประกันสุขภาพ หรือประกันอุบัติเหตุ หรือกำลังขอเอาประกันภัยดังกล่าวไว้กับบริษัทนี้หรือบริษัทอื่นหรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value1) ? "-" : ViewBag.QueueCancerFullDetail.Value1)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ บริษัท / จำนวนเงินเอาประกันภัย (บาท) / เงินชดเชยรายวัน (บาท) / ขณะนี้สัญญามีผลบังคับหรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value2) ? "-" : ViewBag.QueueCancerFullDetail.Value2)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>
+                                                        ท่านเคยถูกปฏิเสธ เลื่อนการรับประกันภัย เพิ่มอัตราเบี้ยประกันภัย เปลี่ยนแปลงเงื่อนไข สำหรับการขอเอาประกันภัยหรือการขอกลับคืนสู่สถานะเดิม หรือการขอต่ออายุของกรมธรรม์ จากบริษัทนี้
+                                                        หรือบริษัทอื่นบ้างหรือไม่
+                                                    </span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value3) ? "-" : ViewBag.QueueCancerFullDetail.Value3)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ บริษัท / สาเหตุ / เมื่อใด</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value4) ? "-" : ViewBag.QueueCancerFullDetail.Value4)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ท่านเคยมีส่วนเกี่ยวข้องกับการค้ายาเสพติดหรือเคยต้องโทษเกี่ยวกับคดียาเสพติดหรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value5) ? "-" : ViewBag.QueueCancerFullDetail.Value5)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ท่านเสพหรือเคยเสพยาเสพติด หรือสารเสพติดหรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value6) ? "-" : ViewBag.QueueCancerFullDetail.Value6)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ ชนิด / ปริมาณ / ความถี่ (ครั้ง:สัปดาห์) / เสพมานาน (ปี) / เลิกเสพเมื่อ</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value7) ? "-" : ViewBag.QueueCancerFullDetail.Value7)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ท่านดื่มหรือเคยดื่มเครื่องดื่มที่มีแอลกอฮอล์เป็นประจำหรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value8) ? "-" : ViewBag.QueueCancerFullDetail.Value8)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ ชนิด / ปริมาณ (ขวด:ครั้ง) / ความถี่ (ครั้ง:สัปดาห์) / ดื่มมานาน (ปี) / เลิกดื่มเมื่อ</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value9) ? "-" : ViewBag.QueueCancerFullDetail.Value9)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ท่านสูบหรือเคยสูบบุหรี่ หรือยาสูบชนิดอื่นหรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value10) ? "-" : ViewBag.QueueCancerFullDetail.Value10)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ ปริมาณ (มวน:วัน) / สูบมานาน (ปี) / เลิกสูบเมื่อ</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value11) ? "-" : ViewBag.QueueCancerFullDetail.Value11)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ส่วนสูงและน้ำหนัก</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span class="control-label" style="margin-bottom: 10px; color: #005484">ส่วนสูง</span>
+                                                    &nbsp;
+                                                    <span class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value12) ? "-" : ViewBag.QueueCancerFullDetail.Value12)</span>
+                                                    &nbsp;
+                                                    <span class="control-label" style="margin-bottom: 10px; color: #005484">ซ.ม.</span>
+                                                    &nbsp;
+                                                    &nbsp;
+                                                    <span class="control-label" style="margin-bottom: 10px; color: #005484">น้ำหนัก</span>
+                                                    &nbsp;
+                                                    <span class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value13) ? "-" : ViewBag.QueueCancerFullDetail.Value13)</span>
+                                                    &nbsp;
+                                                    <span class="control-label" style="margin-bottom: 10px; color: #005484">ก.ก.</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ในรอบ 6 เดือนที่ผ่านมา น้ำหนักตัวของท่านเปลี่ยนแปลงหรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value14) ? "-" : ViewBag.QueueCancerFullDetail.Value14)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ เพิ่มขึ้น (กก.) / ลดลง (กก.) / สาเหตุที่น้ำหนักเปลี่ยนแปลง</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value15) ? "-" : ViewBag.QueueCancerFullDetail.Value15)</span>
+                                                </div>
+                                                <div class="row" style="background-color: #3C8DBC;color:white">
+                                                    <label>คำถามเกี่ยวกับประวัติการเจ็บป่วยหรือการรักษาโรคของผู้ขอเอาประกัน</label>
+                                                </div>
+                                                <div class="row" style="background-color: #9BDAFF;">
+                                                    <label>ท่านเคยได้รับการวินิจฉัย หรือรับการรักษา หรือตั้งข้อสังเกตโดยแพทย์ว่าป่วยเป็นโรคตามรายการท้ายคำถามนี้หรือไม่</label>
+                                                </div>
+                                                <div class="row">
+                                                    <ul class="list-unstyled">
+                                                        หากเคย กรุณาระบุโรคและการรักษาตามรายละเอียดด้านล่าง
+                                                        <li>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>สายตาพิการ</li>
+                                                                    <li>โรคจอประสาทตา</li>
+                                                                    <li>โรคต้อหิน</li>
+                                                                    <li>โรคหลอดเลือดในสมอง</li>
+                                                                    <li>โรคอัมพฤกษ์ / โรคอัมพาต</li>
+                                                                    <li>โรคพาร์กินสัน</li>
+                                                                    <li>โรคความจำเสื่อม</li>
+                                                                    <li>โรคชัก</li>
+                                                                    <li>โรคปอดหรือปอดอักเสบ</li>
+                                                                    <li>โรควัณโรค</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>โรคหอบหืด</li>
+                                                                    <li>โรคปอดอุดกั้นเรื้อรัง</li>
+                                                                    <li>โรคถุงลมโป่งพอง</li>
+                                                                    <li>ภาวะหยุดหายใจขณะหลับ</li>
+                                                                    <li>โรคความดันโลหิตสูง</li>
+                                                                    <li>โรคหัวใจ</li>
+                                                                    <li>โรคเส้นเลือดหัวใจตีบ</li>
+                                                                    <li>โรคหลอดเลือด</li>
+                                                                    <li>โรคแผลในทางเดินอาหาร</li>
+                                                                    <li>โรคตับหรือทางเดินน้ำดี</li>
+                                                                    <li>โรคพิษสุราเรื้อรัง</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>ดีซ่าน</li>
+                                                                    <li>ม้ามโต</li>
+                                                                    <li>โรคตับอ่อนอักเสบ</li>
+                                                                    <li>โรคไต</li>
+                                                                    <li>โรคข้ออักเสบ</li>
+                                                                    <li>โรคเก๊าท์</li>
+                                                                    <li>โรคหนังแข็ง</li>
+                                                                    <li>โรคเอสแอลอี</li>
+                                                                    <li>โรคเลือด</li>
+                                                                    <li>โรคเบาหวาน</li>
+                                                                    <li>โรคไทรอยด์</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>โรคต่อมน้ำเหลืองโต</li>
+                                                                    <li>เนื้องอก ก้อนหรือถุงน้ำ</li>
+                                                                    <li>โรคมะเร็ง</li>
+                                                                    <li>โรคเอดส์หรือภูมิคุ้มกันบกพร่อง</li>
+                                                                    <li>โรคกามโรค (ภายใน 2 ปี)</li>
+                                                                    <li>พิการทางร่างกาย</li>
+                                                                    <li>โรคจิต</li>
+                                                                    <li>โรคประสาท</li>
+                                                                    <li>โรคซึมเศร้า</li>
+                                                                    <li>ดาวน์ซินโดรม</li>
+                                                                </ul>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </div> @* end row *@
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value16) ? "-" : ViewBag.QueueCancerFullDetail.Value16)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุโรค/วันเดือนปีที่รักษา/การรักษาและอาการปัจจุบัน/สถานพยาบาลที่รักษา</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value17) ? "-" : ViewBag.QueueCancerFullDetail.Value17)</span>
+                                                </div>
+                                                <div class="row" style="background-color: #9BDAFF;">
+                                                    <label>ท่านเคยมี หรือกำลังมีอาการ ดังต่อไปนี้หรือไม่</label>
+                                                </div>
+                                                <div class="row">
+                                                    <ul class="list-unstyled">
+                                                        หากเคยมี หรือกำลังมี กรุณาระบุอาการและการรักษาตามรายละเอียดด้านล่าง
+                                                        <li>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>การมองเห็นผิดปกติ</li>
+                                                                    <li>กล้ามเนื้ออ่อนแรง</li>
+                                                                    <li>ร่างกายสูญเสียประสาทรับความรู้สึก</li>
+                                                                    <li>ปวดศีรษะรุนแรงเรื้อรัง</li>
+                                                                    <li>ไอเรื้อรัง</li>
+                                                                    <li>ไอเป็นเลือด</li>
+                                                                    <li>เหนื่อยง่ายผิดปกติ</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>เจ็บหรือแน่นหน้าอก</li>
+                                                                    <li>ปวดท้องเรื้อรัง</li>
+                                                                    <li>อาเจียนหรือถ่ายเป็นเลือด</li>
+                                                                    <li>ท้องมาน</li>
+                                                                    <li>มีเลือดปนในปัสสาวะ</li>
+                                                                    <li>ปวดข้อเรื้อรัง</li>
+                                                                    <li>เคยพยายามทำร้ายร่างกายตนเอง</li>
+                                                                    <li>คลำพบก้อนเนื้อ</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <b>อาการในระหว่าง 6 เดือนที่ผ่านมา</b>
+                                                                <ul class="marker">
+                                                                    <li>อาการอ่อนเพลีย</li>
+                                                                    <li>น้ำหนักลด</li>
+                                                                    <li>ท้องเดินเรื้อรัง</li>
+                                                                    <li>ไข้เรื้อรัง</li>
+                                                                    <li>โรคผิวหนังเรื้อรัง</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <b>เฉพาะสตรี</b>
+                                                                <ul class="marker">
+                                                                    <li>กำลังตั้งครรภ์(โปรดระบุเดือน)</li>
+                                                                    <li>โรคแทรกซ้อนในการตั้งครรภ์และคลอดบุตร</li>
+                                                                    <li>เลือดออกผิดปกติทางช่องคลอด</li>
+                                                                </ul>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value18) ? "-" : ViewBag.QueueCancerFullDetail.Value18)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุอาการ/วันเดือนปีที่เริ่มมีอาการ/อาการปัจจุบัน</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value19) ? "-" : ViewBag.QueueCancerFullDetail.Value19)</span>
+                                                </div>
+                                                <div class="row" style="background-color: #9BDAFF;">
+                                                    <label>ในระหว่าง 5 ปีที่ผ่านมา ท่านเคยได้รับ</label>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ก. การตรวจสุขภาพ การตรวจชิ้นเนื้อ หรือการตรวจเพื่อวินิจฉัยโรค เช่น การเอ็กซเรย์ การตรวจคลื่นหัวใจ การตรวจเลือดหรือการตรวจด้วยเครื่องมือพิเศษอื่นๆ หรือไม่</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value20) ? "-" : ViewBag.QueueCancerFullDetail.Value20)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ ตรวจอะไร / เมื่อใด / สถานที่ตรวจ / ผลการตรวจ / ข้อสังเกตโดยแพทย์</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value21) ? "-" : ViewBag.QueueCancerFullDetail.Value21)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>ข. การบาดเจ็บ เจ็บป่วย การผ่าตัด การปรึกษาแพทย์ การแนะนำจากแพทย์เกี่ยวกับสุขภาพ การรักษาในสถานพยาบาลที่มิได้ระบุไว้ข้างต้น</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value22) ? "-" : ViewBag.QueueCancerFullDetail.Value22)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ อาการ / วันเดือนปีที่รับการรักษา / สถานพยาบาล / ผลการรักษา</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value23) ? "-" : ViewBag.QueueCancerFullDetail.Value23)</span>
+                                                </div>
+                                                <div class="row" style="background-color: #9BDAFF;">
+                                                    <label>คำถามเพิ่มเติมสำหรับการขอเอาประกันภัยสัญญาเพิ่มเติมเกี่ยวกับสุขภาพหรือโรคร้ายแรง</label>
+                                                </div>
+                                                <div class="row">
+                                                    <ul class="list-unstyled">
+                                                        ท่านเคยได้รับการวินิจฉัย หรือรับการรักษา หรือตั้งข้อสังเกตจากแพทย์ว่าป่วยเป็นโรคตามรายการท้ายคำถามนี้หรือไม่
+                                                        <li>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>ติดเชื้อในหูชั้นกลาง</li>
+                                                                    <li>ต่อมทอนซิลอักเสบเรื้อรัง</li>
+                                                                    <li>ไซนัสอักเสบ</li>
+                                                                    <li>ปวดศีรษะไมเกรน</li>
+                                                                    <li>ภูมิแพ้</li>
+                                                                    <li>หลอดลมอักเสบเรื้อรัง</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>กรดไหลย้อน</li>
+                                                                    <li>นิ่ว</li>
+                                                                    <li>ถุงน้ำดีอักเสบ</li>
+                                                                    <li>ไส้เลื่อน</li>
+                                                                    <li>ริดสีดวงทวาร</li>
+                                                                    <li>ฝีคันฑสูตร</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>เยื่อบุโพรงมดลูกเจริญผิดที่</li>
+                                                                    <li>กระดูกสันหลังเคลื่อน</li>
+                                                                    <li>หมอนรองกระดูกเคลื่อนหรือทับเส้นประสาท</li>
+                                                                    <li>ข้อเสื่อม</li>
+                                                                    <li>เส้นเอ็นอักเสบเรื้อรัง</li>
+                                                                    <li>เส้นประสาทอักเสบหรือถูกเบียดทับ</li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="col-md-3 col-sm-6">
+                                                                <ul class="marker">
+                                                                    <li>ออทิสติก</li>
+                                                                    <li>สมาธิสั้น</li>
+                                                                </ul>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value24) ? "-" : ViewBag.QueueCancerFullDetail.Value24)</span>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 10px; padding: 3px; color: #005484">
+                                                    <span>โปรดระบุ โรค / วันเดือนปีที่รักษา / การรักษาและอาการปัจจุบัน / สถานพยาบาลที่รักษา</span>
+                                                </div>
+                                                <div class="row" style="background-color: #F5F5F5; border: #707070;margin-bottom:10px;padding:3px">
+                                                    <span>@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value25) ? "-" : ViewBag.QueueCancerFullDetail.Value25)</span>
+                                                </div>
+                                            </form>
+                                        </div> @* end box body*@
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- #endregion -->
+                            <!-- #region การใช้รถจักรยานยนต์ -->
+                            <div class="col-sm-12">
+                                <div class="box box-solid box-default">
+                                    <div class="box-header with-border" style="background-color: #B3EEFE;text-align:center">
+                                        <h3 class="box-title">การใช้รถจักรยานยนต์</h3>
+
+                                        <div class="box-tools pull-right">
+                                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                                <i class="fa fa-minus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="box-body" style="">
+                                        <div class="row">
+                                            <span class="control-label" style="margin-bottom: 10px; color: #005484;padding: 3px;margin-left:7px">ท่านใช้รถจักรยานยนต์ในการทำงานหรือไม่ :</span>
+                                            &nbsp;
+                                            <span class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueCancerFullDetail.Value26) ? "-" : ViewBag.QueueCancerFullDetail.Value26)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- #endregion -->
+
+                            <div class=" col-sm-12">
+                                <div class="box box-info bg-info " style="border-radius: 8px 8px 0px 0px ">
+                                    <div class="box-header" style="background-color: #00C0EF; color: azure; border-radius: 8px 8px 0px 0px ">
+                                        <h4 class="box-title">รายละเอียดการมอบกรมธรรม์ </h4>
+                                    </div>
+                                    <div class=" box-body" style="height: auto;width: auto;margin-top:15px">
+                                        <form id="sectionGiveCardFrom">
+                                            <div class="typeSelectChildxx form-group col-md-12">
+                                                <label class="col-md-2 control-label title">มอบกรมธรรม์ ให้กับ</label>
+                                                @*<label class="col-md-2  fonts-box"><input type="checkbox" name="typeSelectChild" id="typeSelectChildPayer" value=@(ViewBag.QueueCancerFullDetail.IsUnderwritePayer == true ? "payer" : "" ) @(ViewBag.QueueCancerFullDetail.IsUnderwritePayer == true ? "checked" : "" )> ผู้ชำระเบี้ย </label>
+                                                <label class="col-md-2  fonts-box"><input type="checkbox" name="typeSelectChild" id="typeSelectChildCustomer" value=@(ViewBag.QueueCancerFullDetail.IsUnderwriteInsured == true ? "customer" : "") @(ViewBag.QueueCancerFullDetail.IsUnderwriteInsured == true ? "checked" : "")> ผู้เอาประกัน</label>*@
+                                            </div>
+
+                                            <div class="form-group col-md-12" id="remarkisLineOAFrom">
+                                                <label class="col-md-2 control-label title">
+                                                    หมายเหตุการมอบกรมธรรม์
+                                                </label>
+                                                <div class="col-md-8">
+                                                    <input class="form-control " disabled type="text" name="remarkisLineOA" id="remarkisLineOA" value="@ViewBag.QueueCancerFullDetail.GiveRemark">
+                                                </div>
+                                            </div>
+                                        </form>
+                                        <div class="form-group col-md-12">
+                                            <label class="col-md-2 control-label title">
+                                                แนบรูปการมอบกรมธรรม์
+                                            </label>
+                                            <div class="col-md-8 " id="showImg">
+                                                <a href="javascript:void();" class="pop">
+                                                    <img id="myImg" src="@ViewBag.QueueCancerFullDetail.URLPath" alt="@ViewBag.QueueCancerFullDetail.FileName" style="width:100%;max-width:100px">
+                                                </a>
+
+                                            </div>
+                                            <div class="col-md-8" style="display:none" id="editDropzone">
+                                                <form action="@Url.Action("FileUpload")" class="dropzone" id="myDropzone" enctype="multipart/form-data">
+                                                    <div class="fallback">
+                                                        <input name="file" type="file" src="@ViewBag.QueueCancerFullDetail.URLPath" alt="@ViewBag.QueueCancerFullDetail.FileName" multiple />
+                                                    </div>
+
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <form id="sectionGiveCardFrom_2">
+                                <div class="col-sm-12">
+                                    <div class="box box-info bg-info " style="border-radius: 8px 8px 0px 0px ">
+                                        <div class="box-header" style="background-color: #00C0EF; color: azure; border-radius: 8px 8px 0px 0px ">
+                                            <h4 class="box-title">ข้อมูลการเฝ้าระวัง</h4>
+                                        </div>
+                                        <div class="box-body shadow" style="height: auto;width: auto;margin-top:15px">
+                                            <div class="form-group text col-md-12">
+                                                <label class="col-md-12 control-label title">ข้อมูลการเฝ้าระวัง</label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isBeware" disabled value="0" id="isBeware_1" @(ViewBag.QueueCancerFullDetail.IsBeware == false ? "checked" : "" )> ไม่มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isBeware" disabled value="1" id="isBeware_2" @(ViewBag.QueueCancerFullDetail.IsBeware == true ? "checked" : "" )> มี
+                                                </label>
+                                                <label class="bewareRemarkLabel col-md-6 fonts-box" id="bewareRemarkLabel" style="display:none">
+                                                    <input class="form-control" id="bewareRemark" name="bewareRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@ViewBag.QueueCancerFullDetail.BewareRemark" />
+                                                </label>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <div class="box box-info bg-info " style="border-radius: 8px 8px 0px 0px ">
+                                        <div class="box-header" style="background-color: #00C0EF; color: azure; border-radius: 8px 8px 0px 0px ">
+                                            <h4 class="box-title">รายละเอียดเพิ่มเติม</h4>
+                                        </div>
+                                        <div class="box-body" style="height: auto;width: auto;margin-top:15px">
+                                            <div class="form-group col-md-12">
+                                                <label class="col-md-12 control-label title">รายละเอียดเพิ่มเติม</label>
+                                                <textarea name="remarkFrom" id="remarkFrom" disabled style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px" value="@ViewBag.QueueCancerFullDetail.QueueResultRemark">@ViewBag.QueueCancerFullDetail.QueueResultRemark</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input class="form-control" id="txtCoBrandDate" name="txtCoBrandDate" type="hidden" />
+                            </form>
+
+                        </div> @* end row*@
+
+                    </div>
+
+
+
+                    @* end tab_2 *@
+
+                    @* tab_3 *@
+                    <div class="tab-pane" id="tab_3">
+                        <div id="Document_form" class="form-horizontal">
+                            @if (ViewBag.FirstDoc == null)
+                            {
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div id="form1_msg" class="alert alert-warning alert-dismissible">
+                                            <h4><i class="icon fa fa-ban"></i> แจ้งเตือน!</h4>
+                                            ไม่พบเอกสาร
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <br />
+                                <div class="form-group">
+                                    @if (ViewBag.DocLink != null)
+                                    {
+                                        foreach (var itm in ViewBag.DocLink)
+                                        {
+                                            <div class="col-sm-6 col-xs-12">
+                                                <button type="button" class="btn btn-block btn-info" id="btn_@itm.DocumentFileId" onclick="SeeDoc('@itm.PathFullDoc')"><i class="fa fa-fw fa-search"></i>@itm.DocumentTypeName:@itm.DocumentId</button>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                                <div class="row" id="DocDetail_form">
+                                    <div class="col-sm-12" style="height: 950px">
+                                        <iframe class="SeeDoc" style="width: 100%; height: 100%;overflow:auto !important" src="@ViewBag.FirstDoc"></iframe>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    @* end tab_3 *@
+
+                    @* tab_4 *@
+                    <div id="tab_4" class="tab-pane">
+                        <div class="form-horizontal">
+                            <table id="tableLog" name="tableLog" class="table table-bordered table-striped display responsive" style="width: 100%">
+                                <tbody>
+                                    <tr style="text-align:center"><td>ไม่พบข้อมูล</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    @* end tab_4 *@
+                </div> @* tab-content *@
+            }
+        </div>
+
+        <!--Modal Img-->
+        <div class="modal fade" id="imagemodal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <img src="" class="imagepreview" style="width: 100%;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--.modal -->
+        <div class="modal fade" id="modal-warning">
+            <!--.modal-dialog -->
+            <div class="modal-dialog">
+                <!--.modal-content -->
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color: #ffd243;border-color: #ffeeba;">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true" style="color: black;">×</span>
+                        </button>
+                        <h4 class="modal-title">รายละเอียด</h4>
+                    </div>
+                    <div class="modal-body">
+                        <table id="tablePayerOther" class="table table-bordered table-striped display responsive" style="width: 100%"></table>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+        <!--/.modal -->
+        <!--.modal -->
+        <div class="modal fade" id="modal-warning-policy">
+            <!--.modal-dialog -->
+            <div class="modal-dialog">
+                <!--.modal-content -->
+                <div class="modal-content">
+                    <div class="modal-header" style=" color:aliceblue ;background-color: #68AAFF; border-color: #ffeeba;">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true" style="color: black;">×</span>
+                        </button>
+                        <h4 class="modal-title">รายละเอียด</h4>
+                    </div>
+                    <div class="modal-body">
+                        <table id="tablePolicyOther" class="table table-bordered table-striped display responsive" style="width: 100%"></table>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+        <!--/.modal -->
+    </section>
+</div>
+@section ViewSpecificJavascript
+{
+    <script>
+        var chat;
+        var cancerVal;
+        var typeSelectVal;
+        var countFile = 0;
+        var imgUrlPath;
+        var imgPhysicalPath;
+
+        $(function () {
+              getPayerOther('@ViewBag.AppCode');
+             getPolicyOther('@ViewBag.AppCode');
+            //check mobile
+         $('#auditCIStatusIdChecked').val(@ViewBag.QueueCancerFullDetail.AuditCIStatusId);
+
+            if ($('#auditCIStatusId').val() == "2") {
+                $('#auditCISpecifyStatusLabel').hide();
+            } else {
+                $('#auditCISpecifyStatusLabel').show();
+            }
+
+            //สถานะการตรวจสอบ
+            if (`@ViewBag.QueueCancerFullDetail.QueueAuditStatusId` == '2') {
+                $('#audit_wait').show();
+                $('#audit_NotAudit').hide();
+                $('#audit_complete').hide();
+            } else if (`@ViewBag.QueueCancerFullDetail.QueueAuditStatusId` == '4') {
+                $('#audit_wait').hide();
+                $('#audit_complete').hide();
+                $('#audit_NotAudit').show();
+            } else {
+                $('#audit_wait').hide();
+                $('#audit_NotAudit').hide();
+                $('#audit_complete').show();
+            }
+
+            if ($('#isReceivedInsurance').val() == "2") {
+                $('#receivingInsurance').hide();
+            } else {
+                $('#receivingInsurance').show();
+            }
+
+        
+            if (isMobileTablet()) $('#DocDetail_form').hide();
+
+            // element input
+            $(".view-detail :input").prop("disabled", true);
+            $(".view-detail label").css("cursor", "not-allowed");
+            $('#openSSS').prop("disabled", false);
+            $('.btn-box-tool').prop('disabled', false);
+            //ผลคัดกรอง ผอ.บล. disabled
+            $(".bodyResultDirector :input").prop("disabled", true);
+            $(".bodyResultDirector label").css("cursor", "not-allowed");
+
+            //modal img
+            // click img
+            $('.pop').on('click', function () {
+                $('.imagepreview').attr('src', $(this).find('img').attr('src'));
+                $('#imagemodal').modal('show');
+            });
+
+
+
+
+
+        });
+           const getPayerOther = (appCode) => {
+            $.get('@Url.Action("GetPayerOtherApp")',
+                { appCode: appCode },
+                function (data) {
+                    if (data.length > 0) {
+                        /*declare str*/
+                        const str = `ชำระเบี้ยให้อีก ${data.length} คน`;
+                        /*show button*/
+                        $('#btnPayerOther').show();
+                        /*set str to text button*/
+                        $('#btnPayerOther').text(str);
+                        /*load datatables*/
+                        loadDatatablesPayerOther(data);
+                    }
+                });
+        }
+
+        const getPolicyOther = (appCode) => {
+            $.get('@Url.Action("ApplicationInsuredRelateByApplicationCodeSelect")',
+                { applicationCode: appCode },
+                function (data) {
+                    if (data.recordsTotal > 0) {
+                        /*declare str*/
+                        const str = `มีอีก ${data.recordsTotal} กรมธรรม์`;
+                        /*show button*/
+                        $('#btnPolicyOther').show();
+                        /*set str to text button*/
+                        $('#btnPolicyOther').text(str);
+                        /*load datatables*/
+                        loadDatatablesPolicyOtherView(data.data);
+                    }
+                });
+        }
+        const loadDatatablesPolicyOtherView = (data) => {
+            $(`#tablePolicyOther`).empty();
+            $(`#tablePolicyOther`).DataTable({
+                pageLength: 100,
+                processing: true,
+                serverSide: false,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: false,
+                info: true,
+                paging: true,
+                data: data,
+                language: {
+                    url: "http://cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Thai.json"
+                },
+                columns: [
+                    {
+                        title: 'AppId',
+                        data: 'ApplicationCode',
+                        orderable: false
+                    },
+                    {
+                        title: 'ชื่อ-สกุล ผู้เอาประกัน',
+                        data: 'InsuredName',
+                        orderable: false,
+
+                    },
+                    {
+                        title: 'วันเริ่มคุ้มครอง',
+                        data: 'StartCoverDate',
+                        orderable: false,
+                        render: (d) => {
+                            return moment(d).format("DD/MM/YYYY");
+                        }
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: 'ApplicationStatus',
+                        orderable: false
+                    }
+                ]
+            });
+        }
+
+        const OpenSSSView = (app) => {
+     
+            var encoded = btoa(app);
+            window.open(`@ViewBag.OpenSSS?app=`+encoded,'_blank');
+        }
+
+        /***Document**/
+        const SeeDoc = (path) => {
+            if (isMobileTablet()) {
+                window.location.href = path;
+            } else {
+                $('#DocDetail_form').children().show();
+                //const extension = path.substr(path.length - 4);
+                let extension = '';
+                const indexPDF = path.indexOf('.pdf');
+                const indexJPG = path.indexOf('.jpg');
+
+                if (indexPDF >= 0) extension = '.pdf';
+                if (indexJPG >= 0) extension = '.jpg';
+
+                switch (extension) {
+                    case '.pdf':
+                        $('.SeeDoc').attr('src', path);
+                        break;
+                    case '.jpg':
+                        $('.SeeDoc').attr('src', path);
+                        break;
+                    default:
+                }
+            }
+        }
+          
+
+
+        /*tab change*/
+        $('a[data-toggle="tab"]').on('shown.bs.tab',
+            function (e) {
+                e.preventDefault();
+                loadingSpinner('fadeIn', 200);
+                const target = $(e.target).attr("href");
+                switch (target) {
+                    case "#tab_4":
+                        //Log
+                        GetQueueCancerAuditViewLog_DT();
+                        break;
+                    default:
+                }
+            });
+
+        const GetQueueCancerAuditViewLog_DT = () => {
+            $('#tableLog').empty();
+            var table = $('#tableLog').DataTable({
+                pageLength: 10,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("QueueCancerAuditLog")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.queueAuditId = "@ViewBag.QueueCancerFullDetail.QueueAuditId";
+                    }
+                },
+                columns: [
+                    {
+                        title: 'วันที่ได้รับคิวงาน',
+                        data: 'CreatedDate',
+                        render: function (data) {
+                            let date = moment(data);
+                            date.add(543, 'years');
+                            return moment(date).format("DD/MM/YYYY HH:mm:ss");
+                        }
+
+                    },
+                    {
+                        title: 'ผู้มอบหมายคิวงาน',
+                        data: 'FromFullName'
+                    },
+                    {
+                        title: 'ผู้รับคิวงาน',
+                        data: 'ToFullName'
+                    },
+                ]
+            });
+
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            }
+        };
+          const GetQueueCancerAuditLog_DT = () => {
+            $('#tableLog').empty();
+            var table = $('#tableLog').DataTable({
+                pageLength: 10,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("QueueCancerAuditLog")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.queueAuditId = "@ViewBag.QueueCancerFullDetail.QueueAuditId";
+                    }
+                },
+                columns: [
+                    {
+                        title: 'วันที่ได้รับคิวงาน',
+                        data: 'CreatedDate',
+                        render: function (data) {
+                            let date = moment(data);
+                            date.add(543, 'years');
+                            return moment(date).format("DD/MM/YYYY HH:mm:ss");
+                        }
+
+                    },
+                    {
+                        title: 'ผู้มอบหมายคิวงาน',
+                        data: 'FromFullName'
+                    },
+                    {
+                        title: 'ผู้รับคิวงาน',
+                        data: 'ToFullName'
+                    },
+                ]
+            });
+
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            }
+        }
+        /*get payer other*/
+        const str = `ชำระเบี้ยให้อีก ${@ViewBag.countPaymentHistory} คน`;
+        /*set str to text button*/
+        $('#btnPayerOther').text(str);
+
+        /*modal show PaymentHistory*/
+        $('#modal-CountPaymentHistory').on('show.bs.modal', function (e) {
+            loadDatatablesPayerOtherView();
+        });
+
+        /*load datatables payer other*/
+        const loadDatatablesPayerOtherView = () => {
+            $('#tablePayerOther').empty();
+            var table = $('#tablePayerOther').DataTable({
+                pageLength: 10,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("UnderwritePaymentHistory")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        @*d.queueId = "@ViewBag.QueueCancerFullDetail.QueueId";*@
+                        d.queueId = "";
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ผลิตภัณฑ์',
+                        data: 'ProductGroupName',
+                        orderable: false
+                    },
+                    {
+                        title: 'เลข App',
+                        data: 'ApplicationCode',
+                        orderable: false
+                    },
+                    {
+                        title: 'ชื่อ-สกุลผู้เอาประกัน',
+                        data: 'InsuredName',
+                        orderable: false,
+                    },
+                    {
+                        title: 'ชื่อ-สกุลผู้ชำระเบี้ย',
+                        data: 'PayerName',
+                        orderable: false,
+                    },
+                    {
+                        title: 'วันที่เริ่มคุ้มครอง',
+                        data: 'StartCoverDate',
+                        orderable: false,
+                        render: function (data) {
+                            if (data != null) {
+                                let date = moment(data);
+                                date.add(543, 'years');
+                                return moment(date).format('DD/MM/YYYY')
+                            } else {
+                                return '-';
+                            }
+                        }
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: 'ApplicationStatus',
+                        orderable: false,
+                    },
+                ]
+            });
+        }
+    </script>
+}

@@ -1,0 +1,84 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "ประวัติการคัดกรอง";
+    //Layout = "_Layout";
+    Html.RenderPartial("_ApplicationDetail");
+    ViewBag.Header = "ประวัติการคัดกรอง";
+}
+
+<input type="hidden" value="@ViewBag.ReferrenceCode" id="hdfReferrenceCode" name="hdfReferrenceCode" />
+<div class="container-fluid">
+
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">ประวัติคัดกรอง</h3>
+        </div>
+        <div class="box-body">
+
+            <div class="form-group">
+
+                <table id="dtHisCallUnderWrite" class="table table-bordered table-striped"></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+            
+            GetDatatableHisUnderWrite();
+        });
+
+        function GetDatatableHisUnderWrite() {
+            $('#dtHisCallUnderWrite').empty();
+            var table = $('#dtHisCallUnderWrite').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetDatatableHisUnderWrite")',
+                    //method: 'POST',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.ReferenceCode = $("#hdfReferrenceCode").val();
+                    }
+                },
+                columns: [
+                    {
+                        title: 'วันที่โทรคัดกรอง',
+                        data: 'CallDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            return moment(data).format('DD/MM/YYYY');
+                        }
+                    },
+                    { title: 'ประเภทคิว', data: 'QueueTypeDetail' },
+                    { title: 'สถานะการคัดกรอง', data: 'CallStatus' },
+                    { title: 'หมายเหตุ', data: 'CallReamrk' },
+                    {
+                        title: 'รายละเอียด',
+                        data: 'QueueId',
+                        width: 100,
+                        className: 'dt-center',
+                        render: function (data) {
+                            return '<a href="@Url.Action("Detail")?queueId=' + data + '" class="btn btn-info" title="View Detail" style="margin: 2px;" target="_blank"><i class="fa fa-external-link"></i></a>';
+                        }
+                    },
+
+                ]
+            });
+        }
+    </script>
+
+}

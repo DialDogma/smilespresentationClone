@@ -1,0 +1,171 @@
+﻿@{
+    ViewBag.Title = "ตั้งค่า Dictionary";
+
+}
+<style>
+    .table {
+        font-size: 14px
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* edit form *@
+        <div class="col-sm-12" id="Search_form">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtShowDetail" name="dtShowDetail" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-2 pull-right">
+                            <button type="button" id="btnSubmit" onclick="" class="btn btn-block btn-success">บันทึก</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end form *@
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+            GetCFModel_DT();
+
+            $('#btnSubmit').click(function () {
+                SubmitCFModel();
+            });
+        });
+
+        const SubmitCFModel = () => {
+              //call function to execute
+            swal_confirm("ยืนยัน", "ยืนยันการแก้ไข?", function () {
+                $.when(loopInputToTblInput()).done(function (response) {
+                    console.log(response);
+                    var checkFalse = response.every(function (value) { return value === true });
+                    if (!checkFalse) {
+                        swal_fail('ผิดพลาด!บางข้อมูลไม่สามารถบันทึกได้');
+                    } else {
+                         swal_success(setTimeout(function () {
+                            window.location = ('@Url.Action("ModelManagement_dictionary","Configuration")');
+                        }, 2000));
+                    }
+                    //
+                });
+            });
+        }
+
+        const GetCFModel_DT = () => {
+            $('#dtShowDetail').empty();
+            var table = $('#dtShowDetail').DataTable({
+                lengthChange: false,
+                 info:false,
+                paging:false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetModel_DT","Configuration")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 99999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                    }
+                },
+                columnDefs: [{
+                    searchable: false,
+                    orderable: false,
+                    targets: 0
+                }],
+                columns: [
+                    { title: 'ลำดับ', data: null, orderable: false },
+                    { title: 'Model List', data: 'ModelName' },
+                    {
+                        title: 'Model Description',
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        mRender: function (data) {
+                            if (data.Description != null) {
+                                return '<input style="width:100%" type="text" id="txtDesc//' + data.ModelId + '" name="txtDesc_' + data.ModelId
+                                + '" value="' + data.Description + '" class="form-control tbl_input" />';
+                            } else {
+                                  return '<input style="width:100%" type="text" id="txtDesc//' + data.ModelId + '" name="txtDesc_' + data.ModelId
+                                + '" value="" class="form-control tbl_input" />';
+                            }
+
+                        }
+
+                    },
+                    {
+                        title: 'วันที่แก้ไขข้อมูล', data: 'DescriptionUpdatedDate',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    { title: 'ผู้แก้ไขข้อมูล', data: 'DescriptionUpdatedByName' },
+                    {
+                        title:'แก้ไข Dictionary' ,
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center col-sm-1',
+                        mRender: function (data) {
+                            return '<a type="button" class="btn btn-block btn-default" id="btnlink_' + data.ModelId
+                                    + '" onclick="EditDic(' + data.ModelId + ')"><i class="fa  fa-play"></i></a>';
+                        }
+                    }
+
+                ]
+            });
+
+            table.on('draw.dt', function () {
+                var PageInfo = $('#dtShowDetail').DataTable().page.info();
+                table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                });
+            });
+        }
+
+        const EditDic = (modelId) => {
+            window.open("@Url.Action("ModelManagementDetail_dictionary","Configuration")?modelId="+modelId,"_blank");
+        }
+
+        //loop and send not null data to sp
+        const loopInputToTblInput = () => {
+            var resultList = new Array();
+            //loop in class input
+            $('.tbl_input').each(function (index, data) {
+                //check if assign not null
+                if (data.value != "") {
+                    var text = data.id.split('//');
+                    //post: set assign datasource
+                    $.post('@Url.Action("SetModelDescription","Configuration")',
+                        {
+                            modelId: text[1],
+                            description: data.value
+                        }, function (response) {
+                            resultList.push(response.IsResult);
+
+                        });
+                }
+            });
+            return resultList;
+        }
+    </script>
+}

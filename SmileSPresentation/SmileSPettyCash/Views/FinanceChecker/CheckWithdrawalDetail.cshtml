@@ -1,0 +1,668 @@
+﻿@{
+    ViewBag.Title = "รายการตั้งเบิกแยกตามสาขา";
+
+}
+<style>
+    .table {
+        font-size: 14px;
+    }
+
+    div > label {
+        color: #0c09ce;
+    }
+
+    .badge-success {
+        background-color: #28a745 !important;
+    }
+
+    .badge-danger {
+        background-color: #dc3545 !important;
+    }
+
+    .badge-warning {
+        background-color: #ffc107 !important;
+    }
+</style>
+<form action="" method="post">
+    <div class="row">
+        @* DT Row *@
+        <div class="col-sm-12" id="Detail_form">
+            <div class="box-header" style="padding-bottom: 0;">
+                <h4 class="header pull-left">รหัสรายการ :<label id="lblHeaderId">@ViewBag.rqhCode</label> สาขา :<label id="lblBranch">@ViewBag.branch</label></h4>
+                <h4 class="header pull-right">ยอดเบิกรวมทั้งหมด :<label id="lblTotalWithdraw">@ViewBag.amount</label> บาท</h4>
+            </div>
+            <div id="div_dtISC" class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">บริษัท มาตรฐาน ไอ.เอส.ซี จำกัด</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtISC" name="dtISC" class="table table-bordered table-striped" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="div_dtBroker" class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">บริษัท สยามสไมล์ โบรกเกอร์ (ประเทศไทย) จำกัด</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtBroker" name="dtBroker" class="table table-bordered table-striped" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="div_dtTPA" class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">บริษัท สไมล์ ทีพีเอ จำกัด</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtTPA" name="dtTPA" class="table table-bordered table-striped" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="float:right">
+                <button id="btn_confirm" class="btn btn-success" style="width:120px" disabled="disabled">ยืนยัน</button>
+            </div>
+        </div>
+        @* end form *@
+    </div>
+    @* modal detail *@
+    <div class="modal fade bd-check-modal-lg" id="checkModal" tabindex="-1" role="dialog" aria-labelledby="checkModal" aria-hidden="true">
+        <div class="modal-dialog  modal-lg " role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="checkModalHeader">ตรวจสอบ สาขา <label id="txtbranch"></label></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            Code : <label id="lblCode"></label>
+                            <input type="hidden" id="hd_requisitionId" value="" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            วันที่สร้างรายการ ปิดยอด : <label id="lblClosedDayTransaction"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            โดย : <label id="lblCheckedBy"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            วันที่กดปิดยอด : <label id="lblClosedDate"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            ผลการตรวจสอบ : <label id="lblCheckedStatus"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            วันที่ใบเสร็จ/ใบกำกับภาษี : <label id="lblBillDate"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            ประเภท : <label id="lblType"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            ชื่อบริษัท : <label id="lblCompany"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            เลขที่ใบเสร็จ : <label id="lblBillbook"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            ประเภทค่าใช้จ่าย : <label id="lblDescription"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            ธนาคาร : <label id="lblBank"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            รายละเอียดเพิ่มเติม : <label id="lblMoreDetail"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            ชื่อบัญชี : <label id="lblAccountName"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            หมายเหตุ : <label id="lblRemark"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            เลขที่บัญชี : <label id="lblAccountNo"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            โดย : <label id="lblUpdateBy"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            จำนวนเงิน : <label id="lblAmount"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            เอกสาร :<span id="docCode"></span> <a target="_blank" href="" id="btnScanDoc" class="btn btn-block btn-default">เอกสาร:<label class="text-bold" id="docCount">0</label></a>
+                        </div>
+                        <div class="col-sm-6">
+                            ยอดโอน : <label id="lblPayAmount"></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-sm-offset-1 col-sm-2">
+                        การตรวจสอบ :
+                    </div>
+                    <div class="col-sm-3">
+                        <button type="button" class="btn btn-block btn-success" onclick="Pass()">ผ่าน</button>
+                    </div>
+                    <div class="col-sm-3">
+                        <button type="button" class="btn btn-block btn-danger" data-toggle="modal" data-target=".bd-notPass-modal-lg">ไม่ผ่าน</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end modal *@
+    @* not pass modal *@
+    <div class="modal fade bd-notPass-modal-lg" id="notPassModal" tabindex="-1" role="dialog" aria-labelledby="notPassModal" aria-hidden="true">
+        <div class="modal-dialog  modal-md " role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">สาเหตุไม่ผ่าน</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-3" style="text-align:right">
+                                หมายเหตุ :
+                            </div>
+                            <div class=" col-sm-9">
+                                <select id="select_NotPassStatus" name="select_NotPassStatus" class="form-control select2" required="">
+                                    <option value="-1">---กรุณาเลือก---</option>
+                                    @foreach(var itm in ViewBag.NotPass)
+                                    {
+                                        <option value="@itm.UnPassCauseId">@itm.UnPassCause</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+
+                        <div class="col-lg-offset-3 col-sm-9">
+                            <textarea rows="5" style="width: 100%" name="txtNotPassRemark" id="txtNotPassRemark"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-sm-offset-3 col-sm-3">
+                        <button type="button" class="btn btn-block btn-success" onclick="NotPass()">ตกลง</button>
+                    </div>
+                    <div class="col-sm-3">
+                        <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ยกเลิก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* endmodal *@
+    @* hidden *@
+    <input type="hidden" id="hd_headerId" value="@ViewBag.headerId" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            loadDtatable_ISC();
+            loadDtatable_Broker();
+            loadDtatable_TPA();
+
+            $('#btn_confirm').click(function(e){
+                e.preventDefault();
+                UpdateRequisition();
+            })
+        });
+
+        const loadDtatable_ISC = () => {
+            $('#dtISC').empty();
+            var table = $('#dtISC').DataTable({
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: false,
+                lengthChange: false,
+                info: false,
+                destroy: true,
+                scrollX: true,
+                ajax: {
+                    url: '@Url.Action("GetWithdrawDetail")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.indexStart=0;
+                        d.pageSize = 9999999;
+                        d.headerId = @ViewBag.headerId;
+                        d.organizeId = 21;
+                    },
+                    dataSrc: function (json) {
+                        $.grep(json.data,function(d){
+                            var reqId = d.RequisitionDetailStatusId;
+                            //status รอตรวจสอบ - disabled button confirm
+                            if (reqId == 2) {
+                                $('#btn_confirm').prop('disabled',true);
+                            }else{
+                                $('#btn_confirm').prop('disabled',false);
+                            }
+                        });
+
+                        return json.data;
+                    },
+                },
+                columns: [
+                    {
+                        title: 'ประเภทค่าใช้จ่าย',
+                        data: 'PettyCashTransactionType',
+                        className: "h-dt-center"
+                    },
+                    {
+                        title: 'รายละเอียดเพิ่มเติม',
+                        data: 'PettyCashTransactionTypeDescription',
+                        className: "h-dt-center"
+                    },
+                    {
+                        title: 'จำนวนเงิน',
+                        data: 'Amount',
+                        className: "h-dt-center d-dt-right",
+                        render: function (data) {
+                            return formatNumber(data);
+                        }
+                    },
+                    {
+                        title: 'ยอดโอน',
+                        data: 'PaymentAmount',
+                        className: "h-dt-center d-dt-right",
+                        render: function (data) {
+                            return formatNumber(data);
+                        }
+                    },
+                     {
+                         title: 'ธนาคาร',
+                         data: 'BankName',
+                         className: 'h-dt-center'
+                     },
+                     {
+                         title: 'ชื่อบัญชี',
+                         data: 'BankAccountName',
+                         className: "h-dt-center"
+                     },
+                     {
+                         title: 'เลขที่บัญชี',
+                         data: 'BankAccountNo',
+                         className: 'h-dt-center'
+                     },
+                     {
+                         title: 'สถานะ',
+                         data: 'RequisitionDetailStatus',
+                         className: 'h-dt-center',
+                         render:function(data){
+                             switch (data) {
+                                 case "ผ่าน":
+                                     return `<span class="badge badge-success">${data}</span>`;
+                                     break;
+                                 case "ไม่ผ่าน":
+                                     return `<span class="badge badge-danger">${data}</span>`;
+                                     break;
+                                 case "รอตรวจสอบ":
+                                     return `<span class="badge badge-warning">${data}</span>`;
+                                     break;
+                                 default:
+                                     return data;
+                                     break;
+                             }
+                         }
+                     },
+                     {
+                         title: 'ตรวจสอบ',
+                         data: null,
+                         className: 'h-dt-center',
+                         render: function (data) {
+                             return '<button type="button" data-toggle="modal" data-target=".bd-check-modal-lg" class="btn btn-block btn-default" id="btnEdit_' + data.PettyCashTransactionId + '" onclick="Detail(' + data.RequisitionDetailId + ')"><i class="fa fa-search"></i> ตรวจสอบ</button>';
+
+                         }
+                     },
+                ]
+            });
+        }
+
+        const loadDtatable_Broker = () => {
+            $('#dtBroker').empty();
+            var table = $('#dtBroker').DataTable({
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: false,
+                lengthChange: false,
+                info: false,
+                destroy: true,
+                scrollX: true,
+                ajax: {
+                    url: '@Url.Action("GetWithdrawDetail")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.indexStart=0;
+                        d.pageSize = 9999999;
+                        d.headerId = @ViewBag.headerId;
+                        d.organizeId = 22;
+                    },
+                    dataSrc: function (json) {
+                        $.grep(json.data,function(d){
+                            var reqId = d.RequisitionDetailStatusId;
+                            //status รอตรวจสอบ - disabled button confirm
+                            if (reqId == 2) {
+                                $('#btn_confirm').prop('disabled',true);
+                            }else{
+                                $('#btn_confirm').prop('disabled',false);
+                            }
+                        });
+
+                        return json.data;
+                    },
+                },
+                columns: [
+                    {
+                        title: 'ประเภทค่าใช้จ่าย',
+                        data: 'PettyCashTransactionType',
+                        className: "h-dt-center"
+                    },
+                    {
+                        title: 'รายละเอียดเพิ่มเติม',
+                        data: 'PettyCashTransactionTypeDescription',
+                        className: "h-dt-center"
+                    },
+                    {
+                        title: 'จำนวนเงิน',
+                        data: 'Amount',
+                        className: "h-dt-center d-dt-right",
+                        render: function (data) {
+                            return formatNumber(data);
+                        }
+                    },
+                    {
+                        title: 'ยอดโอน',
+                        data: 'PaymentAmount',
+                        className: "h-dt-center d-dt-right",
+                        render: function (data) {
+                            return formatNumber(data);
+                        }
+                    },
+                     {
+                         title: 'ธนาคาร',
+                         data: 'BankName',
+                         className: 'h-dt-center'
+                     },
+                     {
+                         title: 'ชื่อบัญชี',
+                         data: 'BankAccountName',
+                         className: "h-dt-center"
+                     },
+                     {
+                         title: 'เลขที่บัญชี',
+                         data: 'BankAccountNo',
+                         className: 'h-dt-center'
+                     },
+                     {
+                         title: 'สถานะ',
+                         data: 'RequisitionDetailStatus',
+                         className: 'h-dt-center',
+                         render:function(data){
+                             switch (data) {
+                                 case "ผ่าน":
+                                     return `<span class="badge badge-success">${data}</span>`;
+                                     break;
+                                 case "ไม่ผ่าน":
+                                     return `<span class="badge badge-danger">${data}</span>`;
+                                     break;
+                                 case "รอตรวจสอบ":
+                                     return `<span class="badge badge-warning">${data}</span>`;
+                                     break;
+                                 default:
+                                     return data;
+                                     break;
+                             }
+                         }
+                     },
+                     {
+                         title: 'ตรวจสอบ',
+                         data: null,
+                         className: 'h-dt-center',
+                         render: function (data) {
+                             return '<button type="button" data-toggle="modal" data-target=".bd-check-modal-lg" class="btn btn-block btn-default" id="btnEdit_' + data.PettyCashTransactionId + '" onclick="Detail(' + data.RequisitionDetailId + ')"><i class="fa fa-search"></i> ตรวจสอบ</button>';
+
+                         }
+                     },
+                ]
+            });
+        }
+
+        const loadDtatable_TPA = () => {
+            $('#dtTPA').empty();
+            var table = $('#dtTPA').DataTable({
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: false,
+                lengthChange: false,
+                info: false,
+                destroy: true,
+                scrollX: true,
+                ajax: {
+                    url: '@Url.Action("GetWithdrawDetail")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.indexStart=0;
+                        d.pageSize = 9999999;
+                        d.headerId = @ViewBag.headerId;
+                        d.organizeId = 23;
+                    },
+                    dataSrc: function (json) {
+                        $.grep(json.data,function(d){
+                            var reqId = d.RequisitionDetailStatusId;
+                            //status รอตรวจสอบ - disabled button confirm
+                            if (reqId == 2) {
+                                $('#btn_confirm').prop('disabled',true);
+                            }else{
+                                $('#btn_confirm').prop('disabled',false);
+                            }
+                        });
+
+                        return json.data;
+                    },
+                },
+                columns: [
+                    {
+                        title: 'ประเภทค่าใช้จ่าย',
+                        data: 'PettyCashTransactionType',
+                        className: "h-dt-center"
+                    },
+                    {
+                        title: 'รายละเอียดเพิ่มเติม',
+                        data: 'PettyCashTransactionTypeDescription',
+                        className: "h-dt-center"
+                    },
+                    {
+                        title: 'จำนวนเงิน',
+                        data: 'Amount',
+                        className: "h-dt-center d-dt-right",
+                        render: function (data) {
+                            return formatNumber(data);
+                        }
+                    },
+                    {
+                        title: 'ยอดโอน',
+                        data: 'PaymentAmount',
+                        className: "h-dt-center d-dt-right",
+                        render: function (data) {
+                            return formatNumber(data);
+                        }
+                    },
+                     {
+                         title: 'ธนาคาร',
+                         data: 'BankName',
+                         className: 'h-dt-center'
+                     },
+                     {
+                         title: 'ชื่อบัญชี',
+                         data: 'BankAccountName',
+                         className: "h-dt-center"
+                     },
+                     {
+                         title: 'เลขที่บัญชี',
+                         data: 'BankAccountNo',
+                         className: 'h-dt-center'
+                     },
+                     {
+                         title: 'สถานะ',
+                         data: null,
+                         className: 'h-dt-center',
+                         render:function(data){
+                             switch (data.RequisitionDetailStatusId) {
+                                 case 3:
+                                     return `<span class="badge badge-success">${data.RequisitionDetailStatus}</span>`;
+                                     break;
+                                 case 4:
+                                     return `<span class="badge badge-danger">${data.RequisitionDetailStatus}</span>`;
+                                     break;
+                                 case 2:
+                                     return `<span class="badge badge-warning">${data.RequisitionDetailStatus}</span>`;
+                                     break;
+                                 default:
+                                     return data;
+                                     break;
+                             }
+                         }
+                     },
+                     {
+                         title: 'ตรวจสอบ',
+                         data: null,
+                         className: 'h-dt-center',
+                         render: function (data) {
+                             return '<button type="button" data-toggle="modal" data-target=".bd-check-modal-lg" class="btn btn-block btn-default" id="btnEdit_' + data.PettyCashTransactionId + '" onclick="Detail(' + data.RequisitionDetailId + ')"><i class="fa fa-search"></i> ตรวจสอบ</button>';
+
+                         }
+                     },
+                ]
+            });
+        }
+
+        const Detail = (rqId) => {
+            $('#hd_requisitionId').empty();
+            $.get('@Url.Action("GetRequistitionDetail","FinanceChecker")', { requisitionDetailId: rqId },
+                function (data) {
+                    $('#hd_requisitionId').val(data.RequisitionDetailId);
+                    $('#lblCode').text(data.PettyCashTransactionCode == null ? "-" : data.PettyCashTransactionCode);
+                    $('#lblClosedDayTransaction').text(moment(data.pxcdCreatedDate).format('DD/MM/YYYY HH:mm'));
+                    $('#lblCheckedBy').text(data.pxcdCreatedByName);
+                    $('#lblClosedDate').text(moment(data.pxcdClosedDate).format('DD/MM/YYYY HH:mm'));
+                    $('#lblCheckedStatus').text(data.PettyCashXPettyCashDailyStatus);
+                    $('#lblBillDate').text(moment(data.BillDate).format('DD/MM/YYYY HH:mm'));
+                    $('#lblType').text(data.PettyCashTransactionGroup);
+                    $('#lblCompany').text(data.OrganizeCompany);
+                    $('#lblBillbook').text(data.BillBook);
+                    $('#lblDescription').text(data.PettyCashTransactionType);
+                    $('#lblBank').text(data.PaymentBank);
+                    $('#lblMoreDetail').text(data.PettyCashTransactionTypeDescription);
+                    $('#lblAccountName').text(data.PaymentBankAccountName);
+                    $('#lblRemark').text(data.Remark);
+                    $('#lblAccountNo').text(data.PaymentBankAccountNo);
+                    $('#lblUpdateBy').text(data.PettyCashTransactionCreatedByName);
+                    $('#lblAmount').text(data.Amount);
+                    $('#lblPayAmount').text(data.PaymentAmount == null ? "-" : data.PaymentAmount);
+                    $('#btnScanDoc').attr('href', data.UrlLinkOpenSSSDoc);
+                    $('#docCount').text(data.DocumentFileCount);
+                    $('#docCode').text(data.DocumentCode);
+                });
+        }
+
+        //not pass
+        const NotPass = () => {
+            var unPassCauseId = $('#select_NotPassStatus').val();
+            var unPassRemark = $('#txtNotPassRemark').val();
+            if (ValidateNotPass()) {
+                swal_confirm("ยืนยันการทำรายการ?", "ต้องการปฎิเสธรายการนี้?", function () {
+                    $.post('@Url.Action("RequisitionDetailUpdateStatus","FinanceChecker")', { requisitionDetailId: $('#hd_requisitionId').val(), requisitionDetailStatusId: 4, unPassCauseId: unPassCauseId, unPassRemark: unPassRemark },
+                        function (data) {
+                            if (data.IsResult) {
+                                swal_success(setTimeout(function () {
+                                    window.location.reload();
+                                    swal.close();
+                                }, 2000));
+
+                            } else {
+                                swal_fail(data.Msg);
+                            }
+                        });
+                });
+            } else {
+                swal_fail("กรูณากรอกข้อมูลให้ครบถ้วน!");
+            }
+
+        }
+        //pass
+        const Pass = () => {
+            swal_confirm("ยืนยันการทำรายการ?", "ต้องการให้รายการนี้ผ่าน?", function () {
+                $.post('@Url.Action("RequisitionDetailUpdateStatus","FinanceChecker")', { requisitionDetailId: $('#hd_requisitionId').val(), requisitionDetailStatusId: 3},
+                    function (data) {
+                        if (data.IsResult) {
+                            swal_success(setTimeout(function () {
+                                window.location.reload();
+                                swal.close();
+                            }, 2000));
+                        } else {
+                            swal_fail(data.Msg);
+                        }
+                    });
+            });
+        }
+
+        const ValidateNotPass = () => {
+            if ($('#select_NotPassStatus').val() == -1) {
+                return false;
+            } else if ($('#txtNotPassRemark').val() == '') {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        const UpdateRequisition = () => {
+            $.post('@Url.Action("UpdateRequisitionHeader")',{requisitionHeaderId:@ViewBag.headerId},
+                function(response){
+                    if (response.IsResult) {
+                        swal_success(setTimeout(function () {
+                            window.location.href = '@Url.Action("CheckWithdrawalManage")';
+                            swal.close();
+                        }, 2000));
+                    } else {
+                        swal_fail(response.Msg);
+                    }
+                })
+        }
+    </script>
+}

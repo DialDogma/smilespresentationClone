@@ -1,0 +1,406 @@
+﻿@{
+    ViewBag.Title = "AssignConfig";
+    Layout = "~/Views/Shared/_LayoutForTop.cshtml";
+}
+<style>
+    table {
+        font-size: 14px !important;
+    }
+
+    input[type=checkbox] {
+        transform: scale(1.5);
+        cursor: pointer;
+    }
+</style>
+<form id="myForm">
+    <section class="content">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="box box-info">
+                    <div class="box-body">
+                        <div class="col-sm-12 col-md-12">
+                            <div class="box box-solid">
+                                <div class="row" style="background-color: #f7f7f7; text-align: left; padding: 5px 5px; margin-top: 0;">
+                                    <div class="col-sm-12">
+                                        <h4 style="font-size: 20px; font-weight: bold;">ค้นหาคิวงานเกินกำหนด</h4>
+                                        <hr />
+                                    </div>
+                                    <div class="form-group col-md-12 col-sm-12">
+                                        <div class="col-md-2">
+                                            <label class="title1"><span style="color: red">*</span>DCR</label>
+                                            <select id="select_dcr_main" style="width: 100%" class="form form-control">
+                                                @if (ViewBag.PeriodList != null)
+                                                {
+                                                    for (var i = 0; i < 2; i++)
+                                                    {
+                                                        <option value="@ViewBag.PeriodList[i].Value.ToString("yyyy-MM-dd")"> @ViewBag.PeriodList[i].Display</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="title1"><span style="color: red">*</span>ค้นหาโดย ชื่อ-สกุล/รหัสพนักงาน</label>
+                                            <select id="select_person" name="select_person" class="form-control js-data-ajax" style="width: 100%" checknull="checknull"></select>
+                                        </div>
+                                        <div class="col-md-2" style="margin-top: 25px">
+                                            <button id="btn_search" style="width: 100%" class="btn  btn-primary"><i class="fa fa-search"></i> ค้นหา</button>
+                                        </div>
+                                        <div class="col-md-2" style="margin-top: 25px">
+                                            <button id="btn_cancel" style="width: 100%" class="btn  btn-danger"><i class="fa fa-times-circle"></i> ยกเลิก</button>
+                                        </div>
+                                        <div class="col-md-offset-1 col-md-2" style="margin-top: 25px">
+                                            <button type="button" id="btn_edit" style="width: 100%; display: none" class="btn btn-warning" data-toggle="modal" data-target="#modal-edit"><i class="fa fa-pen"></i> แก้ไข</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="div-datatable" class="col-sm-12 col-md-12" style="display: none">
+                            คุณเลือกข้อมูลแล้วทั้งหมด <span id="selected_amount" name="selected_amount">0</span> รายการ
+                            <table id="datatable_detail" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!--Modal-->
+    <div class="modal fade" id="modal-edit">
+        <div class="modal-dialog">
+            <div class="modal-content" style="margin-top: 120px">
+                <div class="modal-header" style="background-color: #ffd243;border-color: #ffeeba;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title" style="font-weight: bold">แก้ไขคิวงานหมดอายุ <span id="selected_amount2" name="selected_amount">0</span> รายการ</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="title1"><span style="color: red">*</span>วันที่หมดอายุ</label>
+                            <input type="text" id="date_expire" name="date_expire" class="form-control datepicker" style="width: 100%" data-provide="datepicker" data-date-language="th-th" required="required" dateTH="dateTH" checkNoPreviousDate="checkNoPreviousDate" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="title1"><span style="color: red">*</span>รอบ DCR</label>
+                            <select id="select_dcr" style="width: 100%" class="form form-control">
+                                @if (ViewBag.PeriodList != null)
+                                {
+                                    for (var i = 0; i < 2; i++)
+                                    {
+                                        <option value="@ViewBag.PeriodList[i].Value.ToString("yyyy-MM-dd")"> @ViewBag.PeriodList[i].Display</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger pull-left" data-dismiss="modal">Close</button>
+                    <button id="button_success" type="button" class="btn btn-success">บันทึก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script>
+        var user;
+        var dcr;
+        var ListCheckBox = [];
+        var IsCheckedAll = false;
+        $(function () {
+            /*load*/
+            loadSelectPerson();
+
+            /*change*/
+            $('#select_person').change(function () {
+                //valid input is required
+                $(this).valid();
+            });
+
+            /*change*/
+            $('#select_dcr_main').change(function () {
+                doClear();
+            });
+
+            /*click*/
+            $('#button_success').click(function (e) {
+                e.preventDefault();
+                if ($('#date_expire').valid()) {
+                    //set value in element select to new variable
+                    const d_expire = $('#date_expire').val();
+                    const d_period = $('#select_dcr').val();
+                    //call fn update
+                    submitData(d_expire, d_period);
+                    /*modal hide*/
+                    $('.modal').modal('hide');
+                }
+            });
+
+            /*click*/
+            $('#btn_search').click(function (e) {
+                e.preventDefault();
+                if ($('#select_person').valid()) {
+                    //set value in element select to new variable
+                    user = $('#select_person').val();
+                    dcr = $('#select_dcr_main').val();
+                    //load datatables
+                    loadDatatables(user, dcr);
+                }
+            });
+
+            /*checkbox in datatables change*/
+            $('#datatable_detail').on('change',
+                'input[type="checkbox"]',
+                function (e) {
+                    e.preventDefault();
+                    const table = $("#datatable_detail").DataTable();
+                    const rows = table.rows().nodes();
+                    switch (this.className) {
+                        case 'chk-row-select-all':
+                            if (this.checked) {
+                                $('input[class="chk-row-select"]', rows).prop('checked', true).change();
+                            } else {
+                                $('input[class="chk-row-select"]', rows).prop('checked', false).change();
+                            }
+                            break;
+                        case 'chk-row-select':
+                            if (this.checked) {
+                                let count = 0;
+                                const value = this.value;
+                                //adds one or more elements to the end of an array and returns the new length of the array.
+                                if (!ListCheckBox.includes(value)) ListCheckBox.push(this.value);
+                                //loop every row
+                                table.rows().every(function () {
+                                    //check data in array list
+                                    if (ListCheckBox.includes(this.data().PHQueueId.toString())) count++;
+                                });
+                                //check count data equal rows.length then checkbox-all is checked
+                                if (count === rows.length) $('input[class="chk-row-select-all"]').prop('checked', true);
+
+                            } else {
+                                //replaces 1 element at indexOd() returnValue index
+                                ListCheckBox.splice(ListCheckBox.indexOf(this.value), 1);
+                                $('input[class="chk-row-select-all"]').prop('checked', false);
+                            }
+                            break;
+                        default:
+                    }
+                    //set text amount
+                    $('span[name=selected_amount]').text(ListCheckBox.length);
+                    //show button
+                    ListCheckBox.length > 0 ? $('#btn_edit').show() : $('#btn_edit').hide();
+                });
+        });
+
+        /*fn load select2 ajax*/
+        const loadSelectPerson = () => {
+            $('.js-data-ajax').select2({
+                ajax: {
+                    url: '@Url.Action("Get_DataCenterPerson")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term,
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: $.map(data,
+                                function (item) {
+                                    return {
+                                        id: item.UserId,
+                                        text: `${item.EmployeeCode} ${item.UserFullName}`
+                                    }
+                                })
+                        };
+                    },
+                    cache: true
+                },
+                templateResult: function (item) {
+                    if (item.loading) return item.text;
+                    return item.text;
+                },
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 3,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 3 ตัวอักษร'; } }
+            });
+        }
+
+        /*load datatables*/
+        const loadDatatables = (userId, period) => {
+            $('#div-datatable').show();
+            $('#datatable_detail').empty();
+            const table = $('#datatable_detail').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                select: true,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetDatatablesAssignConfig")',
+                    method: "POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.period = period;
+                        d.search = userId;
+                    },
+                    dataSrc: function (json) {
+                        let count = 0;
+                        const len = json.data.length;
+                        //loop check value in array list
+                        for (let i = 0; i < len; i++) {
+                            if (ListCheckBox.includes(json.data[i].PHQueueId.toString())) count++;
+                        }
+                        //check count == length
+                        count === len ? IsCheckedAll = true : IsCheckedAll = false;
+                        //return data
+                        return json.data;
+                    }
+                },
+                columns: [
+                    {
+                        targets: 0,
+                        title: '<input class="chk-row-select-all" type="checkbox" />',
+                        data: 'PHQueueId',
+                        orderable: false,
+                        className: 'h-dt-center d-dt-center',
+                        render: function (data) {
+                            let Ischecked = "";
+                            $('input[class="chk-row-select-all"]').prop('checked', IsCheckedAll);
+                            if (ListCheckBox.includes(data.toString())) Ischecked = "checked";
+                            return `<input type="checkbox" class="chk-row-select" ${Ischecked} id="chkdtrow_${data
+                            }" name="chkdtrow_${data}" value="${data}" >`;
+                        },
+                        width: "5%"
+                    },
+                    {
+                        title: 'DCR',
+                        data: 'Period',
+                        orderable: false,
+                        className: 'h-dt-center d-dt-center h-fonts-large',
+                        render: (data) => {
+                            return moment(data).format("DD/MM/YYYY");
+                        },
+                        width: "10%"
+                    },
+                    {
+                        title: 'AppCode',
+                        data: 'ApplicationCode',
+                        orderable: false,
+                        className: 'h-dt-center d-dt-center',
+                        width: "10%"
+                    },
+                    {
+                        title: 'ชื่อลูกค้า',
+                        data: 'CustomerFullName',
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-left',
+                        width: "20%"
+                    },
+                    {
+                        title: 'ผู้ชำระเบี้ย',
+                        data: 'PayerFullName',
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-left',
+                        width: "20%"
+                    },
+                    {
+                        title: 'สถานะคิวงาน',
+                        data: 'PHQueueStatus',
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-center',
+                        render: (data) => {
+                            if (data === 'ยังไม่โทร') {
+                                return 'ค้างโทร';
+                            }
+                            return data;
+                        },
+                        width: "10%"
+                    },
+                    {
+                        title: 'สถานะการโทร',
+                        data: 'CallStatus',
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-center',
+                        width: "10%"
+                    },
+                    {
+                        title: 'วันที่หมดอายุ',
+                        data: 'QueueExpireDate',
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-center',
+                        render: (data) => {
+                            return moment(data).format("DD/MM/YYYY");
+                        },
+                        width: "15%"
+                    }
+                ]
+            });
+        }
+
+        /*fn submit data*/
+        const submitData = (expireDate, period) => {
+            /*call ajax post*/
+            $.post('@Url.Action("PHQueueAssignInsert")',
+                {
+                    ListQueueId: ListCheckBox,
+                    expireDate: expireDate,
+                    period: period
+                },
+                (res) => {
+                    if (res != null || res != 0) {
+                        /*alert success*/
+                        swal_success(() => {
+                            //load datatables
+                            ListCheckBox = [];
+                            $('#btn_edit').hide();
+                            loadDatatables(user, dcr);
+                            $('span[name=selected_amount]').text('0');
+                        });
+                    } else {
+                        swal_fail();
+                    }
+
+                });
+            //consol log
+            console.log(expireDate);
+            console.log(period);
+        }
+        /*clear*/
+        const doClear = () => {
+            $('#select_person').text('');
+            $('#select_person').val('');
+            $('#div-datatable').hide();
+            $('#btn_edit').hide();
+            $('span[name=selected_amount]').text('0');
+            ListCheckBox = [];
+        }
+
+        /*reset datepicker*/
+        $('#btn_edit').on('click', function (e) {
+            e.preventDefault();
+            $('#date_expire').val("").datepicker("update");
+            //consol log
+            console.log($('#date_expire').val());
+        });
+    </script>
+}

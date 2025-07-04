@@ -1,0 +1,306 @@
+﻿@{
+    ViewBag.Title = "AdminConfig";
+    Layout = "~/Views/Shared/_LayoutForTop.cshtml";
+}
+<style>
+    table {
+        font-size: 14px !important;
+    }
+</style>
+<section class="content">
+    <div class="row">
+        <a class="btn btn-success btn-flat pull-right" id="button_export" style="margin-top: 5px" onclick="exportExcel_adminconfig()"><i class="fa fa-file"></i> Export Excel</a>
+    </div>
+    <div class="row">
+        <div class="box box-info">
+            <div class="box-body">
+                <div class="col-sm-12 col-md-12">
+                    <div class="box box-solid">
+                        <div class="box-body">
+                            <div class="row" style="background-color: #f7f7f7; text-align: center; padding: 7px 10px; margin-top: 0;">
+                                <div class="col-sm-12">
+                                    <h4 style="font-size: 20px; font-weight: bold;">
+                                        Administrator Configuration
+                                    </h4>
+                                </div>
+                            </div>
+                            <table id="table_detail" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<form id="myform2">
+    <div class="modal fade" id="modal-edit">
+        <div class="modal-dialog">
+            <div class="modal-content" style="margin-top: 120px">
+                <div class="modal-header" style="background-color: #ffd243;border-color: #ffeeba;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title" style="font-weight: bold">แก้ไขผู้ดูแลคิวงาน</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="form-group">
+                            <label class="col-sm-4" style="text-align: right; font-size: 18px;font-weight: bold">เขตพื้นที่ :</label>
+                            <label id="label_area" class="col-sm-6" style="text-align: left; font-size: 18px;font-weight: normal"></label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label class="col-sm-4" style="text-align: right; font-size: 18px;font-weight: bold">ผู้ดูแลเดิม :</label>
+                            <label id="label_user_old" class="col-sm-6" style="text-align: left; font-size: 18px;font-weight: normal"></label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label class="col-sm-4" for="select_person" style="text-align: right; font-size: 18px;font-weight: bold">ผู้ดูแลใหม่ :</label>
+                            <div class="col-sm-6">
+                                <select id="select_person" name="select_person" class="form-control js-data-ajax" style="width: 100%" checknull="checknull"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-sm-6 col-sm-offset-4 ">
+                                <label class="checkbox" style="font-size: 18px">
+                                    <input type="checkbox" name="chk_moveQueue" id="chk_moveQueue" /> ย้ายคิวไปยังผู้ดูแลคิวใหม่
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger pull-left" data-dismiss="modal">Close</button>
+                    <button id="button_success" type="button" class="btn btn-success">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script>
+        var userconfigId;
+        var isMoveQ = false;
+        var serach_str;
+        $(function () {
+            /*load*/
+            loadDatatables('table_detail');
+            loadSelectPerson();
+
+            /*get value in datatables*/
+            $('#table_detail').on('search.dt', function () {
+                const value = $('.dataTables_filter input').val();
+                serach_str = value; // <-- the value
+            });
+
+            /*chk movequeue*/
+            $('input[id=chk_moveQueue]').on('ifChanged',
+                function () {
+                    /*icheck update return true or false*/
+                    isMoveQ = $(this).iCheck('update')[0].checked;
+                });
+
+            /*change*/
+            $('#select_person').change(function () {
+                $(this).valid();
+            });
+
+            /*click*/
+            $('#button_success').click(function (e) {
+                e.preventDefault();
+                if ($('#select_person').valid()) {
+                    //set value in element select to new variable
+                    const newUser = $('#select_person').val();
+                    //call fn update
+                    config_Update(userconfigId, newUser, isMoveQ);
+                    /*modal hide*/
+                    $('.modal').modal('hide');
+                }
+            });
+        });
+
+        /*load datatables*/
+        const loadDatatables = (t) => {
+            $('#' + t).empty();
+            const table = $('#' + t).DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: true,
+                ordering: true,
+                info: true,
+                paging: true,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("Get_StudyAreaUserConfig")',
+                    method: "POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ',
+                        data: 'StudyAreaUserConfigId',
+                        orderable: false,
+                        className: 'h-dt-center d-dt-center h-fonts-large'
+                    },
+                    {
+                        title: 'เขตพื้นที่',
+                        data: 'StudyArea',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-left'
+                    },
+                    {
+                        title: 'ผู้ดูแลคิว',
+                        data: null,
+                        orderable: true,
+                        className: 'h-dt-center d-dt-left',
+                        render: (d) => {
+                            return `${d.EmployeeCode} ${d.UserFullName}`;
+                        }
+                    },
+                    {
+                        title: '#',
+                        data: null,
+                        orderable: false,
+                        className: 'h-dt-center d-dt-center',
+                        render: (d) => {
+                            return `<button  class="btn btn-warning" data-toggle="modal" data-target="#modal-edit" onclick="getUserAreaDetail(${d.StudyAreaUserConfigId});selectedRow(${d.StudyAreaUserConfigId});"><i class="fa fa-pencil"></i> แก้ไข</button>`;
+                        }
+                    }
+                ]
+            });
+        }
+
+        /*fn load select2 ajax*/
+        const loadSelectPerson = () => {
+            $('.js-data-ajax').select2({
+                ajax: {
+                    url: '@Url.Action("Get_DataCenterPerson")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term,
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: $.map(data,
+                                function (item) {
+                                    return {
+                                        id: item.UserId,
+                                        text: `${item.EmployeeCode} ${item.UserFullName}`
+                                    }
+                                })
+                        };
+                    },
+                    cache: true
+                },
+                templateResult: function (item) {
+                    if (item.loading) return item.text;
+                    return item.text;
+                },
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 3,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 3 ตัวอักษร'; } }
+            });
+        }
+
+        /*get detail*/
+        const getUserAreaDetail = (configId) => {
+            /*clear value*/
+            clearselect2();
+            /*call ajax*/
+            $.get('@Url.Action("Get_StudyAreaUserDetail")', { configId: configId },
+                (data) => {
+                    /*set text*/
+                    $('#label_area').text(data.StudyArea);
+                    $('#label_user_old').text(data.UserFullName);
+                    $('#chk_moveQueue').iCheck('check');
+                    userconfigId = configId;
+                });
+        }
+
+        /*fn update*/
+        const config_Update = (configId, userId_new, moveQueue) => {
+            /*call ajax*/
+            $.post('@Url.Action("StudyAreaConfig_Update")',
+                    { configId: configId, userId: userId_new, moveQueue: moveQueue },
+                (data) => {
+                    /*clear*/
+                    clearselect2();
+                    /*alert toastr*/
+                    window.toastr["success"]('เปลี่ยนแปลงผู้ดูแลคิวงานเรียบร้อยแล้ว');
+                    /*load datatable*/
+                    loadDatatables('table_detail');
+                });
+
+        }
+        /*options toastr*/
+        window.toastr.options = {
+            "closeButton": false,
+            "debug": false,
+            "newestOnTop": false,
+            "progressBar": false,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+        /*fn clear select2*/
+        const clearselect2 = () => {
+            $('#select_person').text("");
+            $('#select_person').val(null);
+            $('#chk_moveQueue').iCheck('uncheck');
+        }
+
+        /*export*/
+        const exportExcel_adminconfig = () => {
+            window.location.href = '@Url.Action("ExportToExcel_AdminConfig")?search=' + serach_str;
+        }
+
+        /*hilight row selected*/
+        const selectedRow = (Id) => {
+            const table = $("#table_detail").DataTable();
+            /*loop every row*/
+            table.rows().every(function () {
+                /*set data */
+                const d = this.data();
+                /*check id*/
+                if (d.StudyAreaUserConfigId === Id) {
+                    /*true add class*/
+                    $(this.node().cells).addClass('selected');
+                } else {
+                    /*false remove class*/
+                    $(this.node().cells).removeClass('selected');
+                }
+
+            });
+        }
+    </script>
+}

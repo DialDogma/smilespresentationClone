@@ -1,0 +1,102 @@
+﻿@{
+    ViewBag.Title = "TaxCustomerPreview";
+    Layout = "~/Views/Shared/_LayoutForTaxCustomer.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+
+
+            @* Detail Preview *@
+            <div class="panel panel-default display-block">
+
+                <div class="row text-center text-padding ">
+                    <div style="">
+                        <span class="success-icon" style=""><span class="glyphicon glyphicon-ok-circle"></span></span>
+                    </div>
+
+                    <div style="font-size:18px; color:#717171" class="text-wordwrap">
+
+                        <div class="display-none row text-center text-padding" id="divloadPDF" style=" margin: 10px auto 5px auto">
+                            <span>ดาวน์โหลดเอกสารแจ้งความประสงค์ในการใช้สิทธิขอยกเว้นภาษีเงินได้</span><br />
+                           
+
+                            <div id="divlstpdf" style=" margin: 10px auto 10px auto"></div>
+                        </div>
+
+                        <div class="row text-center text-padding">
+                            <div style="padding-top: 50px;">
+                                <button type="button" class="btn btn-danger" id="btnbackMain"> กลับหน้าหลัก</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" id="hdfCustIDCard" hidden value="@ViewBag.CustIdCard" />
+            <input type="hidden" id="hdfdisclosureStatusID" hidden value="@ViewBag.disclosureStatusID" />
+            <input type="hidden" id="hdfCustFirstname" hidden value="@ViewBag.custFirstName" />
+            <input type="hidden" id="hdfCustLastname" hidden value="@ViewBag.custLastName" />
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        let decode_custFirstname = decodeURIComponent($('#hdfCustFirstname').val());
+        let decode_custLastname = decodeURIComponent($('#hdfCustLastname').val());
+
+        $(function () {
+
+         
+            GetTaxCustomerDataPreview();
+
+            $('#btnbackMain').click(function (e) {
+                e.preventDefault();
+
+                 window.location.href = "@Url.Action("TaxCustomerSearch", "TaxCustomer64")";
+
+            });
+
+            $('#btnline').click(function (e) {
+                e.preventDefault();
+
+                window.location.href = "http://line.me/R/ti/p/%40siamsmile";
+
+            });
+
+        });
+
+        function GetTaxCustomerDataPreview()
+        {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetTaxCustomerData", "TaxCustomer64")",
+                data: {
+                    custIDCard: $('#hdfCustIDCard').val(),
+                    custFirstName: decode_custFirstname,
+                    custLastName: decode_custLastname
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    if (response != false) {
+
+                        $('#divloadPDF').removeClass("display-none");
+                        $('#divloadPDF').addClass("display-block");
+
+                        for (var i = 0; i < response.length; i++) {
+
+                            $('#divlstpdf').append(`<a href='${response[i].URL}' target='_blank'>${response[i].FileName}</a><br />`);
+                        }
+                    }
+
+                }
+            });
+        }
+    </script>
+}

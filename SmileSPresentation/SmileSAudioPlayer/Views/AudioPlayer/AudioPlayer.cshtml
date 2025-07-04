@@ -1,0 +1,202 @@
+﻿
+@{
+    ViewBag.Title = "";
+}
+
+
+
+
+<div class="row" style="margin-top:-30px">
+    <div class="col-md-8 col-sm-6 col-xs-12">
+        <div class="box box-default">
+            <div class="box-header with-border">
+                <h3 class="box-title">Audio Player</h3>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="info-box">
+                            <span class="info-box-icon" style="height:auto"><img src="~/Content/img/SiamSmileNewLogo.png" style="width:90px;height:90px;margin-top:-10px" /></span>
+                            <span class="info-box-more" style="vertical-align:central">
+                                @*<button type="button" id="GetFile">Get File!</button>*@
+                                <button type="button" id="GetFile" style="margin-top:25px; margin-left:5px;" disabled>Download File</button>
+                                @*<a id="GetFile" style="margin-left:5%; margin-top:100px;">Download File</a>*@
+
+                                @*<audio controls="" id="audio" name="audio" onplay="doSomething()"><source src=@(ViewBag.AudioURL) type="audio/wav"></audio>*@
+                            </span>
+                            <!-- /.info-box-content -->
+                        </div>
+                        <span class="info-box-text" id="lblIsExpired">@(ViewBag.IsExpired)</span>
+                        <!-- ./chart-responsive -->
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-md-5">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label style="width:60%"> <b>Extension:</b></label>@(ViewBag.Extension)
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label style="width:60%"><b>Dial-in Number:</b></label>@(ViewBag.DialNumber)
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label style="width:60%"><b>Destination Number:</b></label>@(ViewBag.DestinationNumber)
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label style="width:60%"><b>System Name:</b></label>@(ViewBag.SystemName)
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label style="width:60%"><b>Call Type Name:</b></label>@(ViewBag.CallTypeName)
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label style="width:60%"><b>Received Datetime:</b></label>@(ViewBag.ReceivedDatetime)
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label style="width:60%"><b>End Datetime:</b></label>@(ViewBag.EndDatetime)
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.col -->
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+</div>
+
+
+<input type="hidden" id="hd_Guid" value="@ViewBag.Id" />
+@section ViewSpecificJavascript
+{
+<script type="text/javascript">
+
+        $(function () {
+            @*$('a').click(function (e) {
+                e.preventDefault();  //stop the browser from following
+                browser.downloads.download({ url: '@ViewBag.AudioURL' })
+                //window.location.href = '@ViewBag.AudioURL';
+            });*@
+
+            if ('@ViewBag.AudioURL' != "") {
+                $("#GetFile").prop("disabled", false);
+            }
+            else {
+                $("#GetFile").prop("disabled", true);
+            }
+
+
+            $('#GetFile').on('click', function () {
+                ValidatePlay();
+                $.ajax({
+                    url: '@ViewBag.AudioURL',
+                    method: 'GET',
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    success: function (data) {
+                        var a = document.createElement('a');
+                        var url = window.URL.createObjectURL(data);
+                        a.href = url;
+                        a.download = '@ViewBag.FileName';
+                        document.body.append(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+                    }
+                });
+            });
+        })
+
+        function doSomething() {
+            //เช็ควันหมดอายุก่อนเล่น
+            // do something
+            ValidatePlay();
+        }
+
+        const Alert = (message) => {
+            alert(message);
+        }
+
+        const ValidatePlay = () => {
+            debugger;
+            //Check
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("IsFileExpire", "AudioPlayer")',
+                data: {
+                    id: $('#hd_Guid').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+                    if (response != null) {
+                        debugger;
+                        if (response.IsResult==true) {
+                           // console.log(response.Message);
+                            document.getElementById('lblIsExpired').innerHTML = '';
+                            $("#GetFile").prop("disabled", false);
+                            //do nothing
+                        }
+                        else {
+                            let audio = document.getElementById('audio');
+                            audio.pause();
+                            audio.currentTime = 0;
+                            audio.src = "";
+                            document.getElementById('lblIsExpired').innerHTML = 'The audio has been expired';
+                            $("#GetFile").prop("disabled", true);
+                            swal("ไม่สามารถเล่นไฟล์ได้", "วิดีโอนี้หมดอายุแล้ว", "error");
+                        }
+                    }
+                    else {
+                        swal("เกิดข้อผิดพลาด", "", "error");
+                    }
+                },
+                error: function (response) {
+                    swal("เกิดข้อผิดพลาด", response.Message, "error");
+                }
+            });
+        }
+
+        @*<div class="row">
+    <div class="col-sm-12">
+        <div class="box box-info">
+            <div class="box-header">
+                <h3 class="box-title" ></h3>
+            </div>
+            <div class="box-body" style=" text-align: center;  height: 80vh;">
+                <div class="row">
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-red"><i class="fa fa-google-plus cc_cursor"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-more">
+                                    <audio controls="" id="audio1" name="audio1" onplay="doSomething()" style="width:100%"><source src=@(ViewBag.AudioURL) type="audio/wav"></audio>
+                                </span>
+                                <span class="info-box-text">Extension: @(ViewBag.Extension)</span>
+                            </div>
+                            <!-- /.info-box-content -->
+                        </div>
+                        <!-- /.info-box -->
+                    </div>
+
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+</div>*@
+</script>
+}

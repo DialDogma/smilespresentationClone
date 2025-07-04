@@ -1,0 +1,2 @@
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="ddlRelation.ascx.cs" Inherits="SmileMotorV1.Modules.Motor.UserControls.DropdownUserControls.ucRelation" %>
+<asp:DropDownList ID="ddlRelation" runat="server" OnSelectedIndexChanged="ddlRelation_SelectedIndexChanged"></asp:DropDownList>

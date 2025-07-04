@@ -1,0 +1,210 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutForSurvey.cshtml";
+}
+<style>
+    .img-icon {
+        width: 20px;
+        height: 20px;
+    }
+</style>
+
+<form id="formQuestion" action="@Url.Action("Question","SurveyResearch")" method="post" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div class="col-12">
+                <i class="text-primary" style="font-size:14px"><b>@(ViewBag.Survey.FormId == 2 ? "ทางบริษัทสยามสไมล์ขออนุญาตจัดเก็บความคิดเห็นเพื่อนำไปปรับปรุงผลิตภัณฑ์และการบริการให้ดีขึ้น" : "ทางบริษัทสยามสไมล์ขออนุญาตจัดเก็บข้อมูลเพิ่มเติมเพื่อนำไปพัฒนาผลิตภัณฑ์และการบริการให้ตรงตามความต้องการของลูกค้ามากที่สุด")</b></i>
+            </div>
+            <div class="row" style="margin-top:9px">
+                <div class="col-xs-12">
+                    @{ var i = 1;}
+                    @foreach (var item in ViewBag.SurveyQuestion)
+                    {
+                        <div class="box box-border">
+                            <div class="box-header">
+
+                                <label style="font-size:15px">@(i++).&nbsp;&nbsp;@item.QuestionDetail </label>
+                            </div>
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-xs-12">
+
+                                        @for (int j = 0; j < ViewBag.SurveyAnswer.Count; j++)
+                                        {
+                                            <div>
+                                                @if (ViewBag.SurveyAnswer[j].SurveyQuestionId == item.SurveyQuestionId)
+                                                {
+                                                    <div>
+                                                        @if (ViewBag.SurveyAnswer[j].AnswerDetail != null)
+                                                        {
+                                                            <div>
+                                                                <table style="width:100%;border:2px solid white" id="myTable">
+
+                                                                    <tr style="height:1px;@(j% 2 == 1? "background-color:white":"background-color:#d7f5fc")">
+                                                                        <td>
+                                                                            <label class="custom-control-label " for="@ViewBag.SurveyAnswer[j].SurveyAnswerId" style="margin-left:10px;cursor:pointer">
+                                                                                &nbsp;&nbsp;<input class="custom-control-input " style="cursor:pointer;" value="@ViewBag.SurveyAnswer[j].AnswerId" id="@ViewBag.SurveyAnswer[j].SurveyAnswerId" name="@ViewBag.SurveyAnswer[j].SurveyQuestionId" type="checkbox" />
+                                                                                @if (ViewBag.SurveyAnswer[j].Icon != null)
+                                                                                {
+                                                                                    <img class="img-icon" src="~/Content/img/IconActivity/@ViewBag.SurveyAnswer[j].Icon" for="@ViewBag.SurveyAnswer[j].SurveyAnswerId" style="margin-left:10px;cursor:pointer;margin-left:20px" />
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    <a>&nbsp;&nbsp;</a>
+                                                                                }
+
+
+                                                                                @ViewBag.SurveyAnswer[j].AnswerDetail
+                                                                            </label>
+
+                                                                            @if (ViewBag.SurveyAnswer[j].AnswerId == 17) //17 = อื่นๆ
+                                                                            {
+                                                                                <div id="parent_suggest_@(ViewBag.SurveyAnswer[j].SurveyQuestionId)_@(ViewBag.SurveyAnswer[j].SurveyAnswerId)" style="display:none">
+                                                                                    <div style="text-align:center;">
+                                                                                        <textarea class="form-control" id="my_suggest_@(ViewBag.SurveyAnswer[j].SurveyAnswerId)" name="suggest_@(ViewBag.SurveyAnswer[j].SurveyQuestionId)" style="overflow:auto;resize:none;width:100%;height:4rem" required></textarea>
+                                                                                    </div>
+                                                                                </div>
+                                                                            }
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </div>
+
+                                                        }
+                                                        else
+                                                        {
+                                                            //ข้อเสนอแนะเพิ่มเติม
+                                                            <div class="row">
+                                                                <div class="col-xs-12">
+                                                                    <textarea class="form-control" rows="3" style="overflow:auto;" type="text" name="suggest"></textarea>
+                                                                    <input type="hidden" name="suggest_surveyquestion_id" value="@item.SurveyQuestionId" />
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    <div id="surveyAnswer"></div>
+                    <div class="row text-center">
+                        <button class="btn text-center" id="btnSubmit" style="width:100px;background-color:#047ed6;color:white">ส่ง</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" name="survey_id" value="@ViewBag.Survey.SurveyId" />
+    <input type="hidden" name="viewlog_id" value="@ViewBag.ViewLog" />
+</form>
+<br />
+<br />
+<br />
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+
+
+
+            //Event Checkbox
+            $('input').on('ifChanged', function () {
+
+                let name = (this).name;
+                let id = (this).id;
+                let val = (this).value;
+
+                if ($(this).is(':checked')) {
+
+                    //17 = อื่นๆ
+                    if (val === "17") {
+                        $(`#parent_suggest_${name}_${id}`).css('display', 'inline');
+                    }
+                    //create element
+                    $('#surveyAnswer').append(`<input type="hidden" id="answer_${id}" name="answers" value="SQ${name}:SA${id}:A${val}" />`);
+
+                } else {
+                    //17 = อื่นๆ
+                    if (val === "17") {
+                        $(`#parent_suggest_${name}_${id}`).css('display', 'none');
+                    }
+                    //remove element
+                    $(`#answer_${id}`).remove();
+                }
+            });
+
+            $('#btnSubmit').click(function (e) {
+                e.preventDefault()
+                if (valid()) {
+                    $('#btnSubmit').attr('disabled', true);
+                    $('form').submit();
+                }
+            });
+
+        });
+
+        //Function Validate
+        function valid() {
+
+            if (!validCheck()) {
+                swal("กรุณาตอบแบบสำรวจให้ครบทุกข้อ","", "warning");
+                return false;
+            }
+
+            if (!validRequired()) {
+                swal("กรุณาระบุข้อมูลสำหรับตัวเลือกอื่นๆ", "", "warning");
+                return false;
+            }
+
+            return true;
+        }
+
+        //ans all question
+        function validCheck() {
+
+            var array = []
+            var checkboxes = document.querySelectorAll('input[type=checkbox]:checked');
+            for (var i = 0; i < checkboxes.length; i++) {
+                array.push(checkboxes[i].name)
+            }
+            let answerList = [...new Set(array)];
+
+            var question = @Html.Raw(Json.Encode(ViewBag.SurveyQuestion));
+            var questionList = question.filter(x => x.QuestionId != 6);
+
+            if (answerList.length != questionList.length) {
+                return false;
+            }
+            return true;
+        }
+
+        //required input อื่นๆ
+        function validRequired() {
+
+            var array = []
+            var checkboxes = document.querySelectorAll('input[type=checkbox]:checked');
+            for (var i = 0; i < checkboxes.length; i++) {
+                array.push(checkboxes[i].value + checkboxes[i].id)
+            }
+            var answerList = array.filter(x => x.substr(0, 2) == 17);
+
+             if (answerList.length != 0) {
+                 for (var i = 0; i < answerList.length; i++) {
+
+                     var suggest = $(`#my_suggest_${answerList[i].substr(2, 2)}`).val();
+                     if (suggest == '') {
+                         return false
+                     }
+                 }
+             }
+            return true;
+        }
+
+    </script>
+}

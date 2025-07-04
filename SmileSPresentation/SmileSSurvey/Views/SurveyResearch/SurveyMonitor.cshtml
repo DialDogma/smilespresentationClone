@@ -1,0 +1,159 @@
+﻿@{
+    ViewBag.Title = "Survey Monitor";
+}
+
+<style>
+    .img-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    h5 {
+        color: Highlight;
+    }
+
+    .star {
+        font-size: 3rem;
+        color: #ff9800;
+        background-color: unset;
+        border: none;
+    }
+
+        .star:hover {
+            cursor: pointer;
+            color: #ff9800;
+        }
+
+    .star_rating {
+        user-select: none;
+    }
+
+    .tr {
+        font-size: 12px;
+        color: dodgerblue;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="box box-primary">
+        <div class="box-body">
+            <div class="form-group">
+                <div class="row text-center">
+                    <span style="font-size:20px"><b>รายงานการตอบแบบสำรวจ</b></span>
+                    <img src="~/Content/img/Mascot.png" style="width:60px;height:60px;" />
+                </div>
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-xs-3 col-xs-offset-3 ">
+                            <label>Form ID</label>
+                            <select class="form-control select" id="FormId" onchange="GetMonitorTable()">
+                                <option value="-1">----- ทั้งหมด -----</option>
+                                @{
+                                    foreach (var item in ViewBag.FormList)
+                                    {
+                                        <option value="@item.FormId">@item.FormName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-xs-2">
+                            <label>Survey ID</label>
+                            <input class="form-control" id="SearchTxt" onkeyup="GetMonitorTable();" placeholder="Surver ID" />
+                        </div>
+                        <div class="col-xs-1 col-xs-offset-2" style="padding-top:25px">
+                            <button id="btnExport" type="button" class="btn btn-block btn-success" style="float:right;"><i class="fa fa-file-excel-o"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="form-group">
+                <table id="dtSurvey" class="table table-bordered table-striped display" style="width:100%"></table>
+            </div>
+        </div>
+    </div>
+</div>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+            GetMonitorTable();
+
+            $('#btnExport').click(function (e) {
+                e.preventDefault();
+                loadingSpinner('fadeIn');
+                Export();
+            });
+
+        })
+
+       function Export() {
+           window.location.href = `@Url.Action("ExportSurveyMonitor", "SurveyResearch")?formId=${$('#FormId').val()}&surveyId=${$('#SearchTxt').val()}`;
+           loadingSpinner('fadeOut');
+        }
+
+        function GetMonitorTable() {
+            $('#dtSurvey').empty();
+
+            var t = $('#dtSurvey').dataTable({
+                pageLength: 10,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetSurveyMonitor", "SurveyResearch")',
+
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+
+                        d.formId = $('#FormId').val();
+                        d.search = $('#SearchTxt').val();
+                        d.indexStart = d.start;
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                    }
+                },
+                columns: [
+                    { title: 'Survey ID', data: 'SurveyId' },
+                    { title: 'Form Name', data: 'FormName' },
+                    { title: 'Customer Name', data: 'CustomerName' },
+                    { title: 'Branch Code', data: 'BranchCode' },
+                    { title: 'Employee Code', data: 'EmployeeCode' },
+                    { title: 'Question Detail', data: 'QuestionDetail' },
+                    { title: 'Answer Detail', data: 'AnswerDetail' },
+                    { title: 'Answer More', data: 'AnswerMore' },
+
+                    {
+                        title: 'Created Date', data: 'CreatedDate', className: 'h-dt-left', width: '8%',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:ss", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'Result Date', data: 'ResultDate', className: 'h-dt-left', width: '8%',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:ss", "LLLL");
+                        }
+                    },
+
+                ],
+                bLengthChange: false,
+            });
+        }
+    </script>
+}

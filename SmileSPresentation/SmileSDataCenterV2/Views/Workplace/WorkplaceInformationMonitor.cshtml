@@ -1,0 +1,227 @@
+﻿
+@{
+    ViewBag.Title = "การจัดการข้อมูลหน่วยงาน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="row">
+        </div>
+        <div class="box box-primary" style="margin-top:0.8%">
+            <div class="box-body">
+                <div class="col-sm-3">
+                    <label>ประเภทย่อยหน่วยงาน</label>
+                    <select class="form-control select2" id="searchOrganizeSubType">
+                        <option vallue="-1">---ทั้งหมด---</option>
+                        @{
+                            foreach (var item in ViewBag.OrganizeSubType)
+                            {
+                                <option value="@item.OrganizeSubTypeId">@item.OrganizeSubType</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-sm-2">
+                    <label>จังหวัด</label>
+                    <select class="form-control select2" id="searchProvince">
+                        <option vallue="-1">---ทุกจังหวัด---</option>
+                        @{
+                            foreach (var item in ViewBag.Province)
+                            {
+                                <option value="@item.Province_ID">@item.ProvinceDetail</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-sm-3" style="padding-top:25px">
+                    <div class="form-group has-feedback">
+                        <input type="text" class="form-control" id="searchDetail" placeholder="พิมพ์คำค้นหา" />
+                        <i class="glyphicon glyphicon-search form-control-feedback" style="color:#b8afaf"></i>
+                    </div>
+
+                </div>
+                <div class="col-sm-2" style="padding-top:25px">
+                    <button class="btn btn-block bg-primary" id="btnSearch" style="color:#ffffff">ค้นหา</button>
+                </div>
+                <div class="col-sm-1"></div>
+                <div class="col-sm-1" style="padding-top:25px">
+                    <button class="btn bg-olive btn-block" id="btnExportExcel"><i class="fa fa-file-excel-o"></i></button>
+                </div>
+
+                <div class="col-sm-12">
+                    <table id="dtMonitor" class="table table-bordered dataTable table-hover"></table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        var chat = $.connection.myHub;
+        var userID;
+
+        $(function () {
+
+             $.connection.hub.start().done(function () {
+                //Join Group Default
+                userID = @ViewBag.userID;
+                chat.server.joinGroup(userID);
+             });
+
+            chat.client.sendNoticeResult = function (Str1, Str2) {
+
+                $('#dtMonitor').DataTable().ajax.reload();
+            };
+
+            $('.select2').select2();
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                DoloadMonitor();
+            });
+            $('#btnExportExcel').click(function (e) {
+                e.preventDefault();
+                ExportWorkplace();
+            });
+
+        })
+
+          function DoloadMonitor() {
+
+               $('#dtMonitor').empty();
+              var t = $('#dtMonitor').dataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                "order": [[7, "desc"]],
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetWorkplaceMonitor", "Workplace")',
+
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.organizeGroupId = 9;
+                        d.organizeSubTypeId = $('#searchOrganizeSubType').val();
+                        d.provinceId = $('#searchProvince').val();
+                        d.searchDetail = $('#searchDetail').val();
+
+                    }
+                },
+                columns: [
+                    { title: 'รหัสรายการ', data: 'OrganizeCode', className: 'h-dt-center text-font-small' },
+                    { title: 'ประเภทย่อย', data: 'OrganizeSubType', className: 'h-dt-center text-font-small' },
+                    { title: 'ชื่อหน่วยงาน', data: 'OrganizeDetail', className: 'h-dt-center text-font-small' },
+                    { title: "เลขประจำตัวผู้เสียภาษีอากร", data: 'TaxNumber', className: 'h-dt-center text-font-small' },
+                    { title: 'ตำบล', data: 'SubDistrictDetail', className: 'h-dt-center text-font-small' },
+                    { title: 'อำเภอ', data: 'DistrictDetail', className: 'h-dt-center text-font-small' },
+                    { title: 'จังหวัด', data: 'ProvinceDetail', className: 'h-dt-center text-font-small' },
+                    {
+                        title: 'วันที่ทำรายการ', data: 'UpdatedDate', className: 'h-dt-center', width: '8%',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:ss", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'สถานะ', data: 'IsActive', className: 'h-dt-center', width: '5%',
+                        mRender: function (data) {
+                            switch (data) {
+                                case true:
+                                    return 'ใช้งาน';
+                                    break;
+                                case false:
+                                    return 'ไม่ใช้งาน';
+                                    break;
+                            }
+                        }
+                    },
+                    {
+                        title: 'เลือก',
+                        className: 'h-dt-center',
+                        data: null,
+                        width: '10%',
+                        mRender: (data, type, full) => {
+                            return (
+                                '<div class="btn-group">' +
+                                '<button type="button" class="btn btn-warning btn-sm" style="width:"10px""><i class="glyphicon glyphicon-cog"></i> เลือก</button>' +
+                                '<button type="button" class="btn btn-warning dropdown-toggle cc_pointer btn-sm" data-toggle="dropdown" aria-expanded="true">' +
+                                '<span class="caret"></span>' +
+                                '<span class="sr-only">Toggle Dropdown</span>' +
+                                '</button>' +
+                                '<ul class="dropdown-menu btn-sm" role="menu">' +
+                                    `<li><a onclick="GetDetailToNewTab(${data.Organize_ID});"><i class="glyphicon glyphicon-eye-open"></i> ดู</a></li>` +
+                                    `<li><a onclick="OpenEditTap(${data.Organize_ID});"><i class="glyphicon glyphicon-pencil"></i> แก้ไข</a></li>` +
+                                '</ul>' +
+                                '</div >'
+                            )
+                        }
+
+                    }
+                ],
+                bLengthChange: false,
+
+            });
+        }
+
+         function OpenEditTap( id ) {
+            let encode_id = window.btoa(id);
+
+             view = `@Url.Action("WorkplaceInformationManagement", "Workplace")?organizeID=${encode_id}`;
+
+            window.open(view, '_blank');
+        }
+
+        const GetDetailToNewTab = (id) => {
+            //let organizeid = id;
+            //let view = '';
+            let encode_OrganizeId = window.btoa(id);
+            debugger
+
+            view = `@Url.Action("WorkplaceDataDetail", "Workplace")?organizeID=${encode_OrganizeId}`;
+
+
+            //var url = view
+            window.open(view, '_blank');
+        }
+
+        function ExportWorkplace() {
+            var organizeSubTypeID = $('#searchOrganizeSubType').val();
+            var provinceID = $('#searchProvince').val();
+            var searchDetail = $('#searchDetail').val();
+
+            $.LoadingOverlay("show");
+            $.ajax({
+                url: "@Url.Action("ExportWorkplaceMonitor", "Workplace")",
+                type: "GET",
+                data: {
+                    organizeSubTypeId: organizeSubTypeID,
+                    provinceId: provinceID,
+                    searchDetail: searchDetail,
+                },
+                success: function (data) {
+                    window.location = "@Url.Action("ExportWorkplaceDownload", "Workplace")";
+                    $.LoadingOverlay("hide");
+                },
+                 error: function (jqXHR, exception) {
+                    checkXHRStatus(jqXHR.status);
+                 }
+            });    window.location.href = `@Url.Action("ExportWorkplaceMonitor", "Workplace")?organizeSubTypeId=${organizeSubTypeID}&provinceId=${provinceID}&searchDetail=${searchDetail}`;
+        }
+
+    </script>
+
+}

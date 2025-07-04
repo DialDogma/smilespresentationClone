@@ -1,0 +1,558 @@
+﻿@{
+    ViewBag.Title = "กระจายคิวงาน";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Header = "กระจายคิวงาน";
+}
+
+<form id="assignMain" action="@Url.Action("Assign")" method="post" enctype="multipart/form-data">
+    <div class="row">
+        @* แถบค้นหา *@
+        <div id="SearchForm" class="col-md-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h4 class="box-title">ค้นหา</h4>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-4">
+                            <label for="select_queueType">ประเภทคิว</label>
+                            <select class="form-control" id="select_queueType">
+                                <option value="">---ทั้งหมด---</option>
+                                @foreach(var itm in ViewBag.QueueType)
+                                {
+                                    <option value="@itm.QueueTypeId">@itm.QueueTypeDetail</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <label>สาขา</label>
+                            <select class="form-control" id="select_branch">
+                                <option value="">---ทั้งหมด---</option>
+                                @foreach(var itm in ViewBag.Branch)
+                                {
+                                    <option value="@itm.Branch_ID">@itm.BranchDetail</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-sm-2">
+                            <label for="DateFrom">วันที่</label>
+                            <input type="text" class="form-control pull-right datepicker" name="DateFrom" id="DateFrom"
+                                   data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy">
+                        </div>
+                        <div class="col-sm-2">
+                            <label for="DateTo">ถึง</label>
+                            <input type="text" class="form-control pull-right datepicker" name="DateTo" id="DateTo"
+                                   data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-lg-offset-4 col-sm-2">
+                            <button type="button" class="btn btn-block btn-primary" id="btnSearch"><i class="fa fa-fw fa-search"></i>ค้นหา</button>
+                        </div>
+                        <div class="col-sm-2">
+                            <button type="button" class="btn btn-block btn-primary" id="btnMonitor" onclick="GotoMonitor()"><i class="fa fa-fw fa-tv"></i> มอนิเตอร์</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* datatable *@
+        <div id="DataTable_Form" class="col-md-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h4 class="box-title">รายละเอียดการค้นหา</h4>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="tblSearchResult" class="table table-bordered table-striped"></table>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-lg-offset-7 col-md-3">
+                            <button type="button" class="btn btn-block btn-primary" id="btnAssignAll" data-toggle="modal" data-target="#modal_EmpAll">
+                                <i class="fa fa-reply-all"></i> กระจายคิวงานทั้งหมด
+                            </button>
+
+                        </div>
+                        <div class="col-sm-2">
+                            <button type="button" class="btn btn-block btn-primary" id="btnAssignQueue" data-toggle="modal" data-target="#modal_Emp">
+                                <i class="fa fa-fw fa-random"></i> กระจายคิวงาน
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* hidden field *@
+        @*<input type="hidden" name="hd_queueCount" id="hd_queueCount" value="" />
+            <input type="hidden" name="hd_empCount" id="hd_empCount" value="" />*@
+    </div>
+    @* modal *@
+    <div class="modal fade in" id="modal_Emp" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title">รายชื่อแผนกคัดกรอง</h4>
+                </div>
+                <div class="modal-body">
+                    <!-- /.modal-content -->
+                    <div class="col-sm-12">
+                        <table id="tblEmpSelect" class="table table-bordered table-striped"></table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">ยกเลิก</button>
+                    <button type="button" id="btnSubmitQueue" class="btn btn-primary">ยืนยัน</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    @* end modal *@
+
+    @* modalAll *@
+    <div class="modal fade in" id="modal_EmpAll" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title">รายชื่อแผนกคัดกรองทุกคิว</h4>
+                </div>
+                <div class="modal-body">
+                    <!-- /.modal-content -->
+                    <div class="col-sm-12">
+                        <table id="tblEmpSelectAll" class="table table-bordered table-striped"></table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">ยกเลิก</button>
+                    <button type="button" id="btnSubmitQueueAll" class="btn btn-primary">ยืนยัน</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    @* end modal *@
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+            //Declare
+             var d = new Date();
+             $("#DateFrom").datepicker("setDate", new Date(d.getFullYear() - 1 ,d.getMonth(), d.getDate()));
+              $("#DateTo").datepicker("setDate", d);
+
+            GetEmployeeDatatable();
+
+            $('#modal_Emp').on('hidden.bs.modal',function () {
+                $(this).removeData('bs.modal');
+                //$('#modal_Emp .modal-content').empty();
+            });
+
+            GetDataTable();
+
+            $('#btnSearch').on('click', function () {
+                if ($('#DateFrom').val() == '' || $('#DateTo').val() == '') {
+                    window.swal({
+                        title: 'เกิดข้อผิดพลาด!',
+                        type: 'error',
+                        text: 'กรุณาเลือกวันที่ ที่ต้องการค้นหา',
+                        showCancelButton: false,
+                        confirmButtonColor: '#ed2b09',
+                        confirmButtonText: 'ตกลง',
+                        closeOnEsc: false
+                    }, function () {
+                        return false;
+                    });
+                } else {
+                     GetDataTable();
+                }
+            });
+
+            //event
+            $('#chk-select-all').change(function (e) {
+                e.preventDefault();
+                var rows = table.rows({ 'search': 'applied' }).nodes();
+                $('input[class="chk-row-select"]', rows).prop('checked', this.checked);
+
+            });
+            $('#btnAssignQueue').on('click', function (e) {
+                if ($('.chk-row-select:checkbox:checked').length <= 0) {
+                    alert('กรุณาเลือกอย่างน้อย 1 คิวงาน');
+                    return false;
+                } else {
+                    GetEmployeeDatatable();
+                }
+            });
+
+            $('#btnAssignAll').on('click', function (e) {
+                debugger;
+                GetEmployeeDatatableAll();
+             
+            });
+
+            $('#btnSubmitQueue').on('click', function (e) {
+                if ($('.chk-emp-row-select:checkbox:checked').length <= 0) {
+                    alert('กรุณาเลือกอย่างน้อย 1 คน');
+                    return false;
+                }
+                else if ($('.chk-emp-row-select:checkbox:checked').length > $('.chk-row-select:checkbox:checked').length) {
+                    alert('คิวงานที่เลือกมีน้อยกว่าจำนวนคน!');
+                    return false;
+                }
+                else {
+                    window.swal({
+                        title: 'ยืนยันการทำรายการหรือไม่?',
+                        type: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#277020',
+                        confirmButtonText: 'ตกลง',
+                        cancelButtonText: 'ยกเลิก',
+                        closeOnConfirm: false,
+                        closeOnEsc: false,
+                        closeOnCancel: true
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+
+                            var queueList = [];
+                            var empList = [];
+                            $('.chk-row-select:checkbox:checked').each(function () {
+                                queueList.push($(this).val());
+                            });
+                            $('.chk-emp-row-select:checkbox:checked').each(function () {
+                                empList.push($(this).val());
+                            });
+                            AssignQueue(queueList, empList, -1);
+                        }
+                    });
+                }
+
+            });
+
+
+            $('#btnSubmitQueueAll').on('click', function (e) {
+                debugger;
+                if ($('.chk-emp-row-select:checkbox:checked').length <= 0) {
+                    alert('กรุณาเลือกอย่างน้อย 1 คน');
+                    return false;
+                }
+
+                else {
+                    window.swal({
+                        title: 'ยืนยันการทำรายการหรือไม่?',
+                        type: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#277020',
+                        confirmButtonText: 'ตกลง',
+                        cancelButtonText: 'ยกเลิก',
+                        closeOnConfirm: false,
+                        closeOnEsc: false,
+                        closeOnCancel: true
+                    }, function (isConfirm) {
+
+                        if (isConfirm) {
+            
+        
+                            var empList = [];
+                            $('.chk-emp-row-select:checkbox:checked').each(function () {
+                                empList.push($(this).val());
+                            });
+                            AssignQueueAll( empList);
+                        }
+                    });
+                }
+
+            });
+        });
+
+        //get main datatable
+        function GetDataTable() {
+            $('#tblSearchResult').empty();
+
+             var table = $('#tblSearchResult').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetDatatableAssign","Queue")',
+                    method:'POST',
+                    data: function (d) {
+                                d.draw = d.draw;
+                                d.pageSize = d.length;
+                                d.pagestart = d.start;
+                                d.sortField = d.columns[d.order[0].column].data;
+                                d.orderType = d.order[0].dir;
+                                d.search = d.search.value;
+                                d.dtf = $("#DateFrom").val();
+                                d.dTo = $("#DateTo").val();
+                        d.queueId = null;
+                        d.queueTypeId = $("#select_queueType").val();
+                        d.queueStatusId = 2;
+                        d.branch_ID = $("#select_branch").val();;
+                    }
+                },
+                columns: [
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        data: 'QueueId',
+                        title: '<input id="chk-select-all" type="checkbox" />',
+                        render: function (data) {
+                            return '<input type="checkbox" class="chk-row-select" id="chkdtrow_'+data+'" name="chkdtrow_'+data+'" value="'+data+'" >';
+                        }
+                    },
+                    //{ title: 'คิวงานวันที่', data: 'CreatedDate',
+                    //    className: 'dt-center',
+                    //    render: function (data) {
+                    //        return moment(data).format('DD/MM/YYYY');
+                    //    } },
+                    { title:'AppId', data:'ReferenceCode'},
+                    { title: 'ชื่อโรงเรียน', data: 'Detail1' },
+                    { title: 'ที่อยู่', data: 'Detail2' },
+                    { title: 'การชำระเงิน', data: 'QueueTypeDetail' }
+                ]
+            });
+             $('#chk-select-all').change(function (e) {
+                e.preventDefault();
+                var rows = table.rows({ 'search': 'applied' }).nodes();
+
+                $('input[class="chk-row-select"]', rows).prop('checked', this.checked);
+
+            });
+        }
+
+        //get employee datatable
+        function GetEmployeeDatatable() {
+            $('#tblEmpSelect').empty();
+             var emptable = $('#tblEmpSelect').DataTable({
+                pageLength: 50,
+                processing: true,
+                 serverSide: true,
+                 //searching: false,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetDataTableEmployee")',
+                    method: 'POST',
+                    data: function (d) {
+                                d.draw = d.draw;
+                                d.pageSize = d.length;
+                                d.pagestart = d.start;
+                                d.sortField = d.columns[d.order[0].column].data;
+                                d.orderType = d.order[0].dir;
+                                d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        data: 'UserId',
+                        title: '<input id="chk-emp-select-all" type="checkbox" />',
+                        render: function (data) {
+                            return '<input type="checkbox" class="chk-emp-row-select" id="empChkrow_'+data+'" name="mpChkrow_'+data+'" value="'+data+'" >';
+                        }
+                    },
+                    { title: 'ชื่อพนักงาน', data: 'FullName' },
+                    { title: 'รหัส', data: 'EmployeeCode' },
+                    { title: 'แผนก', data: 'DepartmentDetail' }
+                ]
+            });
+             $('#chk-emp-select-all').change(function (e) {
+                e.preventDefault();
+                var rows = emptable.rows({ 'search': 'applied' }).nodes();
+                $('input[class="chk-emp-row-select"]', rows).prop('checked', this.checked);
+
+            });
+
+             $('#chk-emp2-select-all').change(function (e) {
+                e.preventDefault();
+                var rows = emptable.rows({ 'search': 'applied' }).nodes();
+                $('input[class="chk-emp-row-select"]', rows).prop('checked', this.checked);
+
+            });
+        }
+
+
+        //get employee datatable SendAll
+        function GetEmployeeDatatableAll() {
+            $('#tblEmpSelectAll').empty();
+             var emptable = $('#tblEmpSelectAll').DataTable({
+                pageLength: 50,
+                processing: true,
+                 serverSide: true,
+                 //searching: false,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetDataTableEmployeeAll")',
+                    method: 'POST',
+                    data: function (d) {
+                                d.draw = d.draw;
+                                d.pageSize = d.length;
+                                d.pagestart = d.start;
+                                d.sortField = d.columns[d.order[0].column].data;
+                                d.orderType = d.order[0].dir;
+                                d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        data: 'UserId',
+                        title: '<input id="chk-emp2-select-all" type="checkbox" />',
+                        render: function (data) {
+                            return '<input type="checkbox" class="chk-emp-row-select" id="empChkrow_'+data+'" name="mpChkrow_'+data+'" value="'+data+'" >';
+                        }
+                    },
+                    { title: 'ชื่อพนักงาน', data: 'FullName' },
+                    { title: 'รหัส', data: 'EmployeeCode' },
+                    { title: 'แผนก', data: 'DepartmentDetail' }
+                ]
+            });
+             $('#chk-emp2-select-all').change(function (e) {
+                e.preventDefault();
+                var rows = emptable.rows({ 'search': 'applied' }).nodes();
+                $('input[class="chk-emp-row-select"]', rows).prop('checked', this.checked);
+
+            });
+        }
+
+        //assign queue
+        function AssignQueue(queueId, assignTo, createBy) {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("AssignQueue","Queue")',
+                data: {
+                    queueId: queueId,
+                    assignToUserId: assignTo,
+                    createByUserId: createBy
+                },
+                success: function (response) {
+                    if (response == true) {
+                        window.swal({
+                            title: 'ทำรายการสำเร็จ',
+                            type: 'success',
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            window.location = "@Url.Action("Assign")";
+                        });
+                    } else {
+                        window.swal({
+                            title: 'เกิดข้อผิดพลาด!',
+                            type: 'error',
+                            text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            window.location = "@Url.Action("InternalServerError","Error")";
+                        });
+                    }
+                }
+            });
+        }
+          //assign queue All
+        function AssignQueueAll(assignTo) {
+            debugger;
+            var d = new Date();
+            $("#DateFrom").datepicker("setDate", new Date(d.getFullYear() - 1 ,d.getMonth(), d.getDate()));
+            $("#DateTo").datepicker("setDate", d);
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("AssignQueueAll","Queue")',
+                data: {
+
+                    assignUserlist: assignTo,
+                    dtf: $("#DateFrom").val(),
+                    dTo: $("#DateTo").val(),
+
+                    //sortField =null,
+                    //orderType =null,
+                    //search ="",
+                    queueTypeId: $("#select_queueType").val(),
+                    queueStatusId: 2,
+                    branch_ID: $("#select_branch").val()
+
+                },
+                success: function (response) {
+                    if (response == "true") {
+                        window.swal({
+                            title: 'ทำรายการสำเร็จ',
+                            type: 'success',
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            window.location = "@Url.Action("Assign")";
+                            });
+
+                    } else if (response == "notfound") {
+                        window.swal({
+                            title: 'เกิดข้อผิดพลาด!',
+                            type: 'error',
+                            text: 'ไม่พบคิวที่ต้องการกระจาย',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                           
+                            });
+
+                    } else if (response == "assignover") {
+                        window.swal({
+                            title: 'เกิดข้อผิดพลาด!',
+                            type: 'error',
+                            text: 'มีพนักงานมากว่าคิวงาน',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                           
+                            });
+
+                    } else {
+                        window.swal({
+                            title: 'เกิดข้อผิดพลาด!',
+                            type: 'error',
+                            text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            window.location = "@Url.Action("InternalServerError","Error")";
+                            });
+
+                    }
+                }
+            });
+        }
+        //redirect to monitor
+        function GotoMonitor() {
+            window.location = '@Url.Action("Monitor","Queue")';
+        }
+    </script>
+}

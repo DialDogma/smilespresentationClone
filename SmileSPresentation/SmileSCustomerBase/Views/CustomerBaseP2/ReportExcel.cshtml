@@ -1,0 +1,153 @@
+﻿@{
+    ViewBag.Title = "Report Excel";
+}
+
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        <div class="col-sm-12" id="Select_form">
+            <div class="box box-default">
+                <div class="box-header">
+                    <h3 class="box-title">รายงาน Download Excel</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-offset-1 col-sm-2">
+                            <label for="btnExport" class="control-label">Summary Report:</label>
+                        </div>
+                        <div class="col-sm-offset-3 col-sm-3">
+                            <a class="btn btn-block btn-success" id="btnSummaryExport">Export Excel</a>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-offset-1 col-sm-2">
+                            <label for="btnExport" class="control-label">Branch Report:</label>
+                        </div>
+                        <div class="col-sm-3">
+                            <select class="form-control select2 " tabindex="-1" aria-hidden="true" id="ddlBranch" name="ddlBranch">
+                                @{
+                                    foreach(var itm in ViewBag.BranchList)
+                                    {
+                                        if(itm.BranchId == 1)
+                                        {
+                                            <option value="-1">---กรุณาเลือก---</option>
+                                        }
+                                        else
+                                        {
+                                            if(ViewBag.BranchUser == itm.BranchId)
+                                            {
+                                                <option value="@itm.BranchId" selected="selected">@itm.BranchDetail</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@itm.BranchId">@itm.BranchDetail</option>
+                                            }
+
+                                        }
+
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-3">
+                            <a class="btn btn-block btn-success" id="btnBranchExport">Export Excel</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('.select2').select2();
+
+            $('#btnSummaryExport').click(function () {
+                window.swal({
+                    title: 'ยืนยันรายการ?',
+                    type: 'info',
+                    showCancelButton: true,
+                    confirmButtonColor: '#277020',
+                    confirmButtonText: 'ตกลง',
+                    cancelButtonText: 'ยกเลิก',
+                    closeOnConfirm: false,
+                    closeOnEsc: false,
+                    closeOnCancel: true
+                }, function (isConfirm) {
+                    if (isConfirm) {
+                        waitingDialog.show('กำลัง นำส่งข้อมูล กรุณารอสักครู่'); setTimeout(function () { waitingDialog.hide(); }, 5000);
+                        DownLoadSummaryReport();
+                        swal.close();
+                    }
+                });
+            });
+
+            $('#btnBranchExport').click(function () {
+                if ($('#ddlBranch').val() != -1) {
+                     window.swal({
+                        title: 'ยืนยันรายการ?',
+                        type: 'info',
+                        showCancelButton: true,
+                        confirmButtonColor: '#277020',
+                        confirmButtonText: 'ตกลง',
+                        cancelButtonText: 'ยกเลิก',
+                        closeOnConfirm: false,
+                        closeOnEsc: false,
+                        closeOnCancel: true
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+                            waitingDialog.show('กำลัง นำส่งข้อมูล กรุณารอสักครู่'); setTimeout(function () { waitingDialog.hide(); }, 5000);
+                            DownloadBranchReport($('#ddlBranch').val());
+                            swal.close();
+                        }
+                    });
+                } else {
+                    alert('กรุณาเลือกสาขา');
+                }
+            });
+        });
+
+        const DownLoadSummaryReport = () => {
+            window.location.href = "@Url.Action("DownloadSummaryReport","CustomerBaseP2")";
+            @*$.ajax({
+                type: 'POST',
+                url: '@Url.Action("DownloadSummaryReport","CustomerBaseP2")',
+                success: function (data) {
+                    window.swal({
+                        title: 'ดาวน์โหลดข้อมูลสำเร็จ!',
+                        type: 'success',
+                        showCancelButton: false,
+                        confirmButtonText: 'ตกลง',
+                        closeOnConfirm: true
+                    });
+                },
+                error: function () {
+
+                }
+            });*@
+        }
+
+        const DownloadBranchReport = (branchId) => {
+            window.location.href = "@Url.Action("DownloadBranchReport","CustomerBaseP2")?branchId="+branchId;
+             @*$.ajax({
+                 type: 'POST',
+                 url: '@Url.Action("DownloadBranchReport","CustomerBaseP2")',
+                 data: { branchId: branchId },
+                 success: function (data) {
+                     window.swal({
+                         title: 'ดาวน์โหลดข้อมูลสำเร็จ!',
+                         type: 'success',
+                         showCancelButton: false,
+                         confirmButtonText: 'ตกลง',
+                         closeOnConfirm: true
+                     });
+                 },
+                 error: function () {
+
+                  }
+                });*@
+        }
+    </script>
+}

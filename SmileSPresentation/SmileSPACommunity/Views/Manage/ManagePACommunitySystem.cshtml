@@ -1,0 +1,630 @@
+﻿@{
+    /**/
+
+    ViewBag.Title = "การจัดการชื่อกลุ่มกรมธรรม์";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*<h2>ManagePACommunitySystem</h2>*@
+
+<form class="form-horizontal">
+
+    <div class="row">
+
+        <div class="col-xs-12">
+
+            @* Box Sreach *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+                </div>
+                <!-- /.box-header -->
+
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-xs-3  col-xs-offset-2">
+                                <label for="exampleInputEmail1">กลุ่มหน่วยงาน :</label>
+                                <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlOrganizeGroup">
+
+                                    <option value="-1">--โปรดระบุ--</option>
+                                    @{
+                                        foreach (var item in ViewBag.OrganizeGroups)
+                                        {
+                                            <option value="@item.OrganizeGroup_ID">@item.OrganizeGroupDetail</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-xs-3">
+                                <label>จังหวัด :</label>
+                                <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlProvince">
+
+                                    <option value="-1">--ทั้งหมด--</option>
+                                    @{
+                                        foreach (var item in ViewBag.Provinces)
+                                        {
+                                            <option value="@item.ProvinceId">@item.Province</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row" style="padding-top:6px">
+                            <div class="col-xs-6 col-xs-offset-2">
+                                <label class="">ชื่อหน่วยงาน :</label>
+                                <input type="text" class="form-control" id="txtOrganizeName" placeholder="ชื่อหน่วยงาน">
+                            </div>
+                            <div class="col-xs-2" style="padding-top: 25px;">
+                                <button type="button" class="btn btn-primary" style="width:80%" id="btnSearch">ค้นหา</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Box Detail *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายการหน่วยงาน</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="box-group">
+
+                        <table id="dtMonitorOrganize" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+
+            <div style="padding-bottom:9px">
+                <button type="button" class="btn btn-info" id="btnAddOrganize"><i class="glyphicon glyphicon-plus"></i> เพิ่มหน่วยงาน</button>
+            </div>
+
+            <div class="box box-primary" id="divinput">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียดหน่วยงาน</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-4 ">
+                            <label for="exampleInputEmail1">ประเภทหน่วยงาน :</label>
+                            <select class="form-control select2 divinput" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlAddOrganizeType"></select>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top:6px">
+
+                        <div class="col-xs-4">
+                            <label>คำนำหน้าหน่วยงาน :</label>
+                            <select class="form-control select2 divinput" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlOrganizeTitle"></select>
+                        </div>
+                        <div class="col-xs-6">
+                            <label>ชื่อหน่วยงาน :</label>
+                            <input type="text" class="form-control divinput" id="txtAddOrganizeName" />
+                        </div>
+                    </div>
+
+                    <div class="row" style="padding-top:6px">
+                        <div class="col-xs-2">
+                            <label>ที่อยู่ เลขที่ :</label>
+                            <input type="text" class="form-control divinput" id="txtAddNo" />
+                        </div>
+                        <div class="col-xs-1">
+                            <label>หมู่ :</label>
+                            <input type="text" class="form-control divinput" width="20" id="txtAddMoo" />
+                        </div>
+                        <div class="col-xs-1">
+                            <label>ชั้น :</label>
+                            <input type="text" class="form-control divinput" width="50" id="txtAddFloor" />
+                        </div>
+
+                        <div class="col-xs-3">
+                            <label>ซอย :</label>
+                            <input type="text" class="form-control divinput" id="txtAddSoi" />
+                        </div>
+                        <div class="col-xs-3">
+                            <label>ถนน :</label>
+                            <input type="text" class="form-control divinput" id="txtAddRoad" />
+                        </div>
+                    </div>
+
+                    <div class="row" style="padding-top:6px">
+                        <div class="col-xs-3">
+                            <label>ตำบล :</label>
+                            <select class="form-control select2 divinput" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlAddSubDistrict"></select>
+                        </div>
+                        <div class="col-xs-3">
+                            <label>อำเภอ :</label>
+                            <input type="text" class="form-control " style="width: 100%;" id="txtAddDistrict" disabled />
+                        </div>
+                        <div class="col-xs-3">
+                            <label>จังหวัด :</label>
+                            <input class="form-control " style="width: 100%;" id="txtAddProvince" disabled />
+                        </div>
+                        <div class="col-xs-3">
+                            <label>รหัสไปรษณีย์ :</label>
+                            <input type="text" class="form-control" id="txtAddZipCode" disabled />
+                        </div>
+                    </div>
+
+                    <div class="" style="text-align:center;padding-top:15px" id="divbtnSave">
+                        <button type="button" class="btn btn-success" style="text-decoration:none" id="btnSaveOrganize"><i class="glyphicon glyphicon-ok"></i> บันทึก</button>
+                        <button type="button" class="btn btn-danger" style="text-decoration:none" id="btnCancelOrganize"><i class="glyphicon glyphicon-remove"></i> ยกเลิก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="hdfOrganizeId" hidden value="" />
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        var organizeId;
+        $(function () {
+            $('.select2').select2();
+            EnableInput(true);
+            EnabledButton(true);
+            EnabledOrganizeGroup(false);
+            EnabledButtonAddOrganize(false);
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                if (IsvalidateForSearch()) {
+                    DoClear();
+                    EnableInput(true);
+                    EnabledButton(true);
+                    EnabledButtonAddOrganize(false);
+                    EnabledOrganizeGroup(false);
+                    GetMonitorOrganize();
+                }
+
+            });
+
+            $("#ddlAddSubDistrict").select2({
+
+                ajax: {
+                    url: '@Url.Action("GetAddressByDetail", "Manage")',
+                    dataType: 'json',
+                    delay: 250,
+
+                    data: function (params) {
+                        return {
+                            keyword: params.term, // search term
+                            page: params.page
+                        };
+                    },
+                    processResults: processData,
+                    cache: true
+                },
+                placeholder: 'ค้นหารายการ',
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 4,
+                //templateResult: formatRepo,
+                templateSelection: formatRepoSelection,
+                selectOnClose: true,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 4 ตัวอักษร'; } }
+            });
+
+            $('#ddlAddSubDistrict').change(function (e) {
+                e.preventDefault();
+                GetAddressBySubDistrictId();
+            });
+
+            $('#btnAddOrganize').click(function (e) {
+                e.preventDefault();
+                //IsvalidateForAdd
+                if (IsvalidateForAdd()) {
+                    EnableInput(false);
+                    DoClear();
+                    GetOrganizeType();
+                    GetOrganizeTitle();
+                    EnabledButton(false);
+                    EnabledOrganizeGroup(true);
+                    EnabledButtonAddOrganize(true);
+                }
+
+            });
+
+            $('#btnSaveOrganize').click(function (e) {
+                e.preventDefault();
+                if (IsvalidateForSave())
+                {
+
+                    window.swal({
+                        title: 'ยืนยันรายการ ?',
+                        type: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#277020',
+                        confirmButtonText: 'ตกลง',
+                        cancelButtonText: 'ยกเลิก',
+                        closeOnConfirm: false,
+                        closeOnEsc: false,
+                        closeOnCancel: true
+                    }, function () {
+
+                        SaveOrUpdateOrganizeDetail();
+                    });
+                }
+
+            });
+
+            $('#btnCancelOrganize').click(function (e) {
+                e.preventDefault();
+
+                DoClear();
+                EnableInput(true);
+                EnabledButton(true);
+                EnabledOrganizeGroup(false);
+                EnabledButtonAddOrganize(false);
+
+            });
+
+        });
+
+        const IsvalidateForAdd = () => {
+            if ($('#ddlOrganizeGroup').val() == "-1") {
+                swal("ตรวจสอบข้อมูล", "กรุณาเลือก กลุ่มหน่วยงาน", "warning");
+                return false;
+            }
+
+            return true;
+        }
+
+        const IsvalidateForSearch = () => {
+            if ($('#ddlOrganizeGroup').val() == "-1") {
+                swal("ตรวจสอบข้อมูล", "กรุณาเลือก กลุ่มหน่วยงาน", "warning");
+                return false;
+            }
+
+            if ($('#txtOrganizeName').val() == "") {
+                swal("ตรวจสอบข้อมูล", "กรุณากรอก ชื่อหน่วยงาน", "warning");
+                return false;
+            }
+            return true;
+        }
+
+        const IsvalidateForSave = () => {
+
+            debugger;
+
+            //ประเภทหน่วยงาน
+            if ($('#ddlAddOrganizeType').val() == "-1") {
+                swal("ตรวจสอบข้อมูล", "กรุณาเลือก ประเภทหน่วยงาน", "warning");
+                return false;
+            }
+
+            //คำนำหน้า
+            if ($('#ddlOrganizeTitle').val() == "-1") {
+
+                swal("ตรวจสอบข้อมูล", "กรุณาเลือก คำนำหน้าหน่วยงาน", "warning");
+                return false;
+            }
+
+            //ชื่อหน่วยงาน
+            if ($('#txtAddOrganizeName').val() == "") {
+                swal("ตรวจสอบข้อมูล", "กรุณากรอก ชื่อหน่วยงาน", "warning");
+                return false;
+            }
+
+            //ที่อยู่ เลขที่
+            if ($('#txtAddNo').val() == "") {
+                swal("ตรวจสอบข้อมูล", "กรุณากรอก เลขที่ หากไม่มีให้ใส่ -", "warning");
+                return false;
+            }
+
+            //หมู่
+            if ($('#txtAddMoo').val() == "") {
+                swal("ตรวจสอบข้อมูล", "กรุณากรอก หมู่ หากไม่มีให้ใส่ -", "warning");
+                return false;
+            }
+
+            //ชั้น
+            if ($('#txtAddFloor').val() == "") {
+                swal("ตรวจสอบข้อมูล", "กรุณากรอก ชั้น หากไม่มีให้ใส่ -", "warning");
+                return false;
+            }
+
+            //ซอย
+            if ($('#txtAddSoi').val() == "") {
+                swal("ตรวจสอบข้อมูล", "กรุณากรอก ซอย หากไม่มีให้ใส่ -", "warning");
+                return false;
+            }
+
+            //ถนน
+            if ($('#txtAddRoad').val() == "") {
+                swal("ตรวจสอบข้อมูล", "กรุณากรอก ถนน หากไม่มีให้ใส่ -", "warning");
+                return false;
+            }
+
+            //ตำบล
+            if ($('#ddlAddSubDistrict').val() == null) {
+                swal("ตรวจสอบข้อมูล", "กรุณาเลือก ตำบล", "warning");
+                return false;
+            }
+
+            return true;
+        }
+
+        const GetOrganizeTitle = () => {
+
+            $('#ddlOrganizeTitle').empty();
+
+            var organizeGroupID = $('#ddlOrganizeGroup').val();
+
+            if (organizeGroupID == 7) {     //หน่วยงาน
+                $('#ddlOrganizeTitle').append('<option value="-1">--โปรดระบุ-- </option>')
+                $('#ddlOrganizeTitle').append('<option value="0"> หน่วยงาน </option>')
+            }
+            else {
+                $.ajax({
+                    type: "GET",
+                    url: "@Url.Action("GetOrganizeTitle", "Manage")",
+                    data: {
+                        organizeTitleTypeId: 6
+                    },
+                    dataType: "json",
+                    async:false,
+                    success: function (response) {
+
+                        $('#ddlOrganizeTitle').append('<option value="-1">--โปรดระบุ-- </option>')
+
+                        for (var i = 0; i < response.length; i++) {
+                            $('#ddlOrganizeTitle').append('<option value=' + response[i].OrganizeTitleId + '>' + response[i].OrganizeTitle + '</option>')
+                        }
+                    }
+                });
+            }
+        }
+
+        const GetAddressBySubDistrictId = () =>
+        {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetAddressByDetail","Manage")",
+                data: {
+                    subDistrictId: $('#ddlAddSubDistrict').val()
+                },
+                async: false,
+                dataType: "json",
+                success: function (response) {
+
+                    $('#txtAddDistrict').val(response[0].DistrictDetail);
+                    $('#txtAddProvince').val(response[0].ProvinceDetail);
+                    $('#txtAddZipCode').val(response[0].ZipCode);
+                }
+            });
+        }
+
+        function processData(data) {
+            var mapdata = $.map(data, function (obj) {
+                obj.id = obj.SubDistrictId;
+                obj.text = `${obj.SubDistrictDetail} > ${obj.DistrictDetail} > ${obj.ProvinceDetail} > ${obj.ZipCode}`;
+                return obj;
+            });
+            return { results: mapdata };
+        }
+
+        //เมื่อคลิกเลือกข้อมูล ให้ตั้งค่า ให้กับ text ใหม่ ให้แสดงเป็น Organize
+        function formatRepoSelection(repo) {
+            return repo.SubDistrictDetail || repo.text;
+        }
+
+        const EnableInput = (v) => {
+            $('#divinput').find('.divinput').attr('disabled', v);
+        }
+
+        const EnabledButton = (v) => {
+            $('#divbtnSave').find('button').attr('disabled', v);
+        }
+
+        const DoClear = () => {
+            $('#hdfOrganizeId').val('');
+            $('#ddlOrganizeTitle').val(null).trigger('change.select2');
+            $('#ddlAddOrganizeType').val(null).trigger('change.select2');
+            $('#txtAddOrganizeName').val('');
+            $('#txtAddNo').val('');
+            $('#txtAddMoo').val('');
+            $('#txtAddFloor').val('');
+            $('#txtAddSoi').val('');
+            $('#txtAddRoad').val('');
+            $('#ddlAddSubDistrict').val(null).trigger('change.select2');
+            $('#txtAddDistrict').val('');
+            $('#txtAddProvince').val('');
+            $('#txtAddZipCode').val('');
+        }
+
+        const EnabledOrganizeGroup = (v) => {
+            $('#ddlOrganizeGroup').attr('disabled', v);
+        }
+
+        const EnabledButtonAddOrganize = (v) => {
+            $('#btnAddOrganize').attr('disabled', v);
+        }
+
+        const GetOrganizeType = () => {
+
+            $('#ddlAddOrganizeType').empty();
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetOrganizeType", "PACommunity")",
+             data: {
+                 organizeGroupId: $('#ddlOrganizeGroup').val()
+             },
+             async: false,
+             dataType: "json",
+                success: function (response) {
+
+                    $('#ddlAddOrganizeType').append('<option value="-1">--โปรดระบุ--</option>');
+
+                 for (var i = 0; i < response.length; i++) {
+                     $('#ddlAddOrganizeType').append('<option value=' + response[i].OrganizeTypeId + '>' + response[i].OrganizeType +'</option>')
+                 }
+             }
+         });
+    }
+
+        const GetMonitorOrganize = () => {
+            $('#dtMonitorOrganize').empty();
+
+            var t = $('#dtMonitorOrganize').dataTable({
+                    pageLength: 10,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    destroy: true,
+                    searching: false,
+                    ajax: {
+                        url: '@Url.Action("GetMonitorOrganizeDetail", "Manage")',
+                           type: 'POST',
+                           data: function (d) {
+                               d.draw = d.draw;
+                               d.pageSize = d.length;
+                               d.pageStart = d.start;
+                               d.sortField = d.columns[d.order[0].column].data;
+                               d.orderType = d.order[0].dir;
+                               d.search = $('#txtOrganizeName').val();
+                               d.organizeTypeId = null;
+                               d.organizeGroupId = $('#ddlOrganizeGroup').val();
+                               d.provinceId = $('#ddlProvince').val();
+                           }
+                       },
+                       columns: [
+                           { title: 'รหัสหน่วยงาน', data: 'OrganizeCode', className: 'h-dt-center d-dt-center',width: '15%' },
+                           { title: 'ชื่อหน่วยงาน', data: 'Organize', className: 'h-dt-center',width: '40%' },
+                           { title: 'จังหวัด', data: 'CurrentProvince', className: 'h-dt-center d-dt-center', },
+                           {
+                               data: null,
+                               className: 'h-dt-center d-dt-center',
+                               width: '13%',
+                               mRender: (data, type, full) =>
+                               {
+                                   debugger;
+                                   //organizeId = data.OrganizeId;
+
+                                   return `<button type="button" class="btn btn-primary btn-sm" onclick="GetOrganizeDetail(${data.OrganizeId},${false});" ><i class="fa fa-fw fa-desktop"></i> รายละเอียด </button>`;
+                               }
+                           },
+                           {
+                               data: null,
+                               className: 'h-dt-center d-dt-center',
+                               width: '10%',
+                               mRender: (data, type, full) => {
+                                   debugger;
+                                   //organizeId = data.OrganizeId;
+
+                                   return `<button type="button" class="btn btn-warning btn-sm" onclick="GetOrganizeDetail(${data.OrganizeId},${true});" ><i class="fa fa-fw fa-edit"></i> แก้ไข </button>`;
+                               }
+                           }
+                       ],
+                       bLengthChange: false,
+                       //createdRow: function (row, data, index) {
+                       //    if (data.ClaimOnLineStatusId == 3) {
+                       //        $('td', row).addClass('selected');
+                       //    }
+                       //},
+
+           });
+
+        }
+
+        const SaveOrUpdateOrganizeDetail = () => {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("DoSaveOrUpdateOrganizeDetail", "Manage")",
+                data: {
+                    organizeId: $('#hdfOrganizeId').val(),
+                    organizeTypeId: $('#ddlAddOrganizeType').val(),
+                    organizeTitleId: $('#ddlOrganizeTitle').val(),
+                    organizeDetail: $('#txtAddOrganizeName').val(),
+                    no: $('#txtAddNo').val(),
+                    moo: $('#txtAddMoo').val(),
+                    floor: $('#txtAddFloor').val(),
+                    soi: $('#txtAddSoi').val(),
+                    road: $('#txtAddRoad').val(),
+                    subDistrictId: $('#ddlAddSubDistrict').val(),
+                    zipCode: $('#txtAddZipCode').val()
+
+                },
+                dataType: "json",
+                success: function (response) {
+
+                    if (response[0] == "True") {
+
+                        swal("", response[2], "success");
+                        DoClear()
+                        EnableInput(true);
+                        EnabledButton(true);
+                        EnabledOrganizeGroup(false);
+                        EnabledButtonAddOrganize(false);
+                        //GetMonitorOrganize();
+                    } else {
+                        swal("", response[2], "error");
+                    }
+
+                }
+            });
+        }
+
+        const GetOrganizeDetail = (OrganizeId,IsEnabled) => {
+
+            var s = $('#ddlAddSubDistrict');
+
+            if (IsEnabled == false) {
+                EnableInput(true);
+                EnabledButton(true);
+                EnabledOrganizeGroup(false);
+                EnabledButtonAddOrganize(false);
+            } else {
+                EnabledButton(false);
+                EnableInput(false);
+                EnabledOrganizeGroup(true);
+                EnabledButtonAddOrganize(true);
+            }
+
+            GetOrganizeType();
+            GetOrganizeTitle();
+
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetOrganizeById", "PACommunity")",
+                data: {
+                    organizeID: OrganizeId
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    $('#hdfOrganizeId').val(response.OrganizeId);
+
+                    debugger;
+                    if ($('#ddlOrganizeGroup').val() == "7")    //ถ้า กลุ่มหน่วยงานเป็น หน่วยงาน ให้ คำนำหน้าเป็น หน่วยงาน
+                    {
+                        $('#ddlOrganizeTitle').val('0').trigger('change.select2');
+                    } else {
+                        $('#ddlOrganizeTitle').val(response.OrganizeTitleId).trigger('change.select2');
+                    }
+
+                    $('#ddlAddOrganizeType').val(response.OrganizeTypeId);
+                    $('#txtAddOrganizeName').val(response.Organize);
+                    $('#txtAddNo').val(response.CurrentNo);
+                    $('#txtAddMoo').val(response.CurrentMoo);
+                    $('#txtAddFloor').val(response.CurrentFloor);
+                    $('#txtAddSoi').val(response.CurrentSoi);
+                    $('#txtAddRoad').val(response.CurrentRoad);
+
+                    var option = new Option(response.CurrentSubDistrict, response.CurrentSubDistrictId, true, true);
+                    s.append(option).trigger('change.select2');
+                    GetAddressBySubDistrictId();
+                }
+            });
+        }
+    </script>
+}

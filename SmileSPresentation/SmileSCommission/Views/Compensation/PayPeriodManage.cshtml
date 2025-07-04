@@ -1,0 +1,404 @@
+﻿@{
+    ViewBag.Title = "จัดการรอบค่าตอบแทน";
+
+}
+<style>
+    .table {
+        font-size: 14px
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* date period form *@
+        <div class="col-sm-12" id="DatePeriod_form">
+            <div class="box box-default">
+                <div class="box-header">
+                    <h4 class="box-title">สถานะ : @ViewBag.periodStatus </h4>
+                    <div class="box-tools pull-right">
+                        <h6>หมายเหตุ: @ViewBag.description</h6>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class=" col-sm-3">
+                            <h4>งวดค่าตอบแทนที่ : @ViewBag.payPeriod</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end form *@
+        @* detail form *@
+        <div class="col-sm-12" id="DetailPeriod_form">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <div class="nav-tabs-custom" style="width: 100%;height: 100%">
+                                <ul class="nav nav-tabs">
+                                    <li id="tab1" class="active tabbar"><a href="#tab_1" data-toggle="tab" aria-expanded="true">Data Source</a></li>
+                                    <li id="tab2" class="tabbar"><a href="#tab_2" data-toggle="tab" aria-expanded="false">Model</a></li>
+                                    <li id="tab3" class="tabbar"><a href="#tab_3" data-toggle="tab" aria-expanded="false">รายการแก้ไข(<label class="la-dark" id="lblPeriodNotiForEdit">@ViewBag.alertNotiCount</label>)</a></li>
+                                </ul>
+                                <div class="tab-content">
+                                    <div class="tab-pane fade in active" role="tabpanel" id="tab_1">
+                                        <div class="form-group row">
+                                            <div class="col-sm-12">
+                                                <table id="dtShowDataSource" name="dtShowDataSource" class="table table-bordered table-striped" style="width: 100%"></table>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <div class="col-sm-2 pull-right">
+                                                <button type="button" class="btn btn-block btn-info" id="btnDownloadAll" onclick="DownloadAll()">Download All</button>
+                                            </div>
+                                            <div class="col-sm-2 pull-right">
+                                                <button type="button" class="btn btn-block btn-info" id="btnDownloadAllwFunc" disabled="disabled">Download All<i class="fa  fa-cogs"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- /.tab-pane -->
+                                    <div class="tab-pane fade" role="tabpanel" id="tab_2">
+                                        <div class="form-group row">
+                                            <div class="col-sm-12">
+                                                <table id="dtShowModel" name="dtShowModel" class="table table-bordered table-striped" style="width: 100%"></table>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+
+                                            <div class="col-sm-2">
+                                                <button type="button" class="btn btn-block btn-info" id="btnDownloadAllModel">Download All</button>
+                                            </div>
+                                            <div class="col-sm-2">
+                                                <button type="button" class="btn btn-block btn-info" id="btnDownloadAllwFuncModel" onclick="DownloadWithFunc()">Download All<i class="fa  fa-cogs"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- /.tab-pane -->
+                                    <div class="tab-pane fade" role="tabpanel" id="tab_3">
+                                        <div class="form-group row">
+                                            <div class="col-sm-12">
+                                                <table id="dtShowNotiEdit" name="dtShowNotiEdit" class="table table-bordered table-striped" style="width: 100%"></table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- /.tab-pane -->
+                                </div>
+                                <!-- /.tab-content -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row" id="waitProcess_form">
+                        <div class="col-sm-offset-10 col-sm-2">
+                            <button type="button" class="btn btn-block btn-warning" id="btnProcess">ประมวลผล</button>
+                        </div>
+                    </div>
+                    <div class="form-group row" id="waitPayroll_form">
+                        <div class="col-sm-offset-8 col-sm-2">
+                            <button type="button" class="btn btn-block btn-danger" id="btnCancelPayroll">ยกเลิก</button>
+                        </div>
+                        <div class="col-sm-2">
+                            <button type="button" class="btn btn-block btn-warning" id="btnSendPayroll">ยืนยันส่ง Payroll</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end form *@
+        @* hidden *@
+        <input type="hidden" id="hd_periodId" name="hd_periodId" value="@ViewBag.periodId" />
+        <input type="hidden" id="hd_periodStatusId" name="hd_periodStatusId" value="@ViewBag.periodStatusId" />
+        @* end hidden *@
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+            if ($('#hd_periodStatusId').val() == 2) {
+                $('#waitProcess_form').show();
+                $('#waitPayroll_form').hide();
+                $('#tab2 a').removeAttr('data-toggle');
+                $('#tab3 a').removeAttr('data-toggle');
+            } else if ($('#hd_periodStatusId').val() == 3) {
+                $('#waitProcess_form').hide();
+                $('#waitPayroll_form').show();
+                $('#tab2 a').attr('data-toggle');
+                $('#tab3 a').attr('data-toggle');
+            } else {
+                 $('#waitProcess_form').hide();
+                $('#waitPayroll_form').hide();
+                $('#tab2 a').attr('data-toggle');
+                $('#tab3 a').attr('data-toggle');
+            }
+
+            loadingSpinner('fadeIn', 500);
+            setTimeout(function () {
+                //CallPeriodDetail($('#hd_periodId').val());
+                CallPeriodDataSource($('#hd_periodId').val());
+                CallPeriodModel($('#hd_periodId').val());
+                CallPeriodNotiForEdit($('#hd_periodId').val());
+            }, 1000);
+
+            $('#btnProcess').click(function () {
+                if (loopInHiddenCheck()) {
+                    swal_confirm('ยืนยันดำเนินการประมวลผล', 'ทำการประมวลผลต่อไป?', function () {
+
+                        window.location = '@Url.Action("GoToProcess")';
+                        
+                    });
+                } else {
+                    swal_fail("สถานะของDatasourceต้องผ่านทั้งหมด!");
+                }
+
+            });
+
+            $('#btnCancel').click(function () {
+                swal_confirm('ยกเลิกรอบค่าตอบแทน', 'ต้องการยกเลิกรอบค่าตอบแทนนี้หรือไม่?', function () {
+                    swal_success(setTimeout(function () {
+                        //TODO: call function to make period isactive = 0
+                        swal.close();
+                    }, 2000));
+                });
+            });
+
+            $('#btnSendPayroll').click(function () {
+                swal_confirm('ยืนยันดำเนินการส่ง Payroll', 'ยืนยันการส่ง Payroll?', function () {
+                    swal_success(setTimeout(function () {
+                        window.location = ('@Url.Action("PayPeriodMain","Compensation")');
+                        swal.close();
+                    }, 2000));
+                });
+            });
+
+            $('#btnCancelPayroll').click(function () {
+                swal_confirm('ยกเลิกรอบค่าตอบแทน', 'ต้องการยกเลิกรอบค่าตอบแทนนี้หรือไม่?', function () {
+                    swal_success(setTimeout(function () {
+                        //TODO: call function to make period isactive = 0
+                        swal.close();
+                    }, 2000));
+                });
+            });
+        });
+
+        //Data Source tab
+        const CallPeriodDataSource = (periodId) => {
+            $('#dtShowDataSource').empty();
+            var table = $('#dtShowDataSource').DataTable({
+                lengthChange: false,
+                 info:false,
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetPeriodDatasourceLog","Compensation")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.payPeriodId = $('#hd_periodId').val();
+                    }
+                },
+                columnDefs: [{
+                    searchable: false,
+                    orderable: false,
+                    targets: 0
+                }],
+                columns: [
+                    { title: 'ลำดับ', data: null, orderable: false },
+                    { title: 'Data Source', data: 'DataSourceName' },
+                    { title: 'ชื่อผู้อนุมัติข้อมูล', data: 'ImportedByName' },
+                    {
+                        title: 'สถานะ',
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        render: (data) => {
+                            return data.Status+'<input type="hidden" id="dtsStatus_'+data.Datasource_Id+'" class="check_Status" value="'+data.Status_Id+'" />';
+                        }
+                    },
+                    { title: 'วิธีการนำเข้าข้อมูล', data: 'ImportedType'},
+                    {
+                        title: 'วันที่ส่งข้อมูล', data: 'ImportedDateTime',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY HH:mm:ss');
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    {
+                        title: 'ดำเนินการ',
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center col-sm-1',
+                        mRender: function (data) {
+                            if (data.Status_Id != "1") {
+                                return '<a type="button" class="btn btn-block btn-info" id="btnDownload_' + data.dtsId
+                                    + '" onclick="Download(\'' + data.DataSourceName + '\')" >Download <span class="fa fa-file"></span></a>';
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    }
+                ]
+            });
+            table.on('draw.dt', function () {
+                var PageInfo = $('#dtShowDataSource').DataTable().page.info();
+                table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                });
+            });
+        }
+        //Model tab
+        const CallPeriodModel = (periodId) => {
+           $('#dtShowModel').empty();
+            var table = $('#dtShowModel').DataTable({
+                lengthChange: false,
+                 info:false,
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetModelPeriod_DT","Configuration")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 9999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.periodId = $('#hd_periodId').val();
+                    }
+                },
+                columns: [
+                    { title: 'ลำดับ', data: 'No' },
+                    { title: 'Model List', data: 'ModelName' },
+                    {
+                        title: 'วันที่แก้ไข', data: 'UpdatedDate',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+
+                    { title: 'ผู้แก้ไขข้อมูล', data: 'UpdatedByName' },
+                    {
+                        title: 'ดำเนินการ',
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center col-sm-1',
+                        mRender: function (data) {
+                            return '<a class="btn btn-block btn-info" onclick="DownloadModel(\'' + data.ModelName + '\')" >Download <span class="fa fa-file"></span></a>';
+                        }
+                    }
+                ]
+            });
+        }
+        //Notification tab
+        const CallPeriodNotiForEdit = (periodId) => {
+            $('#dtShowNotiEdit').empty();
+            var table = $('#dtShowNotiEdit').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetNotifyLog","Compensation")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.periodId = periodId;
+                    }
+                },
+                columnDefs: [{
+                    searchable: false,
+                    orderable: false,
+                    targets: 0
+                }],
+                columns: [
+                    { title: 'ลำดับ', data: null, orderable: false },
+                    { title: 'Data Source', data: 'DataSourceName' },
+                    { title: 'ชื่อผู้แจ้งข้อมูล', data: 'EditByName' },
+                    { title: 'เหตุผล', data: 'EditCause' },
+                    { title: 'หมายเหตุ', data: 'EditRemark' },
+                    {
+                        title: 'วันที่แจ้งข้อมูล', data: 'EditDate',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY HH:mm:ss');
+                            } else {
+                                return '';
+                            }
+                        }
+                    }
+                ]
+            });
+            table.on('draw.dt', function () {
+                var PageInfo = $('#dtShowNotiEdit').DataTable().page.info();
+                table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                });
+            });
+        }
+
+        //Download func
+        const Download = (dtsName) => {
+
+            window.location = ('@Html.Raw(Url.Action("DownloadDts","Compensation"))?periodId='+$('#hd_periodId').val()+'&modelName='+dtsName) ;
+        }
+
+        const DownloadAll = () => {
+            window.location = ('@Html.Raw(Url.Action("DownloadAllDatasource","Compensation"))?periodId='+$('#hd_periodId').val());
+        }
+
+        const DownloadModel = (modelName) => {
+            // calculated model period
+            window.location = ('@Html.Raw(Url.Action("DownloadModel","Compensation"))?periodId=' + $('#hd_periodId').val() + '&modelName=' + modelName);
+            //window.location = ('@Html.Raw(Url.Action("DownloadModel","Compensation"))?periodId=1' + '&modelName=' + modelName);
+        }
+
+        const DownloadWithFunc = () => {
+            $.get('@Url.Action("GetDownloadWithFunctionLink")', { periodId: $('#hd_periodId').val() }, (data) => {
+                window.location = (data);
+            });
+        }
+
+        const loopInHiddenCheck = () => {
+            var resultList = new Array();
+            $('.check_Status').each((index, data)=>{
+                resultList.push(data.value);
+            });
+            console.log(resultList);
+            if ($.inArray("1", resultList) !== -1) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+    </script>
+}

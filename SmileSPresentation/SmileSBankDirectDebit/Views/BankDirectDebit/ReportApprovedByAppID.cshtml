@@ -1,0 +1,275 @@
+﻿@{
+    ViewBag.Title = "รับรองบัญชีแยกตาม AppID";
+}
+<div class="row">
+    @* Search form *@
+    <div class="col-sm-12" id="ReportSearch_form">
+        <div class="box box-default">
+            <div class="box-header">
+                <h3 class="box-title">ค้นหารายการ</h3>
+            </div>
+            <form action="/BankDirectDebit/ImportCheckApproved" enctype="multipart/form-data" id="upload_form" name="upload_form" method="post" novalidate="novalidate">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class=" col-sm-3">
+                            <label for="" class="control-label">เลือกสถานะการรับรอง : </label>
+                            <select class="form-control select2" tabindex="-1" aria-hidden="true" id="ddlStatus" name="ddlStatus">
+                                <option value="-1">ทั้งหมด</option>
+                                @foreach (var itm in ViewBag.CheckStatus)
+                                {
+                                    if (itm.BankDirectDebitStatusDisplayId == 2)
+                                    {
+                                        <option value="@itm.BankDirectDebitStatusDisplayId" selected>@itm.BankDirectDebitStatusDisplay</option>
+                                    }
+                                    else
+                                    {
+
+                                        <option value="@itm.BankDirectDebitStatusDisplayId">@itm.BankDirectDebitStatusDisplay</option>
+                                    }
+
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <div class="checkbox">
+                                    <label class="control-label">
+                                        <input type="checkbox" value="" name="selectAll" id="selectAll">
+                                    </label>
+                                    <label for="selectAll" class="control-label" id="xxx">ทั้งหมด</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" name="selectFormDate" id="selectFormDate">
+                                    </label>
+                                    <label for="selectFormDate" class="control-label">เลือกวันที่ : </label>
+                                    <label class="control-label">
+                                        <input type="text" class="form-control pull-right" name="DateFrom" id="DateFrom" data-provide="datepicker" placeholder="dd/mm/yyyy" />
+                                    </label>
+
+                                    <label for="selectFormDate" class="control-label">ถึงวันที่ : </label>
+                                    <label class="control-label">
+                                        <input type="text" class="form-control pull-right" name="DateTo" id="DateTo" required="required"
+                                               data-provide="datepicker" placeholder="dd/mm/yyyy">
+                                    </label>
+                                </div>
+                                <label class="control-label col-sm-offset-4 col-sm-3">
+                                    <button type="button" class="btn btn-block btn-success" id="btnExport">
+                                        <i class="fa fa-file-excel-o" style="margin-right:5px"></i>
+                                        Export
+                                    </button>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        var isCheck1 = false;
+        $(function () {
+            let dateFrom = $('#DateFrom').val();
+            $('#DateFrom').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+            //$('#DateTo').datepicker({ format: "dd/mm/yyyy", autoclose: true}).datepicker("setDate", new Date());
+
+            //default value
+            if ($('#ddlStatus').val() == "2") {
+                //$('#xxx').attr('style', 'color:#E2E4EA');
+                //$('#selectAll').attr('disabled', 'disabled');
+                //$('#selectFormDate').attr('disabled', 'disabled');
+                //$('#DateTo').attr('disabled', 'disabled');
+                $('#selectAll').iCheck('check');
+                $('#selectAll').removeAttr('disabled', 'disabled');
+                $('#selectFormDate').removeAttr('disabled', 'disabled');
+                //$('#xxx').attr('style', 'color:#E2E4EA');
+                $('#DateTo').attr('disabled', 'disabled');
+                $('#DateFrom').attr('disabled', 'disabled');
+
+                $("#selectFormDate").on('ifChanged', function () {
+                    isCheck = $(this).is(':checked');
+                    if (!isCheck) {
+                        $('#DateTo').attr('disabled', 'disabled');
+                        $('#DateFrom').attr('disabled', 'disabled');
+                        $('#xxx').removeAttr('style', 'color:#E2E4EA');
+                    } else {
+                        //$('#xxx').attr('style', 'color:#E2E4EA');
+                        $('#DateFrom').removeAttr('disabled', 'disabled');
+                        $('#DateTo').removeAttr('disabled', 'disabled');
+                    }
+                });
+            }
+
+            //check box อย่างน้อย 1 อัน
+            $("#selectAll").on('ifChanged', function () {
+                isCheck1 = $(this).is(':checked');
+                isCheck = $(this).is(':checked');
+                if (!isCheck) {
+                    $('#selectFormDate').iCheck('check');
+                    $('#selectAll').iCheck('uncheck');
+                } else {
+                    $('#selectAll').iCheck('check');
+                    $('#selectFormDate').iCheck('uncheck');
+                }
+            });
+
+            //check box อย่างน้อย 1 อัน
+            var isCheck2 = false;
+            $("#selectFormDate").on('ifChanged', function () {
+                isCheck = $(this).is(':checked');
+                if (!isCheck) {
+                    $('#selectAll').iCheck('check');
+                    $('#selectFormDate').iCheck('uncheck');
+                } else {
+                    $('#selectFormDate').iCheck('check');
+                    $('#selectAll').iCheck('uncheck');
+                }
+            });
+
+            $('#ddlStatus').change(function (e) {
+                e.preventDefault();
+                switch ($('#ddlStatus').val()) {
+                    //รับรอง
+                    case "1":
+                        $('#xxx').attr('style', 'color:#E2E4EA');
+                        $('#selectAll').attr('disabled', 'disabled');
+                        $('#selectFormDate').attr('disabled', 'disabled');
+                        $('#selectFormDate').iCheck('check');
+                        $('#DateTo').attr('disabled', 'disabled');
+                        $('#selectAll').iCheck('uncheck');
+
+                        $('#DateFrom').datepicker({ format: "dd/mm/yyyy", autoclose: true }).on('changeDate', function (ev) {
+                            //setValue DateTo = DateFrom
+                            $('#DateTo').val($('#DateFrom').val())
+                        }).datepicker("setDate", new Date());
+                        $('#DateTo').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+
+                        break;
+                    //ไม่รับรอง
+                    case "2":
+                        $('#selectAll').removeAttr('disabled', 'disabled');
+                        $('#selectFormDate').removeAttr('disabled', 'disabled');
+                        //$('#xxx').attr('style', 'color:#E2E4EA');
+                        $('#xxx').removeAttr('style', 'color:#E2E4EA');
+                        $('#DateTo').removeAttr('disabled', 'disabled');
+
+                        $('#DateFrom').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+                        //clear Value
+                        $('#DateTo').val('');
+                        //$('#DateTo').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+
+                        $("#selectFormDate").on('ifChanged', function () {
+                            isCheck = $(this).is(':checked');
+                            if (!isCheck) {
+                                $('#DateTo').attr('disabled', 'disabled');
+                                $('#DateFrom').attr('disabled', 'disabled');
+                                $('#xxx').removeAttr('style', 'color:#E2E4EA');
+                            } else {
+                                //$('#xxx').attr('style', 'color:#E2E4EA');
+                                $('#DateFrom').removeAttr('disabled', 'disabled');
+                                $('#DateTo').removeAttr('disabled', 'disabled');
+                            }
+                        });
+
+                        break;
+                    //ทั้งหมด
+                    default:
+                        $('#xxx').attr('style', 'color:#E2E4EA');
+                        $('#selectAll').attr('disabled', 'disabled');
+                        $('#selectFormDate').attr('disabled', 'disabled');
+                        $('#selectAll').iCheck('uncheck');
+                        $('#selectFormDate').iCheck('check');
+                        $('#DateTo').attr('disabled', 'disabled');
+
+                        $('#DateFrom').datepicker({ format: "dd/mm/yyyy", autoclose: true }).on('changeDate', function (ev) {
+                            //setValue DateTo = DateFrom
+                            $('#DateTo').val($('#DateFrom').val())
+                        }).datepicker("setDate", new Date());
+                        $('#DateTo').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+                        break;
+                }
+
+            });
+        })
+
+        //datepicker
+        var checkin = $('#DateFrom').datepicker({
+            format: "dd/mm/yyyy",
+        }).on('changeDate', function (ev) {
+
+            checkin.hide();
+            $('#DateTo')[0].focus();
+        }).data('datepicker');
+
+        var checkout = $('#DateTo').datepicker({
+            format: "dd/mm/yyyy",
+        }).on('changeDate', function (ev) {
+            checkout.hide();
+        }).data('datepicker');
+
+        $("#selectAll").on('ifChanged', function () {
+            return ($(this).is(':checked'));
+        });
+
+        //export
+        $('#btnExport').click(function (e) {
+            e.preventDefault();
+            var allCheck = ($("#selectAll").is(':checked'));
+            if ((!allCheck && $('#ddlStatus').val() == "2") && ($('#DateTo').val() == "" || $('#DateFrom').val() == "")){
+                swal("แจ้งเตือน", "กรุณาเลือกวันที่เริ่มต้น และสิ้นสุด !", "warning");
+                return false;
+            } else {
+                $('#btnExport').attr('disabled', 'disabled');
+                loadingSpinner('fadeIn');
+                ExportReport();
+            }
+        });
+
+        function ExportReport() {
+
+            $.ajax({
+                url: "@Url.Action("ExportReport", "BankDirectDebit")",
+                type: "GET",
+                data: {
+                    isCheck: isCheck1,
+                    bankDirectDebitStatus: $('#ddlStatus').val(),
+                    startDate: $('#DateFrom').val(),
+                    branchId : "-1",
+                    endDate: $('#DateTo').val(),
+                    byuser : false
+                },
+                success: function (data) {
+                    loadingSpinner('fadeOut');
+                    if (data.IsResult == false) {
+
+                        $('#btnExport').removeAttr('disabled', 'disabled');
+                        swal("ผลการค้นหา", data.Msg, "warning", function (e) {
+                            swal.close();
+                            return false;
+                        });
+                    } else {
+                        $('#btnExport').removeAttr('disabled', 'disabled');
+                        let reportName = "รายงานรับรองบัญชีแยกตาม AppID";
+                        window.location = `@Url.Action("Download", "BankDirectDebit")?reportName=${reportName}`;
+
+                    }
+                },
+                error: function (jqXHR, exception) {
+                    loadingSpinner('fadeOut');
+                    checkXHRStatus(jqXHR.status);
+                }
+            });
+        }
+    </script>
+}   

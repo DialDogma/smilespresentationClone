@@ -1,0 +1,237 @@
+﻿@{
+    ViewBag.Title = "MotorReportCheckAndNotApproveUnderwrite";
+    Layout = "~/Views/Shared/_LayoutForTopMotor.cshtml";
+}
+<head>
+    <style>
+        .datepicker-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+            .datepicker-wrapper input {
+                padding: 8px 35px 8px 10px;
+                width: 250px;
+                font-size: 14px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+
+            .datepicker-wrapper .fa-calendar-alt {
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #888;
+                pointer-events: none;
+            }
+
+        .note {
+            color: red;
+            font-size: 14px;
+            margin-top: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<div class="box box-header bg-aqua">
+    <center><span style="font-size:large;">ประกันรถยนต์</span></center>
+</div>
+
+@* search form *@
+
+<div class="box box-solid">
+    <div class="box box-header " style="background-color:#0A5769;color:aliceblue">
+        <center><span style="font-size:large;">รายงาน</span></center>
+    </div>
+    <div class="box-body">
+        <div class="form-group row">
+            <div class="form-group row" style="text-align:center">
+                <div class="col-sm-12 col-md-offset-1 col-md-10">
+                    <label style="margin-right:10px" for="datepickerFrom">จากรอบความคุ้มครอง:</label>
+                    <div class="datepicker-wrapper">
+                        <input type="text" id="datepickerFrom" placeholder="------กรุณาเลือก------" readonly>
+
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-md-offset-1 col-md-10" style="margin-top:20px">
+                    <label style="margin-right:15px" for="datepickerTo">ถึงรอบความคุ้มครอง:</label>
+                    <div class="datepicker-wrapper">
+                        <input type="text" id="datepickerTo" placeholder="------กรุณาเลือก------" readonly>
+                    </div>
+                </div>
+            </div>
+            <p class="note">
+
+                * Ex. รอบการตรวจสอบเริ่มจากวันที่ 23 - 22 เช่น รอบการตรวจสอบเดือน ม.ค (23/12/2568 - 22/01/2569)
+
+            </p>
+            <div class="row" style="align-self:center">
+                <div class="col-sm-12 col-md-12" id="Download_form">
+                    <div class="form-group row">
+                        <div class="box-header">
+                            <h4 class="text-center">รายงานตรวจสอบการคัดกรอง</h4>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-offset-4 col-md-4 " style="">
+                            <button type="button" id="btnDownload1" class="btn btn-block btn-success" onclick="getDownloadLink('pass')">Export to Excel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12 col-md-12" id="Download2_form" hidden>
+                    <div class="form-group row">
+                        <div class="box-header">
+                            <h4 class="text-center">รายงานติดเงื่อนไข/ไม่ผ่านอนุมัติจากฝ่ายรับประกัน</h4>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-offset-4 col-md-4 " style="">
+                            <button type="button" id="btnDownload2" class="btn btn-block btn-success" onclick="getDownloadLink('notPass')">Export to Excel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@* end form *@
+
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        $(function () {
+       const today = new Date();
+const oneYearAgo = new Date();
+const oneYearAhead = new Date();
+
+oneYearAgo.setFullYear(today.getFullYear() - 1);
+oneYearAhead.setFullYear(today.getFullYear() + 1);
+
+// สร้าง period จาก ViewBag แล้วแปลงให้เป็น Date
+const thaiDateStr = `@ViewBag.PeriodList`; // "01/04/2568"
+const parts = thaiDateStr.split('/');
+
+// แปลงเป็น ค.ศ.
+const day = parseInt(parts[0], 10);
+const month = parseInt(parts[1], 10) - 1; // เดือนใน JS เริ่มจาก 0
+const year = parseInt(parts[2], 10) - 543; // พ.ศ. - 543 = ค.ศ.
+
+const period = new Date(year, month, day);
+
+// เอาไปตั้งค่าใน datepicker
+const fromDate = new Date(period);
+fromDate.setDate(parseInt(`@ViewBag.changePeriodDay`));
+
+const toDate = new Date(period);
+            toDate.setMonth(toDate.getMonth() + 1);
+            toDate.setDate(parseInt(`@ViewBag.changePeriodDay`)-1);
+
+// กำหนดค่าให้กับ datepicker
+$("#datepickerFrom").datepicker({
+    format: 'dd/mm/yyyy',
+    autoclose: true,
+    todayHighlight: true,
+    startDate: oneYearAgo,
+    endDate: oneYearAhead
+}).datepicker('setDate', fromDate);
+
+$("#datepickerTo").datepicker({
+    format: 'dd/mm/yyyy',
+    autoclose: true,
+    todayHighlight: true,
+    startDate: oneYearAgo,
+    endDate: oneYearAhead
+}).datepicker('setDate', toDate);
+            if (`@ViewBag.Report`!= 'NotInsureClose') {
+                $('#Download2_form').show();
+            }
+
+        });
+
+        function getDownloadLink(typeReport) {
+            if (typeReport == "pass") {
+                loadingSpinner('fadeIn', 999999);
+                $.ajax({
+                    url: "@Url.Action("MotorAuditInsureReportCheckPeriod", "MotorReportV2")",
+                    type: "POST",
+                    data: {
+                        dateFrom: $("#datepickerFrom").val(),
+                        dateTo: $("#datepickerTo").val(),
+                    },
+                    success: function (data) {
+                          if (data.IsResult == false) {
+                            loadingSpinner('fadeOut');
+                            swal("ผลการค้นหา", data.Msg, "warning", function (e) {
+                                swal.close();
+                                return false;
+                            });
+                          } else {
+                              let reportName = "รายงานตรวจสอบการคัดกรอง";
+                            window.location = `@Url.Action("Download", "MotorReportV2")?reportName=${reportName}`;
+                            loadingSpinner('fadeOut');
+                        }
+                    },
+                     error: function (jqXHR, exception) {
+                         checkXHRStatus(jqXHR.status);
+                         loadingSpinner('fadeOut');
+                     }
+                });
+
+
+
+            } else if (typeReport == "notPass") {
+                loadingSpinner('fadeIn', 999999);
+                $.ajax({
+                    url: "@Url.Action("MotorAuditInsureCloseReport", "MotorReport")",
+                    type: "POST",
+                    data: {
+                        dateFrom: $("#datepickerFrom").val(),
+                        dateTo: $("#datepickerTo").val(),
+                    },
+                    success: function (data) {
+                          if (data.IsResult == false) {
+                            loadingSpinner('fadeOut');
+                            swal("ผลการค้นหา", data.Msg, "warning", function (e) {
+                                swal.close();
+                                return false;
+                            });
+                          } else {
+                              let reportName = "รายงานติดเงื่อนไข/ไม่ผ่านอนุมัติจากฝ่ายรับประกัน";
+                            window.location = `@Url.Action("Download")?reportName=${reportName}`;
+                            loadingSpinner('fadeOut');
+                        }
+                    },
+                     error: function (jqXHR, exception) {
+                         checkXHRStatus(jqXHR.status);
+                         loadingSpinner('fadeOut');
+                     }
+                });
+            }
+        }
+        function checkXHRStatus(xhrStatus) {
+           var msg = '';
+              if (xhrStatus === 0) {
+                  msg = 'Not connect.\n Verify Network.';
+              } else if (jqXHR.status == 404) {
+                  msg = 'Requested page not found. [404]';
+              } else if (jqXHR.status == 500) {
+                  msg = 'Internal Server Error [500].';
+              } else if (exception === 'parsererror') {
+                  msg = 'Requested JSON parse failed.';
+              } else if (exception === 'timeout') {
+                  msg = 'Time out error.';
+              } else if (exception === 'abort') {
+                  msg = 'Ajax request aborted.';
+              } else {
+                  msg = 'Uncaught Error.\n' + jqXHR.responseText;
+            }
+            swal("ไม่สำเร็จ", msg, "error");
+        }
+    </script>
+}

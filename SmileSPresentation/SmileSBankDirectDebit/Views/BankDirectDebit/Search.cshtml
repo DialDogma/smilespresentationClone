@@ -1,0 +1,493 @@
+﻿@{
+    ViewBag.Title = "ค้นหาข้อมูล";
+
+}
+<style>
+    .modal-dialog {
+        margin-top: 0;
+        margin-bottom: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .modal.fade .modal-dialog {
+        transform: translate(0, -100%);
+    }
+
+    .modal.in .modal-dialog {
+        transform: translate(0, 0);
+    }
+</style>
+
+<form action="@Url.Action("Search")" method="post">
+    <div class="row">
+        @* search form *@
+        <div class="col-sm-12" id="Search_form">
+            <div class="box box-default">
+                <div class="box-header">
+                    <h3 class="box-title">ค้นหา</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-4">
+                            <label for="select_bank" class="control-label">ธนาคาร</label>
+                            <select class="form-control select2" name="select_bank" id="select_bank">
+                                <option value="">--ทั้งหมด--</option>
+                                @foreach (var item in ViewBag.BankId)
+                                {
+                                    <option value="@item.TempCode">@item.OrganizeDetail</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-4">
+                            <label for="txtBankAccNo" class="control-label">เลขที่บัญชีธนาคาร</label>
+                            <input class="form-control" type="text" name="txtBankAccNo" id="txtBankAccNo" />
+                        </div>
+                        <div class="col-sm-4">
+                            <label for="txtBankAccName" class="control-label">ชื่อบัญชีธนาคาร</label>
+                            <input class="form-control" type="text" name="txtBankAccName" id="txtBankAccName" />
+                        </div>
+                        <div class="col-sm-offset-1 col-sm-2" style="padding-top: 26px">
+                            <button class="btn btn-block btn-info" id="btnSearch">ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* datatable *@
+        <div class="col-sm-12" id="DataTable_form">
+            <div class="box box-default">
+                <div class="box-header">
+                    <h3 class="box-title">รายการ</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtAccDetail" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @*<input id="Button1" type="button" value="button" data-toggle="modal" data-target=".bd-example-modal-lg" />*@
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade bd-example-modal-lg" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog  modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">รายละเอียด</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-2" style="text-align:right">
+                                เลขที่บัญชีธนาคาร :
+                            </div>
+                            <div class="col-sm-3">
+                                <label class="control-label" id="lblAccount" name="lblAccount" style="color:forestgreen"></label>
+                            </div>
+                            <div class="col-sm-2" style="text-align:right">
+                                ชื่อบัญชีธนาคาร :
+                            </div>
+                            <div class="col-sm-3 ">
+
+                                <label class="control-label" id="lblAccountName" name="lblAccountName" style="color:forestgreen"></label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-2" style="text-align:right">
+                                ธนาคาร :
+                            </div>
+                            <div class="col-sm-3">
+                                <label class="control-label" id="lblBank" name="lblBank" style="color:forestgreen"></label>
+                            </div>
+                            <div class="col-sm-2" style="text-align:right">
+                                วันที่ลูกค้าสมัคร :
+                            </div>
+                            <div class="col-sm-3 ">
+
+                                <label class="control-label" id="lblBankDate" name="lblBankDate" style="color:forestgreen"></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <table id="dtDetail" class="table table-bordered table-striped dataTable" style="width:100%"></table>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    @*<button type="submit" class="btn btn-primary">Submit</button>*@
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consent Modal -->
+    <div class="modal fade bd-example-modalConsent-lg" id="modalConsent" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog  modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">ประวัติการรับรองบัญชี</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <table id="dtConsentDetail" class="table table-bordered table-striped dataTable" style="width:100%"></table>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            //debugger;
+            //$('#txtBankAccNo').inputmask('999-9-99999-9', { 'clearIncomplete': true });
+            $('#select_bank').select2();
+            $("#btnSearch").click(function (e) {
+                e.preventDefault();
+                //alert("Handler for .click() called.");
+                GetDTHeader();
+            });
+
+        })
+
+        //GetDTHeader
+        function GetDTHeader()
+        {
+             $('#dtAccDetail').empty();
+             var table = $('#dtAccDetail').DataTable({
+                 pageLength: 10,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                 destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetDDebitMonitor")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = "UpdatedDate";
+                        d.orderType = 'desc';
+                        d.search = d.search.value;
+                        d.bankId = $("#select_bank").val();
+                        d.AccountNo = $("#txtBankAccNo").val();
+                        d.AccountName = $("#txtBankAccName").val();
+
+                    }
+                },
+                columns: [
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        //data: 'QueueId',
+
+                        data: null,
+                        title: 'เลขที่บัญชีธนาคาร',
+                        mRender: function (t) {
+                            return '<a onclick="GetDetail(\'' + t.AccountNo + '\', \'' + t.BankId + '\');"  data-toggle="modal" data-target=".bd-example-modal-lg" class="btn btn-info" >' + t.AccountNo + '</a>';
+
+                        }
+                    },
+                    { title: 'ชื่อบัญชีธนาคาร', data: 'AccountName' },
+                    { title: 'ธนาคาร', data: 'Bank' },
+                    {
+                        title: 'สถานะการตรวจสอบหนังสือยินยอม', data: null,
+                        className: 'dt-center',
+                        mRender: function (d) {
+                            if (d.StatusId == "0" || d.StatusId == "9") {
+                                return '<span class="label label-success" style="font-size: 15px;">' + d.Status + '</span>';
+                            }
+                            //else if (d.Status_ID == 9) {
+                            //    return '<span class="label label-danger">' + d.Status + '</span>';
+                            //}
+                            else {
+                                return '<span class="label label-danger" style="font-size: 15px;">' + d.Status + '</span>';
+                            }
+                        }
+                    },
+                    {
+                        title: 'หมายเหตุ',
+                        data: 'CauseText',
+                        className: 'dt-center',
+                        mRender: function (data) {
+                            if (data != null) {
+                                return '<span class="text" style="line-break: anywhere; text-align: left;">' + data + '</span>';
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    {
+                        title: 'วันที่นำเข้าไฟล์',
+                        //data: 'CreatedDate',
+                        data: 'UpdatedDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+
+                    {
+                        title: 'วันที่ลูกค้าสมัคร',
+                        data: 'ApplyDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                 return '';
+                            }
+                        }
+                    },
+
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        //data: 'QueueId',
+
+                        data: null,
+                        title: 'รายละเอียด',
+                        mRender: function (t) {
+                            return '<a onclick="GetConsentDetail(\'' + t.BankDirectDebitId + '\');" data-toggle="modal" data-target=".bd-example-modalConsent-lg" class="btn sbold green" ><i class="fa fa-eye"></i></a>';
+                        }
+                    },
+                    //{ title: 'จำนวนงานที่รอดำเนินการ', data: 'รอดำเนินการ' },
+                    //{ title: 'จำนวนงานที่ปิดคิวงาน', data: 'ปิดคิวงาน' },
+                    //{ title: 'จำนวนงานที่ยกเลิกคิวงาน', data: 'ยกเลิกคิวงาน' }
+                    //{ title: 'test', render: function () { return '<input type="checkbox" disabled>'; }}
+
+                ]
+            });
+        }
+
+        function GetDetail(AccountNo, BankId) {
+            //GetDetailById
+            GetDetailById(AccountNo, BankId);
+            //GetDTDetail
+            GetDTDetail(AccountNo, BankId);
+        }
+
+        function GetDetailById(AccountNo, BankId)
+        {
+            $.ajax({
+
+                type: 'GET',
+                url: '@Url.Action("GetBankDirectDeibitDatailByAccountNo","BankDirectDebit")',
+                dataType: 'json',
+                data: { AccountNo: AccountNo, BankId: BankId },
+                success: function (data) {
+                    //debugger;
+                    //$('#hdfUserId').val(data);
+                    $('#lblAccount').text(data.AccountNo);
+                    $('#lblAccountName').text(data.AccountName);
+                    $('#lblBank').text(data.Bank);
+                    $('#lblBankDate').text(DisplayJsonDateBE(data.ApplyDate));
+                    //alert(data);
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail');
+                }
+
+            });
+        }
+
+        //GetDTDetail
+        function GetDTDetail(AccountNo, BankId)
+        {
+            $('#dtDetail').empty();
+            var table = $('#dtDetail').DataTable({
+                 pageLength: 4,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                 lengthChange: false,
+                 destroy: true,
+                 searching: false,
+                ajax: {
+                    url: '@Url.Action("GetDDebitDetail")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.bankId = BankId;
+                        d.AccountNo = AccountNo;
+
+                    }
+                },
+                columns: [
+                    { title: 'Application', data: 'ApplicationCode' },
+                    { title: 'ผู้เอาประกัน', data: 'CustName' },
+                    { title: 'แผน', data: 'ProductName' },
+                    { title: 'เบี้ย', data: 'Premium' },
+
+                    {
+                        title: 'วันที่เริ่มคุ้มครอง',
+                        data: 'StartCoverDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            return moment(data).format('DD/MM/YYYY');
+                        }
+                    },
+                    { title: 'ผู้ชำระเบี้ย', data: 'PayerName' },
+                    { title: 'เจ้าของผลงาน', data: 'SaleEmployeeName' },
+                    //{ title: 'สาขาผู้ชำระเบี้ย', data: 'PayerBranch' },
+                    //{ title: 'สถานะ', data: 'AppStatus' },
+                    {
+                        title: 'สถานะ', data: null,
+                        className: 'dt-center',
+                        mRender: function (d) {
+                            //if (d.AppStatusId == "3090") {
+                            //    return '<span class="label label-danger" style="font-size: 15px;">' + d.AppStatus + '</span>';
+                            //}
+                            //else if (d.Status_ID == 9) {
+                            //    return '<span class="label label-danger">' + d.Status + '</span>';
+                            //}
+                            //else {
+                            return '<span style="font-size: 15px; text-align: left; float: left;">' + d.ApplicationStatus + '</span>';
+                            //}
+                        }
+                    }
+                ]
+            });
+        }
+
+        //GetConsentDetail
+        function GetConsentDetail(id) {
+            //GetConsentDetailById
+            GetConsentDetailById(id);
+
+        }
+
+        function GetConsentDetailById(id)
+        {
+            $('#dtConsentDetail').empty();
+            var table = $('#dtConsentDetail').DataTable({
+                 pageLength: 4,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                 lengthChange: false,
+                destroy: true,
+                "searching": false,
+                "filter": false,
+                ajax: {
+                    url: '@Url.Action("GetBankConsentDatailByAccountNo")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.BankDirectDebitId = id;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ประเภทการรับรอง',
+                        data: 'BankDirectDebitLogTypeName',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return data;
+                            } else {
+                                return '-';
+                            }
+                        }
+                    },
+                    {
+                        title: 'วันที่ทำรายการ',
+                        data: 'CreatedDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY HH:mm:ss');
+                            } else {
+                                return '-';
+                            }
+                        }
+                    },
+                    {
+                        title: 'วันที่ลูกค้าสมัคร',
+                        data: 'ApplyDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '-';
+                            }
+                        }
+                    },
+                    { title: 'ช่องทางการสมัคร', className: 'dt-center', data: 'Register' },
+                    { title: 'ผู้ทำรายการ', className: 'dt-center', data: 'PersonName' },
+                    {
+                        title: 'สถานะ', data: null,
+                        className: 'dt-center',
+                        mRender: function (d) {
+                            if (d.BankDirectDebitStatusId == "0") {
+                                return '<span class="label label-success" style="font-size: 15px;">' + 'รับรอง' + '</span>';
+                            }
+                            else {
+                                return '<span class="label label-danger" style="font-size: 15px;">' + 'ไม่รับรอง' + '</span>';
+                            }
+                        }
+                    },
+                    {
+                        title: 'หมายเหตุ',
+                        data: 'Remark',
+                        className: 'dt-center',
+                        mRender: function (data) {
+                            if (data != null) {
+                                return '<span class="text" style="line-break: anywhere; text-align: left;">' + data + '</span>';
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    //{ title: 'หมายเหตุ', className: 'dt-center', data: 'Remark' },
+                ],
+            });
+        }
+
+
+    </script>
+}

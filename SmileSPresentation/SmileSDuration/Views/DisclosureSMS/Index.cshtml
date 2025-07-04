@@ -1,0 +1,222 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutNoTitle.cshtml";
+}
+<div class="row">
+    <div class="col-md-12">
+        <div id="div_box_onprocess" style="cursor: pointer" class="col-lg-4 col-xs-4">
+            <!-- small box -->
+            <div class="small-box bg-blue">
+                <div class="inner">
+                    <p><h4>ทั้งหมด</h4></p>
+                    <span id="data_send_all" style="font-size: 30px"></span>
+                </div>
+                <div class="icon">
+                    <i class="fa fa-users"></i>
+                </div>
+            </div>
+        </div>
+        <!-- ./col -->
+        <div id="div_box_over" style="cursor: pointer" class="col-lg-4 col-xs-4">
+            <!-- small box -->
+            <div class="small-box bg-green">
+                <div class="inner">
+                    <p><h4>ส่งแล้ว</h4></p>
+                    <span id="data_send_success" style="font-size: 30px"></span>
+                </div>
+                <div class="icon">
+                    <i class="fa fa-check-circle"></i>
+                </div>
+            </div>
+        </div>
+        <!-- ./col -->
+        <div id="div_box_complete" style="cursor: pointer" class="col-lg-4 col-xs-4">
+            <!-- small box -->
+            <div class="small-box bg-yellow">
+                <div class="inner">
+                    <p><h4>รอดำเนินการ</h4></p>
+                    <span id="data_send_onprocess" style="font-size: 30px"></span>
+                </div>
+                <div class="icon">
+                    <i class="fa fa-share-square"></i>
+                </div>
+            </div>
+        </div>
+        <!-- ./col -->
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="box">
+            <div class="box-body">
+                <div class="col-sm-12 col-md-12">
+                    <div class="box box-solid">
+                        <div class="row" style="background-color: #f7f7f7; text-align: left; padding: 5px 5px; margin-top: 0;">
+                            <div class="col-sm-12">
+                                <h4 style="font-size: 20px; font-weight: bold;">ข้อมูลคิวที่ต้องส่ง SMS</h4>
+                                <hr />
+                            </div>
+                            <div class="form-group col-md-12 col-sm-12">
+                                <div class="col-md-4">
+                                    <label class="title1"><span style="color: red">*</span>เลือกจำนวนข้อมูลที่ต้องการส่ง</label>
+                                    <select id="select_top" style="width: 100%" class="form form-control">
+                                        <option value="100">100</option>
+                                        <option value="300">300</option>
+                                        <option value="500">500</option>
+                                        <option value="1000">1000</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2" style="margin-top: 25px">
+                                    <button id="btn_show" style="width: 100%" class="form-control btn btn-warning">แสดงรายการ</button>
+                                </div>
+                                <div class="col-md-2" style="margin-top: 25px">
+                                    <button id="btn_preview" style="width: 100%" class="form-control btn btn-info" disabled="disabled">ดูตัวอย่าง</button>
+                                </div>
+                                <div class="col-md-offset-2 col-md-2" style="margin-top: 25px">
+                                    <button id="btn_send" style="width: 100%" class="form-control btn btn-success" disabled="disabled"><i class="fa fa-paper-plane"></i>ส่งข้อความ</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-12">
+                    <input id="hidden_tempHeaderId" type="hidden" value="@ViewBag.TempImportHeaderID" />
+                    <table id="datatable_detail" class="table table-bordered table-striped" style="width: 100%"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section ViewSpecificJavascript
+{
+    <script>
+        var tempId;
+        $(function () {
+            getCount();
+            $('#btn_show').click(function (e) {
+                e.preventDefault();
+                loadingSpinner('fadeIn');
+                getData($('#select_top').val());
+            });
+
+            $('#btn_preview').click(function (e) {
+                e.preventDefault();
+                previewSMS();
+            });
+
+            $('#btn_send').click(function (e) {
+                e.preventDefault();
+                swal_confirm('ยืนยันการส่งข้อความหรือไม่?', '', function () {
+                    sendSMS();
+                });
+
+            });
+
+            $('#select_top').change(function (e) {
+                e.preventDefault();
+                isDisabled(true);
+            });
+        });
+
+        /*serverside = false*/
+        const loadDatatable = (data) => {
+            $('#datatable_detail').empty();
+            $('#datatable_detail').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: false,
+                responsive: false,
+                destroy: true,
+                lengthChange: false,
+                searching: false,
+                info: true,
+                paging: true,
+                ordering: false,
+                data: data,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                columns: [
+                    {
+                        title: 'ID',
+                        data: 'RefNo',
+                        width: '5%',
+                        className: 'h-dt-center d-dt-center',
+                        orderable: false
+                    },
+                    {
+                        title: 'เบอร์',
+                        data: 'MobilePhoneNo',
+                        width: '15%',
+                        className: 'h-dt-center d-dt-center',
+                        orderable: false
+                    },
+                    {
+                        title: 'App',
+                        data: 'AppID',
+                        width: '15%',
+                        className: 'h-dt-center d-dt-center',
+                        orderable: false
+                    },
+                    {
+                        title: 'ข้อความ',
+                        data: 'Message',
+                        width: '70%',
+                        className: 'h-dt-center',
+                        orderable: false
+                    }
+                ]
+            });
+        }
+
+        const getData = (top) => {
+            /*get detail*/
+            $.get("@Url.Action("GetDatatables_Detail")",
+                { top: top },
+                (data) => {
+                    if (data != null) {
+                        tempId = data[0].TempImportHeaderID;
+                        loadDatatable(data);
+                        loadingSpinner('fadeOut');
+                        isDisabled(false);
+                    }
+                });
+        }
+
+        const getCount = () => {
+            /*get count*/
+            $.get("@Url.Action("DisclosureSMSDetail_CountSentSMS")",
+                (data) => {
+                    if (data != null) {
+                        $('#data_send_all').text(data.ALL);
+                        $('#data_send_success').text(data.SentSMS);
+                        $('#data_send_onprocess').text(data.UnSentSMS);
+                    }
+                });
+        }
+
+        const sendSMS = () => {
+            /*get count*/
+            $.get("@Url.Action("SubmitToSendSMS")", { tempHeaderId: tempId },
+                (data) => {
+                    if (data) {
+                        swal_success(function () {
+                            window.location.reload();
+                        });
+                    } else {
+                        swal_fail(function () {
+                            window.location = "@Url.Action("InternalServerError","Error")";
+                        });
+                    }
+                });
+        }
+
+        const previewSMS = () => {
+            window.location.href = `@Url.Action("PreviewDisclosureSMS")?tempHeaderId=${tempId}`;
+        }
+
+        const isDisabled = (bool) => {
+            $('#btn_preview').attr('disabled', bool);
+            $('#btn_send').attr('disabled', bool);
+        }
+    </script>
+}

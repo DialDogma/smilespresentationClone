@@ -1,0 +1,132 @@
+﻿@using SmileSUnderwriteAudit.Models
+@{
+
+    var userDetail = SmileSUnderwriteAudit.Helper.GlobalFunction.GetLoginDetail(Context);
+
+}
+<header class="main-header">
+    <nav class="navbar navbar-static-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a href="@Url.Action("Index", "Portal")" class="navbar-brand"><b>Smile</b>UnderwriteAudit</a>
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse">
+                    <i class="fa fa-bars"></i>
+                </button>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse pull-left" id="navbar-collapse">
+                <ul class="nav navbar-nav">
+                    @* Start Menu *@
+                    @{var username = userDetail.UserName;
+                        if (username != null)
+                        {
+                            //Get menu by roles
+                            var menus = MenuRoles.GetMenuByUserName(userDetail.UserName, userDetail.Branch_ID);
+
+                            var parentMenus = menus.ToList().Where(x => x.MainMenuId == 0);
+
+                            //Load Parent Menu Level 0
+                            foreach (var parent in parentMenus)
+                            {
+                                //Get Child Level 1
+                                var lstLevel1 = menus.ToList().Where(x => x.MainMenuId == parent.MenuId).OrderBy(x => x.SortOrder);
+
+                                if (!lstLevel1.Any())
+                                {
+                                    //Render Parent without children (as a menu)
+                                    if (!string.IsNullOrEmpty(parent.QueryString))
+                                    {
+
+                                    }
+                                    <li><a href="@Url.Action(parent.Action, parent.Controller)@parent.QueryString"><i class="@parent.IconClassMenu"></i> <span>@parent.Detail</span></a></li>
+                                }
+                                else
+                                {
+                                    //Render Parent with children
+                                    <li class="dropdown">
+                                        <a href="#" class="dropdown-toggle @parent.IconClassMenu" data-toggle="dropdown" aria-expanded="false">@parent.Detail<span class="caret"></span></a>
+                                        <ul class="dropdown-menu" role="menu">
+                                            @*<li><a href="#">dropdown-menu 2</a></li>
+                                                <li class="divider"></li>
+                                                <li><a href="#">dropdown-menu 3</a></li>*@
+
+                                            @foreach (var Item1 in lstLevel1)
+                                            {
+                                                //Get list level 2
+                                                var lstLevel2 = menus.ToList().Where(x => x.MainMenuId == Item1.MenuId).OrderBy(x => x.SortOrder);
+
+                                                if (lstLevel2.Any())
+                                                {
+                                                    //Has Level 2
+                                                    <li class="dropdown">
+                                                        <a href="#" class="dropdown-toggle @Item1.IconClassMenu" data-toggle="dropdown" aria-expanded="false">@Item1.Detail<span class="caret"></span></a>
+
+                                                        <ul class="treeview-menu">
+                                                            @foreach (var Item2 in lstLevel2)
+                                                            {
+                                                                //Render level 2
+                                                                <li><a href="@Url.Action(Item2.Action, Item2.Controller)@Item2.QueryString">@Item2.Detail</a></li>
+                                                            }
+                                                        </ul>
+                                                    </li>
+                                                }
+                                                else
+                                                {
+                                                    //No level 2
+                                                    //Render level 1
+                                                    <li><a href="@Url.Action(Item1.Action, Item1.Controller)@Item1.QueryString">@Item1.Detail</a></li>
+                                                }
+                                            }
+                                        </ul>
+                                    </li>
+                                }
+                            }
+                        }
+                    }
+                    @* END Menu *@
+                </ul>
+            </div>
+
+            <!-- /.navbar-collapse -->
+            <!-- Navbar Right Menu -->
+            <div class="navbar-custom-menu">
+                <ul class="nav navbar-nav">
+
+                    <!-- User Account Menu -->
+                    <li class="dropdown user user-menu">
+                        <!-- Menu Toggle Button -->
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <!-- The user image in the navbar-->
+                            @*<img src="#" class="user-image" alt="User Image">*@
+                            <!-- hidden-xs hides the username on small devices so only the image appears. -->
+                            <span class="hidden-sm hidden-md hidden-lg user-image"><i class="fa fa-user-circle"></i></span>
+                            <span class="hidden-xs">[@userDetail.UserName] @(userDetail.FirstName) @userDetail.LastName</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <!-- The user image in the menu -->
+                            <li class="user-header" style="height: auto !important">
+                                @*<img src="#" class="img-circle" alt="User Image">*@
+                                <p>
+                                    @userDetail.EmployeePositionDetail
+                                    <br />
+                                    @userDetail.DepartmentDetail
+                                </p>
+                            </li>
+                            <!-- Menu Footer-->
+                            <li class="user-footer">
+                                <div class="pull-left">
+                                    <a href="@SmileSUnderwriteAudit.Properties.Settings.Default.ChangePasswordURL" class="btn btn-default btn-flat" target="_blank">เปลี่ยนรหัสผ่าน</a>
+                                </div>
+                                <div class="pull-right">
+                                    <a href="@Url.Action("Logout", "Auth")" class="btn btn-default btn-flat">ออกจากระบบ</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-custom-menu -->
+        </div>
+        <!-- /.container-fluid -->
+    </nav>
+</header>

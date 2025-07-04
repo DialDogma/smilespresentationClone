@@ -1,0 +1,317 @@
+﻿@model IEnumerable<SmileSClaimPayBack.ViewModels.ApproveMonitorDetail>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    decimal total = 0;
+}
+<div id="ribbon">
+    <ol class="breadcrumb" style="background-color:#ecf0f5; font-size:25px;">
+        <li><a href="javascript:void(0)" class="btnBack">Monitor - อนุมัติตอบกลับบริษัทประกัน</a></li>
+        <li>@ViewBag.BillingRequestGroupCode</li>
+    </ol>
+</div>
+
+@{
+    if (Model.Count() > 0)
+    {
+        if (Model.FirstOrDefault().StatusId != 4)
+        {
+
+            <div class="col-sm">
+                <div class="box box-primary" style="margin-top:0.8%;border-color:#167fb8">
+                    <div class="box-body">
+                        <div class="box-body">
+                            <div class="col-lg-3 col-sm-12">
+                                <div style="display:flex; width:50%; padding-top:20px">
+                                    <input type="checkbox" name="allSelect" id="allSelect" />
+                                    <p style="margin-left:10px">เลือกทั้งหมด</p>
+
+                                </div>
+                                <div style="display:flex; width:100%;">
+                                    <p style="color:red">หมายเหตุ: เลือกปฏิเสธรายการทั้งหมด</p>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-sm-12" style=" padding-top:15px;">
+                                <input type="hidden" id="selectAll" />
+                                <select multiple name="reasonMastersSelectAll" id="reasonMastersSelectAll" class="reasonMastersSelectAll select2" style="width:100%;">
+                                    @{
+                                        foreach (var item in ViewBag.Reason)
+                                        {
+                                            <option value="@item.ClaimPayBackReasonId">@item.ClaimPayBackReasonName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-lg-3 col-sm-12"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="col-sm">
+            <div class="box box-primary" style="margin-top:0.8%;border-color:#167fb8">
+                <div class="box-header with-border">
+                    <h3 class="box-title"> รหัสรายการ: @ViewBag.BillingRequestGroupCode</h3>
+                </div>
+                <div class="box-body">
+                    <div class="box-body">
+                        <form name="formApprove" id="formApprove">
+                            <div class="col-sm-12">
+
+                                <table id="dtOut2ApproveDetail" class="table table-bordered dataTable table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ลำดับ</th>
+                                            <th>รายการ</th>
+                                            <th>BillingRequestItem</th>
+                                            <th>เลขที่เคลม</th>
+                                            <th>วันที่ชำระ</th>
+                                            <th>ยอดชำระ</th>
+                                            <th>บัญชีผู้รับ</th>
+                                            <th>หมายเหตุ</th>
+                                            <th>@(Model.FirstOrDefault().StatusId != 4 ? "ระบุสาเหตุ" : "สาเหตุการปฏิเสธ")</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{
+                                            int countRows = 1;
+                                            foreach (var get in Model.ToList())
+                                            {
+                                                <tr>
+                                                    <td class="text-center">@countRows.</td>
+                                                    <td>@get.ClaimHeaderGroupCode</td>
+                                                    <td>@get.BillingRequestItem</td>
+                                                    <td>@get.ClaimCode</td>
+                                                    <td>@get.PaymentDate</td>
+                                                    <td class="text-right" style="width:100px;">@get.Amount.ToString("N")</td>
+                                                    <td>@get.AccountDetail</td>
+                                                    <td>@get.Remark</td>
+                                                    <td style="text-align:left">
+                                                        @{
+                                                            if (get.StatusId == 4)
+                                                            {
+                                                                @(get.ReasonDetail == "" ? "-" : get.ReasonDetail)
+                                                            }
+                                                            else
+                                                            {
+                                                                <select multiple name="reasonMasters" id="reasonMasters" class="reasonMasters select2" style="width:100%" data-id="@get.TmpBillingRequestResultId">
+
+                                                                    @{
+                                                                        foreach (var item in ViewBag.Reason)
+                                                                        {
+                                                                            <option value="@item.ClaimPayBackReasonId">@item.ClaimPayBackReasonName</option>
+                                                                        }
+                                                                    }
+
+                                                                </select>
+                                                            }
+                                                        }
+
+                                                        <input type="hidden" name="id[]" id="id" value="@get.TmpBillingRequestResultId" />
+                                                        <input type="hidden" name="isAll" id="isAll" value="false" />
+                                                        <input type="hidden" name="tempCode" id="tempCode" value="@ViewBag.tempCode" />
+                                                        <input type="hidden" name="reasonMaster[]" class="reasonMaster-@get.TmpBillingRequestResultId" id="reasonMaster" value="" />
+                                                        <input type="hidden" name="BillingRequestGroupCode" id="BillingRequestGroupCode" value="@ViewBag.BillingRequestGroupCode" />
+                                                    </td>
+                                                </tr>
+                                                total += get.Amount;
+                                                countRows++;
+                                            }
+
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="5" style="text-align:right"> <strong>รวม:</strong> </td>
+                                            <td style="text-align:right">@total.ToString("N")</td>
+                                            <td colspan="3"></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+
+                            </div>
+                            <div class="col-sm-12 " style="text-align:center">
+
+                                @{
+                                    if (Model.FirstOrDefault().StatusId != 4)
+                                    {
+                                        <button type="button" class="btn btn-lg btn-success" id="btnSave"> บันทึก</button>
+                                        <button type="button" class="btn btn-lg btn-primary btnBack"> ย้อนกลับ</button>
+                                    }
+                                }
+
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @*form สำหรับเลือกรายการทั้งหมด*@
+        <form name="formApproveALl" id="formApproveALl">
+            <input type="hidden" name="id[]" id="id" />
+            <input type="hidden" name="isAll" id="isAll" value="true" />
+            <input type="hidden" name="reasonMaster[]" id="reasonMasterHidden" value="" />
+            <input type="hidden" name="tempCode" id="tempCode" value="@ViewBag.tempCode" />
+            <input type="hidden" name="BillingRequestGroupCode" id="BillingRequestGroupCode" value="@ViewBag.BillingRequestGroupCode" />
+        </form>
+    }
+    else
+    {
+        <div class="col-sm">
+            <div class="box box-primary" style="margin-top:0.8%;border-color:#167fb8">
+                <div class="box-header with-border">
+                    <h3 class="box-title"> รหัสรายการ: @ViewBag.BillingRequestGroupCode</h3>
+                </div>
+                <div class="box-body">
+                    <div class="box-body">
+                        <div class="alert alert-warning">
+                            <strong>แจ้งเตือน!</strong> ไม่พบรายการอนุมัติตอบกลับบริษัทประกัน
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@section ViewSpecificJavascript
+{
+    <script src="~/Content/js/jquery.numeric.js"></script>
+    <script type="text/javascript">
+
+        $(function () {
+            $("#selectAll").val("off");
+            $('#allSelect').on('ifChanged', function (event) {
+                $("#selectAll").val(event.target.checked ? "on" : "off");
+            });
+
+            $('#dtOut2ApproveDetail').dataTable({
+                pageLength: 100,
+                responsive: true,
+                searching: true,
+                "language": {
+                    "search": "ค้นหา"
+                },
+                drawCallback: function () {
+                    $(".select2").select2({
+                        placeholder: "สาเหตุ",
+                        width: "95%"
+                    });
+                }
+            });
+
+            $(".select2").select2({
+                placeholder: "สาเหตุ",
+                width: "95%"
+            });
+
+            $(".btnBack").click(function () {
+                swal({
+                    title: "แจ้งเตือน!",
+                    text: "กรุณาตรวจสอบข้อมูลก่อนย้อนกลับ",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "ตกลง",
+                    cancelButtonText: "ยกเลิก",
+                    closeOnConfirm: false,
+                    showLoaderOnConfirm: true
+                },
+                    function () {
+                        window.location.href = "/ClaimPayBack/Out2ApproveMonitor";
+                    }
+                )
+            });
+
+            // grouping data reasonMasters
+            $(".reasonMasters").on("change", function () {
+                $(".reasonMaster-" + $(this).attr("data-id")).val($(this).val());
+            });
+
+            // select all
+            $("#reasonMastersSelectAll").on("change", function () {
+                $("#reasonMasterHidden").val($(this).val());
+            });
+
+            // btnSave
+            $('#formApprove').on('click', '#btnSave', function (e) {
+                e.preventDefault();
+                swal({
+                    title: "แจ้งเตือน!",
+                    text: "ยืนยันการทำรายการ",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "ยืนยัน",
+                    cancelButtonText: "ยกเลิก",
+                    closeOnConfirm: false,
+                    showLoaderOnConfirm: false
+                },
+                    function () {
+                        //รายการที่อยู่ใน table
+                        if ($('#selectAll').val() == "off") {
+                            if ($("#reasonMasterHidden").val().length > 0) {
+                                swal({
+                                    title: "แจ้งเตือน!",
+                                    text: "กรุณาเลือกทั้งหมด",
+                                    type: "warning",
+                                });
+                            }
+                            else {
+                                $.ajax(
+                                    {
+                                        type: "POST",
+                                        url: "/ClaimPayBack/Out2ApproveDetail",
+                                        contentType: false,
+                                        processData: false,
+                                        data: new FormData($("#formApprove")[0]),
+                                        success: function (response) {
+                                            if (response.valid == true) {
+                                                swal("แจ้งเตือน", "บันทึกรายการสำเร็จ", "success");
+                                                window.location.href = "/ClaimPayBack/Out2ApproveMonitor"
+                                            } else {
+                                                swal("แจ้งเตือน!", response.message, "warning");
+                                            }
+                                        }
+                                    });
+                            }
+                        } else {
+                            if ($("#reasonMasterHidden").val() == "") {
+                                swal({
+                                    title: "แจ้งเตือน!",
+                                    text: "กรุณาเลือกสาเหตุ",
+                                    type: "warning",
+                                });
+                            }
+                            else {
+                                $.ajax(
+                                    {
+                                        type: "POST",
+                                        url: "/ClaimPayBack/Out2ApproveDetail",
+                                        contentType: false,
+                                        processData: false,
+                                        data: new FormData($("#formApproveALl")[0]),
+                                        success: function (response) {
+                                            if (response.valid == true) {
+                                                swal("แจ้งเตือน!", "บันทึกรายการสำเร็จ", "success");
+                                                setTimeout(function () {
+                                                    window.location.href = "/ClaimPayBack/Out2ApproveMonitor"
+                                                }, 3000);
+                                            } else {
+                                                swal("แจ้งเตือน!", response.message, "warning");
+                                            }
+                                        }
+                                    });
+                            }
+                        }
+                    }
+                )
+            });
+
+        });
+
+    </script>
+
+}

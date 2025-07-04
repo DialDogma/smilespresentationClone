@@ -1,0 +1,345 @@
+﻿
+@{
+    ViewBag.Title = "การเรียกดูรายงานเป้าสาขา";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<style>
+    .ui-datepicker {
+        border: 1px solid #555;
+        color: #000000;
+    }
+
+    .datepicker-dropdown {
+        top: 0;
+        left: 0;
+        padding: 4px;
+        /*background-color: #000000;*/
+        border-radius: 8px;
+    }
+
+    .datepicker table tr td.today:hover {
+        color: #FFFFFF;
+        background-color: #2589ED;
+        border-color: #f59e00;
+    }
+    .datepicker table tr td.focused {
+        background: #555555;
+        cursor: pointer;
+    }
+</style>
+<form class="form-horizontal">
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="box box-solid box-primary" style="margin-top:15px">
+
+                <div style="background-color: rgba(45, 122, 199, 0.7); color: white " class="box-header with-border">
+                    <h7 class="box-title">ค้นหาข้อมูลจาก</h7>
+                </div>
+
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="box-body" style="margin-top:-10px">
+                            <br />
+                            <div class="row">
+                                <div class="col-md-2 col-sm-6">
+                                    <label style="font-size:12.9px">DCR รายงานเป้าสาขา : </label>
+                                    @*<input class="form-control date ui-datepicker" id="dpDCRReport" name="dpDCRReport" data-provide="datepicker" data-date-language="th-th" required />*@
+
+                                    <div class="form-group">
+                                        <div class="input-group date">
+                                            <input id='dpDCRReport' class="form-control" />
+                                            <span class="input-group-addon">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <label style="font-size:12.9px">ผลิตภัณฑ์ : </label>
+                                    <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlProduct">
+                                        <option value="-1">---เลือก---</option>
+                                        @{ foreach (var item in ViewBag.ProductType)
+                                            {
+                                                <option name="pppTest" value="@item.ProductTypeId">@item.ProductType</option>
+                                            } }
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-sm-12" >
+                                    <label style="font-size:12.9px">ชื่อสาขา : </label>
+                                    <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlBranch">
+                                        <option vallue="-1">---ทั้งหมด---</option>
+                                        @{ foreach (var item in ViewBag.Branch)
+                                            {
+                                                <option value="@item.BranchId">@item.BranchDetail</option>
+                                            } }
+                                    </select>
+                                </div>
+                                <div class="col-xs-12 col-md-2 col-sm-6" style="padding-top:25px">
+                                    <button style="background-color: rgb(84, 155, 226); " class="btn btn-block btn-primary" id="searchDCRReport"><i class="fa fa-search"></i> ค้นหา</button>
+                                </div>
+                                <div class="col-xs-12 col-md-2 col-sm-6" style="padding-top:25px ;text-align:left">
+                                    <button style="background-color: rgb(19, 199, 109); color: white" class="btn  btn-block btn-success" id="btnExportExcel"><i class="fa fa-file-excel-o"></i>  Export  </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @*Get Report Detail*@
+    <div class="row" id="showDCRReportDetail" style="display:none">
+        <div class="col-sm-12">
+            <div class="box box-primary" style="margin-top:15px">
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="box-body" style="margin-top:-10px">
+                            <table id="dtDcrReportDetail" class="table table-bordered table-hover display" style="width:100%"> </table>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</form>
+
+
+
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        var productTypeList;
+    $(function () {
+
+            DoShowDCR();
+
+            //Event Search DCR Report
+            $('#searchDCRReport').click(function (e) {
+                e.preventDefault();
+                if (ValidationCheckField()) {
+                    PreviewDCRReportDetail();
+                }
+            });
+
+            //Event click Export
+            $('#btnExportExcel').click(function (e) {
+                e.preventDefault();
+                if (ValidationCheckField()) {
+                    ExportSalesTargetExcel();
+                }
+            });
+
+
+        })
+
+        function DoShowDCR() {
+            //Get current date
+            var date = new Date(), d = date.getDate(), m = date.getMonth();
+            var startSelect;
+
+            //- DCR ปัจจุบัน ให้ดูจากช่วงวันที่ 11 เดือนปัจจุบัน (startDateDCR) ถึงวันที่ 10 เดือนหน้า (endDateDCR) เช่น ปัจจุบันวันที่ 19 ต.ค. 64 อยู่ในช่วงวันที่ 11 ต.ค. 64 ถึง 10 พ.ย. 64 ดังนั้น DCR ปัจจุบันคือ วันที่ 1 พ.ย. 64
+            if (d >= 11) {
+                //Get current DCR month
+                m = date.getMonth() + 1;
+            }
+
+            var currDCR = new Date(date.getFullYear(), m, 1);
+            if (d >= 11) {
+                startSelect = new Date(date.getFullYear(), date.getMonth() + 2, 1);
+            }
+            else {
+                startSelect = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+            }
+
+
+            $('#dpDCRReport').datepicker({
+                autoclose: true,
+                //startDate: startSelect,
+                viewMode: "years",
+                minViewMode: "months",
+                format: 'dd/mm/yyyy',
+                language: 'th-th',
+            }).datepicker("setDate", currDCR).datepicker('fill');
+        };
+
+
+        //------------------------------------------------------------------Event click Preview-----------------------------------------------------------------------
+        function PreviewDCRReportDetail() {
+            FindTargetDetailData("search");
+        }
+
+         //------------------------------------------------------------------Event click Export-----------------------------------------------------------------------
+        function ExportSalesTargetExcel() {
+             FindTargetDetailData("export");
+        }
+           //------------------------------------------------------------------ 1. Function find Report-----------------------------------------------------------------------
+        const FindTargetDetailData = (btnStatus) => {
+
+                 $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("FindTargetDetailData", "SalesTarget")",
+                    data: function () {
+                        var data = new window.FormData();
+                        data.append("dcr", $('#dpDCRReport').val());
+                        data.append("productTypeId", $('#ddlProduct').val());
+                        if ($('#ddlBranch').val() === "-1") {
+                            data.append("branchId", null);
+                        }
+                        else {
+                            data.append("branchId", $('#ddlBranch').val());
+                        }
+                        return data;
+                    }(),
+                    contentType: false,
+                    processData: false,
+                     success: function (response) { }
+                 }).done(function (response) {
+                     // เจอ dcr report ตามเงื่อนไขที่ค้นหา
+                     if (response[0] === "True") {
+                         if (btnStatus === "search" ) {
+                             GetTargetDetail();
+                         }
+                         else {
+
+                             swal({
+                                 title: "กำลังดาวน์โหลดไฟล์...",
+                                 type: "warning",
+                                 showConfirmButton: false,
+                                 timer: 700
+                             });
+                             setTimeout(function () {
+                                 ExportReportFile();
+                             }, 850);
+                         }
+                     }
+                     // ไม่เจอ dcr report ตามเงื่อนไขที่ค้นหา
+                     else {
+                         swal("ตรวจสอบข้อมูล", response[2], "warning");
+                         document.getElementById("showDCRReportDetail").style.display = "none";
+
+                         $('#dtDcrReportDetail').DataTable({
+                             searching: false,
+                             paging: false,
+                             destroy: true, //destroy ทุกครั้ง ป้องกัน alert "Cannot reinitialise DataTable. For more information about this error"
+                             "language": {
+                                 "emptyTable": "ไม่พบข้อมูล."
+                             },
+                             columns: [
+                                 { title: 'ชื่อสาขา', data: 'BranchDetail' },
+                                 { title: 'เป้าสาขา', data: 'Value' },
+
+                             ],
+                             bLengthChange: false,
+
+                         });
+                     }
+                 })
+            }
+
+
+
+                 //------------------------------------------------------------------ 2. Function GetTargetDetail Report (Search)-----------------------------------------------------------------------
+        function GetTargetDetail() {
+            document.getElementById("showDCRReportDetail").style.display = "block";
+            
+
+            var dcr = $('#dpDCRReport').val();
+            var productTypeId = $('#ddlProduct').val();
+            var branchId;
+            if ($('#ddlBranch').val() === "---ทั้งหมด---") {
+                branchId = null;
+            }
+            else {
+                branchId = $('#ddlBranch').val();
+            }
+            $('#dtDcrReportDetail').empty();
+            var t = $('#dtDcrReportDetail').dataTable({
+                pageLength: false,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                "order": [[0, "ASC"]],
+                searching: false,
+                paging:false,
+
+                ajax: {
+                    url: '@Url.Action("GetTargetDetail", "SalesTarget")',
+
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.dcr = dcr;
+                        d.productTypeId = productTypeId;
+                        d.branchId = branchId;
+                        d.draw = d.draw;
+                        d.pageSize = 999999;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    },
+                },
+                success: function (data) {  },
+                columns: [
+                    { title: 'ชื่อสาขา', data: 'BranchDetail'},
+                    { title: 'เป้าสาขา', data: 'Value' },
+
+                ],
+                bLengthChange: false,
+
+            });
+        }
+
+                       //------------------------------------------------------------------ 3. Function ExportReportFile Report (Export)-----------------------------------------------------------------------
+        function ExportReportFile() {
+
+            var dcr = $('#dpDCRReport').val();
+            var productTypeId = $('#ddlProduct').val();
+            var branchId;
+            if ($('#ddlBranch').val() === "---ทั้งหมด---") {
+                 branchId = null;
+            }
+            else {
+                 branchId = $('#ddlBranch').val();
+            }
+
+             window.location = `@Url.Action("ExportReportFile", "SalesTarget")?dcr=${dcr}&productTypeId=${productTypeId}&branchId=${branchId}`;
+
+            setTimeout(
+                function newSwalPopup(param) {
+                    swal({
+                        title: "แจ้งเตือน!",
+                        text: "ดาวน์โหลดไฟล์ Excel สำเร็จ",
+                        type: "success",
+                        showConfirmButton: true
+                    }, function (isConfirm) {
+                        if (!isConfirm) {
+                            newSwalPopup('No');
+                        }
+                    });
+                }, 500);
+        }
+        //------------------------------------------------------------------ValidationCheckField-----------------------------------------------------------------------
+        function ValidationCheckField() {
+
+            if ($('#ddlProduct').val() === "-1") {
+                swal("ตรวจสอบข้อมูล", "กรุณาเลือกผลิตภัณฑ์", "warning");
+                return false;
+            }
+            return true;
+        }
+
+    </script>
+}
+

@@ -1,0 +1,242 @@
+﻿
+@{
+    ViewBag.Title = "รายงานการแก้ไขข้อมูลลูกค้า";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form>
+    <div class="box box-default">
+        <div class="box-body">
+            <!-- Date -->
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-sm-3">
+                        <label>วันที่:</label>
+                        <input type="text" name="dphDateStart" data-date-language="th-th" class="form-control" id="dphDateStart" value="">
+                    </div>
+                    <div class="col-sm-3">
+                        <label>ถึงวันที่:</label>
+                        <input type="text" name="dphDateEnd" data-date-language="th-th" class="form-control" id="dphDateEnd">
+                    </div>
+                    <div class="col-sm-2" style="margin-top:3px">
+                        <label></label>
+                        <button class="btn btn-block bg-primary" id="btnSearch" style="color:#ffffff">ค้นหา</button>
+                    </div>
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-2" style="margin-top:3px">
+                        <label></label>
+                        <button class="btn bg-olive btn-block" id="btnExportExcel"><i class="fa fa-file-excel-o"></i></button>
+                    </div>
+                </div>
+                <div class="row" style="margin-top:15px">
+                    <div class="col-sm-12">
+                        <table id="dtReport" class="table table-bordered dataTable table-hover"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--Modal Transactions-->
+    <div class="modal fade in" id="modal-TransactionDetail" style="display: none; padding-right: 5px;">
+        <div class="modal-dialog" style="width:70%">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h3 class="box-title">รายละเอียด Transaction</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <table id="dtTransactionDetail" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top:3%; text-align:center;">
+                        <button type="button" class="btn btn-danger form-control" style="max-width: 10%; margin-left: 3%; border-radius:10px; text-decoration: none" data-dismiss="modal" aria-label="Close">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+
+        $(function () {
+
+
+            //---------------------------------Date-----------------------------------//
+            var date = new Date();
+            var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+            var dateDefualt = {
+                format: 'dd/mm/yyyy',
+                autoclose: true,
+                endDate: today,
+            }
+
+            $('#dphDateStart').datepicker(dateDefualt)
+
+            $('#dphDateEnd').datepicker({
+                autoclose: true,
+                format: 'dd/mm/yyyy',
+                endDate: today,
+            })
+
+            $('#dphDateStart,#dphDateEnd ').datepicker('setDate', today);
+
+            //-------------------------------Search--------------------------------//
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                if (isValidate()) {
+                    DoLoadReport()
+                }
+            });
+
+            //-------------------------------Export--------------------------------//
+            $('#btnExportExcel').click(function (e) {
+                e.preventDefault();
+                ExportCustomerReport()
+            });
+
+
+        })
+
+         //---------------------------- Validate ------------------------------//
+        isValidate = () => {
+            if ($('#dphDateStart').val() == "" || $('#dphDateEnd').val() == "") {
+                swal('ตรวจสอบ', 'รบกวนตรวจสอบวันที่ เนื่องจากวันที่เป็นค่าว่าง', 'error');
+                return false;
+
+            }
+            return true
+        }
+
+
+        //----------------------------Data Table------------------------------//
+         function DoLoadReport() {
+             debugger
+             $('#dtReport').empty();
+             var t = $('#dtReport').dataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                "order": [[0, "desc"]],
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetReportTransactionByDete")',
+
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.dateFrom = $('#dphDateStart').val();
+                        d.dateTo = $('#dphDateEnd').val();
+                    }
+                },
+                columns: [
+                    { title: 'TransactionCode', data: 'PersonTransactionCode', className: 'h-dt-center text-font-small' },
+                    { title: 'ประเภทการทำรายการ', data: 'TransactionType', className: 'h-dt-center text-font-small' },
+                    { title: 'ผู้ทำรายการ', data: 'CreatedByName', className: 'h-dt-center text-font-small' },
+                    {
+                        title: 'วันที่ทำรายการ', data: 'CreatedDate', className: 'h-dt-center text-font-small', width: '15%',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:ss", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'รายละเอียด', data: null, className: 'h-dt-center', width: '20%',
+                        mRender: (data, type, full) => {
+                            return (
+                                `<div class="row"  style="margin-top:3%; text-align:center;">` +
+                                '<button type="button"  class="btn btn-info btn-sm" id="btnOpenReport' + data.PersonTransactionId + '"><i class="glyphicon glyphicon glyphicon-eye-open ColorWhite"></i> ดูรายละเอียด</button>' +
+                                `</div>`
+                            )
+                        }
+
+                    },
+
+
+                ],
+                bLengthChange: false,
+
+             });
+         //-------------------------------------Call modal Function-------------------------------------------//
+
+             $('#dtReport tbody').on('click', 'td button', function () {
+                 debugger;
+                 var table = $('#dtReport').DataTable();
+                 var data = table.row($(this).closest('tr')).data()
+                 let transactionId = data.PersonTransactionId;
+                 console.log(transactionId)
+                 GetTransactionDetail(transactionId);
+                 $('#modal-TransactionDetail').modal('show');
+             });
+
+        }
+
+        //-------------------------------------Call modal--------------------------------------------//
+
+        const GetTransactionDetail = (id) => {
+            console.log(id)
+            $('#dtTransactionDetail').empty();
+            var t = $('#dtTransactionDetail').dataTable({
+                    pageLength: 10,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    searching: false,
+                    "order": [[0, "desc"]],
+                    destroy: true,
+                    ajax: {
+                        url: '@Url.Action("GetTransactionReport")',
+                        type: 'POST',
+                        async: false,
+                           data: function (d) {
+                               d.draw = d.draw;
+                               d.pageSize = d.length;
+                               d.indexStart = d.start;
+                               d.sortField = d.columns[d.order[0].column].data;
+
+                               d.orderType = d.order[0].dir;
+                               d.searchDetail = d.search.value;
+
+                               d.transactionId = id;
+                           }
+                       },
+                       columns: [
+                           { title: 'Detail', data: 'TransactionSubType', className: 'h-dt-center text-font-small', width: '8%' },
+                           { title: 'รายละเอียดเดิม', data: 'FromDetail', className: 'h-dt-center text-font-small', width: '10%' },
+                           { title: 'รายละเอียดใหม่', data: 'ToDetail', className: 'h-dt-center text-font-small', width: '10%' },
+                       ],
+                       bLengthChange: false,
+            });
+        }
+
+
+        //--------------------------- Export Excel ------------------------------//
+        function ExportCustomerReport() {
+            var dateStart = $('#dphDateStart').val();
+            var dateEnd = $('#dphDateEnd').val();
+
+            $.LoadingOverlay("show");
+            $.LoadingOverlay("hide");
+            window.location.href = `@Url.Action("ExportCustomerReport", "CustomerManagement")?dateStart=${dateStart}&dateEnd=${dateEnd}`;
+        }
+
+    </script>
+}

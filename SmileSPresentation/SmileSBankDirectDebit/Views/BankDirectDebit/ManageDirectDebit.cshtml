@@ -1,0 +1,311 @@
+﻿@{
+    ViewBag.Title = "จัดการข้อมูล";
+}
+<style>
+    .modal-dialog {
+        margin-top: 0;
+        margin-bottom: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .datatable_test {
+        overflow: auto;
+        height: 400px;
+        position: relative;
+    }
+
+    .modal.fade .modal-dialog {
+        transform: translate(0, -100%);
+    }
+
+    .modal.in .modal-dialog {
+        transform: translate(0, 0);
+    }
+</style>
+<form id="Mainform" action="@Url.Action("ManageDirectDebit")" method="post" enctype="multipart/form-data">
+    <div class="row">
+        @* search form *@
+        <div class="col-sm-12" id="DirectDebit_form">
+            <div class="box box-default">
+                <div class="box-header">
+                    <h3 class="box-title">Direct Debit Manage</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-2">
+                            <label for="" class="control-label">สาขา:</label>
+                            <select class="form-control select2 " tabindex="-1" aria-hidden="true" id="ddlBranch" name="ddlBranch">
+                                @{
+                                    foreach(var itm in ViewBag.BranchList)
+                                    {
+                                        if(itm.Branch_ID == 1)
+                                        {
+                                            <option value="">ทั้งหมด</option>
+                                        }
+                                        else
+                                        {
+                                            if(ViewBag.BranchUser == itm.Branch_ID)
+                                            {
+                                                <option value="@itm.Branch_ID" selected="selected">@itm.BranchDetail</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@itm.Branch_ID">@itm.BranchDetail</option>
+                                            }
+
+                                        }
+
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-4">
+                            <label for="" class="control-label">เลือกวันที่ : </label>
+                            <input type="text" class="form-control pull-right" name="dateForm" id="dateForm" required="required"
+                                   data-provide="datepicker" placeholder="dd/mm/yyyy">
+                        </div>
+                        <div class="col-sm-4">
+                            <label for="" class="control-label">ถึงวันที่ : </label>
+                            <input type="text" class="form-control pull-right" name="dateTo" id="dateTo" required="required"
+                                   data-provide="datepicker" placeholder="dd/mm/yyyy">
+                        </div>
+
+                        <div class=" col-sm-2" style="padding-top: 26px">
+                            <button type="button" class="btn btn-block btn-info" id="btnShow">แสดงรายการ</button>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtShowDetail" name="dtShowDetail" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade bd-example-modal-lg" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog  modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">รายละเอียด</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group datatable_test">
+                        <table id="dtDetail" class="table table-bordered table-striped dataTable" style="width:100%"></table>
+                    </div>
+                    @*<div class="form-group">
+                            <div class="row">
+                                <div class="col-sm-offset-10 col-sm-2">
+                                    <button id="btnPrint" type="button" class="btn btn-block btn-info" onclick="PrintDetail()">Print</button>
+                                </div>
+                            </div>
+                        </div>*@
+                </div>
+                <div class="modal-footer">
+                    @*<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>*@
+                    @*<button type="submit" class="btn btn-primary">Submit</button>*@
+                </div>
+            </div>
+        </div>
+    </div>
+    @* hidden field *@
+    <input type="hidden" name="hd_DeleteItemId" id="hd_DeleteItemId" />
+    <input type="hidden" name="hd_detailId" id="hd_detailId" />
+    <input type="hidden" name="hd_Branch" id="hd_Branch" value="@ViewBag.BranchUser" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('#dateForm').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+            $('#dateTo').datepicker({ format: "dd/mm/yyyy" ,autoclose: true}).datepicker("setDate", new Date());
+
+            //call function get datatable
+            GetDatatableDDB();
+            $('#btnShow').click(function () {
+                GetDatatableDDB();
+            });
+        });
+
+         if ($('#hd_Branch').val() != "") {
+                $('#ddlBranch').prop('disabled', 'disabled');
+            }
+
+        //get datatable Main
+        function GetDatatableDDB() {
+            $('#dtShowDetail').empty();
+            var table = $('#dtShowDetail').DataTable({
+                 pageLength: 10,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                 destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetHeaderDirectDebit")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.dateFrom = $("#dateForm").val();
+                        d.dateTo = $("#dateTo").val();
+                        d.branchId = $('#ddlBranch').val();
+                    }
+                },
+                columns: [
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        data: null,
+                        title: 'เลขที่ใบคุมเอกสาร',
+                        mRender: function (data) {
+                            return '<a href="" onclick="GetDetail(\''+data.BankDirectDebitHeaderId+'\')" ;return false;"  data-toggle="modal" data-target=".bd-example-modal-lg" class="btn btn-info" >' + data.BankDirectDebitHeaderCode + '</a>';
+
+                        }
+                    },
+                    { title:'สาขานำส่ง',data:'Branch'},
+                    { title: 'จำนวน', data: 'TotalRowCount' },
+                    {
+                        title: 'วันที่สร้างรายการ',
+                        data: 'CreateDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    { title: 'สถานะนำส่งเอกสาร',data:'DeliverStatus'},
+                    { title: 'ครั้งที่พิมพ์', data: 'PrintRevise' },
+                    { title: 'ผู้ดำเนินการ', data: 'CreatedByName' },
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        title: 'พิมพ์ใบนำส่ง',data:null,
+                        mRender: function (d) {
+                            if (d.IsConfirm == false) {
+                                return '';
+                            } else {
+                                return '<button type="button" class="btn btn-block btn-success" id="PrintDetail_' + d.BankDirectDebitHeaderId + '" onclick="PrintDetail(' + d.BankDirectDebitHeaderId + ')" >Print</button>';
+                            }
+                        }
+                    },
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        title: 'แก้ไข' , data:null,
+                        mRender: function (d) {
+                            if (d.IsConfirm == false) {
+                                return '<button type="button" class="btn btn-block btn-warning" id="btnEdit_' + d.BankDirectDebitHeaderId + '" onclick="EditItem(' + d.BankDirectDebitHeaderId + ')" >Edit</button>';
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        data: null,
+                        title: 'Delete',
+                        mRender: function (data) {
+                            if (data.IsAllowDelete) {
+                                debugger;
+                                return '<button type="button" class="btn btn-block btn-danger" id="btnDelete_' + data.BankDirectDebitHeaderId + '" onclick="DeleteItem(' + data.BankDirectDebitHeaderId + ')" >Delete</button>';
+                            } else {
+                                debugger;
+                                return '';
+                            }
+                        }
+                    }
+
+                ]
+            });
+        }
+
+        //delete item mark flag isActive
+        function DeleteItem(accNo) {
+            $('#hd_DeleteItemId').val(accNo);
+            debugger;
+            window.swal({
+                title: 'ยืนยันลบรายการ?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#277020',
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                closeOnConfirm: false,
+                closeOnEsc: false,
+                closeOnCancel: true
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    $('#Mainform').submit();
+                }
+            });
+        }
+
+        //get datatable to modal
+        function GetDetail(accNo) {
+            debugger;
+            $('#hd_detailId').val(accNo);
+            $('#dtDetail').empty();
+            debugger;
+            var table = $('#dtDetail').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                paging: false,
+                searching: false,
+                destroy: true,
+                // scrollY: "530px",
+                //scrollCollapse: true,
+                info: false,
+                ajax: {
+                    url: '@Url.Action("GetHeaderDetail")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.bankCoverId = accNo;
+                    }
+                },
+                columns: [
+                    { title: 'เลขที่ใบคุมเอกสาร', data: 'HeaderCode' },
+                    { title: 'เลขที่บัญชี', data: 'AccountNo' },
+                    { title: 'ชื่อบัญชี', data: 'AccountName' },
+                    { title: 'Ref1/Tax Id',data:'Ref1'},
+                     { title: 'หมายเหตุ',data:'Remark'}
+
+                ]
+            });
+        }
+        //print in modal
+        function PrintDetail(headerId) {
+            window.open("/BankDirectDebit/DeliveryNote?delivernoteID=" + headerId);
+        }
+
+        function EditItem(headerId) {
+            window.open('/BankDirectDebit/AddBankDirectDebitHeader?bankDirectDebitHeaderId='+headerId+'');
+        }
+    </script>
+}

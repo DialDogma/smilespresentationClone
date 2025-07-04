@@ -1,0 +1,375 @@
+﻿@{
+    ViewBag.Title = "Chart";
+    Layout = "~/Views/Shared/_EmptyLayout.cshtml";
+}
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+<link href="https://fonts.googleapis.com/css?family=Pridi" rel="stylesheet">
+
+<style type="text/css">
+    .menu {
+        text-align: center;
+        background-color: #00ADEF;
+        cursor: pointer;
+        color: white;
+        height: 70px;
+        border: 1px white solid;
+    }
+
+    #sales {
+        background-color: #80D6F9;
+    }
+
+    .menu > label {
+        padding-top: 10px;
+        font-size: 30px;
+    }
+
+    #head-menu {
+        width: 180px;
+        height: 40px;
+        font-size: 20px;
+        margin: 10px 40px;
+    }
+
+    #charts {
+        width: 150px;
+        height: 40px;
+        font-size: 20px;
+        margin: 10px 40px;
+    }
+
+    #graph {
+        display: block;
+        height: 100%;
+    }
+
+    table th {
+        text-align: center;
+    }
+
+    td {
+        text-align: center;
+        width: 50%;
+    }
+
+    .div-value {
+        margin-top: 20px;
+    }
+
+    #statusdata {
+        text-align: center;
+        font-size: 30px;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div id="sales" class="col-sm-4 menu">
+            <label>นักขาย</label>
+        </div>
+        <div id="teams" class="col-sm-4 menu">
+            <label>ทีม</label>
+        </div>
+        <div id="branch" class="col-sm-4 menu">
+            <label>สาขา</label>
+        </div>
+    </div>
+    <div class="row">
+        <div id="back" class="col-sm-4 submenu">
+        </div>
+        <div id="head" class="col-sm-4 submenu" align="center">
+            <select id="head-menu" class="form-control">
+                <option value="140">BG</option>
+                <option value="49">LG</option>
+                <option value="50">UWG</option>
+                <option value="51">PSG</option>
+                <option value="133">CG</option>
+                <option value="6">Persistency</option>
+            </select>
+        </div>
+        <div class="col-sm-4 submenu" align="center">
+            <select id="charts" class="form-control">
+                <option value="line">Line</option>
+                <option value="bar">Bar</option>
+            </select>
+        </div>
+    </div>
+
+    <hr>
+    <div class="row">
+        <div class="col-sm-12">
+            <div id="graph">
+                <canvas id="canvas" height="130"></canvas>
+            </div>
+            <div id="statusdata">
+                <label id="nodata">ไม่พบข้อมูล</label>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="teamId" value="@ViewBag.TeamID" />
+<input type="hidden" id="branchId" value="@ViewBag.BranchID" />
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<!-- Bootstrap JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<!-- Chart.js -->
+
+@section scripts
+{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.js"></script>
+
+    <script>
+
+        var dateData = [];
+        var dateValue = [];
+        var ctx, config, mychart;
+        var refId2; //Add ref2 11-07-2561 by cuteful
+
+        $(function () {
+            //var refId = getParameterByName('EmpCode');
+            var refId = '@ViewBag.EmpCode';
+            refId2 = refId; //Add ref2 11-07-2561 by cuteful
+            getDCR(refId);
+
+            $('#sales').click(function (e) {
+                e.preventDefault();
+                refId2 = refId; //Add ref2 11-07-2561 by cuteful
+                $('#sales').css("background-color", "#80D6F9");
+                $('#teams,#branch').css("background-color", "#00ADEF");
+
+                var list = ["BG", "LG", "UWG", "PSG", "CG", "Persistency"];
+                var list2 = ["140", "49", "50", "51", "133", "6"];
+
+                $('#head-menu').empty();
+
+                for (var i = 0; i < list.length; i++) {
+                    $('#head-menu').append("<option value=" + list2[i] + ">" + list[i] + "</option>");
+                }
+                reGetData(refId2);
+            });
+
+            $('#teams').click(function (e) {
+                e.preventDefault();
+                refId2 = $('#teamId').val();
+                $('#teams').css("background-color", "#80D6F9");
+                $('#sales,#branch').css("background-color", "#00ADEF");
+
+                var list = ["New App"];
+                var list2 = ["74"];
+
+                $('#head-menu').empty();
+
+                for (var i = 0; i < list.length; i++) {
+                    $('#head-menu').append("<option value=" + list2[i] + ">" + list[i] + "</option>");
+                }
+                reGetData(refId2);
+            });
+
+            $('#branch').click(function (e) {
+                e.preventDefault();
+                refId2 = $('#branchId').val();
+                $('#branch').css("background-color", "#80D6F9");
+                $('#sales,#teams').css("background-color", "#00ADEF");
+
+                var list = ["BG", "LG", "UWG", "PSG"];
+                var list2 = ["79", "102", "84", "86"];
+
+                $('#head-menu').empty();
+
+                for (var i = 0; i < list.length; i++) {
+                    $('#head-menu').append("<option value=" + list2[i] + ">" + list[i] + "</option>");
+                }
+                reGetData(refId2);
+            });
+
+            $('#head-menu').change(function (e) {
+                e.preventDefault();
+                reGetData(refId2);
+            });
+
+            $('#charts').change(function (e) {
+                e.preventDefault();
+                changeTypeChart($('#charts').val());
+            });
+        });
+
+        function changeTypeChart(newType) {
+            if (mychart) {
+                mychart.destroy();
+            }
+
+            drawGraph(newType);
+        }
+
+        function getDCR(refId) {
+            $('#nodata').hide();
+            $.ajax({
+                type: "GET",
+                url: "@ViewBag.APIUrlParameters2/api/parameters/ScheduleDCR",
+                success: function (response) {
+                    var dateDcr = response[0].monthlyProductDCR.split("T");
+                    var dateTo = dateDcr[0];
+                    var date = dateDcr[0].split("-");
+                    var yearFrom = parseInt(date[0]) - 1;
+                    var monthFrom = parseInt(date[1]) + 1;
+
+                    if (monthFrom == 13) {
+                        monthFrom = 1;
+                    }
+
+                    var dateFrom = yearFrom + "-" + monthFrom + "-" + "01";
+
+                    getData(refId, dateFrom, dateTo);
+                }
+            });
+        }
+
+        function getData(refId, dateFrom, dateTo) {
+            $.ajax({
+                type: "GET",
+                url: "@ViewBag.APIUrlParameters2/api/parameters/SOAP?parameterID=" + $('#head-menu').val() + "&referenceID=" + refId + "&dateFrom=" + dateFrom + "&dateTo=" + dateTo + "&isMonthlyStamp=1",
+                dataType: "json",
+                success: function (response) {
+                    for (var i = 0; i < response.length; i++) {
+                        var date = response[i].monthlyProductDCR.toString().split("T");
+                        var n = response[i].value;
+                        dateData.push(date[0]);
+                        dateValue.push(n);
+                    }
+                    if (dateData.length == 0 || dateValue.length == 0) {
+                        $('#nodata').show();
+                    } else {
+                        drawGraph($('#charts').val());
+                    }
+                }
+            });
+
+        }
+
+        function drawGraph(chart) {
+            var dateValueMax = 0;
+            for (let i = 0; i < dateValue.length; i++) {
+                if (dateValue[i] > dateValueMax) {
+                    dateValueMax = dateValue[i];
+                }
+            }
+            dateValueMax = dateValueMax + 5;
+            ctx = document.getElementById("canvas").getContext("2d");
+            if (chart == 'pie') {
+                var color = [];
+                var dynamicColors = function () {
+                    var r = (Math.round(Math.random() * 127) + 127).toString(16);
+                    var g = (Math.round(Math.random() * 127) + 127).toString(16);
+                    var b = (Math.round(Math.random() * 127) + 127).toString(16);
+                    return "#" + r + g + b;
+                };
+
+                for (var i = 0; i < dateData.length; ++i) {
+                    color.push(dynamicColors());
+                }
+
+                config = {
+                    type: chart,
+                    data: {
+                        labels: dateData,
+                        datasets: [{
+                            backgroundColor: color,
+                            data: dateValue
+                        }]
+                    },
+                    options: {
+                        responsive: true
+                    }
+                };
+
+            } else {
+                config = {
+                    type: chart,
+                    data: {
+                        labels: dateData,
+                        datasets: [{
+                            label: "Value",
+                            fill: false,
+                            backgroundColor: "rgb(54, 162, 235)",
+                            borderColor: "rgb(54, 162, 235)",
+                            data: dateValue,
+                            pointRadius: 7,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        tooltips: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            xAxes: [{
+                                display: true,
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'เดือน'
+                                }
+                            }],
+                            yAxes: [{
+                                display: false,
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Value'
+                                },
+                                ticks: {
+                                    stepSize: 5,
+                                    max: dateValueMax + 1
+                                }
+                            }]
+                        }
+                    }
+                };
+            }
+
+            mychart = new Chart(ctx, config);
+            Chart.plugins.register({
+                afterDatasetsDraw: function (chart, easing) {
+                    // To only draw at the end of animation, check for easing === 1
+                    var ctx = chart.ctx;
+                    chart.data.datasets.forEach(function (dataset, i) {
+                        var meta = chart.getDatasetMeta(i);
+                        if (!meta.hidden) {
+                            meta.data.forEach(function (element, index) {
+                                // Draw the text in black, with the specified font
+                                ctx.fillStyle = 'rgb(0, 0, 0)';
+                                var fontSize = 12;
+                                var fontStyle = 'normal';
+                                var fontFamily = 'Helvetica Neue';
+                                ctx.font = Chart.helpers.fontString(fontSize, fontStyle, fontFamily);
+                                // Just naively convert to string for now
+                                var dataString = dataset.data[index].toString();
+                                // Make sure alignment settings are correct
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                var padding;
+                                if (chart === 'pie') {
+                                    padding = 0;
+                                } else {
+                                    padding = 6;
+                                }
+                                var position = element.tooltipPosition();
+                                ctx.fillText(dataString, position.x, position.y - (fontSize / 2) - padding);
+                            });
+                        }
+                    });
+                }
+            });
+
+        };
+
+        function reGetData(refId) {
+            dateData = [];
+            dateValue = [];
+            mychart.destroy();
+            getDCR(refId);
+        }
+    </script>
+}

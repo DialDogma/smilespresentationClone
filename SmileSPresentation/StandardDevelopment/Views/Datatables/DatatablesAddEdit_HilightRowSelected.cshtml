@@ -1,0 +1,190 @@
+﻿@{
+    ViewBag.Title = "DatatablesAddEdit_HilightRowSelected";
+}
+
+<div class="row">
+    <div class="col-sm-12" style="width:100%">
+        <div class="box">
+            <div class="box-body">
+                <table id="dtdetail" class="table table-bordered table-striped display" style="width: 100%"></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script>
+        var selectedRowId;
+        $(function () {
+            loadDatatables('dtdetail');
+        });
+
+        /*load datatables*/
+        const loadDatatables = (t) => {
+            $(`#${t}`).empty();
+            const table = $('#' + t).DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: true,
+                ordering: true,
+                info: true,
+                paging: true,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetPersonDetail")',
+                    method: "POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columnDefs: [
+                    {
+                        /*add for run index number*/
+                        searchable: false,
+                        orderable: false,
+                        targets: 0
+                    },
+                    {
+                        /*add for run index number*/
+                        searchable: false,
+                        orderable: false,
+                        targets: 0
+                    }
+                ],
+                columns: [
+                    {
+                        title: 'No',
+                        data: null,
+                        className: 'd-dt-center h-dt-center'
+                    },
+                    {
+                        /*TEST*/
+                        title: 'TEST',
+                        data: null,
+                        className: 'd-dt-center h-dt-center',
+                        render: (d) => {
+                            return `<img  alt="TESTPUPE" src="https://f.ptcdn.info/044/059/000/pd3bboh0ziGAsDWTUw2-o.jpg" style="width: 100%; max-width: 120px; height: auto;" />`;
+                        }
+                    },
+                    {
+                        title: 'Person_Id',
+                        data: 'Person_Id',
+                        className: 'd-dt-center h-dt-center'
+                    },
+                    {
+                        title: 'คำนำหน้า',
+                        data: 'TitleDetail',
+                        className: 'd-dt-center h-dt-center'
+                    },
+                    {
+                        title: 'ชื่อ - สกุล',
+                        data: null,
+                        className: 'd-dt-center h-dt-center',
+                        render: (data) => {
+                            return `${data.FirstName} ${data.LastName}`;
+                        }
+                    },
+                    {
+                        title: 'เบอร์โทร',
+                        data: 'PhoneNumber',
+                        className: 'd-dt-center h-dt-center'
+                    },
+                    {
+                        title: 'Email',
+                        data: 'Email',
+                        className: 'd-dt-center h-dt-center'
+                    },
+                    {
+                        title: 'วันเกิด',
+                        data: 'Birthdate',
+                        className: 'd-dt-center h-dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'แผนก',
+                        data: 'DepartmentDetail',
+                        className: 'd-dt-center h-dt-center'
+                    },
+                    {
+                        title: '#',
+                        data: null,
+                        orderable: false,
+                        className: 'h-dt-center d-dt-center',
+                        render: (d) => {
+                            return `<button  class="btn btn-success" onclick="alertAdd(${d.Person_Id});selectedRow(${d.Person_Id});">ADD</button> <button  class="btn btn-warning" onclick="alertEdit(${d.Person_Id});selectedRow(${d.Person_Id});">Edit</button>`;
+                        }
+                    },
+                    {
+                        /*TEST*/
+                        title: 'แผนก',
+                        data: 'DepartmentDetail',
+                        className: 'd-dt-center h-dt-center'
+                    }
+                ],
+                createdRow: function (row, data) {
+                    if (data.Person_Id === selectedRowId) {
+                        $('td', row).addClass('selected');
+                    }
+                }
+            });
+            /*run index number*/
+            table.on('draw.dt',
+                function () {
+                    const PageInfo = $(`#${t}`).DataTable().page.info();
+                    table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                        cell.innerHTML = i + 1 + PageInfo.start;
+                    });
+                });
+        }
+
+        /*alert add Id*/
+        const alertAdd = (Id) => {
+            alert(`ADD = ${Id}`);
+            selectedRowId = Id;
+        }
+
+        /*alert add Id*/
+        const alertEdit = (Id) => {
+            alert(`Edit = ${Id}`);
+            selectedRowId = Id;
+        }
+
+        /*hilight row selected*/
+        const selectedRow = () => {
+            const table = $("#dtdetail").DataTable();
+            /*loop every row*/
+            table.rows().every(function () {
+                /*set data */
+                const d = this.data();
+                /*check id*/
+                if (d.Person_Id === selectedRowId) {
+                    /*true add class*/
+                    $(this.node().cells).addClass('selected');
+                } else {
+                    /*false remove class*/
+                    $(this.node().cells).removeClass('selected');
+                }
+
+            });
+        }
+    </script>
+}

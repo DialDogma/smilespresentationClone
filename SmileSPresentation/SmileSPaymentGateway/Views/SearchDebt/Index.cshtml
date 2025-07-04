@@ -1,0 +1,296 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+<style>
+    .dataCheckbox {
+        text-align: center;
+    }
+
+    #datatable1 > thead > tr > th.dataCheckbox.sorting_asc::after {
+        content: "" !important;
+    }
+
+    .selectedjaa {
+        background-color: #00c0ef !important;
+    }
+</style>
+
+<form>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">รายการชำระเบี้ย</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group col-md-4">
+                        <label class="">จังหวัด :</label>
+                        <select id="province" name="province" class="form form-control select2" style="width: 100%">
+                            <option value="-1">N/A</option>
+                            @foreach (var i in @ViewBag.listProvince)
+                            {
+                                <option value="@i.Province_ID">@i.ProvinceDetail</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label class="">อำเภอ :</label>
+                        <select id="district" name="district" class="form form-control select2" style="width: 100%">
+                            <option value="-1">N/A</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label class="">ตำบล :</label>
+                        <select type="" id="subdistrict" name="subdistrict" class="form form-control select2" style="width: 100%">
+                            <option value="-1">N/A</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label class="">ผู้ชำระเบี้ย :</label>
+                        <div class="input-group">
+                            <input type="text" id="input_textsearch" class="form-control">
+                            <span class="input-group-btn">
+                                <button type="button" id="btn_search" class="btn btn-info btn-flat">ค้นหา</button>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="col-md-12">
+                        <table id="datatable1" class="table table-bordered table-striped"></table>
+                    </div>
+
+                    <div class="col-md-12" style="text-align:right">
+                        <button type="button" id="btn_next" class="btn btn-info btn-flat">ถัดไป</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script>
+
+        var selected = [];
+        var payerName = '';
+        var payerZCard = '';
+
+        $(function () {
+
+            //SELECTOR2
+            $('.select2').select2();
+
+            $('#province').change(function () {
+
+                if ($('#province').val() == -1) {
+                    $('#district').empty();
+                    $('#district').append('<option value="-1">N/A</option>');
+                }
+                else {
+                    GetDistrict($('#province').val());
+                }
+
+            });
+
+            $('#district').change(function () {
+
+                if ($('#district').val() == -1) {
+                    $('#subdistrict').empty();
+                    $('#subdistrict').append('<option value="-1">N/A</option>');
+                }
+                else {
+                    GetSubDistrict($('#district').val());
+                }
+
+            });
+
+            $('#btn_search').click(function () {
+                DrawTable();
+            });
+
+            //$('#datatable1').on('click', 'tr', function () {
+
+            //    if (payerName == '') {
+
+            //        var id = this.id;
+            //        var index = $.inArray(id, selected);
+
+            //        if (index === -1) {
+            //            selected.push(parseInt(id));
+            //        } else {
+            //            selected.splice(index, 1);
+            //        }
+
+            //        $(this).toggleClass('selectedjaa');
+            //    }
+            //});
+
+            $('#btn_next').click(function () {
+
+                if (selected.length > 0) {
+
+                    var debtRefId = '';
+
+                    for (var i = 0; i < selected.length; i++) {
+                        if (i == 0) {
+                            debtRefId = selected[i];
+                        } else {
+                            debtRefId = debtRefId + ',' + selected[i];
+                        }
+                    }
+
+                    window.location = "@Url.Action("Payment","SearchDebt")?debtRefIdList=" + debtRefId + "&payerZCard=" + payerZCard;
+                }
+            });
+        });
+
+        function GetDistrict(provinceId) {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetDistrict","SearchDebt")?provinceId=" + provinceId,
+                async: false,
+                success: function (response) {
+                    $('#district').empty();
+                    $('#district').append('<option value="-1">N/A</option>');
+                    for (var i = 0; i < response.length; i++) {
+                        $('#district').append('<option value="' +
+                            response[i].District_ID +
+                            '">' +
+                            response[i].DistrictDetail +
+                            '</option>');
+                    }
+                }
+            });
+        }
+
+        function GetSubDistrict(districtId) {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetSubDistrict","SearchDebt")?districtId=" + districtId,
+                async: false,
+                success: function (response) {
+                    $('#subdistrict').empty();
+                    $('#subdistrict').append('<option value="-1">N/A</option>');
+                    for (var i = 0; i < response.length; i++) {
+                        $('#subdistrict').append('<option value="' +
+                            response[i].SubDistrict_ID +
+                            '">' +
+                            response[i].SubDistrictDetail +
+                            '</option>');
+                    }
+                }
+            });
+        }
+
+        function DrawTable() {
+            $('#datatable1').empty();
+
+            $('#datatable1').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                lengthChange: false,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetDataTableDebt")',
+                    method: "POST",
+                    data: function (d) {
+                        debugger
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = '';
+                        d.orderType = d.order[0].dir;
+                        d.search = $('#input_textsearch').val();
+                        d.provinceId = $('#province').val();
+                        d.districtId = $('#district').val();
+                        d.subDistrictId = $('#subdistrictId').val();
+                    }
+                },
+                rowCallback: function (row, data) {
+                    if ($.inArray(data.DebtRefID, selected) !== -1) {
+                        $(row).addClass('selectedjaa');
+                    }
+                },
+
+                createdRow: function (row, data, dataIndex) {
+                    $(row).attr('id', data.DebtRefID);
+                },
+
+                columnDefs: [{
+                    className: "dt-center", "targets": "_all"
+                }],
+
+                columns: [
+                    {
+                        title: '',
+                        data: null,
+                        bSortable: false,
+                        mRender: function (o) {
+                            return '<input type="checkbox" onclick="SelectRow(\'' + o.PayerFullName + '\',\'' + o.PayerZCardID + '\',$(this))"  id=\'' + o.DebtRefID + '\' class="editor-active" value=\'' + o.PayerZCardID + '\'>';
+                        },
+                        className: "dataCheckbox"
+
+                        //onclick="SelectRow(\'' + o.PayerZCardID + '\',$(this))"
+
+                    },
+                    { title: 'App ID', data: 'AppID' },
+                    { title: 'ชื่อผู้ชำระเบี้ย', data: 'PayerFullName' },
+                    { title: 'ชื่อผู้เอาประกัน', data: 'FullName' },
+                    { title: 'ที่อยู่', data: 'PayerAddress' },
+                    { title: 'แผน', data: 'ProductName' }
+                ]
+
+            });
+        }
+
+        function SelectRow(payer, payerZCardID, chk) {
+
+            var checkbox = chk;
+
+            var parent = chk.parents('tr');
+
+            if (payerName == '') {
+
+                payerName = payer;
+                payerZCard = payerZCardID;
+
+                var id = parent[0].id;
+                var index = $.inArray(id, selected);
+
+                if (index === -1) {
+                    selected.push(id);
+                }
+
+                parent.toggleClass('selectedjaa');
+            } else {
+                if (payer == payerName) {
+                    var id = parent[0].id;
+                    var index = $.inArray(id, selected);
+
+                    if (index === -1) {
+                        selected.push(id);
+                    } else {
+                        selected.splice(index, 1);
+
+                        if (selected.length == 0) {
+                            payerName = '';
+                            payerZCard = '';
+                        }
+                    }
+
+                    parent.toggleClass('selectedjaa');
+                } else {
+                    chk.prop('checked', false);
+                }
+            }
+
+        }
+    </script>
+}

@@ -1,0 +1,58 @@
+﻿@{
+    ViewBag.Title = "Sortable list";
+}
+
+ใช้ Library ของ  <a href="https://rubaxa.github.io/Sortable/" target="_blank">RubaXa</a> ดูตัวอย่างเพิ่มเติมได้ใน <a href="https://github.com/RubaXa/Sortable" target="_blank">Github</a>
+
+<div>
+    <ul id="lstMain" class="list-group">
+    </ul>
+    <button class="btn-primary" onclick="showIndex()">Show me new index</button>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+
+            //get list items
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetListItems","SortableList")",
+                success: function (response) {
+
+                    //clear list
+                    $('#lstMain').empty();
+
+                    //create list items
+                    for (var i = 0; i < response.length; i++) {
+
+                        $('#lstMain').append(`<li class="list-group-item" value="${response[i].Id}">${response[i].Name}</li>`);
+                    }
+
+                    //create sortable
+                    var el = document.getElementById('lstMain');  // อย่าใช้ JQuery เพราะไม่รองรับ JQuery Object ต้องเป็น HTML DOM https://stackoverflow.com/questions/4069982/document-getelementbyid-vs-jquery
+                    var sortable = Sortable.create(el, {
+                        sort: true,
+                        animation: 150,
+                        scroll: true
+                    });
+                }
+            });
+        });
+
+        //Show index
+        function showIndex() {
+
+            let lst = [];
+
+            let listItems = $("#lstMain li");
+            for (let li of listItems) {
+                let item = $(li);
+                lst.push(item.attr('value'));
+            }
+
+            alert(lst.toString());
+        }
+    </script>
+}

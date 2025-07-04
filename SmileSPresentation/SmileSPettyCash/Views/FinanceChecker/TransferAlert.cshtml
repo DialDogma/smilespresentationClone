@@ -1,0 +1,489 @@
+﻿@{
+    ViewBag.Title = "แจ้งการโอนเงิน";
+
+}
+<style>
+    .table {
+        font-size: 14px;
+    }
+
+    .ui-timepicker-container {
+        z-index: 3500 !important;
+    }
+</style>
+<form action="" method="post">
+    <div class="row">
+        @* Search form *@
+        <div class="col-sm-12" id="Search_form">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-3">
+                            <label for="" class="control-label">เลือกสาขา :</label>
+                            <select id="select_Branch" tabindex="-1" class="select2 form-control">
+                                @foreach(var itm in ViewBag.branchList)
+                                {
+                                    if(itm.Branch_ID == 1)
+                                    {
+                                        <option value="1">---ทั้งหมด---</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@itm.Branch_ID">@itm.BranchDetail</option>
+                                    }
+
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-2" style="margin-top: 24px">
+                            <button type="button" class="btn btn-block btn-info" id="btnSearch">ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end form *@
+        @* DT form *@
+        <div class="col-sm-12" id="dt_form">
+            <div class="box box-default">
+                <div class="box-header">
+                    <h4 class="header">การโอนเงิน</h4>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtTransactionAlert" name="dtTransactionAlert" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end form *@
+    </div>
+    @* Alert transfer modal *@
+    <div class="modal fade bd-transfer-modal-lg" id="transferModal" tabindex="-1" role="dialog" aria-labelledby="transferModal" aria-hidden="true">
+        <div class="modal-dialog  modal-md " role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">แจ้งโอนเงิน</h5>
+                    <input type="hidden" id="hd_transferId" />
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-9">
+                                <label class="control-label" for="">เลือกธนาคาร :</label>
+                                <select id="select_Bank" name="select_Bank" class="form-control select2" required="">
+                                    <option value="-1">---กรุณาเลือก---</option>
+                                    @foreach(var itm in ViewBag.bankList)
+                                    {
+                                        if(itm.OrganizeId != 2) //2 =รอข้อมุล ของ Bank
+                                        {
+                                            <option value="@itm.OrganizeId">@itm.OrganizeTypeDetail @itm.OrganizeDetail</option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            <label for="" class="control-label">ชื่อบัญชี :</label>
+                            <input type="text" id="txtAccName" class="form-control" />
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="" class="control-label">เลขที่บัญชี :</label>
+                            <input type="text" id="txtAccNo" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class=" col-sm-6">
+                            <label for="" class="control-label">วันที่รับเงิน/ใบกำกับภาษี :</label>
+                            <input type="text" class="form-control pull-right" name="dateInput" id="dateInput"
+                                   data-date-language="th-th" data-provide="datepicker" required>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="" class="control-label">เวลา :</label>
+                            <input type="text" class="form-control pull-right timepicker" name="timeInput" id="timeInput" required>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-4">
+                            <a class="btn btn-block btn-default" id="btnScanDoc_T">เอกสาร:<label id="docCount_T">0</label></a>
+                            <input type="hidden" id="hd_docCode_T" value="" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-sm-3 pull-right">
+                        <button type="button" class="btn btn-block btn-success" onclick="AlertTransfer()">ตกลง</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end modal *@
+    @* detail modal *@
+    <div class="modal fade bd-check-modal-lg" id="checkModal" tabindex="-1" role="dialog" aria-labelledby="checkModal" aria-hidden="true">
+        <div class="modal-dialog  modal-lg " role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="checkModalHeader">รายละเอียด<label id="txtCompany"></label></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-sm-4">
+                            <label class="control-label">ธนาคาร :</label>
+                            <input type="text" id="txtBank" value="" disabled="disabled" />
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="control-label">ชื่อบัญชี :</label>
+                            <input type="text" id="txtBankName" value="" disabled="disabled" />
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="control-label">เลขที่บัญชี :</label>
+                            <input type="text" id="txtBankNo" value="" disabled="disabled" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtDetailTransaction" name="dtDetailTransaction" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-offset-9 col-sm-2">
+                        <a class="btn btn-block btn-default" id="btnScanDoc">เอกสาร:<label id="docCount">0</label></a>
+                        <input type="hidden" id="hd_docCode" value="" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+
+                    <div class="col-sm-offset-2 col-sm-3">
+                        <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ปิด</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end modal *@
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+            $('#dateInput').datepicker({ format: 'dd/mm/yyyy' }).datepicker('setDate',new Date());
+
+            $('.timepicker').timepicker({
+                    defaulttime: 'current',
+                    showSeconds: true,
+                    showMeridian: false, //false = 24,true=12
+                    timeFormat: 'HH:mm:ss',
+                    interval: 15
+                });
+
+            Transfer_DT(1);
+
+            $('#btnSearch').click(() => {
+                Transfer_DT($('#select_Branch').val());
+            });
+
+        });
+
+        const Transfer_DT = (branchId) => {
+            $('#dtTransactionAlert').empty();
+            var table = $('#dtTransactionAlert').DataTable({
+                paging: false,
+                searching: false,
+                processing: true,
+                ordering: false,
+                serverSide: true,
+                responsive: false,
+                lengthChange: false,
+                destroy: true,
+                scrollX: true,
+                ajax: {
+                    url: '@Url.Action("GetTransfer_DT","FinanceChecker")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = 1;
+                        d.pageSize = 999999;
+                        d.indexStart = null;
+                        d.sortField = null;
+                        d.orderType = null;
+                        d.search = d.search.value;
+                        d.branchId = branchId;
+                        d.isScanDoc = true;
+                        d.isTransfer = false;
+                    }
+                },
+                columns: [
+                    {
+                     title: 'วันที่ทำรายการล่าสุด',
+                    data: 'UpdatedDate',
+                    width: "180px",
+                    className: "h-dt-center d-dt-center",
+                    render: function (data) {
+                        if (data != null) {
+                            return moment(data).format('DD/MM/YYYY HH:mm') + 'น.';
+                        } else {
+                            return '-';
+                        }
+                    }
+                    },
+                {
+                    title: 'วันที่ส่งเบิก',
+                    data: 'CreatedDate',
+                    width: "180px",
+                    className: "h-dt-center d-dt-center",
+                    render: function (data) {
+                        if (data != null) {
+                            return moment(data).format('DD/MM/YYYY HH:mm') + 'น.';
+                        } else {
+                            return '-';
+                        }
+                    }
+                    },
+                {
+                    title: 'Code',
+                    data: 'TransferCode',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                {
+                    title: 'สาขา',
+                    data: 'Branch',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                {
+                    title: 'บริษัท',
+                    data: 'Organize',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                {
+                    title: 'จำนวนเงิน',
+                    data: 'Amount',
+                    width: "200px",
+                    className: "h-dt-center d-dt-center"
+                },
+                 {
+                     title: 'บัญชีที่โอน',
+                     data: 'BankAccountName',
+                     width: "200px",
+                     className: "h-dt-center"
+                 },
+                    {
+                        title: 'เลขที่บัญชี',
+                        data: 'BankAccountNo',
+                        width: '250px',
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'แจ้งโอน',
+                        data: null,
+                        width: '200px',
+                        className: 'h-dt-center',
+                        render: function (data) {
+                            if (data.TransferByUserId == null) {
+                                return '<button type="button" class="btn btn-block btn-success" id="btnAlert_' + data.TransferId + '" ' +
+                                'onclick=AlertOpen("' + data.TransferId + '","' + data.BranchId + '")' +
+                                '  data-toggle="modal" data-target=".bd-transfer-modal-lg" >' +
+                                'แจ้งโอน</button>';
+                            } else {
+                                return '<button type="button" disabled="disabled" class="btn btn-block btn-success" id="btnAlert_' + data.TransferId + '" ' +
+                                'onclick=AlertOpen("' + data.TransferId + '","' + data.BranchId + '")' +
+                                '  data-toggle="modal" data-target=".bd-transfer-modal-lg" >' +
+                                'แจ้งโอน</button>';
+                            }
+                        }
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        width: '200px',
+                        className: 'h-dt-center',
+                        render: function (data) {
+                            return '<button type="button" class="btn btn-block btn-default" id="btnShow_' + data.TransferId + '" ' +
+                                'data-toggle="modal" data-target=".bd-check-modal-lg" ' +
+                                'onclick=GetPaymentDetail("' + data.TransferId + '") >แสดงรายการ</button>';
+                        }
+                    }
+
+                ]
+
+            });
+        }
+
+        const GetPaymentDetail = (transferId) => {
+
+            GetPaymentDT(transferId);
+            $.get('@Url.Action("GetTransferDetailById","FinanceChecker")', { transferId: transferId }, (data) => {
+                $('#hd_transferId').val(data.TransferId);
+                $('#docCount').text(data.R_DocumentFileCount);
+                $('#btnScanDoc').attr('href', data.R_UrlLinkOpenSSSDoc).attr('target', '_blank');
+                $('#hd_docCode').val(data.R_DocumentCode);
+                 GetDocCount();
+                //header detail
+                $('#txtBank').val(data.BankName);
+                $('#txtBankName').val(data.BankAccountName);
+                $('#txtBankNo').val(data.BankAccountNo);
+
+            });
+        }
+
+        const GetPaymentDT = (transferId) => {
+            $('#dtDetailTransaction').empty();
+            var table = $('#dtDetailTransaction').DataTable({
+                dom: '<"toolbar">frtip<"footer">',
+                paging: false,
+                ordering: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                lengthChange: false,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetTransferDetail_DT","FinanceChecker")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = 1;
+                        d.pageSize = 999999;
+                        d.indexStart = null;
+                        d.sortField = null;
+                        d.orderType = null;
+                        d.search = d.search.value;
+                        d.transferId = transferId;
+                    }
+                },
+                columns: [
+
+                {
+                    title: 'ประเภทค่าใช้จ่าย',
+                    data: 'PettyCashTransactionType',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                {
+                    title: 'รายละเอียดเพิ่มเติม',
+                    data: 'PettyCashTransactionTypeDescription',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                {
+                    title: 'จำนวนเงิน',
+                    data: 'Amount',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                 {
+                     title: 'ยอดโอน',
+                     data: 'PaymentAmount',
+                     width: "250px",
+                     className: "h-dt-center"
+                    },
+                    {
+                        title: 'เอกสาร',
+                        data: null,
+                        width: "250px",
+                        render: function (data) {
+                            return '<a href="'+data.UrlLinkOpenSSSDoc+'" target="_blank" class="btn btn-block btn-default" id="btnSee_' + data.PettyCashTransactionId + '" "> เรียกดูเอกสาร</a>';
+                        }
+                    }
+
+                ], drawCallback: function (d) {
+                    var api = this.api();
+                    var sum = 0;
+                    var d = api.rows({ page: 'current' }).data();
+                    for (var i = 0; i < d.length; i++) {
+                        sum += d[i].Amount;
+                    }
+                    $("div.footer").html(`<h4 style="float: right" class="text-bold">จำนวนเงินทั้งหมด &nbsp&nbsp : <span style="color:${negative(sum) ? "#d10000;" : "#007c16;"}">${formatNumber(sum)}</span> บาท</h4>`);
+                }
+
+            });
+        }
+
+        const AlertOpen = (transferId, branchId) => {
+            $.get('@Url.Action("GetTransfer")', { transferId: transferId, branchId: branchId }, (data) => {
+                $('#select_Bank').val(data.BankID);
+                $('#txtAccName').val(data.BankAccountName);
+                $('#txtAccNo').val(data.BankAccountNo);
+                $('#hd_transferId').val(data.TransferId);
+                $('#docCount_T').text(data.T_DocumentFileCount);
+                $('#hd_docCode_T').val(data.T_DocumentCode);
+                $('#btnScanDoc_T').attr('href', data.T_UrlLinkOpenSSSDoc).attr('target', '_blank');
+                $('.timepicker').timepicker({
+                    defaulttime: 'current',
+                    showSeconds: true,
+                    showMeridian: false, //false = 24,true=12
+                    timeFormat: 'HH:mm:ss',
+                    interval: 15
+                });
+            });
+
+        }
+
+        const AlertTransfer = () => {
+            var date = $('#dateInput').val()+' ' + $('#timeInput').val();
+            if (Validate()) {
+                swal_confirm("ยืนยันการแจ้งข้อมูล", "ต้องการแจ้งการโอนนี้หรือไม่", () => {
+                    $.post('@Url.Action("UpdateTransfer","FinanceChecker")', {
+                        transferId: $('#hd_transferId').val(), bankId: $('#select_Bank').val(), transferDate: date,
+                        bankAccNo: $('#txtAccNo').val(), bankAccName: $('#txtAccName').val()
+                    }, function (data) {
+                        if (data.IsResult) {
+                            swal_success("ทำรายการสำเร็จ");
+                            window.location = ('@Url.Action("TransferAlert")');
+                        } else {
+                            swal_fail("ไม่สำเร็จ:" + data.Msg);
+                        }
+                    });
+                });
+            }
+
+        }
+
+        const Validate = () => {
+            if ($('#select_Bank').val() == "-1") {
+                //$('#select_Bank').focus();
+                alert('กรุณาเลือกธนาคาร!');
+                return false;
+            }
+            if ($('#txtAccName').val() == "") {
+                alert('กรุณากรอกชื่อบัญชี');
+                return false;
+            }
+            if ($('#txtAccNo').val() == "") {
+                alert('กรุณากรอกเลขบัญชี');
+                return false;
+            }
+            if ($('#timeInput').val() == "") {
+                alert('กรุณาเลือกเวลา');
+                return false;
+            }
+
+            return true;
+
+        }
+
+          //GET DOC COUNT
+        const GetDocCount = () => {
+
+            $.get('@Url.Action("GetDocCount","FinanceChecker")', { docCode: $('#hd_docCode').val() },
+                function (data) {
+                    $('#docCount').text(data);
+                });
+            //setTimeout(GetDocCount, 2000);
+            $.get('@Url.Action("GetDocCount","FinanceChecker")', { docCode: $('#hd_docCode_T').val() },
+                function (data) {
+                    $('#docCount_T').text(data);
+                });
+            setTimeout(GetDocCount, 2000);
+        }
+    </script>
+}

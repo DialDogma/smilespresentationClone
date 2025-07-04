@@ -1,0 +1,106 @@
+﻿@{
+    ViewBag.Title = "Manage Menu";
+}
+
+<!-- form start -->
+<form class="form-horizontal">
+    <div class="form-group">
+        <label for="ProjectName" class="col-sm-2 control-label">Project</label>
+        <div class="col-sm-4">
+            <select class="form-control select2" name="ProjectName" id="ProjectName" required="required" style="width: 100%;">
+                @foreach (var item in ViewBag.Projects)
+                {
+                    <option value="@item.ProjectName">@item.ProjectName</option>
+                }
+            </select>
+        </div>
+        <a href="#" name="reOrder" id="reOrder" class="btn btn-primary" style="float: left; width: 100px;">Re Order</a>
+        <a href="#" name="newMenu" id="newMenu" class="btn btn-success" style="float: right; width: 100px;">+ New Menu</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <table id="datatable1" class="table table-bordered table-striped"></table>
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+        <!-- /.box -->
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script>
+
+        var dt;
+
+        var projectname;
+
+        $(document).ready(function () {
+            projectname = $('#ProjectName').val();
+
+            //Load Datatable
+            LoadDatatable(projectname);
+
+            //change hyperlink for reorder and new menu
+            $("#reOrder").attr("href", "@Url.Action("ReOrder")" +"?projectname=" +projectname);
+            $("#newMenu").attr("href", "@Url.Action("Add")" +"?projectname=" +projectname);
+
+            //Upldate Datatable when selected dropdown changed
+            $('#ProjectName').change(function (e) {
+                e.preventDefault();
+
+                projectname = $('#ProjectName').val();
+
+                //load datatable
+                LoadDatatable(projectname);
+
+                //change hyperlink for reorder and new menu
+                $("#reOrder").attr("href", "@Url.Action("ReOrder")" +"?projectname=" +projectname);
+                $("#newMenu").attr("href", "@Url.Action("Add")" +"?projectname=" +projectname);
+            });
+        });
+
+        function LoadDatatable(projectName) {
+            //Load Datatable
+            dt=  $('#datatable1').DataTable({
+                pageLength: 10,
+                processing: true,
+                destroy: true,
+                serverSide: true,
+                ordering: false,
+                ajax: {
+                    url: '@Url.Action("GetDatatable")',
+                    method:'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.search = d.search.value;
+                        d.projectName = projectName;
+                    }
+                },
+                columns: [
+                    { title: 'MenuId', data: 'MenuId' },
+                    { title: 'MainMenu', data: 'MainMenu' },
+                    {
+                        title: 'Icon',
+                        data: 'IconClassName',
+                        render: function (data) {
+                            result = '<i class="'+ data +'"></i>';
+                            return result;
+                        }
+                    },
+                    { title: 'Detail', data: 'Detail' },
+                    { title: 'Controller', data: 'Controller' },
+                    { title: 'Action', data: 'Action' },
+                    { title: 'SortOrder', data: 'SortOrder' },
+                    { title: 'QueryString', data: 'QueryString' }
+                ]
+            });
+        }
+    </script>
+}

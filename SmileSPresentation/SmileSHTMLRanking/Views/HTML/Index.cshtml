@@ -1,0 +1,169 @@
+﻿@{
+    ViewBag.Title = "Upload HTML";
+
+}
+<div class="row">
+    <div class="col-xs-12 col-md-12">
+        <div class="box box-default">
+            <div class="box-body">
+                <div class="form-group col-md-12">
+                    <label class="control-label" for="">DCR :</label>
+                    <input type="text" class="form-control pull-right" name="DCRSelect" id="DCRSelect"
+                           data-date-language="th-th" data-provide="datepicker">
+                </div>
+                <div class="form-group col-md-12">
+                    <label class="control-label" for="">Group :</label>
+                    <select id="select_TaskGroup" class=" form-control">
+                        @foreach(var itm in ViewBag.rankingGroupList)
+                        {
+                            <option value="@itm.RankingGroupId">@itm.RankingGroupDetail</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-md-12">
+                    <label class="control-label" for="">Type :</label>
+                    <select id="select_TaskType" class=" form-control"></select>
+                </div>
+                <div class="form-group col-md-12">
+                    <textarea id="editor1" name="editor1" style="height: auto">
+                    </textarea>
+                </div>
+                <div class="form-group col-md-12">
+                    <div class="col-xs-6 col-md-offset-4 col-md-3 ">
+                        <button type="button" class="btn btn-block btn-success" id="btnSubmit">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var toolbarOptions = [
+            ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+            ['blockquote', 'code-block'],
+
+            [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
+            [{ 'indent': '-1' }, { 'indent': '+1' }],          // outdent/indent
+            [{ 'direction': 'rtl' }],                         // text direction
+
+            [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+            [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+
+            ['clean']                                         // remove formatting button
+        ];
+
+        //save quill rich text editor value
+        //var quill = new Quill('#editor', {
+        //    modules: {
+        //        toolbar: toolbarOptions
+        //    },
+
+        //    theme: 'snow',
+        //    placeholder: 'เขียนบางอย่าง....',
+
+        //});
+
+        $(function () {
+            //select datepicker month
+            $('#DCRSelect').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker("setDate", new Date());
+
+            LoadDllType($('#select_TaskGroup').val());
+
+            setTimeout(() => {Select();},1500);
+
+            window.CKEDITOR_BASEPATH = '../Content/js/plugins/ckeditor/ckeditor.js';
+            CKEDITOR.replace('editor1');
+
+            $('#DCRSelect').change(() => {
+                CKEDITOR.instances.editor1.setData('');
+                setTimeout(() => {Select();},1500);
+            });
+
+            $('#select_TaskGroup').change(function (e) {
+                CKEDITOR.instances.editor1.setData('');
+                LoadDllType($('#select_TaskGroup').val());
+                setTimeout(() => {Select();},1500);
+            });
+
+            $('#select_TaskType').change(function (e) {
+                CKEDITOR.instances.editor1.setData('');
+                setTimeout(() => {Select();},1000);
+            });
+
+            $('#btnSubmit').click(function (e) {
+                if (Valid()) {
+                    swal_confirm("บันทึกข้อมูล", "ต้องการบันทึกข้อมูลหรือไม่?", () => {
+                        Submit();
+                    });
+                } else {
+                    swal_fail("กรุณากรอกข้อมูลให้ครบถ้วน");
+                }
+
+            });
+        });
+
+        const LoadDllType = (taskGroupId) => {
+            $('#select_TaskType').empty();
+            $.get('@Url.Action("ddlTypeLoad","HTML")', { groupTypeId: taskGroupId }, (data) => {
+                $.each(data, function (index, value) {
+                    $('#select_TaskType').append($('<option>', {value:value.RankingTypeId,text:value.RankingTypeDetail}));
+                });
+
+            });
+        }
+
+        const Submit = () => {
+            //convert and add day 1
+            var DCRDate = $('#DCRSelect').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker('getDate');
+            var firstDate = new Date(DCRDate.getFullYear(), DCRDate.getMonth(), 1);
+            var periodConvert = moment(firstDate).format('DD-MM-YYYY');
+
+            var selectRankingType = $('#select_TaskType').val();
+            var textEditorValue = CKEDITOR.instances.editor1.getData();
+
+            $.post('@Url.Action("Submit","HTML")', { period: periodConvert, rankingTypid: selectRankingType, rankingDetail: textEditorValue }, (data) => {
+                swal_success(data);
+                setTimeout(() => {
+                    window.location = ('@Url.Action("Index","HTML")');
+                },2300);
+            });
+        }
+
+        const Valid = () => {
+            if ($('#DCRSelect').val() == null) {
+                return false;
+            }
+            if ($('#select_TaskType').val() == null) {
+                return false;
+            }
+
+            return true;
+        }
+
+        const Select = () => {
+            var DCRDate = $('#DCRSelect').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker('getDate');
+            var firstDate = new Date(DCRDate.getFullYear(), DCRDate.getMonth(), 1);
+            var periodConvert = moment(firstDate).format('DD-MM-YYYY');
+
+            var selectRankingType = $('#select_TaskType').val();
+
+            $.post('@Url.Action("Select","HTML")', { period: periodConvert, rankingTypeId: selectRankingType }, (data) => {
+                if (data != "false") {
+
+                    CKEDITOR.instances.editor1.insertHtml(data.RankingDetail);
+                } else {
+
+                    CKEDITOR.instances.editor1.setData('');
+                }
+            });
+        }
+    </script>
+}

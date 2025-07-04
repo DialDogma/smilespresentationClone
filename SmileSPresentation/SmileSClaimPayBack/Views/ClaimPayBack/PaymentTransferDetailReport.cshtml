@@ -1,0 +1,121 @@
+
+@{
+    ViewBag.Title = "รายงานรายละเอียดการโอนเงิน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title"><strong> ค้นหาจากวันที่ส่งการเงิน</strong></h3>
+            </div>
+            <div class="box-body">
+                <div class="box-group">
+                    <div class="row">
+                        <div class="col-xs-12 col-md-9" style="margin-top: 2.5rem; margin-bottom: 2.5rem;">
+                            <div class="row">
+                                <div class="col-xs-12 col-md-4">
+                                    <label>วันที่ :</label>
+                                    <div class="input-group date">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
+                                        <input type="text" class="form-control pull-right" id="dateTo" data-date-language="th-th">
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 col-md-4">
+                                    <label> ประเภทเคลม :</label>
+                                    <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" id="claimGroupTypeId" name="claimGroupTypeId">
+                                        <option value="-1">---โปรดระบุ---</option>
+                                        @{
+                                            foreach (var item in ViewBag.ClaimGroupType)
+                                            {
+                                                <option value="@item.ClaimGroupTypeId">@item.ClaimGroupType</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-xs-12 col-sm-12 col-md-4" style="margin-top:25px">
+                                    <input type="button" class="btn btn-block btn-success" id="btnExportExcel" name="btnExportExcel" value="Export To Excel" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var date = new Date();
+        var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+        $(function () {
+
+
+            $('.select2').select2();
+
+            //Date picker
+            $('#dateTo').datepicker({
+                format: 'dd/mm/yyyy',
+                autoclose: true,
+                endDate: today + 1,
+            }).datepicker('setDate', today)
+
+            //Button Export
+            $('#btnExportExcel').click(function (e) {
+                e.preventDefault();
+                //Validate
+                if (Isvalidate()) {
+                    //Export
+                    ExportToExcel()
+                }
+            });
+
+        });
+
+        const Isvalidate = () => {
+
+            //Chk dateTo & DateTo Is Null
+            if ($('#dateTo').val() == "") {
+                swal_info("กรุณาเลือก ช่วงวันที่");
+                return false;
+            }
+
+            if ($('#claimGroupTypeId').val() == '-1') {
+                swal_info("กรุณาเลือก ประเภทเคลม");
+                return false;
+            }
+
+            return true;
+        }
+
+        const ExportToExcel = () => {
+            loadingSpinner('fadeIn');
+            $.ajax({
+                url: "@Url.Action("ExportPaymentTransferDetail", "ClaimPayBack")",
+                type: "POST",
+                data: {
+                    dateTo: $('#dateTo').val(),
+                    claimGroupTypeId: $('#claimGroupTypeId').val(),
+                },
+                success: function (response) {
+                    if (!response.isError) {
+                        window.location = "@Url.Action("ExportPaymentTransferDetailDownload", "ClaimPayBack")";
+                        loadingSpinner('fadeOut');
+                    }
+                    else {
+                        swal('แจ้งเตือน !', response.Msg, 'warning');
+                        loadingSpinner('fadeOut');
+                    }
+                }
+            });
+
+        }
+
+    </script>
+}

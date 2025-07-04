@@ -1,0 +1,113 @@
+﻿@{
+    ViewBag.Title = "Ranking";
+
+}
+<div class="row">
+    <div class="col-xs-12 col-md-12">
+        <div class="box box-default">
+            <div class="box-body">
+                <div class="form-group col-md-12">
+                    <label class="control-label" for="">DCR :</label>
+                    <input type="text" class="form-control pull-right" name="DCRSelect" id="DCRSelect"
+                           data-date-language="th-th" data-provide="datepicker">
+                </div>
+                <div class="form-group col-md-12">
+                    <label class="control-label" for="">Group :</label>
+                    <select id="select_TaskGroup" class=" form-control">
+                        @foreach(var itm in ViewBag.rankingGroupList)
+                        {
+                            <option value="@itm.RankingGroupId">@itm.RankingGroupDetail</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-md-12">
+                    <label class="control-label" for="">Type :</label>
+                    <select id="select_TaskType" class=" form-control"></select>
+                </div>
+                <div class="form-group col-md-12">
+                    <div id="editor" style="height: 500px;border-color: black ;border: solid 0.3px;overflow: scroll">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+         var toolbarOptions = [
+            ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+            ['blockquote', 'code-block'],
+
+            [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
+            [{ 'indent': '-1' }, { 'indent': '+1' }],          // outdent/indent
+            [{ 'direction': 'rtl' }],                         // text direction
+
+            [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+            [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+
+            ['clean']                                         // remove formatting button
+        ];
+
+        $(function () {
+            //select datepicker month
+            $('#DCRSelect').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker("setDate", new Date());
+
+            LoadDllType($('#select_TaskGroup').val());
+
+            setTimeout(() => {Select();},1500);
+
+            //$('#editor').trumbowyg();
+
+            $('#DCRSelect').change(() => {
+                 $('#editor').empty();
+                setTimeout(() => {Select();},1500);
+            });
+
+            $('#select_TaskGroup').change(function (e) {
+                 $('#editor').empty();
+                LoadDllType($('#select_TaskGroup').val());
+                setTimeout(() => {Select();},1500);
+            });
+
+            $('#select_TaskType').change(function (e) {
+                 $('#editor').empty();
+                setTimeout(() => {Select();},1000);
+            });
+
+        });
+
+         const LoadDllType = (taskGroupId) => {
+            $('#select_TaskType').empty();
+            $.get('@Url.Action("ddlTypeLoad","HTML")', { groupTypeId: taskGroupId }, (data) => {
+                $.each(data, function (index, value) {
+                    $('#select_TaskType').append($('<option>', {value:value.RankingTypeId,text:value.RankingTypeDetail}));
+                });
+
+            });
+        }
+
+        const Select = () => {
+            //$('#editor').remove();
+            var DCRDate = $('#DCRSelect').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker('getDate');
+            var firstDate = new Date(DCRDate.getFullYear(), DCRDate.getMonth(), 1);
+            var periodConvert = moment(firstDate).format('DD-MM-YYYY');
+
+            var selectRankingType = $('#select_TaskType').val();
+
+            $.post('@Url.Action("Select","HTML")', { period: periodConvert, rankingTypeId: selectRankingType }, (data) => {
+                if (data != "false") {
+                    $('#editor').append(data.RankingDetail);
+                } else {
+                    $('#editor').empty();
+                }
+            });
+        }
+    </script>
+}

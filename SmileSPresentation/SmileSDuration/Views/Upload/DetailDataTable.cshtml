@@ -1,0 +1,187 @@
+﻿@{
+    ViewBag.Title = "DetailDataTable";
+}
+
+<style>
+    .dt-center {
+        text-align: center;
+    }
+
+    .dt-left {
+        text-align: left;
+    }
+</style>
+
+<form id="myForm" action="@Url.Action("SubmitData")" method="POST" enctype="multipart/form-data">
+    <div class="row" id="divcontent">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">รายละเอียด</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="form-group">
+                        <table id="datatable1" class="table table-bordered table-striped "></table>
+                    </div>
+                </div>
+                <div style="text-align: center">
+                    <button id="btn_preview" name="btn_preview" type="button" class="btn btn-info btn-flat" style="width: 20%"><i class="fa fa-paper-search"></i> ดูตัวอย่าง</button>
+
+                    <button id="btn_confirm" name="btn_confirm" type="submit" class="btn btn-success btn-flat" style="width: 20%"><i class="fa fa-paper-plane"></i> ยืนยัน</button>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+    </div>
+    <input type="hidden" id="tempImportHeaderID" name="tempImportHeaderID" value="@ViewBag.tempImportHeaderID" />
+</form>
+
+<form id="myForm_Preview" action="@Url.Action("PreviewSMS")" method="POST" enctype="multipart/form-data">
+    <input type="hidden" id="tempImportHeaderID_Preview" name="tempImportHeaderID_Preview" value="@ViewBag.tempImportHeaderID" />
+</form>
+
+@section ViewSpecificJavascript
+    {
+    <script>
+        $(function () {
+            $('#btn_preview').click(function() {
+                $('#myForm_Preview').submit();
+            });
+            //$('.select2').select2();
+
+            //$('#button_search').click(function () {
+            //    var table = $('#datatable1').DataTable();
+            //    table.draw();
+            //});
+
+            $('#datatable1').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                lengthChange: false,
+                responsive: true,
+                ajax: {
+                    url: '@Url.Action("GetDatatableDetail")',
+                    method: "POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.tempImportHeaderID = @ViewBag.tempImportHeaderID;
+                    }
+                },
+
+                columns: [
+                    @*{
+                        title: '#',
+                        data: null,
+                        bSortable: false,
+                        mRender: function (o) {
+                            //encode
+                            var encodeAppId = window.btoa(o.ApplicationID);
+                            return '<a href="@Url.Action("GetPA", "PA")?appid=' + encodeAppId + '&schoolName=' + o.SchoolName + '&productName=' + o.ProductDetail + '" class="btn btn-info" title="เลือก" style="margin: 2px;"><i class="fa fa-search"></i></a>';
+                        }
+
+                    },*@
+                    { title: 'ID', data: 'ComunicateCode' },
+                    { title: 'CusMobile', data: 'MobilePhoneNo' },
+                    { title: 'AppID', data: 'AppID' },
+                    { title: 'CustomerName', data: 'CustomerName' },
+                    { title: 'PayerName', data: 'PayerName' },
+                    { title: 'Amount', data: 'Amount' },
+                    { title: 'AmountTotal', data: 'AmountTotal' },
+                    { title: 'DataType', data: 'ComunicateTypeID' },
+                    { title: 'LetterDate', data: 'LetterDate' },
+                    { title: 'PeriodOwe', data: 'PeriodOwe' },
+                    { title: 'DateRange', data: 'DateRange' },
+                    { title: 'DueDate', data: 'DueDate' },
+                    { title: 'DateOwe', data: 'DateOwe' },
+                    { title: 'RefNo', data: 'RefNo' }
+
+                ]
+            });
+
+            $('#myForm').submit(function(e) {
+                e.preventDefault();
+                if ($("#myForm").valid() == true) {
+                    var dataObj = $('#myForm').serialize();
+                    window.swal({
+                        title: 'ยืนยันการส่งข้อความหรือไม่?',
+                        type: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#277020',
+                        confirmButtonText: 'ตกลง',
+                        cancelButtonText: 'ยกเลิก',
+                        closeOnConfirm: false,
+                        closeOnEsc: false,
+                        closeOnCancel: true,
+                        showLoaderOnConfirm: true
+                    },function() {
+                        $.ajax({
+                            type: "POST",
+                            url: $('#myForm').attr('action'),
+                            data: dataObj,
+                            success: function(response) {
+                                if (response != null && response != "") {
+                                    switch (response.status) {
+                                        case "000":
+                                            window.swal({
+                                                title: `${response.detail} ส่งข้อความเรียบร้อยแล้ว!`,
+                                                type: 'success',
+                                                showCancelButton: false,
+                                                confirmButtonColor: '#26A65B',
+                                                confirmButtonText: 'ตกลง',
+                                                closeOnEsc: false
+                                            },function() {
+                                                window.location = "@Url.Action("Index","Upload")";
+
+                                            });
+                                            break;
+                                        case "101":
+                                        case "600":
+                                        case "111":
+                                            window.swal({
+                                                title: `เกิดข้อผิดพลาด! ${response.detail}`,
+                                                type: 'error',
+                                                text:'กรุณาติดต่อฝ่ายพัฒนาระบบ',
+                                                showCancelButton: false,
+                                                confirmButtonColor: '#ed2b09',
+                                                confirmButtonText: 'ตกลง',
+                                                closeOnEsc: false
+                                            },function() {
+                                                window.location = "@Url.Action("InternalServerError","Error")";
+                                            });
+                                            break;
+                                        default:
+                                    }
+
+                                } else {
+                                    window.swal({
+                                        title: 'เกิดข้อผิดพลาด!',
+                                        type: 'error',
+                                        text:'กรุณาติดต่อฝ่ายพัฒนาระบบ',
+                                        showCancelButton: false,
+                                        confirmButtonColor: '#ed2b09',
+                                        confirmButtonText: 'ตกลง',
+                                        closeOnEsc: false
+                                    },function() {
+                                        window.location = "@Url.Action("InternalServerError","Error")";
+                                    });
+                                }
+                            },
+                            error: function(xhr, error) {
+                                alert(xhr);
+                            }
+                        });
+                    });
+                }
+            });
+        });
+    </script>
+}

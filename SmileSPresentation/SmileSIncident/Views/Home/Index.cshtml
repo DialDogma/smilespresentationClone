@@ -1,0 +1,438 @@
+﻿@{
+    ViewBag.Title = "Inbox";
+    ViewBag.Description = "กล่องขาเข้า";
+}
+<style>
+    table {
+        font-size: 14px !important;
+    }
+
+        table tr {
+            cursor: pointer !important;
+        }
+
+    .border-red {
+        border: solid 1px red !important;
+    }
+
+    .border-green {
+        border: solid 1px green !important;
+    }
+</style>
+<div class="row">
+    <div class="col-xs-12 col-md-12">
+        <div class="box box-info">
+            <div class="box-body">
+
+                <div class="row">
+                    <div class="form-group col-xs-12 col-md-3">
+                        <label class="control-label" for="">สถานะงาน :</label>
+                        <select id="select_Status" class="form-control">
+                            <option value="0" selected="selected">--เลือกทั้งหมด--</option>
+                            @foreach (var itm in ViewBag.statusList)
+                            {
+                                if (itm.TaskStatusId == ViewBag.jobSelected)
+                                {
+                                    <option value="@itm.TaskStatusId" selected="selected">@itm.TaskStatus</option>
+                                }
+                                else
+                                {
+                                    <option value="@itm.TaskStatusId">@itm.TaskStatus</option>
+
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group col-xs-12 col-md-3">
+                        <label class="control-label" for="">กลุ่มงานหลัก :</label>
+                        <select id="select_TaskGroup" class=" form-control">
+                            <option value="0" selected="selected">--เลือกทั้งหมด--</option>
+                            @foreach (var itm in ViewBag.IncidentTypeList)
+                            {
+                                <option value="@itm.IncidentGroupTypeId">@itm.IncidentGroupType</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group col-xs-12 col-md-3">
+                        <label class="control-label" for="">กลุ่มงานย่อย :</label>
+                        <select id="select_TaskSubGroup" class=" form-control">
+                            <option value="0" selected="selected">--เลือกทั้งหมด--</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-xs-12 col-md-3">
+                        <label class="control-label" for="">สาขา :</label>
+                        <select id="select_BranchId" class="form-control" @(ViewBag.Disable)>
+                            @if (ViewBag.BranchList.Count > 1)
+                            {
+                                <option value="">ทั้งหมด</option>
+                            }
+                            @foreach (var itm in ViewBag.BranchList)
+                            {
+
+                                <option value="@itm.BranchID">@itm.Branch</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group col-xs-12 col-md-5">
+                        <label class="control-label" for="">ค้นหา :</label>
+                        <input type="text" class="form-control" required="" maxlength="250" id="txtSearch" placeholder="คำค้นหา เช่น หัวข้อ, รหัสงาน">
+                    </div>
+                    <div class="col-xs-12 col-md-1" style="margin-top: 24px">
+                        <button class="btn btn-block btn-primary form-control" type="button" id="btnSearch">ค้นหา</button>
+                    </div>
+
+                    <div class="form-group col-xs-12 col-md-3" style="margin-top: 24px">
+                        <input type="checkbox" name="acceptRules" class="inline checkbox" id="chbAdvSearch" value="false">
+                        <span>ค้นหาขั้นสูง</span>
+                        <span style="font-size: 12px">(หัวข้อ,รหัสงาน,ข้อความ,การตอบกลับ)</span>
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="form-group col-xs-12 col-md-12">
+                        <table class="table table-hover display table-bordered" style="width: 100%" id="dtIncidentBox"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var tableX;
+
+        $(function () {
+
+             chat = $.connection.chatHub;
+
+            if (@ViewBag.IsDev == 1) {
+                 //Start Connection
+                $.connection.hub.start().done(function () {
+                    //join group
+                    chat.server.joinGroup('dev');
+                });
+
+                $.connection.hub.disconnected(function () {
+                    setTimeout(function () {
+                        $.connection.hub.start().done(function () {
+                            //join group
+                            chat.server.joinGroup('dev');
+                        });;
+                    }, 5000); // Restart connection after 5 seconds.
+                });
+            }
+
+            if (@ViewBag.IsDev == 2) {
+                 //Start Connection
+                $.connection.hub.start().done(function () {
+                    //join group
+                    chat.server.joinGroup('user');
+                });
+
+                $.connection.hub.disconnected(function () {
+                    setTimeout(function () {
+                        $.connection.hub.start().done(function () {
+                            //join group
+                            chat.server.joinGroup('user');
+                        });;
+                    }, 5000); // Restart connection after 5 seconds.
+                });
+            }
+
+            //Show group message to client
+            chat.client.receiveGroupMessage = function (name, message) {
+                toastr["success"]("อัพเดตข้อมูล", message);
+
+                // reload datatable
+                $('#dtIncidentBox').DataTable().ajax.reload();
+            };
+
+            toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-bottom-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+        /*END SignalR*/
+
+        // Event
+            $('#select_TaskGroup').change(function (e) {
+                e.preventDefault();
+                GetIncidentGroupType();
+            });
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                //render datatable
+                $('#dtIncidentBox').DataTable().ajax.reload();
+
+            });
+
+            $("#chbAdvSearch").on('ifChanged', function () {
+                if ($(this).is(':checked')) {
+                    $(this).attr('value', 'true');
+                } else {
+                    $(this).attr('value', 'false');
+                }
+            });
+
+            $('#dtIncidentBox').on('search.dt', function () {
+                $('.dataTables_filter input').off().on('keyup', function () {
+                    if (this.value.length === 0) {
+                        $('#dtIncidentBox').DataTable().search(this.value.trim(), false, false, false).draw();
+                        $('.dataTables_filter input').removeClass('border-red');
+                        $('.dataTables_filter input').removeClass('border-green');
+                        $('#sp_error').remove();
+                    } else if (this.value.length >4) {
+                        $('.dataTables_filter input').removeClass('border-red');
+                        $('.dataTables_filter input').addClass('border-green');
+                        $('#dtIncidentBox').DataTable().search(this.value.trim(), false, false, false).draw();
+                        $('#sp_error').remove();
+                    }else {
+                        //swal_info("Pls input morethan 5 charactor..")
+                        $('.dataTables_filter input').addClass('border-red');
+                        $('.dataTables_filter input').removeClass('border-green');
+                        $('.dataTables_filter input').focus();
+                        if ($('#sp_error').length == 0) {
+                            $(".dataTables_filter").append("<p style='color:red' id='sp_error'>ระบุคำค้นหาอย่างน้อย 5 ตัวอัการ</p>");
+                        }
+                    }
+                });
+            });
+
+            //render datatable
+            GetInboxTask_DT();
+        });
+        // End Event
+
+        const GetInboxTask_DT = () => {
+            $('#dtIncidentBox').empty();
+            tableX = $('#dtIncidentBox').DataTable({
+                async: true,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                autoWidth: false,
+                destroy: true,
+                searching: false,
+                order: [[8, "desc"]], //set order default
+                language: {
+                     url:"http://cdn.datatables.net/plug-ins/1.10.19/i18n/Thai.json"
+                 },
+                ajax: {
+                    url: '@Url.Action("InboxTask_Select","Home")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].name;
+                        d.orderType = d.order[0].dir;
+                        d.search = $('#txtSearch').val();
+                        d.statusTaskId = $('#select_Status').val();
+                        d.incidentGroupTypeId = $('#select_TaskGroup').val();
+                        d.incidentTypeId = $('#select_TaskSubGroup').val();
+                        d.branchId = $('#select_BranchId').val();
+                        d.isAdvSearch = $('#chbAdvSearch').val();
+
+                     }
+                 },
+                 columns: [
+                 {
+                    title: '#',
+                    data: null,
+                    name: 'IncidentTaskStatus',
+                    className: 'h-dt-center d-dt-center',
+                    width:'60px',
+                    render: function (data) {
+                         if (data.IncidentTaskStatusId == 1) {
+                             return '<span class="label label-info">'+data.IncidentTaskStatus+'</span>';
+                         } else if (data.IncidentTaskStatusId == 2) {
+                             return '<span class="label label-warning">' + data.IncidentTaskStatus +'</span>';
+                         } else if (data.IncidentTaskStatusId == 3) {
+                             return '<span class="label label-success">' + data.IncidentTaskStatus +'</span>';
+                         } else {
+                             return '<span class="label label-danger">' + data.IncidentTaskStatus +'</span>';
+                         }
+                     }
+                 },
+                 {
+                     title: 'หัวข้องาน',
+                     data: null,
+                     name: 'IncidentSubject',
+                     className: 'h-dt-center',
+                     render: function (data) {
+                         return '<a class="click_tr" /*onclick="SeeDetail('+ data.IncidentTaskId +')"*/ id="'+data.IncidentTaskId+'" ><span>'+data.IncidentSubject+'</span></a>'
+                      }
+                 },
+                 {
+                     title: 'รหัสงาน',
+                     data: 'IncidentTaskCode',
+                     name: 'IncidentTaskCode',
+                     className: 'h-dt-center',
+                 },
+                 {
+                     title: 'สาขา',
+                     data: 'Branch',
+                     name: 'Branch',
+                     className: 'h-dt-center',
+                 },
+                 {
+                     title: 'กลุ่มงานหลัก',
+                     data: 'IncidentGroupType',
+                     name: 'IncidentGroupType',
+                     className: 'h-dt-center',
+                 },
+                 {
+                     title: 'กลุ่มงานย่อย',
+                     data: 'IncidentType',
+                     name: 'IncidentType',
+                     className: 'h-dt-center',
+                 },
+                 {
+                     title: 'ผู้แจ้งงาน',
+                     data: null,
+                     name: 'IncidentTaskCode',
+                     className: 'h-dt-center',
+                     render: function (data) {
+                         return '<span>' + data.CreatedByName + '</span>';
+                      }
+                 },
+                 {
+                    title: 'วันที่สร้าง',
+                    data: 'CreatedDate',
+                    name: 'CreatedDate',
+                    className: 'h-dt-center',
+                    render: function (data) {
+                         if (data != null) {
+                             return moment(data).format('DD/MM/YYYY HH:mm') + 'น.';
+                         } else {
+                             return '-';
+                         }
+                    }
+                 },
+                 {
+                     title: 'อัพเดตล่าสุด',
+                     data: 'UpdatdDate',
+                     name: 'UpdatdDate',
+                     className: 'h-dt-center',
+                     render: function (data) {
+                         if (data != null) {
+                             return moment(data).format('DD/MM/YYYY HH:mm') + 'น.';
+                         } else {
+                             return '-';
+                         }
+                     }
+                 },
+                 {
+                     title: '',
+                     data: null,
+                     name: 'IsRead',
+                     render: function (data) {
+                          if (data.IsRead) {
+                              return '<button title="Mark As Unread" class="btn btn-block btn-default" id="btn_'+data.IncidentTaskId+'" onclick="MarkAsUnread('+data.IncidentTaskId+')">' +
+                                  '<i id="i_' + data.IncidentTaskId +'" class="fa fa-envelope-open" style="color:#28a745"></i></button>';
+                          } else {
+                              return '<button title="Mark As Read" class="btn btn-block btn-default" id="btn_'+data.IncidentTaskId+'" onclick="MarkAsUnread('+data.IncidentTaskId+')">' +
+                                  '<i id="i_' + data.IncidentTaskId +'" class="fa fa-envelope" style="color:#ffc107"></i></button>';
+                          }
+                      }
+                     },
+                ],
+                 rowId: 'IncidentTaskId',
+                 fnRowCallback: function (nRow, data, iDisplayIndex, iDisplayIndexFull) {
+                     if (data.IsRead) {
+                         //$('td', nRow).css('background-color', '#F5F5F5');
+                         $('td', nRow).toggleClass('active');
+                     } else {
+                         $('td', nRow).removeClass('active');
+                     }
+                 }
+
+             });
+
+            //event click on tbody
+            $('#dtIncidentBox tbody').on('click', 'td', function (e) {
+               e.preventDefault();
+               //don't trigger when click row index 0 or index 8
+              if ($(this).index() == 0||$(this).index() == 9) {
+                        return;
+                } else {
+                  var data = tableX.row(this).data();
+                  $.get('@Url.Action("Read_Update")', { incidentTaskId: data.IncidentTaskId ,typeId:0});
+                  setTimeout(() => { SeeDetail(data.IncidentTaskId) },100);
+                }
+            });
+            //แก่ใขไม่สามารถคลิก datatable ได้
+            window.onresize = function () {
+                tableX.columns.adjust().responsive.recalc();
+            };
+        }
+
+        const SeeDetail = (incidentTaskId) => {
+           //อ่าน new message
+            var url = (`@Url.Action("IncidentDetail")?incidentTaskId=` + incidentTaskId + `&UserId=` + @ViewBag.devId);
+            //open new tab
+            window.open(url, "_blank")
+        }
+
+        const MarkAsUnread = (incidentTaskId) => {
+            let green_color = '#28a745' ;
+            let yellow_color = '#ffc107';
+            if ($('#i_' + incidentTaskId + '').hasClass('fa-envelope-open')) {
+                //change all td in tr class active
+                $('#' + incidentTaskId + ' td').removeClass('active');
+                $('#i_' + incidentTaskId + '').removeClass('fa-envelope-open');
+                $('#i_' + incidentTaskId + '').addClass('fa-envelope');
+                $('#i_' + incidentTaskId + '').css('color', yellow_color);
+                $.get('@Url.Action("UnRead_Update")', { incidentTaskId: incidentTaskId ,typeId:1}, (data) => {
+
+                });
+            } else if ($('#i_' + incidentTaskId + '').hasClass('fa-envelope')) {
+                //change all td in tr class active
+                $('#' + incidentTaskId + ' td').toggleClass('active');
+                $('#i_' + incidentTaskId + '').removeClass('fa-envelope');
+                $('#i_' + incidentTaskId + '').addClass('fa-envelope-open');
+                $('#i_' + incidentTaskId + '').css('color', green_color);
+                $.get('@Url.Action("Read_Update")', { incidentTaskId: incidentTaskId,typeId:1 }, (data) => {
+
+                });
+
+            }
+
+        }
+        const GetIncidentGroupType = () => {
+
+         $('#select_TaskSubGroup').empty();
+         $.ajax({
+             type: "GET",
+             url: "@Url.Action("GetIncidentGroupType", "Home")",
+             data: {
+                 incidentGroupTypeId: $('#select_TaskGroup').val()
+             },
+             async: false,
+             dataType: "json",
+             success: function (response) {
+                 $('#select_TaskSubGroup').append('<option value="0">--เลือกทั้งหมด--</option>');
+                 for (var i = 0; i < response.length; i++) {
+                     $('#select_TaskSubGroup').append('<option value=' + response[i].IncidentTypeId + '>' + response[i].IncidentType +'</option>')
+                 }
+             }
+         });
+        }
+    </script>
+}

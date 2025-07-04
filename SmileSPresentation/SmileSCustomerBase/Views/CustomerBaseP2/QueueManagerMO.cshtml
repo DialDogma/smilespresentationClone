@@ -1,0 +1,307 @@
+﻿@{
+    ViewBag.Title = "คิวงาน MO";
+}
+<form class="form-horizontal" id="form1" action="" method="post" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-sm-12">
+
+            <div class="row">
+                <div class="col-sm-4">
+                    <div class="info-box ">
+                        <span class="info-box-icon bg-blue"><i class="fa fa-file-text-o"></i></span>
+
+                        <div class="info-box-content">
+                            <span class="info-box-text" style="font-weight: bold; font-size: 15px;">คิวงานทั้งหมด</span>
+
+                            <span class="info-box-number" style="font-size:25px;"><label for="xxx" class="control-label" id="lblQueueAll" name="lblQueueAll"></label></span>
+                        </div>
+                        <!-- /.info-box-content -->
+                    </div>
+                </div>
+
+                <div class="col-sm-4">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-yellow"><i class="fa fa-exclamation-circle"></i></span>
+
+                        <div class="info-box-content">
+                            <span class="info-box-text" style="font-weight: bold; font-size: 15px;">รอดำเนินการ</span>
+                            <span class="info-box-number" style="font-size:25px;"><label for="xxx" class="control-label" id="lblWaitQueue" name="lblWaitQueue"></label></span>
+                        </div>
+                        <!-- /.info-box-content -->
+                    </div>
+                </div>
+
+                <div class="col-sm-4">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-green"><i class="fa fa-check"></i></span>
+
+                        <div class="info-box-content">
+                            <span class="info-box-text" style="font-weight: bold; font-size: 15px;">คิวงานที่ปิดแล้ว</span>
+                            <span class="info-box-number" style="font-size:25px;"><label for="xxx" class="control-label" id="lblClosedQueue" name="lblClosedQueue"></label></span>
+                        </div>
+                        <!-- /.info-box-content -->
+                    </div>
+                </div>
+            </div>
+
+            @* ค้นหาคิวงาน *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายงาน</h3>
+                </div>
+                <div class="box-body">
+                    @* Lot AppID *@
+                    <div class="form-group">
+                        <div class="col-sm-12">
+
+                            <div class="col-sm-4 ">
+                                <label for="xxx" class="control-label">เลขสติ้กเกอร์ :</label>
+                                <input type="text" class="form-control" id="txtAppId" name="txtAppId" placeholder="">
+                            </div>
+
+                            <div class="col-sm-4">
+                                <label for="xxx" class="control-label">ชื่อ - สกุล ผู้เอาประกัน :</label>
+                                <input type="text" class="form-control" id="txtCustName" name="txtCustName" placeholder="">
+                            </div>
+
+                            <div class="col-sm-4">
+                                <label for="xxx" class="control-label">ชื่อ - สกุล ผู้ชำระเบี้ย :</label>
+                                <input type="text" class="form-control" id="txtPayerName" name="txtPayerName" placeholder="">
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Button *@
+                    <div class="form-group">
+                        <div class="col-sm-6 col-sm-offset-3">
+                            <div class="row">
+                                <div class="col-sm-3 col-sm-offset-3">
+                                    <button type="button" class="btn btn-block btn-primary" id="btnSearch" name="btnSearch" style="margin-top: 27px; ">ค้นหา</button>
+                                </div>
+                                <div class="col-sm-3">
+                                    <button type="button" class="btn btn-block btn-danger" id="btnCancle" name="btnCancle" style="margin-top: 27px; ">ยกเลิก</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* รายการคิว *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายการคิว</h3>
+                </div>
+                <div class="box-body">
+
+                    <table id="dtQueueDetail" class="table table-bordered table-striped" style="width:100%"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* hiddenfield *@
+    <input type="hidden" id="hd_branchId" name="hd_branchId" value="@ViewBag.UserBranch" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+             // Reference the auto-generated proxy for the hub.
+            var chat = $.connection.myHub;
+            //Start Connection
+            $.connection.hub.start().done(function () {});
+            //Show addNewNotice to client
+            chat.client.refreshQueueManagerResult = function (message) {
+                debugger;
+                GetSummary();
+                GetDatatableQueueDetail();
+                toastr["success"]("Refresh", message);
+            };
+
+            GetSummary();
+            GetDatatableQueueDetail();
+
+            //
+            $("#btnSearch").click(function () {
+                //alert("Handler for .click() called.");
+                //QueueDetail
+                GetDatatableQueueDetail();
+                GetSummary();
+            });
+
+            $("#btnCancle").click(function () {
+                //alert("Handler for .click() called.");
+                //DoClear()
+                DoClear();
+                GetSummary();
+                GetDatatableQueueDetail();
+
+            });
+
+             toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-bottom-left",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+        });
+
+        function DoClear() {
+            $('#txtPayerName').val("");
+            $('#txtCustName').val("");
+            $('#txtAppId').val("");
+            //$('').val() = "";
+            //Table
+        }
+
+        function GetSummary() {
+            $.ajax({
+                type: "GET",
+                async: false,
+                url: '@Url.Action("GetQueueMonitorMO")',
+                //contentType: "application/json; charset=utf-8",
+                //dataType: "json",
+                success: function (response) {
+                    debugger;
+                    //if (response != null) {
+
+                    $('#lblQueueAll').text(addCommas(response.All));
+                    $('#lblWaitQueue').text(addCommas(response.UnCheck));
+                    $('#lblClosedQueue').text(addCommas(response.Check));
+
+                },
+                failure: function (response) {
+                    alert('Error!');
+                },
+                error: function (response) {
+                    alert('Error!');
+                }
+            });
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + ',' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function GetDatatableQueueDetail() {
+            debugger;
+            $('#dtQueueDetail').empty();
+            $('#dtQueueDetail').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetQueueManagerMO")',
+                    method: 'POST',
+                    async : false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.payerBranchId = $('#hd_branchId').val();
+                       // d.payerBranchId = 71;
+                        d.appID = $('#txtAppId').val();
+                        d.cusName = $('#txtCustName').val();
+                        d.payerName = $('#txtPayerName').val();
+
+                    }
+                },
+                columns: [
+                    { title: 'เลขสติ็กเกอร์', data: 'ApplicationCode' },
+                    { title: 'แผน', data: 'Product' },
+                    { title: 'สถานะ App', data: 'AppStatus' },
+                    { title: 'ชื่อ-สกุล ผู้เอาประกัน', data: 'CustName' },
+                    {
+                        title: 'ผลตรวจผู้เอาประกัน', data: null,
+                        className: 'dt-center',
+                        mRender: function (d) {
+                            if (d.CustCheckStatusGroupId == 2 ) {
+                                return '<span class="label label-success">' + d.CustCheckStatusGroup + '</span>';
+                            } else if (d.CustCheckStatusGroupId == 3) {
+                                return '<span class="label label-warning">' + d.CustCheckStatusGroup + '</span>';
+                            } else {
+                                return '<span class="label label-danger">' + d.CustCheckStatusGroup + '</span>';
+                            }
+                        }
+                    },
+                    { title: 'ชื่อ-สกุล ผู้ชำระเบี้ย', data: 'PayerName' },
+                    {
+                        title: 'ผลตรวจผู้ชำระเบี้ย', data: null,
+                        className: 'dt-center',
+                        mRender: function (d) {
+                            if (d.PayerCheckStatusGroupId == 2) {
+                                return '<span class="label label-success">' + d.PayerCheckStatusGroup + '</span>';
+                            } else if (d.PayerCheckStatusGroupId == 3 ) {
+                                return '<span class="label label-warning">' + d.PayerCheckStatusGroup + '</span>';
+                            } else {
+                                return '<span class="label label-danger">' + d.PayerCheckStatusGroup + '</span>';
+                            }
+                        }
+                    },
+                    {
+                        title: 'สถานะหนังสือKTB', data: null,
+                         className: 'dt-center',
+                        mRender: function (d) {
+                            if (d.TrackAccountStatusId == 3) {
+                                return '<span class="label label-success">' + d.TrackAccountStatus + '</span>';
+                            } else if (d.TrackAccountStatusId == 2 ) {
+                                return '<span class="label label-warning">' + d.TrackAccountStatus + '</span>';
+                            } else {
+                                return '<span class="label label-info">' + d.TrackAccountStatus + '</span>';
+                            }
+                        }
+                    },
+                    {
+                        title: 'หนังสือยินยอมเปิดเผย', data: 'Dislosure', className: 'dt-center', mRender: function (d) {
+                            if (d == "-"||d == "ติดตามแล้ว") {
+                                return '<span class="label label-success">' + d + '</span>';
+                            } else {
+                                 return '<span class="label label-warning">' + d + '</span>';
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'ตรวจสอบข้อมูล',
+                        data: null,
+                        width: 100,
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data.IsCleanData == true) {
+                                return '<a href="@Url.Action("DetailMO")?queueId=' + data.CleanCustomerTrackAccountId + '" class="btn btn-warning" title="Edit" style="margin: 2px;" target="_blank"><i class="fa fa-fw fa-edit"></i></a>';
+                            } else {
+                                return '<a href="@Url.Action("DetailNoClean")?queueId=' + data.CleanCustomerTrackAccountId +'" class="btn btn-warning" title="Edit" style="margin: 2px;" target="_blank"><i class="fa fa-fw fa-edit"></i></a>';
+                            }
+
+                        }
+                    }
+                ]
+            });
+        }
+    </script>
+}

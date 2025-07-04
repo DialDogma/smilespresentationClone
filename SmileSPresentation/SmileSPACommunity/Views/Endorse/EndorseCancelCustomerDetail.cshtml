@@ -1,0 +1,1064 @@
+﻿@{
+    ViewBag.Title = "ส่งขอยกเลิกผู้เอาประกัน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .selected {
+        background-color: #D9EAF6;
+    }
+</style>
+<form class="form-horizontal" id="form1" name="form1" action="@Url.Action("EndorseCancelCustomerDetail")" method="post" enctype="multipart/form-data">
+
+    <div class="row">
+        <div class="col-md-12">
+            <div id="AppSearch" class="collapse">
+                <!-- /.box-ค้นหา Application  -->
+
+                <div class="box box-solid box-danger">
+                    <div class="box-header">
+                        <h3 class="box-title">ค้นหา Application</h3>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="form-horizontal">
+                        <div class="box-body">
+                            <div class="form-group">
+                                <div class="col-xs-3">
+                                    <label>สาขา :</label>
+                                    <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlbranch">
+
+                                        @{
+                                            foreach (var item in ViewBag.Role)
+                                            {
+                                                if (item == "Developer" || item == "PACommunity_PAUnderwrite")
+                                                {
+                                                    <option value="-1">--ทั้งหมด--</option>
+                                                }
+                                            }
+                                        }
+                                        @{
+                                            foreach (var item in ViewBag.Branchs)
+                                            {
+                                                <option value="@item.BranchID">@item.Branch</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-xs-6">
+                                    <label>ระบุชื่อชุมชนหรือเลขที่ Application</label>
+                                    <input type="text" id="txtSearchApp" class="form-control">
+                                </div>
+                                <div class="col-xs-2" style="padding-top:25px;">
+                                    <button type="button" class="btn btn-primary" id="btnSearch"><i class="fa fa-fw fa-search"></i> ค้นหา</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-xs-12">
+                                    <table id="dtMonitor" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div id="AppDetail" class="collapse">
+                <div class="box box-solid box-info">
+                    <div class="box-header">
+                        <h3 class="box-title">ข้อมูลกรมธรรม์</h3>
+                        <div class="box-tools pull-right">
+                        </div>
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <div class="form-group">
+                            <div class="col-xs-3">
+                                <div>
+                                    <label>Application ID</label>
+                                    <input type="text" class="form-control" id="txtAppID" disabled>
+                                </div>
+                            </div>
+                            <div class="col-xs-6">
+                                <div>
+                                    <label>ชื่อกรมธรรม์</label>
+                                    <input type="email" class="form-control" id="txtApplicationName" disabled>
+                                </div>
+                            </div>
+                            <div class="col-xs-3">
+                                <div>
+                                    <label>สถานะกรมธรรม์</label>
+                                    <input type="email" class="form-control" id="txtApplicationStatus" disabled>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-xs-3">
+                                <div>
+                                    <label>วันที่เริ่มสัญญา</label>
+                                    <div>
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control" id="txtStartCoverDate" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-3">
+                                <div>
+                                    <label>วันที่สิ้นสุดสัญญา</label>
+                                    <div>
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control" id="txtEndCoverDate" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-xs-12">
+                                <div class="box box-default">
+                                    <div class="box-header">
+                                        <h3 class="box-title">รายละเอียดการยกเลิก</h3>
+                                    </div>
+                                    <div class="box-body">
+                                        <div class="col-xs-3">
+                                            <button class="btn btn-info" id="btnAddCus" name="btnAddCus" type="button">
+                                                <i class="fa fa-user-plus"></i>
+                                                เพิ่มรายชื่อส่งขอยกเลิก
+                                            </button>
+                                        </div>
+                                        <div class="col-xs-9">
+                                        </div>
+                                        <div class="col-xs-12">
+                                            <table id="dtMonitor2" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-xs-12">
+                                <div class="box box-default">
+                                    <div class="box-header">
+                                        <h3 class="box-title">รายการเอกสาร</h3>
+                                    </div>
+                                    <div class="box-body">
+                                        <button class="btn btn-success" id="btnRefreshDoc" name="btnRefreshDoc" type="button">
+                                            Refresh
+                                        </button>
+                                        <div class="col-xs-12" style="align-items:center">
+                                            <table id="dtDocument" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                                        </div>
+                                    </div>
+                                    <!-- /.col -->
+                                </div>
+                            </div>
+                        </div>
+                        @*<div id="EffectD" class="collapse">*@
+                        <div class="form-group">
+                            <div class="col-xs-12">
+                                <div class="box box-default">
+                                    <div class="box-header">
+                                        <h3 class="box-title">วันที่มีผลยกเลิก</h3>
+                                    </div>
+                                    <div class="box-body">
+                                        <div class="col-xs-5"></div>
+                                        <div class="col-xs-2" style="align-items:center">
+                                            <label>เลือกวันที่มีผลยกเลิก</label>
+                                            <div class="input-group">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" class="form-control pull-right" name="dtEffectDate" id="dtEffectDate" required="required"
+                                                       data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy" disabled>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-5"></div>
+                                    </div>
+                                    <!-- /.col -->
+                                </div>
+                            </div>
+                        </div>
+                        @*</div>*@
+                    </div>
+                    <!-- ./box-body -->
+                    <div class="box-footer">
+                        <div class="box-group" style="text-align:center">
+                            <button class="btn btn-danger" id="btnSendCancel" name="btnSendCancel" type="button">
+                                ส่งขอยกเลิกผู้เอาประกัน
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- /.modal-dialog -->
+    <div class="modal fade in" id="modal-CustomerDetail" style="display: none; padding-right: 17px;">
+        <div class="modal-dialog" style="width:95%">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title">รายชื่อผู้เอาประกัน</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-1">
+                            <label>เลือกรอบ</label>
+                        </div>
+                        <div class="col-xs-1">
+                            <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlRoundID" name="ddlRoundID">
+                                <option value="-1">--โปรดระบุ--</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <table id="dtCustomerDetail" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    @*<button type="button" class="btn btn-default pull-left" data-dismiss="modal">ยกเลิก</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" id="btnCollectCust">ตกลง</button>*@
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">ปิด</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!-- /.modal-dialog -->
+    <div class="modal fade in" id="modal-ConfirmRemove" style="display: none; padding-right: 5px;">
+        <div class="modal-dialog" style="width:30%">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title">ยืนยัน</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <label>ต้องการยกเลิกรายการนี้ใช่หรือไม่</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" id="btnCollectCust">ตกลง</button>
+                    @*<button type="button" class="btn btn-primary" data-dismiss="modal">ปิด</button>*@
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <input type="hidden" id="hdfAppId" />
+    <input type="hidden" id="hdfSaveRef" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var SelectCustIDArray = [];
+        var AppId;
+        var strCancelcauseOpt = "<option value='-1'>--โปรดระบุ--</option>";
+        var table2 = $('#dtMonitor2').DataTable({
+            "searching": false,
+            "info": false,
+            "paging": false,
+            "autoWidth": false,
+            columns: [
+                { title: 'ลบ', orderable: false },
+                { title: 'ID'},
+                { title: 'รหัสผู้เอาประกัน' },
+                { title: 'ชื่อ นามสกุล' },
+                { title: 'วันเกิด'},
+                { title: 'เลขบัตรประชาชน/Passport'},
+                { title: 'วันคุ้มครอง'},
+                { title: 'สาเหตุการยกเลิก' },
+                { title: 'หมายเหตุ' }
+            ],
+            bLengthChange: false,
+            columnDefs: [
+            {
+                "targets": "_all", // your case first column
+                "className": "text-center",
+            },
+            {
+                "targets": [1],
+                "visible": false
+            }],
+        });
+
+    $(function () {
+
+        $('.select2').select2();
+        if ('@(ViewBag.AppCode)' != "") {
+            //Read only
+            ModeReadOnly();
+        }
+        else
+        { $("#AppSearch").collapse('show');}
+        var array = @Html.Raw(Json.Encode(@ViewBag.CancelCause));
+        for (var i = 0; i < array.length; i++) {
+            if (array[i].ApplicationCancelCause != "n/a")
+                strCancelcauseOpt += "<option value='" + array[i].CustomerDetailCancelCauseId + "'>" + array[i].CustomerDetailCancelCause+"</option>"
+        }
+
+        //******Code สำหรับต้องการให้ไม่สามารถเลือกวันย้อนหลังได้******//
+        //var startDate = new Date();
+        //startDate.setDate(startDate.getDate()-1);
+        //var ToEndDate = new Date();
+        //ToEndDate.setDate(ToEndDate.getDate() + 365);
+
+        //$('#dtEffectDate').datepicker({
+        //    weekStart: 1,
+        //    startDate: startDate,
+        //    endDate: ToEndDate,
+        //    autoclose: true,
+        //    setDate: new Date()
+        //});
+        //******Code สำหรับต้องการให้ไม่สามารถเลือกวันย้อนหลังได้******//
+
+        //$('#dtEffectDate').datepicker({ autoclose: true, format: "dd/mm/yyyy" });
+
+    });
+
+        $('#dtMonitor2 tbody').on('click', 'td button', function () {
+            //$('#modal-ConfirmRemove').addClass("modal_itemcenter");
+            //$('#modal-ConfirmRemove').modal('show');
+
+            var table = $('#dtMonitor2').DataTable();
+            var data = table.row($(this).closest('tr')).data();
+            //remove from array
+            let CustomerDetailCode = data[1];
+            for (var i = 0; i < SelectCustIDArray.length; i++) {
+                if (SelectCustIDArray[i] === CustomerDetailCode) {
+                    SelectCustIDArray.splice(i, 1);
+                }
+            }
+            //remove row
+            table.row($(this).parents('tr')).remove().draw();
+
+            //Asking for confirm
+            //swal({
+            //    title: "ยืนยัน",
+            //    text: "ต้องการลบรายการนี้ใช่หรือไม่ ?",
+            //    type: "warning",
+            //    showCancelButton: true,
+            //    confirmButtonClass: "btn-warning",
+            //    confirmButtonText: "ตกลง",
+            //    cancelButtonText: "ยกเลิก",
+            //    closeOnConfirm: true,
+            //    closeOnCancel: true
+            //},
+            //    function (isConfirm) {
+            //        debugger;
+            //        if (isConfirm) {
+            //            var table = $('#dtMonitor2').DataTable();
+            //            var data = table.row($(this).closest('tr')).data();
+            //            //remove from array
+            //            let CustomerDetailCode = data[1];
+            //            for (var i = 0; i < SelectCustIDArray.length; i++) {
+            //                if (SelectCustIDArray[i] === CustomerDetailCode) {
+            //                    SelectCustIDArray.splice(i, 1);
+            //                }
+            //            }
+            //            //remove row
+            //            table.row($(this).parents('tr')).remove().draw();
+            //        }
+            //    }
+            //);
+        });
+
+        //Enter Detection
+        $('#txtSearchApp').keypress(function (event) {
+            var keycode = (event.keyCode ? event.keyCode : event.which);
+            if (keycode == '13') {
+                $("#AppDetail").collapse('hide');
+                if (IsValidateForSearch()) {
+                    $("#hdfAppId").val("");
+                    $("#hdfSaveRef").val("");
+                    GetMonitor();
+                }
+            }
+        });
+
+        const ModeReadOnly = () => {
+            GetAppDetailRead('@(ViewBag.AppCode)');
+            $('#btnAddCus').hide();
+            $("#btnSendCancel").hide();
+            $('#dtEffectDate').prop('disabled', true);
+        }
+
+        //Round Change
+        $("#ddlRoundID").change(function () {
+            GetCustomerDetail($('#hdfAppId').val());
+
+        });
+    //btnAddCus
+    $('#btnAddCus').click(function (e) {
+        e.preventDefault();
+        GetCustomerDetail($('#hdfAppId').val());
+        $('#modal-CustomerDetail').addClass("modal_itemcenter");
+        $('#modal-CustomerDetail').modal('show');
+
+    });
+
+        $('#btnRefreshDoc').click(function (e) {
+            //Refresh document
+            GetDocument();
+        });
+
+    //btnSendCancel
+    $('#btnSendCancel').click(function (e) {
+        e.preventDefault();
+        if (IsvalidateSave()) {
+            //Save and send
+            DoSaveCancelPolicy();
+        }
+
+    });
+
+        $('#btnSearch').click(function (e) {
+            e.preventDefault();
+
+            $("#AppDetail").collapse('hide');
+            if (IsValidateForSearch()) {
+                $("#hdfAppId").val("");
+                $("#hdfSaveRef").val("");
+                GetMonitor();
+            }
+
+        });
+        const IsValidateForSearch = () => {
+            var rs = "";
+
+            if ($('#txtSearchApp').val() == "") {
+                rs = "กรุณากรอกชื่อชุมชนหรือเลขที่ Application เพื่อค้นหา";
+                swal("ตรวจสอบ !!", rs, "warning");
+                return false
+            }
+
+            return true
+        }
+    function EndorseCancel(appID, policyName, StartCoverDate) {
+
+        this._appID = appID;
+        this._policyName = policyName;
+        this._StartCoverDate = StartCoverDate;
+
+        this.appID = function () {
+            return this._appID;
+        };
+
+        this.policyName = function () {
+            return this._policyName;
+        };
+
+        this.StartCoverDate = function () {
+            return this._StartCoverDate;
+        };
+    }
+
+    function EndorseDoc(document) {
+
+        this._document = document;
+
+        this.document = function () {
+            return this._document;
+        };
+
+    }
+
+    const DoSaveCancelPolicy = () => {
+        swal({
+            title: "",
+            text: "ยืนยันยกเลิกผู้เอาประกัน ?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-warning",
+            confirmButtonText: "ตกลง",
+            cancelButtonText: "ยกเลิก",
+            closeOnConfirm: false,
+            closeOnCancel: true
+        },
+            function (isConfirm) {
+                if (isConfirm) {
+                    //Save each customer
+                    if (DoSaveCustomerDetail()) {
+                        //send update
+                        $.ajax({
+                            type: "POST",
+                            url: '@Url.Action("DoSendUpdateRequestCancelCustomer", "Endorse")',
+                            data: {
+                                requestCancelCusId: $('#hdfSaveRef').val(),
+                                effectDate: $('#dtEffectDate').val()
+                            },
+                            dataType: "json",
+                            async: false,
+                            success: function (response) {
+
+                                if (response != null) {
+                                    if (response[0] == "True") {
+                                        setTimeout(function () {
+                                            swal({
+                                                title: "สำเร็จ",
+                                                text: response[2],
+                                                type: "success"
+                                            }, function () {
+                                                $("#hdfAppId").val("");
+                                                $("#hdfSaveRef").val("");
+                                                $("#AppDetail").collapse('hide');
+                                                window.close();
+                                            });
+                                        }, 1000);
+                                    }
+                                    else { swal("ไม่สำเร็จ", response[2], "error"); }
+                                }
+                                else { swal("เกิดข้อผิดพลาด", "", "error"); }
+                            },
+                            error: function (response) {
+                                swal("เกิดข้อผิดพลาด", response[2], "error");
+                            }
+                        });
+                    }
+                    else {
+                        //return false
+                        //debugger;
+                    }
+                }
+            }
+        );
+        }
+
+        const DoSaveCustomerDetail = () => {
+            var dtcus = $('#dtMonitor2').dataTable();
+            var lstData = dtcus.fnGetData();
+            var IsSuccess = true;
+            for (var i = 0; i < lstData.length; i++) {
+                var item = lstData[i];
+                if (!IsSuccess) { return false; }
+                //Save detail
+                $.ajax({
+                    type: "GET",
+                    dataType: "json",
+                    async: false,
+                    url: '@Url.Action("DoSaveRequestCancelCusDetail", "Endorse")',
+                    data: {
+                        requestCancelCusId: $('#hdfSaveRef').val(),
+                        CusDetailID: item[1],
+                        CusCauseID: $('#ddlCancelCause' + item[1]).val(),
+                        remark: $('#txtRemark' + item[1]).val(),
+                    },
+                    success: function (response) {
+                            if (response[0] == "False") {
+                                swal("กรุณาตรวจสอบ", response[2], "error");
+                                IsSuccess = false;
+                            }
+                    }
+            });
+            }
+            return true;
+        }
+
+    const GetMonitor = () => {
+
+        $('#dtMonitor').empty();
+        //loadingSpinner("fadeIn", 5000);
+        let t = $('#dtMonitor').DataTable({
+            pageLength: 5,
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            destroy: true,
+            searching: false,
+            ajax: {
+                url: '@Url.Action("GetApplicationDetailMonitor", "PACommunity")',
+                type: 'POST',
+                data: function (d) {
+                    d.draw = d.draw;
+                    d.pageSize = d.length;
+                    d.pageStart = d.start;
+                    d.sortField = d.columns[d.order[0].column].data;
+                    d.orderType = d.order[0].dir;
+                    d.search = $("#txtSearchApp").val();
+                    //------------------------------------------------------
+                    d.branchID = $('#ddlbranch').val();
+                    //d.branchID = @ViewBag.BranchID;
+                    //------------------------------------------------------
+                    d.applicationStatusId = "4";
+                }
+            },
+            columns: [
+                { title: 'Application ID', data: 'ApplicationCode' },
+                { title: 'ชื่อกรมธรรม์', data: 'ApplicationName' },
+                { title: 'สถานะ', data: 'ApplicationStatus' },
+                {
+                    title: 'วันเริ่มคุ้มครอง', data: 'StartCoverDate', className: 'dt-center',
+                    mRender: function (data) {
+                        moment.locale('th');
+                        return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                    }
+                },
+                {
+                    title: 'วันสิ้นสุดคุ้มครอง', data: 'EndCoverDate', className: 'dt-center',
+                    mRender: function (data) {
+                        moment.locale('th');
+                        return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                    }
+                },
+                {
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) =>
+                        {
+                            let encode_appid = window.btoa(data.ApplicationId);
+                            return '<a href="@Url.Action("PACommunityDetail", "PACommunity")?applicationID=' + encode_appid + '" class="btn btn-primary btn-sm" target="_blank"> รายละเอียด </a>';
+                        }, width: '10%'
+                    },
+                @*{ data: null, mRender: (data, type, full) => { return '<a href="@Url.Action("AddPACoumunityNewApp", "PACommunity")?appID=' + data.ApplicationId + '" class="btn btn-info" target="_blank"> รายละเอียด </a>'; }, width: '10%' },*@
+                { data: null, mRender: (data, type, full) => { return '<a  class="btn btn-danger btn-sm" onclick="GetAppDetail(\'' + data.ApplicationId + '\');" ; >ยกเลิกผู้เอาประกัน</a >'; }, width: '11%' },
+            ],
+            bLengthChange: false,
+
+        });
+        //loadingSpinner("fadeOut", 1000);
+        }
+
+    const GetCustomerDetail = (AppID) => {
+        $('#dtCustomerDetail').empty();
+        //Add ddl of roundId
+        let t = $('#dtCustomerDetail').DataTable({
+            pageLength: 5,
+            paging : true,
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            destroy: true,
+            "autoWidth": false,
+            ajax: {
+
+                url: '@Url.Action("GetCustomerDetail", "PACommunity")',
+                type: 'POST',
+                data: function (d) {
+                    d.applicatonId = AppID;
+                    d.applicatonRoundId = $('#ddlRoundID').val();/* == '-1' ? null : $('#ddlRoundID').val();*/
+                    d.CustomerDetailId = null;
+                    d.draw = d.draw;
+                    d.pageSize = d.length;
+                    d.pageStart = d.start;
+                    d.sortField = d.columns[d.order[0].column].data;
+                    d.orderType = d.order[0].dir;
+                    d.search = d.search.value;
+                }
+            },
+            columns: [
+                {
+                    title: 'เลือก', data: null,
+                    mRender: function (data) {
+                        if (data.CustomerDetailStatusId != "2") {
+                            return '<button type="button" class="btn btn-success btn-sm" disabled id="btnImport' + data.CustomerDetailId + '">เลือก</button>'; }
+                        if (SelectCustIDArray.length > 0)
+                        {
+                            for (var i = 0; i < SelectCustIDArray.length; i++) {
+                                if (SelectCustIDArray[i] === data.CustomerDetailId) {
+                                    return '<button type="button" class="btn btn-success btn-sm" disabled id="btnImport' + data.CustomerDetailId + '">เลือก</button>';
+                                }
+                            }
+                        }
+                        return '<button type="button" class="btn btn-success btn-sm" id="btnImport' + data.CustomerDetailId+'">เลือก</button>';
+                    }
+                },
+                { title: 'รหัสผู้เอาประกัน', data: 'CustomerDetailCode' },
+                { title: 'ชื่อ นามสกุล', data: 'CustomerName' },
+                {
+                    title: 'วันเกิด', data: 'BirthDate',
+                    mRender: function (data) {
+                        moment.locale('th');
+                        return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                    }
+                },
+                { title: 'เลขที่บัตรประชาชน', data: 'IdCardNumber' },
+                { title: 'เลขที่ Passport', data: 'PassPortNumber' },
+                {
+                    title: 'วันคุ้มครอง', data: 'CustomerDetailStartCoverDate',
+                    mRender: function (data) {
+                        moment.locale('th');
+                        return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                    }
+                },
+                {
+                    title: 'วันสิ้นสุด', data: 'CustomerDetailEndCoverDate',
+                    mRender: function (data) {
+                        moment.locale('th');
+                        return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                    }
+                },
+                { title: 'สถานะผู้เอาประกัน', data: 'CustomerDetailStatus' },
+            ],
+            bLengthChange: false,
+            'columnDefs': [
+                {
+                    "targets": [0, 1, 3, 4,5,6,7,8], // your case first column
+                    "className": "text-center",
+                }],
+
+        });
+
+        $('#dtCustomerDetail tbody').on('click', 'td button', function () {
+            var table = $('#dtCustomerDetail').DataTable();
+            var data = table.row($(this).closest('tr')).data()
+            let CustomerDetailId = data.CustomerDetailId;
+            let CustomerDetailCode = data.CustomerDetailCode;
+            let CustomerName = data.CustomerName;
+            let ddd3 = data.BirthDate;
+            moment.locale('th');
+            let BirthDate = moment(ddd3).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+            let IdCardNumber = data.IdCardNumber;
+            let PassPortNumber = data.PassPortNumber;
+            let ddd6 = data.CustomerDetailStartCoverDate;
+            let CustomerDetailStartCoverDate = moment(ddd6).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+            let CustomerDetailStatus = data.CustomerDetailStatus;
+
+            //Check
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("IsCustomerCancelOnProcess", "Endorse")',
+                data: { CustomerDetailId: CustomerDetailId },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    if (response != null) {
+                        if (response[0] == "True")
+                        {
+                            //disable button
+                            $('#btnImport' + CustomerDetailId).attr("disabled", true);
+                            //add array
+                            SelectCustIDArray.push(CustomerDetailId);
+                            // then add and draw.
+                            table2.row.add(["<div class='col1d'><button class='btn btn-danger btn-sm' id='btnRemove" + CustomerDetailCode + "'><i class='fa fa-minus'></i></button></div>",
+                                CustomerDetailId,
+                                CustomerDetailCode,
+                                CustomerName,
+                                BirthDate,
+                                IdCardNumber + PassPortNumber,
+                                CustomerDetailStartCoverDate,
+                                "<select style='width: 100%' aria-hidden='true' id='ddlCancelCause" + CustomerDetailId + "'>" + strCancelcauseOpt,
+                                "<input style='width: 100%' type='text' id='txtRemark" + CustomerDetailId + "' class='form-control input-sm'>"]).draw(false);
+
+                        }
+                        else { swal("ไม่สามารถเลือกได้", response[2], "error");}
+                    }
+                    else
+                    { swal("เกิดข้อผิดพลาด", "", "error");}
+                },
+                error: function (response) {
+                    swal("เกิดข้อผิดพลาด", response[2], "error");
+                }
+            });
+
+        });
+    }
+
+        const GetCustomerDetailRead = (RefCancelHeadID) => {
+            $('#dtMonitor2').empty();
+        //Add ddl of roundId
+            let t = $('#dtMonitor2').DataTable({
+                pageLength: 5,
+                paging: true,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                "autoWidth": false,
+                ajax: {
+                    url: '@Url.Action("GetCancelCustomerDetail", "Endorse")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.refId = RefCancelHeadID;
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                { title: 'รหัสผู้เอาประกันยกเลิก', data: 'RequestCancelCustomerDetailCode' },
+                { title: 'ชื่อ นามสกุล', data: 'CustomerName' },
+                {
+                    title: 'วันเกิด', data: 'BirthDate',
+                    mRender: function (data) {
+                        moment.locale('th');
+                        return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                    }
+                },
+                { title: 'เลขบัตรประชาชน', data: 'IdCardNumber'},
+                { title: 'Passport', data: 'PassPortNumber' },
+                {
+                    title: 'วันคุ้มครอง', data: 'CustomerDetailStartCoverDate',
+                    mRender: function (data) {
+                        moment.locale('th');
+                        return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                    }
+                },
+                {
+                    title: 'สิ้นสุดวันคุ้มครอง', data: 'CustomerDetailEndCoverDate',
+                    mRender: function (data) {
+                        moment.locale('th');
+                        return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                    }
+                },
+                { title: 'สาเหตุการยกเลิก', data: 'CustomerDetailCancelCause' },
+                {
+                    title: 'หมายเหตุ', data: 'Remark'
+                },
+            ],
+            bLengthChange: false,
+        });
+    }
+
+        const SaveRefHeadCancel = (AppID) => {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("SaveRequestCancelHeader", "Endorse")',
+                data: {
+                    applicationId: AppID
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response[0] == "True") {
+                        $('#hdfSaveRef').val(response[1]);
+                        GetDocument();
+                    } else {
+                        //swal("ผิดพลาด", response[2], "error");
+                    }
+                }
+            });
+        }
+
+        const GetCustomerRound = () => {
+            $('#ddlRoundID').find('option').remove();
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("GetCustomerRound", "Endorse")',
+                data: {
+                    appid : $('#hdfAppId').val(),
+                    branchId: $('#ddlbranch').val(),
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response.length > 0) {
+                        var ddlValueStr = "";
+                        $.each(response, function (i, item) {
+                            //add dropdown round
+                            ddlValueStr += "<option value='" + response[i].ApplicationRoundId + "'>" + response[i].Round + "</option>"
+                        });
+                        $('#ddlRoundID').append(ddlValueStr);
+                    }
+                }
+            });
+        }
+
+        const GetDocument = () => {
+            $('#dtDocument').empty();
+            let t = $('#dtDocument').DataTable({
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            destroy: true,
+                "autoWidth": false,
+                searching: false,
+                info:false,
+            ajax: {
+                url: '@Url.Action("GetDocumentRequestCancelDetail", "Endorse")',
+                type: 'POST',
+                data: function (d) {
+                    d.referenceId = $('#hdfSaveRef').val();
+                    d.documentTypeId = 22;
+                    d.draw = d.draw;
+                    d.pageSize = d.length;
+                    d.pageStart = d.start;
+                    d.sortField = null;
+                    d.orderType = null;
+                    d.search = null;
+                }
+            },
+            columns: [
+                { title: "รหัสเอกสาร", data: "DocumentCode" },
+                { title: "ประเภทเอกสาร", data: "DocumentType" },
+                {
+                    title: 'เอกสาร', data: null, orderable: false,
+                    bSortable: false,
+                    mRender: (data, type, full) => {
+                        if ('@(ViewBag.AppCode)' == "") { return '<a href = "' + data.UrlLinkScan + '" target = "_blank" class="btn  btn-warning btn-sm" > <i class="fa fa-fw fa-upload"></i> Scan</a > '; }
+                        else { return '<button type="button" class="btn btn-secondary btn-sm" disabled><i class="fa fa-fw fa-upload"></i> Scan</button> ';}
+                    }, width: '5%',
+                },
+                {
+                    title: 'รายละเอียด', data: null, orderable: false,
+                    bSortable: false,
+                    mRender: (data, type, full) => {
+                        return '<a href="' + data.UrlLinkOpen + '" target = "_blank" class="btn btn-info btn-sm" > <i class="fa fa-fw fa-file"></i> เอกสาร(' + data.FileCount +')</a > ';
+                    }, width: '10%'
+                }
+            ],
+                bLengthChange: false,
+                'columnDefs': [
+                    {
+                        "targets": [0, 1, 2, 3], // your case first column
+                        "className": "text-center",
+                    }],
+        });
+        }
+
+        const IsvalidateSave = () => {
+            //เช็ควันที่มีผล
+            if ($('#dtEffectDate').val() == "")
+            {
+                swal("ตรวจสอบข้อมูล", "กรุณาเลือกวันที่มีผลยกเลิก", "warning")
+                return false
+            }
+            var dtcus = $('#dtMonitor2').dataTable();
+            var lstData = dtcus.fnGetData();
+            //check lengh
+            if (lstData.length == 0) {
+                swal("ตรวจสอบข้อมูล", "กรุณากดเพิ่มรายชื่อส่งขอยกเลิก", "warning")
+                return false
+            }
+            else
+            {
+                var textCode = "";
+                for (var i = 0; i < lstData.length; i++) {
+                    var item = lstData[i];
+                    if ($('#ddlCancelCause' + item[1]).val() == "-1")
+                    {
+                        if (i == lstData.length - 1) {
+                            textCode += item[2];
+                        }
+                        else { textCode += item[2] + ",";}
+
+                    }
+                }
+                if (textCode != "")
+                {
+                    swal("ตรวจสอบข้อมูล", "กรุณาเลือกสาเหตุการยกเลิกของลูกค้าให้ครบ (รหัส " + textCode + ")", "warning");
+                    return false;
+                }
+            }
+
+            return true
+        }
+
+    const GetAppDetail = (AppID) => {
+        //$("#EffectD").collapse('show');
+        $("#AppDetail").collapse('show');
+        //loadingSpinner("fadeIn", 2000);
+        $.ajax({
+
+            type: "GET",
+            url: '@Url.Action("GetApplicationDetail", "PACommunity")',
+            data: { applicationID: AppID },
+            dataType: "json",
+            async: false,
+            success: function (response) {
+
+                if (response == null) {
+
+                } else {
+                    $('#txtAppID').val(response.ApplicationCode);
+                    $('#txtApplicationName').val(response.ApplicationName);
+                    $('#txtApplicationStatus').val(response.ApplicationStatus);
+
+                    debugger;
+                    let StartDate = moment(response.StartCoverDate).add(543, 'years')._d;
+                    let EndDate = moment(response.EndCoverDate).add(543, 'years')._d;
+                    let EffectDate = moment(response.StartCoverDate)._d;
+
+                    $('#txtStartCoverDate').datepicker({ format: "dd/mm/yyyy" }).datepicker('setDate', new Date(StartDate));
+                    $('#txtEndCoverDate').datepicker({ format: "dd/mm/yyyy" }).datepicker('setDate', new Date(EndDate));
+
+
+                    $('#dtEffectDate').datepicker({ format: "dd/mm/yyyy" }).datepicker('setDate', new Date(EffectDate));
+                    $('#hdfAppId').val(AppID);
+                    SaveRefHeadCancel(AppID);
+                    GetCustomerRound();
+                    //$('#dtCustomerDetail').visible = false;
+                    //GetCustomerDetail(AppID);
+                }
+            }
+        });
+        //loadingSpinner("fadeOut", 2000);
+
+        }
+
+        const GetAppDetailRead = (RefCancelHeadID) => {
+            $('#hdfSaveRef').val(RefCancelHeadID);
+        $("#AppDetail").collapse('show');
+            var intRefCancelHeadID = parseInt(RefCancelHeadID)
+        $.ajax({
+
+            type: 'POST',
+            url: '@Url.Action("GetApplicationCancel", "Endorse")',
+            data: {
+                refId : intRefCancelHeadID,
+                searchStr : null,
+                branchId : -1,
+                causeid : -1,
+                draw : null,
+                pageSize : null,
+                pageStart : null,
+                sortField : null,
+                orderType : null,
+            },
+            success: function (response) {
+                $.each(response.data, function (i, item) {
+                    $('#txtAppID').val(item.ApplicationCode);
+                    $('#txtApplicationName').val(item.ApplicationName);
+                    $('#txtApplicationStatus').val(item.ApplicationStatus);
+                    $('#hdfAppId').val(item.ApplicationID);
+
+                    let StartDate = moment(item.ApplicationStartCoverDate).add(543, 'years')._d;
+                    let EndDate = moment(item.ApplicationEndCoverDate).add(543, 'years')._d;
+                    let EffectDate = moment(item.EffectiveDate)._d;
+                    $('#txtStartCoverDate').datepicker({ format: "dd/mm/yyyy" }).datepicker('setDate', new Date(StartDate));
+                    $('#txtEndCoverDate').datepicker({ format: "dd/mm/yyyy" }).datepicker('setDate', new Date(EndDate));
+
+                    $('#dtEffectDate').datepicker({ format: "dd/mm/yyyy" }).datepicker('setDate', new Date(EffectDate));
+                });
+
+                GetCustomerDetailRead(RefCancelHeadID);
+                SaveRefHeadCancel(RefCancelHeadID);
+                GetDocument();
+                //GetCustomerRound();
+            }
+        });
+
+    }
+    </script>
+}

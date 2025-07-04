@@ -1,0 +1,481 @@
+﻿@{
+    ViewBag.Title = "Consult";
+    Layout = "~/Views/Shared/_LayoutForTop.cshtml";
+}
+
+<div class="wrapper" style="height:auto;min-height:100%">
+    <div class="content-wrapper" style="min-height: 960px;">
+        <section class="content">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="box box-info" style="margin-top: 15px;">
+                        <div class="box-body">
+                            <div style="text-align: left; padding: 5px 5px; margin-top: 0;">
+                                <div class="col-sm-12">
+                                    <h4 style="font-size: 20px; font-weight: bold;">ค้นหารายการ</h4>
+                                    <hr />
+                                </div>
+                                <div class="form-group col-md-12 col-sm-12">
+                                    <div class="col-md-2">
+                                        <label class="title1"><span style="color: red">*</span>ประเภทคิว</label>
+                                        <select id="select_dcr_main" style="width: 100%" class="form form-control">
+                                            <option value="1"> คิวงานที่ขอปรึกษา</option>
+                                            <option value="2"> คิวงานทั้งหมด</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="title1"><span style="color: red">*</span>คำค้น</label>
+                                        <input id="input_text_search" name="input_text_search" class="form-control" style="width: 100%" />
+                                    </div>
+                                    <div class="col-md-2" style="margin-top: 25px">
+                                        <button id="btn_search" style="width: 100%" class="btn  btn-primary"><i class="fa fa-search"></i> ค้นหา</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div id="divDT1" style="display:none">
+                                        <table id="table_consult_detail" class="table table-bordered table-striped display responsive nowrap" style="width: 100%"></table>
+                                    </div>
+                                    <div id="divDT2" style="display:none">
+                                        <table id="table_consult_detail2" class="table table-bordered table-striped display responsive nowrap" style="width: 100%"></table>
+                                    </div>
+                                </div>
+                                <!-- /.col -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+<input type="hidden" name="PHQueueId" id="PHQueueId" />
+<!--.modal -->
+<div class="modal fade" id="modal-detail">
+    <!--.modal-dialog -->
+    <div class="modal-dialog">
+        <!--.modal-content -->
+        <div class="modal-content">
+            <div class="modal-header" style="background-color:  #12c0e7;border-color: #ffffff;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">คำปรึกษา</h4>
+            </div>
+            <div class="modal-body">
+                <form id="formModalConsult">
+                    <div class="form-group">
+                        <table id="table_detail" class="table table-bordered table-striped display responsive" style="width: 100%"></table>
+                    </div>
+                    <hr />
+                    <div class="form-group">
+                        <label class="control-label">ข้อความ</label>
+                        <textarea class="form-control" id="textareaConsultAdd" required="required"></textarea>
+                    </div>
+                    <div style="text-align:right">
+                        <button id="btnSubmitConsult" class="form-control btn btn-success" style="width:150px">บันทึก</button>
+                        <input type="button" id="btnCancel" class="form-control btn btn-danger" style="width:150px" value="ยกเลิก" />
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<!--/.modal -->
+
+@section ViewSpecificJavascript {
+
+    <script>
+        $(function () {
+
+            //EVENT BUTTON SEARCH CLICK
+            $('#btn_search').click(function (e) {
+                e.preventDefault();
+                var search = $('#input_text_search').val();
+                var searchType = $('#select_dcr_main').val();
+
+                switch (searchType) {
+                    case "1":
+                        loadDatatablesAdminConsult1(search, searchType);
+                        break;
+                    case "2":
+                        loadDatatablesAdminConsult2(search, searchType);
+                        break;
+                    default:
+
+                }
+
+            });
+
+            $('#btnSubmitConsult').click(function (e) {
+                e.preventDefault();
+                if ($('#formModalConsult').valid()) {
+                    let txtConsult = $('#textareaConsultAdd ').val();
+                    ConsultInsert($('#PHQueueId').val(), txtConsult);
+                }
+            });
+
+            $('#btnCancel').click(function (e) {
+                e.preventDefault();
+                $('#textareaConsultAdd').val('');
+                $('#modal-detail').modal('hide');
+            })
+        });
+        //FN OPEN MODAL
+        const openModelDetail = (Id) => {
+            loadDatatablesMessage(Id);
+            $('#PHQueueId').val(Id);
+            $('#modal-detail').modal('show');
+        }
+
+        //FN OPEN NEW PAGE
+        const goto_newpage = (Id) => {
+            const en_Id = btoa(Id);
+            window.open(`@Url.Action("CallIndexCM","Call")?queueId=${en_Id}`, '_blank');
+        };
+
+        /*fn load datatables*/
+        const loadDatatablesAdminConsult1 = (search, searchType) => {
+            $(`#divDT1`).show();
+            $(`#divDT2`).hide();
+            $(`#table_consult_detail`).empty();
+            var table = $(`#table_consult_detail`).DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: false,
+                info: true,
+                paging: true,
+                ajax: {
+                    url: '@Url.Action("GetDatatablesConsult")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = search;
+                        d.searchType = searchType;
+                    },
+                },
+                language: {
+                    url: "http://cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Thai.json"
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ',
+                        data: null,
+                        orderable: false,
+                        className: 'h-dt-center'
+
+                    },
+                   {
+                       title: 'AppID',
+                       data: 'ApplicationCode',
+                       orderable: false,
+                       className: 'h-dt-center'
+
+                   },
+                   {
+                       title: 'ผู้เอาประกัน',
+                       data: 'CustomerFullName',
+                       orderable: true,
+                       className: 'h-dt-center'
+                   },
+                   {
+                       title: 'แผน',
+                       data: 'ProductDetail',
+                       orderable: true,
+                       className: 'h-dt-center d-dt-center'
+                   },
+                   {
+                       title: 'สถานะ',
+                       data: 'ApplicationStatus',
+                       orderable: true,
+                       className: 'h-dt-center d-dt-center'
+                   },
+                   {
+                       title: 'วันเริ่มคุ้มครอง',
+                       data: 'StartCoverDate',
+                       orderable: true,
+                       className: 'h-dt-center d-dt-center',
+                       render: (data) => {
+                           return moment(data).format("DD/MM/YYYY");
+                       }
+                   },
+                    {
+                        title: 'ผู้ชำระเบี้ย',
+                        data: 'PayerFullName',
+                        orderable: true,
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'อัพเดทล่าสุด',
+                        data: 'ConsultLastUpdate',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-center',
+                        render: (data) => {
+                            return moment(data).format("DD/MM/YYYY HH:mm");
+                        }
+                    },
+                    {
+                        title: 'เอกสาร',
+                        data: null,
+                        orderable: true,
+                        className: 'h-dt-center d-dt-center',
+                        render: function (data) {
+                            return `<a  class="btn btn-primary" href="http://147.50.133.147:9302/document/search.aspx?q=${data.ApplicationCode}" target="_blank"><i class="far fa-file"></i> เปิด</a>`;
+                        }
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        orderable: true,
+                        className: 'h-dt-center d-dt-center',
+                        render: function (data) {
+                            return `<button class="btn btn-info" onclick="openModelDetail(${data.PHQueueId});"><i class="fas fa-info-circle"></i> เปิด</button>`;
+                        }
+                    }
+                ]
+            });
+
+            table.on('draw.dt', function () {
+                var PageInfo = table.page.info();
+                table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                })
+            })
+
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        const loadDatatablesAdminConsult2 = (search, searchType) => {
+            $(`#divDT1`).hide();
+            $(`#divDT2`).show();
+            $(`#table_consult_detail2`).empty();
+            var table = $(`#table_consult_detail2`).DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: false,
+                info: true,
+                paging: true,
+                ajax: {
+                    url: '@Url.Action("GetDatatablesConsult")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = search;
+                        d.searchType = searchType;
+                    },
+                },
+                language: {
+                    url: "http://cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Thai.json"
+                },
+                columns: [
+                     {
+                         title: 'ลำดับ',
+                         data: null,
+                         orderable: false,
+                         className: 'h-dt-center'
+
+                     },
+                    {
+                        title: 'AppID',
+                        data: 'ApplicationCode',
+                        orderable: false,
+                        className: 'h-dt-center'
+
+                    },
+                   {
+                       title: 'ผู้เอาประกัน',
+                       data: 'CustomerFullName',
+                       orderable: true,
+                       className: 'h-dt-center'
+                   },
+                   {
+                       title: 'แผน',
+                       data: 'ProductDetail',
+                       orderable: true,
+                       className: 'h-dt-center d-dt-center'
+                   },
+                   {
+                       title: 'สถานะ',
+                       data: 'ApplicationStatus',
+                       orderable: true,
+                       className: 'h-dt-center d-dt-center'
+                   },
+                   {
+                       title: 'วันเริ่มคุ้มครอง',
+                       data: 'StartCoverDate',
+                       orderable: true,
+                       className: 'h-dt-center d-dt-center',
+                       render: (data) => {
+                           return moment(data).format("DD/MM/YYYY");
+                       }
+                   },
+                    {
+                        title: 'ผู้ชำระเบี้ย',
+                        data: 'PayerFullName',
+                        orderable: true,
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'จัดการ',
+                        data: null,
+                        orderable: true,
+                        className: 'h-dt-center d-dt-center',
+                        render: function (data) {
+                            return `<button id="btn_${data.PHQueueId}" class="btn btn-info" onclick="goto_newpage(${data.PHQueueId})"><i class="fa fa-search"></i> เปิด</button>`;
+                        }
+                    }
+                ]
+            });
+
+            table.on('draw.dt', function () {
+                var PageInfo = table.page.info();
+                table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                })
+            })
+
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        //LOAD DATATABLE MESSAGE DETAIL
+        const loadDatatablesMessage = (PHQueueId) => {
+            $(`#table_detail`).empty();
+            var table = $(`#table_detail`).DataTable({
+                pageLength: 5,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: false,
+                info: true,
+                paging: true,
+                ajax: {
+                    url: '@Url.Action("GetMessageDetailConsult")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = null;
+                        d.PHQueueId = PHQueueId;
+                    },
+                },
+                language: {
+                    url: "http://cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Thai.json"
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ',
+                        data: null,
+                        orderable: false,
+                        className: "h-dt-center"
+                    },
+                    {
+                        title: 'Advisor',
+                        data: null,
+                        orderable: false,
+                        className: "h-dt-center nowrap",
+                        render: function (data) {
+                            switch (data.IsAdvisor) {
+                                case true:
+                                    return `<div style="text-align:center"><span><i class="far fa-bookmark"></i> ที่ปรึกษา</span></di>`;
+                                    break;
+                                case false:
+                                    return `<div style="text-align:left"><span><i class="fas fa-bookmark"></i> ผู้ขอคำปรึกษา</span></div>`;
+                                    break
+                                default:
+                                    return "-";
+                                    break;
+                            }
+                        }
+                    },
+                    {
+                        title: 'ข้อความ',
+                        data: 'PHQueueConsultDetail',
+                        orderable: false,
+                        className: "h-dt-center"
+                    },
+                    {
+                        title: 'วันที่บันทึก',
+                        data: 'CreatedDate',
+                        orderable: false,
+                        className: "h-dt-center",
+                        render: (d) => {
+                            return moment(d).format("DD/MM/YYYY HH:mm");
+                        }
+                    },
+                    {
+                        title: 'ผู้บันทึก',
+                        data: 'UserFullName',
+                        className: "h-dt-center",
+                        orderable: false
+                    },
+                    {
+                        title: 'เบอร์โทร',
+                        data: 'RequesterTelephone',
+                        orderable: false,
+                        className: "h-dt-center"
+                    },
+                ]
+            });
+
+            table.on('draw.dt', function () {
+                var PageInfo = table.page.info();
+                table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                })
+            })
+
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        /*fn Consult Insert*/
+        const ConsultInsert = (PHQueueId, PHQueueConsultDetail) => {
+            $.post('@Url.Action("ConsultInsert","Call")',
+                { PHQueueId: PHQueueId, isAdvisor: true, PHQueueConsultDetail: PHQueueConsultDetail, RequesterTelephone: null },
+                (data) => {
+                    if (data != null) {
+                        swal_success(() => {
+                            var table = $('#table_detail').DataTable();
+                            table.ajax.reload();
+                            $('#textareaConsultAdd').val('');
+                        });
+                    } else {
+                        swal_fail("เกิดข้อผิดพลาด ทำรายการไม่สำเร็จ !");
+                    }
+                });
+        }
+    </script>
+
+}

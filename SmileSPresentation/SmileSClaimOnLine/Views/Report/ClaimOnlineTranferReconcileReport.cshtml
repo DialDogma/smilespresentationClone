@@ -1,0 +1,298 @@
+﻿
+@{
+    ViewBag.Title = "รายงานกระทบยอดการโอนเงิน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        table.dataTable thead {
+            background-color: #F4C771;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div class="box-body">
+            <div class=" form-group">
+                <div class=" row" id="rowSearch">
+                    <div class="col-xs-12">
+                        <div class="panel panel-primary">
+                            <div class="panel-heading" style="font-size:large">
+                                สรุปยอดโอน
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-xs-3 ">
+                                        <div class="form-group">
+                                            <label>วันที่ :</label>
+                                            <div class="input-group">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" class="form-control pull-right" id="dphTranferDate" data-date-language="th-th">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2" style=" margin-top: 0.7cm; display: flex; align-items: center;">
+                                        <button style="width: 100%;" class="btn bg-primary" id="btnSearch">
+                                            ค้นหา
+                                        </button>
+                                    </div>
+                                    <div class="col-sm-2" style=" margin-top: 0.7cm; display: flex; align-items: center;">
+                                        <button style="width: 100%;" class="btn btn-warning" id="btnExportToExcel" disabled>
+                                            ExportToExcel  &nbsp;<i class="fa fa-file-excel-o"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box-body">
+            <div class=" form-group">
+                <div class=" row" id="rowShow">
+                    <div class="col-xs-12">
+                        <div class="panel panel-primary">
+                            <div class="panel-heading" style="font-size:large">
+                                รายละเอียด
+                            </div>
+                            <div class="panel-body">
+                                <div class="col-xs-12 ">
+                                    <div class="col-sm-4">
+                                        <label class="title1"><b style="font-size:16pt">วันที่ทำรายการ :</b></label>
+                                        <label class="control-label" id="lblTranferDate" style="font-size: 16pt; color:orange"></label>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <label class="title1"><b style="font-size:16pt">จำนวนรายการ ClaimOnline :</b></label>
+                                        <label class="control-label" id="lblCountColPayauto" style="font-size: 16pt; color: darkblue"></label>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <label class="control-label"><b style="font-size:16pt">ยอดโอน ClaimOnline :</b></label>
+                                        <label class="control-label" id="lblTotolTransfer" style="font-size: 16pt; color: darkblue "></label>
+                                    </div>
+                                    <div class="col-sm-4">
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <label class="title1"><b style="font-size:16pt">จำนวนรายการ Statement :</b></label>
+                                        <label class="control-label" id="lblCountPayTransferRef" style="font-size: 16pt; color: green"></label>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <label class="title3"><b style="font-size:16pt">ยอดโอน Statement :</b></label>
+                                        <label class="control-label" id="lblTotolTransferRef" style="font-size:16pt; color:green"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box-body">
+            <div class=" form-group">
+                <div class=" row" id="rowShowing">
+                    <div class="col-xs-12">
+                        <div class="panel panel-primary">
+                            <div class="panel-heading" style="font-size:large">
+                                ค้นหารายการ
+                            </div>
+                            <div class="panel-body">
+                                <div class="col-xs-12 ">
+                                    <table id="dtMonitor" class="table table-bordered table-striped display" style="width: 100%"></table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+
+        var date = new Date();
+        var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        var yesterday = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1);
+        $(function () {
+            $('#btnExportToExcel').prop('disabled', true);
+            $('#btnSearch').click(function (e) {
+                if ($('#dphTranferDate').val() != "") {
+                    e.preventDefault();
+                    $('#btnExportToExcel').prop('disabled', true);
+                    GetDatatable();
+                    TranferDateShow();
+                    GetSum();
+                } else {
+                    swal('กรุณาเลือกวันที่', "", "warning");
+                }
+
+            });
+            $('#dphTranferDate').datepicker({
+                format: 'dd/mm/yyyy',
+                autoclose: true,
+                endDate: "-1d",
+            }).datepicker('setDate', yesterday).datepicker('update');
+            $('.datepicker').keyup(function () {
+                if (this.value.match(/[^0-9]/g)) {
+                    this.value = this.value.replace(/[^0-9^-]/g, '');
+                }
+            });
+
+            $('#btnExportToExcel').click(function (e) {
+                if ($('#dphTranferDate').val() != "") {
+                    e.preventDefault();
+
+                    ExportToExcel();
+                } else {
+                    swal('กรุณาเลือกวันที่', "", "warning");
+                }
+            });
+        });
+        function TranferDateShow() {
+            var searchDete = $('#dphTranferDate').val();
+            $('#lblTranferDate').text(searchDete);
+        }
+        function GetDatatable() {
+            $('#dtMonitor').empty();
+            var table = $('#dtMonitor').DataTable({
+                pageLength: 10,
+                scrollX: true,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("ClaimOnlineTranferReconcileMonitor")',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.search = d.search.value;
+                        d.SearchDete = $('#dphTranferDate').val();
+
+                    },
+                    dataSrc: function (json) {
+                        if (json.CountColPayAuto != null) {
+                            $('#btnExportToExcel').prop('disabled', false);
+                        }
+                        $("#lblCountColPayauto").text(json.CountColPayAuto);
+                        $("#lblCountPayTransferRef").text(json.CountPayTransferRef);
+                        return json.data;
+                    },
+
+                },
+                columns: [
+                    {
+                        title: 'No',
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    { title: 'ClaimOnlineID', data: 'ClaimOnLineId' },
+                    { title: 'Col', data: 'ClaimOnLineCode' },
+                    {
+                        title: 'PaymentDate', data: 'PaymentDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+
+                        }},
+                    {
+                        title: 'PaymentAmount',
+                        data: 'PaymentAmount',
+                        className: 'h-dt-center text-right',
+                    },
+                    { title: 'PayListHeaderId', data: 'PayListHeaderId' },
+                    { title: 'ClaimOnLineTransferId', data: 'ClaimOnLineTransferId' },
+                    { title: 'CountColPayauto', data: 'CountColPayauto' },
+                    { title: 'RefCode', data: 'RefCode' },
+                    { title: 'Ref1', data: 'Ref1' },
+                    { title: 'StatementCode', data: 'StatementCode' },
+                    {
+                        title: 'UpdatedDate', data: 'UpdatedDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY ');
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    {
+                        title: 'PayTransferRefAmount',
+                        data: 'PayTransferRefAmount',
+                        className: 'h-dt-center text-right',
+                    },
+                    { title: 'CountPayTransferRef', data: 'CountPayTransferRef' },
+                ],
+            });
+
+
+        }
+        const ExportToExcel = () => {
+            loadingSpinner('fadeIn');
+            $.ajax({
+                url: "@Url.Action("ExporTransferReconcileToExcel")",
+                type: "POST",
+                data: {
+                    searchDete : $('#dphTranferDate').val()
+                },
+                success: function (response) {
+                    if (response.IsSuccess) {
+                        window.location = "@Url.Action("DownloadTransferReconcile")";
+                        loadingSpinner('fadeOut');
+                        swal('สำเร็จ', response.Message, 'success');
+                    } else {
+                        swal('เกิดข้อผิดพลาด !', response.Message, 'error');
+                        loadingSpinner('fadeOut')
+                    }
+                },
+                 error: function (jqXHR, exception) {
+                     checkXHRStatus(jqXHR.status);
+                     loadingSpinner('fadeOut');
+                 }
+            });
+        }
+        function GetSum()
+        {
+
+            $.ajax({
+                async:false,
+                type: 'POST',
+                url: '@Url.Action("GetClaimOnlineTranferReconcile")',
+                dataType: 'json',
+                data: {
+                    searchDete: $('#dphTranferDate').val()
+                },
+                success: function (data) {
+
+                    $("#lblTotolTransfer").text(data.sumPaymentAmount);
+                    $("#lblTotolTransferRef").text(data.sumPayTransferRefAmount);
+
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail');
+                }
+            });
+        }
+
+    </script>
+}
+

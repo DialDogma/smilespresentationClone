@@ -1,0 +1,540 @@
+﻿@using RoadsideAssistance.Helper;
+@{
+    ViewBag.Title = "บันทึกการใช้สิทธิ์ Roadside Assistance";
+    var userDetail = RoadsideAssistance.Helper.OAuth2Helper.GetLoginDetail();
+
+    ViewBag.FullName = userDetail.FullName;
+    ViewBag.Fristname = userDetail.FirstName;
+    ViewBag.Lastname = userDetail.LastName;
+    ViewBag.EmpCode = userDetail.UserName;
+    ViewBag.Department = userDetail.DepartmentDetail;
+    ViewBag.BranchDetail = userDetail.BranchDetail;
+    ViewBag.EmpId = userDetail.User_ID;
+}
+<div class="box box-default">
+    <div class="box box-default">
+        <div class="box-header with-border" style="background-color:rgb(255, 193, 47);">
+            <div class="row">
+                <div class="col-md-2 col-md-offset-1">
+                    <label class="control-label" style="font-size:20px;">วันที่ : @ViewBag.today</label>
+                    <input class="form-control form-group" type="hidden" name="txtDate" id="txtDate" value="@ViewBag.today" readonly>
+                </div>
+                <div class="col-md-2 col-md-offset-6">
+                    <label class="control-label" style="font-size:20px;">เวลา : <b id="hours"></b> <b id="point">:</b> <b id="min"></b> <b id="point">:</b> <b id="sec"></b></label>
+                    <input type="hidden" name="txttime" id="txttime" value="@ViewBag.time" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <input id="txtMemberId" type="hidden" value="@(ViewBag.useRoadsside_result[0].MemberId != null ?ViewBag.useRoadsside_result[0].MemberId:"-")" />
+    <div class="box-body">
+        <form id="form1">
+            <div class="row" style="padding:15px;">
+                <div class="form-group col-md-3">
+                    <label>คำนำหน้า</label>
+                    <select class="form-control" name="titleName" id="titleName" disabled>
+                        <option selected>@(ViewBag.useRoadsside_result[0].Title != null ? ViewBag.useRoadsside_result[0].Title:"-")</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-3 ">
+                    <label for="" class="control-label">ชื่อ</label>
+                    <input class="form-control" type="text" name="txtFirstName" id="txtFirstName" value="@(ViewBag.useRoadsside_result[0].FirstName != null ?ViewBag.useRoadsside_result[0].FirstName:"-")" readonly>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="" class="control-label">นามสกุล</label>
+                    <input class="form-control" type="text" name="txtLastName" id="txtLastName" value="@(ViewBag.useRoadsside_result[0].LastName != null ?ViewBag.useRoadsside_result[0].LastName:"-")" readonly>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="" class="control-label">เบอร์โทรศัพท์</label>
+                    <input class="form-control" type="text" name="txtphone" id="txtphone" style="color:red;" value="@(ViewBag.useRoadsside_result[0].MobileNumber != null ?ViewBag.useRoadsside_result[0].MobileNumber:"-")" data-inputmask="&quot;mask&quot;: &quot; 999-999-9999&quot;" data-mask="" readonly>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="" class="control-label">@(ViewBag.useRoadsside_result[0].CardDetailType != null ? ViewBag.useRoadsside_result[0].CardDetailType : "-")</label>
+                    <input class="form-control" type="text" name="txtCardDetail" id="txtCardDetail" value="@(ViewBag.useRoadsside_result[0].CardDetail != null ?ViewBag.useRoadsside_result[0].CardDetail:"-")" readonly>
+                </div>
+                <div class="form-group col-md-3">
+                    <label>ประเภทลูกค้า</label>
+                    <span class="form-control" type="text" name="txtLastName" id="txtLastName">
+                        @if (ViewBag.SourceTypeList.Length > 0)
+                        {
+                            for (int i = 0; i < ViewBag.SourceTypeList.Length; i++)
+                            {
+                                <i class="glyphicon glyphicon-user" style="color: @ViewBag.SourceTypeList[i].ColorCode; cursor: pointer" title="@ViewBag.SourceTypeList[i].SourceType"></i>
+                            }
+                        }
+                        else
+                        {
+                            <i class="fa fa-info-circle" style="cursor:pointer" title="ไม่ระบุ"></i>
+                        }
+                    </span>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="" class="control-label">หน่วยงาน</label>
+                    <input class="form-control" type="text" name="txtBankAccNo2" id="txtBankAccNo2" value="@(ViewBag.useRoadsside_result[0].BuildingName != null ?ViewBag.useRoadsside_result[0].BuildingName:"-")" readonly>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="" class="control-label">วันที่คุ้มครอง</label>
+                    <input class="form-control" type="text" name="txtBankAccNo3" id="txtBankAccNo3" value="@(ViewBag.useRoadsside_result[0].StartCoverDate != null ?ViewBag.useRoadsside_result[0].StartCoverDate.ToString("dd-MM-yyyy"):"-")" readonly>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="" class="control-label">วันที่สิ้นสุด</label>
+                    <input class="form-control" type="text" name="txtBankAccNo4" id="txtBankAccNo4" value="@(ViewBag.useRoadsside_result[0].EndCoverDate != null ? ViewBag.useRoadsside_result[0].EndCoverDate.ToString("dd-MM-yyyy") : "-")" readonly>
+                </div>
+                <div class="form-group col-md-2">
+                    <label for="" class="control-label">สิทธิในการใช้</label>
+                    <input class="form-control" type="text" name="txtBankAccNo5" id="txtBankAccNo5" value="@(ViewBag.useRoadsside_result[0].FreeServiceBalance == 0 ?"0":ViewBag.useRoadsside_result[0].FreeServiceBalance)" readonly>
+                </div>
+                <div class="form-group col-md-3 col-md-offset-4 col-md-3">
+                    <label for="" class="control-label">เบอร์โทรติดต่อกลับ</label>
+                    <input class="form-control" type="text" name="txtContactNumber" id="txtContactNumber" style="color:red;" value="@(ViewBag.useRoadsside_result[0].MobileNumber != null ?ViewBag.useRoadsside_result[0].MobileNumber:"-")" data-inputmask="&quot;mask&quot;: &quot; 999-999-9999&quot;" data-mask="" required>
+                </div>
+            </div>
+        </form>
+        @*------------------- Modal Confirm --------------------*@
+        <div class="modal fade" data-backdrop="static" tabindex="-1" id="ShowConfirm" role="dialog" aria-labelledby="myLargeModalLabel">
+            <div class="modal-dialog" role="document" tabindex="-1">
+                <div class="modal-content">
+                    <div class="modal-header" style="background:#1887db; color:white;">
+                        <h4 class="modal-title text-center text-bold">รายละเอียดการบันทึกข้อมูลสำเร็จ</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="box-header text-center">
+                            <h4 style="">แจ้งเหตุ Siamsmile Roadside Assistance</h4>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-2 text-center">
+                                <img src="~/Content/img/logo1.png" style="width:70px;height:70px;" />
+                            </div>
+                            <div class="col-md-10">
+                                <div class="col-md-4">
+                                    <label class="control-label" style="font-size:12px;">วันที่ :</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input class="form-control form-group" type="text" name="m_txtDate" id="m_txtDate" value="@ViewBag.today" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="control-label" style="font-size:12px;">เวลา :</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input class="form-control form-group" type="text" name="m_txtTime" id="m_txtTime" value="@ViewBag.time" readonly>
+                                </div>
+                                <div class="col-md-4 ">
+                                    <label class="control-label" style="font-size:12px;">ชื่อลูกค้า :</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input class="form-control form-group" type="text" name="m_txtCustomerName" id="m_txtCustomerName" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="control-label" style="font-size:12px;">เบอร์โทรติดต่อกลับ :</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input class="form-control form-group" type="text" name="txtPhoneNumber" id="txtPhoneNumber" readonly>
+                                </div>
+                                <div class="col-md-4 ">
+                                    <label class="control-label" style="font-size:12px;" id="CardDetailType"></label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input class="form-control form-group" type="text" name="txtIDCard" id="txtIDCard" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="control-label" style="font-size:12px;">ประเภทการบริการ :</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input class="form-control form-group" type="text" name="txtServiceType" id="txtServiceType" readonly>
+                                </div>
+                                <div class="col-md-4 ">
+                                    <label class="control-label" style="font-size:12px;">ประเภทการใช้สิทธิ์ :</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input class="form-control form-group" type="text" name="txtpayType" id="txtpayType" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="control-label" style="font-size:12px;">สถานที่เกิดเหตุ :</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input class="form-control form-group" type="text" name="txtlocation" id="txtlocation" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="control-label" style="font-size:12px;">หมายเหตุ :</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input class="form-control form-group" type="text" name="txtremark" id="txtremark" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="control-label" style="font-size:12px;">ผู้รับเรื่อง :</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input class="form-control form-group" type="text" name="txtcreatedByName" id="txtcreatedByName" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <input class="form-control form-group" type="hidden" name="hdserviceType" id="hdserviceType">
+                            <input class="form-control form-group" type="hidden" name="hdpayType" id="hdpayType">
+                            <button type="button" class="btn btn-success" id="btnsuccess" data-dismiss="modal">ตกลง</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @*-------------------End Modal Confirm --------------------*@
+        <form id="form2">
+            <div class="row " style="background-color:rgb(141, 198, 191);padding: 19px;">
+                <div class="col-md-2">
+                    <label for="" class="control-label">ทะเบียนรถ</label>
+                    <input class="form-control" type="text" name="txtCar" id="txtCar" required>
+                </div>
+
+                <div class="col-md-3">
+                    <label>จังหวัด</label>
+                    <select class="form-control js-example-basic-single" name="txtProvince" id="txtProvince" required>
+                        <option value="">เลือก</option>
+
+                        @{
+                            foreach (var item in ViewBag.Province)
+                            {
+                                <option value="@item.ProvinceId">@item.Province</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label>ประเภทบริการ Roadside Assistance</label>
+                    <select class="form-control js-example-basic-single" name="ServiceType" id="ServiceType" required>
+                        <option value="">เลือก</option>
+
+                        @{
+                            foreach (var item in ViewBag.Service)
+                            {
+                                <option value="@item.RoadsideAssistanceServiceTypeId">@item.RoadsideAssistanceServiceType</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="radio payType">
+                    <label>
+                        <input type="radio" name="payType" id="payType2" value="2" @(ViewBag.useRoadsside_result[0].FreeServiceBalance != 0 ? "checked" : "")>
+                        ใช้สิทธิ์ฟรี
+                    </label>
+                    <label>
+                        <input type="radio" name="payType" id="payType3" value="3" @(ViewBag.useRoadsside_result[0].FreeServiceBalance == 0 ? "checked" : "")>
+                        ลูกค้าชำระเอง
+                    </label>
+                    <input type="hidden" name="hdPayType" id="hdPayType" value="@(ViewBag.useRoadsside_result[0].FreeServiceBalance == 0 ? "3":"2")" />
+                    <input type="hidden" name="hdtxtPayType" id="hdtxtPayType" value="@(ViewBag.useRoadsside_result[0].FreeServiceBalance == 0 ? "ลูกค้าชำระเอง" : "ใช้สิทธิ์ฟรี")" />
+                </div>
+            </div>
+            <div class="row " style="background-color:rgb(141, 198, 191);padding: 19px;margin-top: -24px;">
+                <div class="col-md-5" id="lacation">
+                    <label class="control-label">สถานที่เกิดเหตุ</label>
+                    <textarea class="form-control" rows="3" placeholder="สถานที่เกิดเหตุ" name="location" id="location" required></textarea>
+                </div>
+                <div class="col-md-3">
+                    <label class="control-label">หมายเหตุ</label>
+                    <textarea class="form-control" rows="3" placeholder="หมายเหตุ" id="remark" name="remark"></textarea>
+                </div>
+                <div class="col-md-2">
+                    <label for="txtServiceAmount" class="control-label">ค่าบริการสยามสไมล์จ่าย</label>
+                    <input class="form-control" type="number" name="txtServiceAmount" id="txtServiceAmount" readonly>
+                </div>
+                <div class="col-md-2">
+                    <label for="txtCustomerAmount" class="control-label">ค่าบริการลูกค้าจ่าย</label>
+                    <input class="form-control" type="number" name="txtCustomerAmount" id="txtCustomerAmount" readonly>
+                </div>
+                <div class="col-md-2">
+                    <label for="txtEmployeePointAmount" class="control-label">หักแต้มพนักงาน</label>
+                    <input class="form-control" type="text" name="txtEmployeePointAmount" id="txtEmployeePointAmount" readonly>
+                </div>
+                <div class="col-md-2 col-md-offset-8">
+                    <label for="dateHappen" class="control-label">วันที่เกิดเหตุ</label>
+                    <div class="input-group">
+                        <div class="input-group-addon">
+                            <i class="fa fa-calendar"></i>
+                        </div>
+                        <input type="text" class="form-control pull-right" id="dateHappen" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy" required>
+                    </div>
+                </div>
+                <div class="form-group col-md-2">
+                    <label for="timeHappen" class="control-label">เวลาเกิดเหตุ</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control timepicker" placeholder="HH:mm" name="timeHappen" id="timeHappen" value="" required>
+                    </div>
+                </div>
+            </div>
+
+            <div style="padding:15px;">
+                <div class="row">
+                    <div class="form-group col-md-3">
+                        <label for="refno" class="control-label">รหัสทำรายการ</label>
+                        <input class="form-control" type="text" name="refno" id="refno" readonly>
+                    </div>
+                    <div class="form-group col-md-2 col-md-offset-5">
+                        <label for="timeAssist" class="control-label">วันที่ Assist ปิดงาน</label>
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-clock-o"></i>
+                            </div>
+                            <input type="text" class="form-control pull-right" id="dateAssist" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy" disabled>
+                        </div>
+                        @*<input class="form-control" type="text" name="timeAssist" id="timeAssist" data-inputmask-alias="datetime" data-inputmask-max="24" value="@(ViewBag.resultCloseJob[0].ReferanceClosedDate != null ? ViewBag.resultCloseJob[0].ReferanceClosedDate:"")" readonly required>*@
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="timeAssist" class="control-label">เวลา</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control pull-right timepicker" id="timeAssist" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-md-4">
+                        <label for="refname" class="control-label">ผู้รับเรื่อง Roadside Assistance</label>
+                        <input class="form-control was-validated" type="text" name="txtBankAccNo" id="refname" aria-invalid="true" readonly>
+                    </div>
+
+                    <div class="form-group col-md-4 col-md-offset-4">
+                        <label for="txtref" class="control-label">หมายเลขอ้างอิง</label>
+                        <input class="form-control" type="text" name="txtref" id="txtref" readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-md-4">
+                        <label for="txtcreatedBy" class="control-label">ผู้แจ้งเรื่อง Call center</label>
+                        <input class="form-control" type="text" name="txtcreatedBy" id="txtcreatedBy" value="@ViewBag.EmpCode  -  @ViewBag.Fristname  @ViewBag.Lastname" readonly>
+                    </div>
+                    <div class="form-group col-md-4 col-md-offset-4">
+                        <label for="txtcall" class="control-label">ผู้ปิดงาน Call center</label>
+                        <input class="form-control" type="text" name="txtcall" id="txtcall" readonly>
+                    </div>
+                </div>
+                <div class="col-md-1 col-md-offset-9">
+                    <button type="button" class="btn btn-danger" id="test">ยกเลิก</button>
+                </div>
+                <div class="col-md-1 col-md-offset-1">
+                    <button type="button" class="btn btn-warning" id="URS_submit">บันทึก</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="box-footer" style="background: linear-gradient(to right, rgb(37, 80, 177), rgb(28, 176, 230));">
+        <p style="color:white">Copyright SIAMSMILE BROKER (THAILAND) CO., LTD.</p>
+    </div>
+</div>
+@section ViewSpecificJavascript {
+    <script>
+        $('#test').click(function (e) {
+            e.preventDefault()
+            window.location.replace("@Url.Action("Index", "RoadsideAssistance")");
+        });
+
+        $('#URS_submit').click(function (e) {
+            let phone = $('#txtContactNumber').val().trim().replaceAll('-', '').replaceAll('_', '');
+            if (phone.length != 10) {
+                swal("แจ้งเตือน", "เบอร์โทรติดต่อกลับไม่ถูกต้อง !", "warning");
+                return false;
+            }
+            if ($('#form2').valid() && $('#form1').valid()) {
+                const res = ValidVehicleRegistration();
+                if (res.IsResult) {
+                    swal_confirm("ยืนยันบันทึกข้อมูล", "ยืนยันบันทึกข้อมูลหรือไม่", function (e) {
+                        SaveRoadside()
+                    });
+                } else {
+                    swal("กรุณาตรวจสอบข้อมูล", res.Msg, "warning")
+                }
+            } else {
+                swal("แจ้งเตือน", "กรุณากรอกข้อมูลให้ครบถ้วน !", "warning");
+            }
+        })
+
+        //load
+        $(function () {
+
+            // make single object
+            var newDate = new Date();
+            // current time
+            newDate.setDate(newDate.getDate());
+
+            setInterval(function () {
+                var seconds = new Date().getSeconds();
+                $("#sec").html((seconds < 10 ? "0" : "") + seconds);
+            }, 1000);
+
+            setInterval(function () {
+                var minutes = new Date().getMinutes();
+                $("#min").html((minutes < 10 ? "0" : "") + minutes);
+            }, 1000);
+
+            setInterval(function () {
+                var hours = new Date().getHours();
+                $("#hours").html((hours < 10 ? "0" : "") + hours);
+            }, 1000);
+
+            $('#txtProvince').select2();
+            $('#txtProvince').change(function () {
+                $(this).valid();
+            })
+
+            $('#btnsuccess').click(function () {
+                window.location.replace(`@Url.Action("FollowRoadsideAssis", "RoadsideAssistance")`);
+            })
+
+            window.jQuery.validator.addMethod("checkOnlyNum", function (value) {
+                var regex = new RegExp("^[0-9]+$");
+
+                if (!regex.test(value)) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }, "กรอกเฉพาะตัวเลขเท่านั้น(0-9)");
+
+            $('#form2').validate();
+
+            //----  begin dateHappen  ----//
+
+            $('#dateHappen').datepicker({
+                autoclose: true,
+                todayBtn: true,
+                todayHighlight: true
+            });
+
+            //set date today
+            if ($('#dateHappen').val() == "") {
+                $('#dateHappen').datepicker( 'setDate', newDate );
+            }
+
+            //disable hand key
+            $("#dateHappen").keypress(function (e) {
+                return false;
+            });
+
+            //disable hand key
+            $("#dateHappen").keydown(function (e) {
+                return false;
+            });
+
+            //set maxDate today
+            $('#dateHappen').datepicker('setEndDate', newDate);
+
+            //----  end dateHappen  ----//
+
+            //time timepicker
+            $('#timeHappen').timepicker({
+                showInputs: false,
+                showMeridian: false,
+                showSeconds: true,
+                minuteStep: 5,
+                timeFormat: 'HH:mm:ss',
+                defaultTime: newDate.toLocaleTimeString()
+            });
+
+            history.pushState(null, null, location.href);
+            history.back();
+            history.forward();
+            window.onpopstate = function () {
+                history.go(1);
+            };
+
+            $(".payType :input").prop("disabled", true);
+            $(".payType label").css("cursor", "not-allowed");
+
+        });
+        //end load
+
+        //AssignDataToModel
+        const AssignDataToModel = () => {
+            //TODO
+            let fullname = `${$('#titleName option:selected').val()} ${$('#txtFirstName').val()} ${$('#txtLastName').val()}`;
+            $('#m_txtCustomerName').val(fullname);
+            $('#txtPhoneNumber').val($('#txtContactNumber').val());
+            $('#CardDetailType').text(`@(ViewBag.useRoadsside_result[0].CardDetailType)`)
+            $('#txtIDCard').val($('#txtCardDetail').val());
+            $('#txtServiceType').val($('#ServiceType option:selected').text());
+            $('#txtpayType').val($('#hdtxtPayType').val());
+            $('#txtlocation').val($('#location').val());
+            $('#txtremark').val($('#remark').val());
+            $('#txtcreatedByName').val('@ViewBag.FullName');
+            //hidden
+            $('#hdserviceType').val($('#ServiceType option:selected').val());
+            $('#hdpayType').val($("input[name='payType']:checked").val());
+        }
+
+        const SaveRoadside = () => {
+
+            const res = ValidVehicleRegistration();
+            if (res.IsResult) {
+
+                //call ajax
+                $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("UseRoadsideAssisInsert", "RoadsideAssistance")",
+                    data: {
+                        memberid: $('#txtMemberId').val(),
+                        contactNumber: $('#txtContactNumber').val(),
+                        vehicleRegistrationDetail: res.vRegisNumber,
+                        vehicleRegistrationNumber: res.vRegisDetail,
+                        vehicleRegistrationProvinceId: $('#txtProvince option:selected').val(),
+                        locationDetail: $('#location').val(),
+                        remark: $('#remark').val(),
+                        roadsideAssistanceSeviceTypeId: $('#ServiceType option:selected').val(),
+                        payTypeId: $("input[name='payType']:checked").val(),
+                        totalAmount: $('#txtServiceAmount').val(),
+                        customerAmount: $('#txtCustomerAmount').val(),
+                        EmployeePointAmount: $('#txtEmployeePointAmount').val(),
+                        createdByUserId: @ViewBag.EmpId,
+                        dateHappent: $('#dateHappen').val(),
+                        timeHappent: $('#timeHappen').val(),
+                        serviceCancelCauseId: 1,
+                        otherServiceCancelRemark: null
+
+                    },
+                    dataType: 'json',
+                    //async: false,
+                    success: function (data) {
+                        if (data.IsResult) {
+                            AssignDataToModel();
+                            swal.close();
+                            $('#ShowConfirm').modal('show');
+                        } else {
+                            swal("เกิดข้อผิดพลาด",data.Msg,"error");
+                        }
+                    }
+                });
+            } else {
+                swal("กรุณาตรวจสอบข้อมูล", res.Msg, "warning")
+            }
+
+        }
+
+        //validate ทะเบียนรถ
+        const ValidVehicleRegistration = () => {
+            const textCar = $('#txtCar').val().replace(/[^a-zA-Z0-9ก-ฮ]/g, '').trim();
+            var arr = textCar.match(/[\d\.]+|\D+/g);
+
+            let objResult = { IsResult: false,Msg:"", vRegisNumber: "", vRegisDetail: ""  };
+
+            //check format e.g. : 1กก1111
+            if (arr.length === 3) {
+                objResult.IsResult = true;
+                objResult.vRegisNumber = arr[0].concat(arr[1]);
+                objResult.vRegisDetail = arr[2];
+            }
+            //check format e.g. : กก1111
+            else if (arr.length === 2) {
+                objResult.IsResult = true;
+                objResult.vRegisNumber = arr[0];
+                objResult.vRegisDetail = arr[1];
+            }
+            //else throw format is not valid.
+            else {
+                objResult.IsResult = false;
+                objResult.Msg = " ทะเบียนรถ จะต้องระบุตัวอักษรและตัวเลข ตัวอย่าง กก 9998 หรือ 1กก 9988";
+            }
+
+            return objResult;
+        }
+    </script>
+}

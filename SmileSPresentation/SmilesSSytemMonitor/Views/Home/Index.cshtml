@@ -1,0 +1,274 @@
+﻿@{
+    ViewBag.Title = "Server Monitor";
+}
+
+<div class="row">
+    @for (int i = 0; i < ViewBag.ServerCount; i++)
+    {
+        <div class="col-xs-12 col-md-6">
+            <div class="box box-default">
+                <div class="box-header">
+                    <h3 class="box-title text-bold" id="@string.Format("txtServerName"+i)">None</h3>
+                    <div class="pull-right box-tools">
+                        <h5>Time Stamp: <span id="@string.Format("timeStamp"+i)"></span></h5>
+                    </div>
+                </div>
+                <div class="box-body" style="padding-bottom: 0px">
+                    <div class="form-group row">
+                        @* C drive *@
+                        <div class="col-lg-3 col-xs-4">
+                            <div id="@string.Format("drive_C_Status"+i)" class="small-box">
+                                <div class="inner">
+                                    <h3>C:/</h3>
+
+                                    <p>
+                                        Free:<span id="@string.Format("drive_C_free"+i)"></span> of <span id="@string.Format("drive_C_Total"+i)"></span> GB
+                                    </p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fa fa-pie-chart"></i>
+                                </div>
+                            </div>
+                        </div>
+                        @* D drive *@
+                        <div class="col-lg-3 col-xs-4" id="@string.Format("drive_D_"+i)">
+                            <div id="@string.Format("drive_D_Status"+i)" class="small-box">
+                                <div class="inner">
+                                    <h3>D:/</h3>
+
+                                    <p>
+                                        Free:<span id="@string.Format("drive_D_free"+i)"></span> of <span id="@string.Format("drive_D_Total"+i)"></span> GB
+                                    </p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fa fa-pie-chart"></i>
+                                </div>
+                            </div>
+                        </div>
+                        @* E drive *@
+                        <div class="col-lg-3 col-xs-4" id="@string.Format("drive_E_"+i)">
+                            <div id="@string.Format("drive_E_Status"+i)" class="small-box">
+                                <div class="inner">
+                                    <h3>E:/</h3>
+
+                                    <p>
+                                        Free:<span id="@string.Format("drive_E_free"+i)"></span> of <span id="@string.Format("drive_E_Total"+i)"></span> GB
+                                    </p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fa fa-pie-chart"></i>
+                                </div>
+                            </div>
+                        </div>
+                        @* F drive *@
+                        <div class="col-lg-3 col-xs-4" id="@string.Format("drive_F_"+i)">
+                            <div id="@string.Format("drive_F_Status"+i)" class="small-box">
+                                <div class="inner">
+                                    <h3>F:/</h3>
+
+                                    <p>
+                                        Free:<span id="@string.Format("drive_F_free"+i)"></span> of <span id="@string.Format("drive_F_Total"+i)"></span> GB
+                                    </p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fa fa-pie-chart"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-lg-4 col-xs-6">
+                            <p class="text-center"><strong>CPU</strong></p>
+                            <div id="@string.Format("cpu" + i + "Chart")" class="gaugeChart text-center"></div>
+                        </div>
+                        <div class="col-lg-4 col-xs-6">
+                            <p class="text-center"><strong>RAM</strong></p>
+                            <div id="@string.Format("ram" + i + "Chart")" class="gaugeChart text-center"></div>
+                        </div>
+                        <div class="col-lg-4 col-xs-6">
+                            <p class="text-center"><strong>DISK</strong></p>
+                            <div id="@string.Format("disc" + i + "Chart")" class="gaugeChart text-center"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $("body").addClass("sidebar-collapse");
+            GetCPU01Detail();
+            CheckSendSMS();
+        });
+
+        const GetCPU01Detail = () => {
+            setTimeout(GetCPU01Detail, 30000);
+            $('.gaugeChart').empty();
+            $.ajax({
+                type: 'GET',
+                url: 'http://uat.siamsmile.co.th:9137/api/ServerMonitor',
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        //display server name
+                        $('#txtServerName' + i).text(data[i].ServerName);
+                        //C
+                        $('#drive_C_free' + i).text(data[i].Disk_C_Free);
+                        $('#drive_C_Total' + i).text(data[i].Disk_C_Total);
+                        var cStatus = (data[i].Disk_C_Free / data[i].Disk_C_Total) * 100;
+                        if (cStatus < 10) {
+                            $('#drive_C_Status' + i).addClass('bg-red');
+                        } else if (cStatus < 20) {
+                            $('#drive_C_Status' + i).addClass('bg-yellow');
+                        } else {
+                            $('#drive_C_Status' + i).addClass('bg-green');
+                        }
+                        //D
+                        $('#drive_D_free' + i).text(data[i].Disk_D_Free);
+                        $('#drive_D_Total' + i).text(data[i].Disk_D_Total);
+                        var dStatus = (data[i].Disk_D_Free / data[i].Disk_D_Total) * 100;
+                        if (data[i].Disk_D_Total == -1) {
+                            $('#drive_D_' + i).hide();
+
+                        } else if (dStatus < 10) {
+                            $('#drive_D_Status' + i).addClass('bg-red');
+                        } else if (dStatus < 20) {
+                            $('#drive_D_Status' + i).addClass('bg-yellow');
+                        } else {
+                            $('#drive_D_Status' + i).addClass('bg-green');
+                        }
+                        //E
+                        $('#drive_E_free' + i).text(data[i].Disk_E_Free);
+                        $('#drive_E_Total' + i).text(data[i].Disk_E_Total);
+                        var eStatus = (data[i].Disk_E_Free / data[i].Disk_E_Total) * 100;
+                        if (data[i].Disk_E_Total == -1) {
+                            $('#drive_E_' + i).hide();
+
+                        } else if (eStatus < 10) {
+                            $('#drive_E_Status' + i).addClass('bg-red');
+                        } else if (dStatus < 20) {
+                            $('#drive_E_Status' + i).addClass('bg-yellow');
+                        } else {
+                            $('#drive_E_Status' + i).addClass('bg-green');
+                        }
+                        //F
+                        $('#drive_F_free' + i).text(data[i].Disk_F_Free);
+                        $('#drive_F_Total' + i).text(data[i].Disk_F_Total);
+                        var fStatus = (data[i].Disk_F_Free / data[i].Disk_F_Total) * 100;
+                        if (data[i].Disk_F_Total == -1) {
+                            $('#drive_F_' + i).hide();
+                        } else if (fStatus < 10) {
+                            $('#drive_F_Status' + i).addClass('bg-red');
+                        } else if (fStatus < 20) {
+                            $('#drive_F_Status' + i).addClass('bg-yellow');
+                        } else {
+                            $('#drive_F_Status' + i).addClass('bg-green');
+                        }
+                        //add timestamp
+                        $('#timeStamp' + i).text(moment(data[i].UpdatedDate).format("DD/MM/YYYY HH:mm"));
+
+                        // Element inside which you want to see the chart
+                        let element_cpu = document.getElementById('cpu' + i + 'Chart');
+                        let element_ram = document.getElementById('ram' + i + 'Chart');
+                        let element_disc = document.getElementById('disc' + i + 'Chart');
+
+                        // Properties of the gauge CPU
+                        let gaugeOptions_cpu = {
+                            hasNeedle: true,
+                            needleColor: 'gray',
+                            needleStartValue: 0,
+                            needleUpdateSpeed: 1000,
+                            arcColors: ['rgb(61, 204, 91)', 'rgb(239, 214, 19)', 'rgb(255, 84, 84)'],
+                            arcDelimiters: [70, 90],
+                            rangeLabel: ['0', '100'],
+                            centralLabel: '' + data[i].CPU.toFixed(2),
+                        }
+                        // Properties of the gauge RAM
+                        let gaugeOptions_ram = {
+                            hasNeedle: true,
+                            needleColor: 'gray',
+                            needleStartValue: 0,
+                            needleUpdateSpeed: 1000,
+                            arcColors: ['rgb(61, 204, 91)', 'rgb(239, 214, 19)', 'rgb(255, 84, 84)'],
+                            arcDelimiters: [70, 90],
+                            rangeLabel: ['0', '100'],
+                            centralLabel: '' + data[i].RAM.toFixed(2),
+                        }
+                        // Properties of the gauge disc
+                        let gaugeOptions_disc = {
+                            hasNeedle: true,
+                            needleColor: 'gray',
+                            needleStartValue: 0,
+                            needleUpdateSpeed: 1000,
+                            arcColors: ['rgb(61, 204, 91)', 'rgb(239, 214, 19)', 'rgb(255, 84, 84)'],
+                            arcDelimiters: [70, 90],
+                            rangeLabel: ['0', '100'],
+                            centralLabel: '' + data[i].DiskIO.toFixed(2),
+                        }
+
+                        gauge = GaugeChart.gaugeChart(element_cpu, 250, gaugeOptions_cpu).updateNeedle(data[i].CPU.toFixed(2));
+                        gauge = GaugeChart.gaugeChart(element_ram, 250, gaugeOptions_ram).updateNeedle(data[i].RAM.toFixed(2));
+                        gauge = GaugeChart.gaugeChart(element_disc, 250, gaugeOptions_disc).updateNeedle(data[i].DiskIO.toFixed(2));
+
+                    }
+
+                }
+            });
+        }
+
+        const CheckSendSMS = () => {
+            setTimeout(CheckSendSMS, 600000);//1mn
+            $.ajax({
+                type: 'GET',
+                url: 'http://uat.siamsmile.co.th:9137/api/ServerMonitor',
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+
+                        //C
+                        var cStatus = (data[i].Disk_C_Free / data[i].Disk_C_Total) * 100;
+                        if (cStatus < 10) {
+                            let msg1 = `Server Name : ${data[i].ServerName},Free ${data[i].Disk_C_Free} / ${data[i].Disk_C_Total} GB,Lated Update ${moment(data[i].UpdatedDate).format("DD/MM/YYYY HH:mm:ss")}`;
+                            SendNotification(msg1);
+                        }
+
+                        //D
+                        var dStatus = (data[i].Disk_D_Free / data[i].Disk_D_Total) * 100;
+                        if (dStatus < 10 && data[i].Disk_D_Total !== -1) {
+                            let msg2 = `Server Name : ${data[i].ServerName},Free ${data[i].Disk_D_Free} / ${data[i].Disk_D_Total} GB,Lated Update ${moment(data[i].UpdatedDate).format("DD/MM/YYYY HH:mm:ss")}`;
+                            SendNotification(msg2);
+                        }
+
+                        //E
+                        var eStatus = (data[i].Disk_E_Free / data[i].Disk_E_Total) * 100;
+                        if (eStatus < 10 && data[i].Disk_E_Total !== -1) {
+                            let msg3 = `Server Name : ${data[i].ServerName},Free ${data[i].Disk_E_Free} / ${data[i].Disk_E_Total} GB,Lated Update ${moment(data[i].UpdatedDate).format("DD/MM/YYYY HH:mm:ss")}`;
+                            SendNotification(msg3);
+                        }
+
+                        //F
+                        var fStatus = (data[i].Disk_F_Free / data[i].Disk_F_Total) * 100;
+                        if (fStatus < 10 && data[i].Disk_F_Total !== -1) {
+                            let msg3 = `Server Name : ${data[i].ServerName},Free ${data[i].Disk_F_Free} / ${data[i].Disk_F_Total} GB,Lated Update ${moment(data[i].UpdatedDate).format("DD/MM/YYYY HH:mm:ss")}`;
+                            SendNotification(msg3);
+                        }
+                    }
+                }
+            });
+        }
+
+        const SendNotification = (msg) => {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("SendNotification")',
+                data: {
+                    msg: msg
+                },
+                success: function (data) {
+                    console.log(data.Msg)
+                }
+            });
+        }
+    </script>
+}

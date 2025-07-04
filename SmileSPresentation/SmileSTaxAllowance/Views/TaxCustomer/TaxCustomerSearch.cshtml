@@ -1,0 +1,171 @@
+﻿
+@{
+    ViewBag.Title = "TaxCustomerSearch";
+    Layout = "~/Views/Shared/_LayoutForTaxCustomer.cshtml";
+}
+
+<form class="form-horizontal" action="" name="myform">
+    <div class="row">
+
+        <div class="col-xs-12">
+
+            @* Progress Step Bar *@
+            <div class="row  text-padding" style="text-decoration:none;">
+
+                <div class="container-fluid">
+
+                    <ul class="list-unstyled multi-steps">
+                        <li class="is-active">Step 1</li>
+                        <li>Step 2</li>
+                        <li>Step 3</li>
+                    </ul>
+                </div>
+            </div>
+
+
+                    <div class="panel panel-default display-block" id="pnlinputDetailCustomer" >
+
+                        <div class="row text-center text-padding text-font-color-blue" style="font-size:20px; font-weight:100;">
+                            <span class="">กรุณากรอกข้อมูลเพื่อเข้าทำรายการ</span>
+                        </div>
+
+                        <div class="row text-padding " style=" margin: 0 auto 10px auto;">
+                            <span style="font-size:16px;" class="text-font-color-black ">เลขบัตรประชาชนผู้เอาประกันภัย</span><span style="color:red">*</span>
+
+                            <input id="txtZCardCustomer" name="txtZCardCustomer"  type="text" class="form-control " width="100"  required  >
+                        </div>
+
+                        <div class="row text-padding text-wordwrap" style=" margin: 0 auto 10px auto;">
+                            <span style="font-size:16px;" class="text-font-color-black ">วันเดือนปีเกิด (พ.ศ.)</span><span style="color:red">*</span>
+
+                            <input id="txtBirthDateCustomer" name="txtBirthDateCustomer" type="text" class="form-control " width="100" required  data-inputmask="'mask': '99/99/9999', 'placeholder': 'วว/ดด/ปปปป'" placeholder="วว/ดด/ปปปป" checkDate="checkDate">
+
+                            <span style="font-size:14px;color:gray">วว : วันเกิด ดด : เดือนเกิด ปปปป : ปีเกิด (พ.ศ.)</span>
+                            <span style="font-size:14px;color:gray">ตัวอย่าง เกิดวันที่ 2 มกราคม พ.ศ.2530 ให้กรอก 02/01/2530</span>
+                        </div>
+
+                        <div class="row text-padding text-center" style=" margin: 0 auto 10px auto;">
+                            <button class="btn-next" type="button" id="btnCustomerSearch"> ยืนยัน </button>
+                        </div>
+                    </div>
+
+                    <div class="display-none panel panel-default " id="pnlWarningDetail" >
+
+                        <div class="row text-center text-padding">
+                            <div style="">
+                                <span class="warning-icon" style=""><span class="glyphicon glyphicon-exclamation-sign"></span></span>
+                            </div>
+
+                            <div style="font-size:18px; color:#717171">
+                                <span>ข้อมูลไม่ถูกต้อง</span><br />
+                                <span>กรุณาติดต่อ Call Center</span><br />
+                                <span> 02-533-3999 หรือ</span> <br />
+                                <span> Add Line: &#64;siamsmile</span><br />
+                                <div style="text-decoration:none; padding-top:10px">
+                                    <span id="btnline" class="btn btn-social " style=" background-color: #00c300; color: #fff; font-size:18px ">
+                                        <i class="" style="top:-3px;left:2px;"><img src="~/Content/img/line.png" style="width:40px" /></i> เพิ่มเพื่อน
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row text-center text-padding">
+                            <div style="padding-top: 60px;">
+                                <button type="button" class="btn btn-danger" id="btnbackMain"> กลับหน้าหลัก</button>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+
+
+
+        </div>
+
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        //$(window).load(function () {
+        //    $('form').get(0).reset(); //clear form data on page load
+        //});
+
+        $(document).ready(function () {
+
+           
+
+            $('#txtZCardCustomer').inputmask("9-9999-99999-99-9");
+            $('#txtBirthDateCustomer').inputmask("99/99/9999");
+
+            $('#btnCustomerSearch').click(function (e) {
+                e.preventDefault();
+                //debugger;
+                //var ddd = $('form').valid();
+                if ($('form').valid())
+                {    
+        
+                    
+                    GetCustomerDetail();
+                    
+                }
+
+            });
+
+            $('#btnbackMain').click(function (e) {  
+                e.preventDefault();
+                window.location.href = "@Url.Action("TaxCustomer", "TaxCustomer")";
+            });
+
+
+            $('#btnline').click(function (e) {  
+                e.preventDefault();
+
+                window.location.href = "http://line.me/R/ti/p/%40siamsmile";
+
+            });
+            
+        });
+
+
+        function GetCustomerDetail() {
+              debugger;
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetCustomerDetailByZcardId", "TaxCustomer")",
+                data:  {
+                    zcardId : $('#txtZCardCustomer').val(),
+                    birthDate: $('#txtBirthDateCustomer').val()
+
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    debugger;
+                    if (response == false) {
+                        //window.location.reload();
+                        
+
+
+                        $('#pnlinputDetailCustomer').removeClass("display-block");
+                        $('#pnlinputDetailCustomer').addClass("display-none");
+
+                         $('#pnlWarningDetail').removeClass("display-none");
+                        $('#pnlWarningDetail').addClass("display-block");
+
+                    } else {
+                        let encodeZcard = window.btoa(response.CustIDCard);
+                        let encodeBirthDate = window.btoa(DisplayJsonDateBE(response.CustBirthDate));
+                        window.location.href = "@Url.Action("TaxCustomerConfirm", "TaxCustomer")?zcardId=" + encodeZcard +"&birthDate="+ encodeBirthDate +"";
+                    }
+                }
+            });
+        }
+
+    </script>
+}

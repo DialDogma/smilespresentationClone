@@ -1,0 +1,143 @@
+﻿@{
+    ViewBag.Title = "นำส่งข้อมูลKTB";
+}
+
+<form id="Mainform" action="@Url.Action("ExcelForExport", "BankDirectDebit")" method="post" enctype="multipart/form-data">
+    <div class="row">
+        @* check temp return message *@
+        @if(TempData["Success"] != null)
+        {
+            <div id="Notification" class="alert alert-success alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                <h4><i class="icon fa fa-check"></i> Alert!</h4>
+                <p><strong>Success:</strong> @TempData["Success"].ToString()</p>
+            </div>
+        }
+        @if(TempData["Fail"] != null)
+        {
+            <div id="Notification_fail" class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                <h4><i class="icon fa fa-check"></i> Alert!</h4>
+                <p><strong>Fail:</strong> @TempData["Fail"].ToString()</p>
+            </div>
+        }
+        <div class="col-sm-12" id="Export_form">
+            <div class="box box-default">
+                <div class="box-header">
+                    <h3 class="box-title">Export Excel File</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-4">
+                            <label for="" class="control-label">Generate Excel File</label>
+                            <button type="button" class="btn btn-block btn-info" id="btnGenFile" onclick="">สร้างไฟล์Excel</button>
+                        </div>
+                        <div class="col-sm-4">
+                            <label for="" class="control-label">File Name</label>
+                            <label class="form-control" id="lblFilePath">xxxx</label>
+                        </div>
+                        <div class="col-sm-4">
+                            @*<label for="" class="control-label" id="lblCount">จำนวนนำส่ง 0 รายการ</label>*@
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-green"><i class="fa fa-flag-o"></i></span>
+
+                                    <div class="info-box-content">
+                                    <span class="info-box-text">จำนวนรายการ</span>
+                                    <span class="info-box-number" id="lblCount">0</span>
+                                </div>
+                                <!-- /.info-box-content -->
+                            </div>
+             
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-offset-2 col-sm-4">
+                            <label for="" class="control-label">Email Sending</label>
+                            <button type="button" class="btn btn-block btn-success" id="btnEmailSend" onclick="">นำส่งอีเมล์</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* hidden *@
+    <input type="hidden" name="hd_pathList" id="hd_pathList" value="" />
+    <input type="hidden" name="hd_fileName" id="hd_fileName" value="" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+            $('#btnEmailSend').hide();
+            moment.locale('th');
+            $('#btnGenFile').click(function () {
+                window.swal({
+                            title: 'ยืนยันรายการ?',
+                            type: 'info',
+                            showCancelButton: true,
+                            confirmButtonColor: '#277020',
+                            confirmButtonText: 'ตกลง',
+                            cancelButtonText: 'ยกเลิก',
+                            closeOnConfirm: false,
+                            closeOnEsc: false,
+                            closeOnCancel: true
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                waitingDialog.show('กำลังสร้างไฟล์ใหม่ กรุณารอสักครู่'); setTimeout(function () { waitingDialog.hide(); }, 500);
+                                GenerateExcel();
+
+                                swal.close();
+                            }
+                        });
+
+            });
+            $('#btnEmailSend').click(function () {
+                window.swal({
+                            title: 'ยืนยันรายการ?',
+                            type: 'info',
+                            showCancelButton: true,
+                            confirmButtonColor: '#277020',
+                            confirmButtonText: 'ตกลง',
+                            cancelButtonText: 'ยกเลิก',
+                            closeOnConfirm: false,
+                            closeOnEsc: false,
+                            closeOnCancel: true
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                waitingDialog.show('กำลัง นำส่งข้อมูล กรุณารอสักครู่'); setTimeout(function () { waitingDialog.hide(); }, 100000);
+                                $('#Mainform').submit();
+                                swal.close();
+                              
+                            }
+                        });
+            });
+        });
+
+        //call ajax to generate file
+        function GenerateExcel() {
+             $.ajax({
+                type: "GET",
+                 url: '@Url.Action("GenerateExcel2","BankDirectDebit")',
+                    success: function (response) {
+                        console.log('success '+response.pathList);
+                        debugger;
+                        $('#hd_pathList').val(response.pathList);
+                        $('#lblFilePath').text(response.headerGroupCode);
+                        $('#hd_fileName').val(response.headerGroupCode);
+                          $("#lblCount").text( response.resultCOUNT );
+                        if (response) {
+                            $('#btnEmailSend').show();
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorMessage) {
+                         //do something if error
+                        console.log(errorMessage);
+                        debugger;
+                        alert(errorMessage);
+                    }
+            });
+
+        }
+    </script>
+}

@@ -1,0 +1,127 @@
+﻿@{
+    ViewBag.Title = "Point Account Detail";
+}
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+            <!-- /.box-header -->
+            <div class="box-body">
+                <span class="tab-default col-md-3 col-xs-12">เลขที่ Account : @ViewBag.Detail.PointAccountId</span>
+                <span class="tab-default col-md-3 col-xs-12">ประเภท : @ViewBag.Type</span>
+                <span class="tab-default col-md-6 col-xs-12">ชื่อบัญชี : @ViewBag.Detail.PointAccountName</span>
+                <span class="tab-default col-md-3 col-xs-12">รหัสอ้างอิง : @ViewBag.Detail.ReferenceCode</span>
+                <span class="tab-default col-md-3 col-xs-12">ชื่ออ้างอิง : @ViewBag.Detail.ReferenceDetail</span>
+                <span class="tab-default col-md-3 col-xs-12">แต้มคงเหลือ : <span class="badge bg-yellow">@String.Format("{0:#,##0.00}", ViewBag.Detail.PointRemain)</span> </span>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+    <!-- /.box -->
+</div>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title">ประวัติการทำรายการ</h3>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <table id="datatable1" class="table table-bordered table-striped"></table>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+    <!-- /.box -->
+</div>
+
+@*<div class="row">
+        <a href="@Url.Action("UsePoint")?id=@ViewBag.Detail.PointAccountId" class="btn btn-success" title="+ เพิ่มรายการ" style="margin: 2px;">+ เพิ่มรายการ</a>
+    </div>*@
+
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+
+            //Load Datatable
+            $('#datatable1').DataTable({
+
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                ajax: {
+                    url: '@Url.Action("GetDatatable","Transaction")',
+                    method:'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.accountId = @ViewBag.Detail.PointAccountId;
+                    }
+                },
+                columns: [
+                    { title: 'รหัส', data: 'TransactionId' },
+                    { title: 'แผนก', data: 'TransactionGroupName' },
+                    { title: 'ประเภท', data: 'TransactionTypeName' },
+                    {
+                        title: 'รับ',
+                        data: 'AmountIncrease',
+                        className: 'dt-right',
+                        render: function (data) {
+                            var amount = data.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                            var result;
+                             result = '<p class="text-blue">' + amount + '</p>';
+                            return result;
+                        }
+                    },
+                    {
+                        title: 'จ่าย',
+                        data: 'AmountDecrease',
+                        className: 'dt-right',
+                        render: function (data) {
+                            var amount = data.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                            var result;
+                            result = '<p class="text-red">' + amount + '</p>';
+                            return result;
+                        }
+                    },
+                    {
+                        title: 'คงเหลือ',
+                        data: 'AmountBalance',
+                        className: 'dt-right',
+                        render: function (data) {
+                            var amount = data.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                            var result;
+                            result = '<p class="text-black">' + amount + '</p>';
+                            return result;
+                        }
+                    },
+                    {
+                        title: 'หมายเหตุ',
+                        data: 'Remark'
+                    },
+                    { title: 'ผู้บันทึก', data: 'CreatedById' ,className: 'dt-right'},
+                    {
+                        title: 'วันที่',
+                        data: 'CreatedDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            return DisplayJsonDateBE(data);
+                        }
+                    },
+                    {
+                        title: 'สถานะรายการ',
+                        data: 'TransactionStatusDetail',
+                        className: 'dt-center'
+                    }
+                ]
+            });
+        });
+    </script>
+}

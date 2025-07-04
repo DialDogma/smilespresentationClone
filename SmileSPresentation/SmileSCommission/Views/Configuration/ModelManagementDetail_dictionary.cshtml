@@ -1,0 +1,186 @@
+﻿@{
+    ViewBag.Title = "ตั้งค่า Dictionary";
+
+}
+<style>
+    .table {
+        font-size: 14px
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* edit form *@
+        <div class="col-sm-12" id="Search_form">
+            <div class="box box-default">
+                <div class="box-header">
+                    <h4>@ViewBag.modelName</h4>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtShowDetail" name="dtShowDetail" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-2">
+                            <button type="button" id="btnGen" onclick="" class="btn btn-block btn-info">Generate Parameter</button>
+                        </div>
+                        <div class="col-sm-2 pull-right">
+                            <button type="button" id="btnSubmit" onclick="" class="btn btn-block btn-success">บันทึก</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end form *@
+    </div>
+    @* hidden *@
+    <input type="hidden" name="hd_ModelId" id="hd_ModelId" value="@ViewBag.modelId" />
+    @* end hidden *@
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+            GetCFModelDesc_DT();
+
+             $('#btnGen').click(function () {
+                GenerateCFParamDesc();
+            });
+
+            $('#btnSubmit').click(function () {
+                SubmitCFModelDesc();
+            });
+        });
+
+         const GenerateCFParamDesc = () => {
+            swal_confirm("ยืนยัน", "ต้องการ Generate DataSource?", function () {
+
+                $.get('@Url.Action("GenerateModelParam","Configuration")', {modelId:$('#hd_ModelId').val()}, function (data) {
+                    if (data.IsResult) {
+                        swal_success(setTimeout(function () {
+                            window.location = ("@Url.Action("ModelManagementDetail_dictionary","Configuration")?modelId="+$('#hd_ModelId').val());
+                        }, 2000));
+                    } else {
+                         swal_fail(data.Msg);
+                    }
+                });
+
+            });
+        }
+
+        const SubmitCFModelDesc = () => {
+              //call function to execute
+                swal_confirm("ยืนยัน", "ยืนยันการแก้ไข?", function () {
+                    $.when(loopInputToTblInput()).done(function (response) {
+                        console.log(response);
+                        var checkFalse = response.every(function (value) { return value == true; });
+                        if (!checkFalse) {
+                            swal_fail('ผิดพลาด!บางข้อมูลไม่สามารถบันทึกได้');
+                        } else {
+                             swal_success(setTimeout(function () {
+                                window.location = ("@Url.Action("ModelManagementDetail_dictionary","Configuration")?modelId="+$("#hd_ModelId").val());
+                            }, 2000));
+                        }
+                        //
+                    });
+            });
+        }
+
+        const GetCFModelDesc_DT = () => {
+            $('#dtShowDetail').empty();
+            var table = $('#dtShowDetail').DataTable({
+                lengthChange: false,
+                info:false,
+                paging:false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetModelParamDescription","Configuration")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.modelId = $('#hd_ModelId').val();
+                        d.draw = d.draw;
+                        d.pageSize = 99999;//d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                    }
+                },
+                columnDefs: [{
+                    searchable: false,
+                    orderable: false,
+                    targets: 0
+                }],
+                columns: [
+                    { title: 'ลำดับ', data: null, orderable: false },
+                    { title: 'Parameter', data: 'ParameterName' },
+                    {
+                        title: 'Parameter Description',
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        mRender: function (data) {
+                            if (data.Description != null) {
+                                return '<input type="text" id="txtDesc_' + data.ModelParameterDescriptionId + '" name="txtDesc_' + data.ModelParameterDescriptionId
+                                    + '" value="' + data.Description + '" required="" class="form-control tbl_input" />';
+                            } else {
+                                 return '<input type="text" id="txtDesc_' + data.ModelParameterDescriptionId + '" name="txtDesc_' + data.ModelParameterDescriptionId
+                                + '" value="" required="" class="form-control tbl_input" />';
+                            }
+
+                        }
+
+                    },
+                    {
+                        title: 'วันที่แก้ไขข้อมูล', data: 'DescriptionUpdatedDate',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    { title: 'ผู้แก้ไขข้อมูล', data: 'DescriptionUpdateByName' }
+
+                ]
+            });
+
+            table.on('draw.dt', function () {
+                var PageInfo = $('#dtShowDetail').DataTable().page.info();
+                table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                });
+            });
+        }
+
+         //loop and send not null data to sp
+        const loopInputToTblInput = () => {
+            var resultList = new Array();
+            //loop in class input
+            $('.tbl_input').each(function (index, data) {
+                //check if assign not null
+                if (data.value != "") {
+                    var text = data.id.split('_');
+                    //post: set assign datasource
+                    $.post('@Url.Action("SetModelParamDescription","Configuration")',
+                        {
+                            paramId: text[1],
+                            description: data.value
+                        }, function (response) {
+                            resultList.push(response.IsResult);
+
+                        });
+                }
+            });
+            return resultList;
+        }
+    </script>
+}

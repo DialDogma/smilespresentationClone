@@ -1,0 +1,791 @@
+﻿@{
+    ViewBag.Title = "MonitorClaimOnLine";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .modal-dialog {
+        margin-top: 0;
+        margin-bottom: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .modal.fade .modal-dialog {
+        transform: translate(0, -100%);
+    }
+
+    .modal.in .modal-dialog {
+        transform: translate(0, 0);
+    }
+
+    row_selected {
+        background-color: whitesmoke !important;
+    }
+
+    /*.modal-body {
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }*/
+
+    .ui-datepicker {
+        position: relative !important;
+        top: -290px !important;
+        left: 0 !important;
+    }
+
+    #events {
+        margin-bottom: 1em;
+        padding: 1em;
+        background-color: #f6f6f6;
+        border: 1px solid #999;
+        border-radius: 3px;
+        height: 100px;
+        overflow: auto;
+    }
+
+    td.selected {
+        font-weight: bold;
+        background-color: #8EDCF8;
+    }
+</style>
+
+<form class="form-horizontal" action="" method="post" id="Mainform">
+
+    <div class="row">
+        <div class="col-sm-12">
+
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">ค้นหาข้อมูล</h3>
+                </div>
+
+                <div class="box-body">
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label">วันที่สร้าง :</label>
+                            <input type="text" class="form-control pull-right " name="dtpDateFrom" id="dtpDateFrom" required="required"
+                                   data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="control-label">ถึงวันที่ :</label>
+                            <input type="text" class="form-control pull-right " name="dtpDateTo" id="dtpDateTo" required="required"
+                                   data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label">โซน :</label>
+                            <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlZone" name="ddlZone">
+
+                                <option value="-1"> ทั้งหมด </option>
+
+                                @foreach (var item in @ViewBag.Zone)
+                                {
+                                    <option value=@item.ZoneId>  @item.Zone </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="control-label">สาขา :</label>
+                            <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlBranch" name="ddlBranch">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label">เลข COL :</label>
+                            <input type="text" class="form-control" name="txtSearchCOL" id="txtSearchCOL">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="control-label">รายละเอียด :</label>
+                            <input type="text" class="form-control" name="txtSearchDetail" id="txtSearchDetail">
+                        </div>
+
+                        <div class="col-md-3" style="padding-top:27px;">
+                            <button id="btnSearch" type="button" class="btn btn-success" style="width:50%">ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">รายละเอียด</h3>
+                </div>
+
+                <div class="box-body" style="width: 100%">
+
+                    <div class="col-sm-12">
+                        <table id="dtMonitor" class="table table-bordered table-striped display" style="width: 100%"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Modal Transfer Log *@
+    <div class="modal fade" id="modal-TransferLog" style="display: none;">
+        <div class="modal-dialog modal-lg modal-dialog-centered" style="width:150vh">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title">ประวัติการโอนเงิน</h4>
+                </div>
+                <div class="modal-body" style="width:100%">
+
+                    <table id="dtTransferLog" class="table table-bordered table-striped display" style="width: 100%"></table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-right" data-dismiss="modal" id="btncloseLog">Close</button>
+                    @*<button type="button" class="btn btn-primary">Save changes</button>*@
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade bd-example-modal-lg" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog  modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">บันทึกการโอนเงิน </h5>
+                    @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>*@
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-group">
+
+                        <div class="row">
+                            <div class="col-sm-12">
+
+                                <div class="col-sm-12 ">
+                                    <div class="box box-solid">
+                                        <div class="box-body">
+                                            <div class="col-sm-6 ">
+                                                <div class="">
+                                                    <strong><i class="fa fa-book margin-r-5"></i> RefNo </strong>
+
+                                                    <div class="" style="text-indent:20px; ">
+
+                                                        <span class="label label-success" id="lblClaimOnLineCode" style="font-size:15px">
+                                                        </span>
+                                                        <p class=" text-muted">
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <!-- /.description-block -->
+                                                <div class="">
+                                                    <strong><i class="fa fa-book margin-r-5"></i> ประเภทเคลม</strong>
+                                                    <p class="text-muted" id="lblClaimType" style="text-indent:20px;"></p>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="">
+                                                    <strong><i class="fa fa-book margin-r-5"></i> รายละเอียด</strong>
+                                                    <p class="text-muted" id="lblDetail" style="text-indent:20px"></p>
+                                                </div>
+                                                <!-- /.description-block -->
+
+                                                <div class="">
+                                                    <strong><i class="fa fa-book margin-r-5"></i> จำนวนเคลม </strong>
+                                                    <p class="text-muted" id="lblClaimCount" style="text-indent:20px"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input id="hdfClaimOnLineId" name="hdfClaimOnLineId" type="hidden" />
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <label class="control-label">บัญชีส่วนกลาง : </label>
+
+                                    <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlClaimOnLineAccount" name="ddlClaimOnLineAccount">
+                                        <option value="-1">  โปรดระบุ </option>
+                                        @foreach (var item in @ViewBag.Account)
+                                        {
+                                            <option value=@item.ClaimOnLineAccountId>  @item.AccountNo - @item.AccountName</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-sm-4" style="padding-top:27px">
+                                    <label class="control-label">ยอดคงเหลือ : </label>
+                                    <label class="control-label" id="lblBalance" style="color: #41874c; font-size:15px">-</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <label class="control-label">ประเภทการโอน :</label>
+                                    <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlTransferType" name="ddlTransferType">
+                                        @foreach (var item in @ViewBag.TransferType)
+                                        {
+                                            <option value=@item.TransferTypeId>  @item.TransferType </option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="col-sm-4">
+                                    <label class="control-label">ธนาคาร :</label>
+                                    <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlBank" name="ddlBank">
+                                        @foreach (var item in @ViewBag.Bank)
+                                        {
+                                            <option value=@item.Bank_ID>  @item.BankDetail </option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <label class="control-label">เลขทึ่บัญชี :</label>
+                                    <input type="text" class="form-control" placeholder="เลขที่บัญชี...." id="txtAccountNo" name="txtAccountNo">
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="control-label">ชื่อบัญชี :</label>
+                                    <input type="text" class="form-control" placeholder="ชื่อบัญชี...." id="txtAccountName" name="txtAccountName">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <label class="control-label">จำนวนเงินโอน :</label>
+                                    <input type="text" class="form-control" placeholder="จำนวนเงินโอน...." id="txtAmount" name="txtAmount">
+                                </div>
+                                <div class="col-sm-2">
+                                    <label class="control-label">วันที่โอนเงิน :</label>
+                                    <input type="text" class="form-control pull-right " name="dtpTransferDate" id="dtpTransferDate" required="required"
+                                           data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy hh:mm:ss" data-format="dd/MM/yyyy hh:mm:ss">
+                                </div>
+                                <div class="col-sm-2">
+
+                                    <label class="control-label">เวลาโอนเงิน :</label>
+                                    <input type="text" class="form-control timepicker" id="tpTransfer" name="tpTransfer">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="col-sm-4 col-sm-offset-4" style="text-align:center">
+                                    <button type="button" class="btn btn-success" id="btnSave" name="btnSave" style="width:30%"> บันทึก </button>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btnCancel" name="btnCancel" style="width:30%">ยกเลิก</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+
+                    @*<button type="submit" class="btn btn-primary">Submit</button>*@
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+
+            //Select2
+            $('.select2').select2();
+
+            $('#dtpTransferDate').datepicker({ format: "dd/mm/yyyy", autoclose: true}).datepicker("setDate", new Date());
+
+            $('#dtpDateFrom').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+            $('#dtpDateTo').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+
+            GetZoneByEmployeeId();
+
+            $('#tpTransfer').timepicker({
+                timeFormat: 'HH:mm:ss',
+                showMeridian: false
+            });
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                GetMonitorClaimOnLine();
+            });
+
+            $("#txtAmount").inputmask({
+                'alias': 'decimal',
+                rightAlign: false,
+                'groupSeparator': '.',
+                'autoGroup': true
+            });
+
+            $('#btnCancel').click(function (e) {
+
+                e.preventDefault();
+                DoClear();
+
+            });
+
+            $('#btnSave').click(function (e) {
+                e.preventDefault();
+
+                if (IsValidateForSave() != "") {
+                    alert(IsValidateForSave());
+                }
+                else {
+                    DoSaveTransferClaim();
+                }
+
+            });
+
+            $('#ddlClaimOnLineAccount').change(function (e) {
+                
+                GetClaimOnLineAccount($('#ddlClaimOnLineAccount').val());
+            });
+
+            $('#ddlZone').change(function (e) {
+                e.preventDefault();
+                $('#ddlBranch').empty();
+                GetBranchByZoneId($('#ddlZone').val());
+            });
+
+        })
+
+        function DoSaveTransferClaim() {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("SaveClaimOnLineTransfer","ClaimOnLine")",
+                data: {
+                    f_claimOnlineId: $('#hdfClaimOnLineId').val(),
+                    claimOnLineAccount: $('#ddlClaimOnLineAccount').val(),
+                    transferTypeId: $('#ddlTransferType').val(),
+                    bankId: $('#ddlBank').val(),
+                    accountNo: $('#txtAccountNo').val(),
+                    accountName: $('#txtAccountName').val(),
+                    amount: $('#txtAmount').val(),
+                    f_transferDate: $('#dtpTransferDate').val(),
+                    transferTime: $('#tpTransfer').val()
+                },
+                dataType: "json",
+                success: function (response) {
+
+                    if (response == true) {
+                        swal("บันทึกข้อมูลสำเร็จ", "", "success");
+                        DoClear();
+                        $("#exampleModal").modal("hide");
+                        GetMonitorClaimOnLine();
+                    } else {
+                        swal("บันทึกข้อมูลไม่สำเร็จ", "", "error");
+                    }
+                }
+            });
+        }
+
+        function GetZoneByEmployeeId()
+        {
+            
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetZoneByEmployee", "ClaimOnLine")',
+                //data: { zoneId: ZoneId },
+                success: function (data) {
+                    if (data == 0) {
+                        
+                        $('#ddlZone').select2().val("-1").trigger('change.select2');
+
+                        GetBranchByZoneId($("#ddlZone").val());
+                    } else {
+
+                        $('#ddlZone').select2().val(data).trigger('change.select2');
+
+                        GetBranchByZoneId($("#ddlZone").val());
+
+                    }
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail1');
+                }
+
+            });
+        }
+
+        function GetBranchByZoneId(ZoneId)
+        {
+            //if (ZoneId == -1) {
+
+            //    ZoneId = null;
+            //}
+            
+            $('#ddlBranch').empty();
+             $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetBranchByZoneId" ,"ClaimOnLine")',
+                data: { zoneId: ZoneId },
+                success: function (data) {
+                    $('#ddlBranch').append('<option value=-1>---ทั้งหมด---</option>');
+                    for (var i = 0; i < data.length; i++) {
+                        $('#ddlBranch').append('<option value=' + data[i].Branch_ID + '>' + data[i].BranchDetail + '</option>');
+                    }
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail2');
+                }
+
+            });
+
+        }
+
+        function GetClaimOnLineAccount(ClaimOnlineAccount)
+        {
+             
+            $.ajax({
+
+                type: 'GET',
+                url: '@Url.Action("GetClaimOnLineAccountById", "ClaimOnLine")',
+                dataType: 'json',
+                data: { ClaimOnLineAccountId: ClaimOnlineAccount },
+                success: function (data) {
+                    
+                    //$('#hdUserId').val(data);
+
+                    if (data == "0") {
+                        $('#lblBalance').text("-");
+
+                    } else
+                    {
+                        $('#lblBalance').text(data);
+                    }
+
+                    //alert(data);
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail');
+                }
+
+            });
+        }
+
+        function DoClear()
+        {
+            $("#hdfClaimOnLineId").val('');
+            $("#txtAmount").val("0");
+            $('#lblBalance').text("-");
+        }
+
+        function GetMonitorClaimOnLine() {
+
+            $('#dtMonitor').empty();
+            var table = $('#dtMonitor').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                searching: false,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetClaimOnlineMonitorVersion1")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $('#txtSearchDetail').val().trim();
+                        d.branchId = $('#ddlBranch').val();
+                        d.zoneId = $('#ddlZone').val();
+                        d.dateFrom = $('#dtpDateFrom').val();
+                        d.dateTo = $('#dtpDateTo').val();
+                        d.claimOnLineCode = $('#txtSearchCOL').val().trim();
+                    }
+                },
+                columns: [
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        data: null,
+                        title: 'Action',
+                        mRender: function (data) {
+                            if (data.ClaimOnLineStatusId != 3) {
+                                return '<a href="" onclick="GetMonitorDetail(\'' + data.ClaimOnLineId + '\')" ;return false;"  data-toggle="modal" data-target=".bd-example-modal-lg" class="btn btn-primary"> โอนเงิน </a>';
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    { title: 'COLCode', data: 'ClaimOnLineCode' },
+                    { title: 'ประเภทเคลม', data: 'ProductType' },
+                    { title: 'รายละเอียด', data: 'Detail' },
+                    { title: 'จำนวนการเคลม', data: 'ClaimCount', className: 'dt-center',},
+
+                    { title: 'ผู้ให้บริการ', data: 'ServiceBy' },
+                    { title: 'เขตสาขา', data: 'NoticeByStudyArea' },
+                    { title: 'สาขา', data: 'Branch' },
+                    { title: 'โซน', data: 'Zone' },
+                    { title: 'สถานะ', data: 'ClaimOnLineStatus' },
+                    {
+                        title: 'วันที่ทำรายการล่าสุด',
+                        data: 'CreateDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    { title: 'เลขที่บัญชี', data: 'PayeeAccountNo' },
+                    { title: 'ชื่อบัญชี', data: 'PayeeAccountName' },
+
+                    {
+                        title: 'จำนวนเงินโอน',
+                        data: 'AmountTotal',
+                        className: 'dt-center',
+
+                        render: function (data, type, row, meta) {
+                            $.fn.dataTable.render.number(',', '.', 0);
+                            if (data != null) {
+
+                              //var d =  numeral(data.AmountTotal).format('0.0000');
+
+                                return '<a href="" onclick="GetMonitorLog(\'' + row.ClaimOnLineId + '\')" ;return false;"  data-toggle="modal" data-target="#modal-TransferLog">' + commaSeparateNumber(data) + '</a>';
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'วันที่โอนเงินล่าสุด',
+                        data: 'TransferDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    }
+
+                ],
+                bLengthChange: false,
+                createdRow: function (row, data, index) {
+                    if (data.ClaimOnLineStatusId == 3) {
+                        $('td', row).addClass('selected');
+                    }
+                },
+
+            });
+
+        }
+
+        function commaSeparateNumber(val) {
+            while (/(\d+)(\d{3})/.test(val.toString())) {
+                val = val.toString().replace(/(\d+)(\d{3})/, '$1' + ',' + '$2');
+            }
+            return val;
+        }
+
+        function GetMonitorLog(claimOnLineId)
+        {
+             
+             $('#dtTransferLog').empty();
+             var table = $('#dtTransferLog').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                info: false,
+                searching: false,
+                paging: false,
+                ajax: {
+                    url: '@Url.Action("GetMonitorTransferLog")',
+                    type: 'POST',
+                    data: function (d) {
+                        //d.draw = d.draw;
+                        //d.pageSize = d.length;
+                        //d.pageStart = d.start;
+                        //d.sortField = d.columns[d.order[0].column].data;
+                        //d.orderType = d.order[0].dir;
+                        //d.search = d.search.value;
+                        d.claimOnLineId = claimOnLineId;
+
+                    }
+                },
+                columns: [
+                    { title: 'COLCode', data: 'ClaimOnLineCode' },
+                    { title: 'ประเภทการโอน', data: 'TransferType' },
+                    { title: 'จากธนาคาร', data: 'FromBank' },
+                    { title: 'เลขที่บัญชี', data: 'FromAccountNo' },
+                    { title: 'ชื่อบัญชี', data: 'FromAccountName' },
+
+                    { title: 'ถึงธนาคาร', data: 'ToBank' },
+                    { title: 'เลขที่บัญชี', data: 'ToAccountNo' },
+                    { title: 'ชื่อบัญชี', data: 'ToAccountName' },
+                    {
+                        title: 'จำนวนเงินโอน',
+                        data: 'Amount',
+                        className: 'dt-center',
+                        //render: $.fn.dataTable.render.number(',', '.', 0)
+
+                        render: function (data, type, row, meta) {
+                            $.fn.dataTable.render.number(',', '.', 0);
+                            if (row.TransferTypeId == 2 || row.TransferTypeId == 3) {
+
+                                //var d =  numeral(data.AmountTotal).format('0.0000');
+
+                                return '<span class="label label-danger">' + commaSeparateNumber(data) +'</span>';
+                            } else {
+                                return '<span class="label label-success">' + commaSeparateNumber(data) +'</span>';
+                            }
+
+                        }
+
+                    },
+                    {
+                        title: 'วันที่โอนเงินล่าสุด',
+                        data: 'TransferDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY HH:mm');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    }
+
+                ]
+
+            });
+        }
+
+        function IsValidateForSave()
+        {
+            var result = "";
+
+            if ($('#ddlClaimOnLineAccount').val() == "-1") {
+                result = "กรุณาเลือก บัญชีส่วนกลาง";
+                return result;
+            }
+
+            if ($('#ddlBank').val() == null) {
+                result = "กรุณาเลือก ธนาคาร";
+                return result;
+            }
+
+            if ($('#txtAccountNo').val() == "") {
+                result = "กรุณากรอก เลขที่บัญชี";
+                return result;
+            }
+
+            if ($('#txtAccountName').val() == "") {
+                result = "กรุณากรอก ชื่อบัญชี";
+                return result;
+            }
+
+            if ($("#txtAmount").val() == "") {
+                result = "กรุณากรอก จำนวนเงินโอน";
+                return result;
+            }
+
+            if ($("#txtAmount").val() == "0") {
+                result = "จำนวนเงินต้องไม่เป็น 0";
+                return result;
+            }
+
+            if ($('#dtpTransferDate').val() == "") {
+                result = "กรุณาเลือกวันที่โอนเงิน";
+                return result;
+            }
+
+            if ($('#tpTransfer').val() == "") {
+                result = "กรุณากรอกเวลาโอนเงิน";
+                return result;
+            }
+
+            return result;
+        }
+
+        function GetMonitorDetail(claimOnLineId)
+        {
+            //$('#lblClaimOnLineCode').text(claimOnLineCode);
+            
+            $.ajax({
+
+                type: 'GET',
+                url: '@Url.Action("GetClaimOnLineSelect", "ClaimOnLine")',
+                dataType: 'json',
+                data: { claimOnLineId: claimOnLineId },
+                success: function (data) {
+                    
+                    //$('#hdUserId').val(data);
+
+                    $('#hdfClaimOnLineId').val(data.ClaimOnLineId);
+                    $('#lblClaimOnLineCode').text(data.ClaimOnLineCode);
+                    $('#lblDetail').text(data.Detail);
+                    $('#lblClaimCount').text(data.ClaimCount);
+
+                    //$('#ddlPayeeType').val(data.PayeetypeId);
+                    //$('#ddlPayeeType').trigger();
+                    //$('#ddlPayeeType').text(data.PayeetypeId);
+                    $('#txtAccountNo').val(data.PayeeAccountNo);
+                    $('#txtAccountName').val(data.PayeeAccountName);
+
+                    $('#lblClaimType').text(data.ProductType);
+
+                    $('#ddlBank').select2().val(data.PayeeBankId).trigger('change.select2');
+
+                    //alert(data);
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail');
+                }
+
+            });
+        }
+    </script>
+}

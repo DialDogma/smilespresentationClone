@@ -1,0 +1,1576 @@
+﻿@{
+    ViewBag.Title = "MonitorSupervisor";
+    Layout = "~/Views/Shared/_LayoutForTop.cshtml";
+}
+<style>
+    html > /**/ body table {
+        font-size: 14px !important;
+    }
+</style>
+<section class="content">
+    <div class="nav-tabs-custom">
+        <ul class="nav nav-tabs">
+            <li id="title_tab1" class="active"><a href="#tab_1" data-toggle="tab">ข้อมูลตามรอบ DCR</a></li>
+            <li id="title_tab2" class=""><a href="#tab_2" data-toggle="tab">ข้อมูลระยะเวลา @ViewBag.Config วัน</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="tab_1">
+                <div class="row">
+                    <div class="form-group form-group-flat col-md-12 col-sm-12">
+                        <div class="col-md-7 set-align" style="margin-top: 12px">
+                            <label style="font-size:16px;margin-top: 7px;">งวดคุ้มครอง :</label>
+                        </div>
+                        <div class="col-md-3" style="margin-top: 12px;">
+                            <select id="select_dcr" style="width: 100%" class="form form-control">
+                                @if (ViewBag.PeriodList != null)
+                                {
+                                    foreach (var i in ViewBag.PeriodList)
+                                    {
+                                        <option value="@i.Value.ToString("yyyy-MM-dd")"> @i.Display</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2" style="margin-top: 12px;text-align: right">
+                            <a class="btn btn-success btn-flat" id="button_export_main"><i class="fa fa-file"></i> Export Excel</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="col-md-6">
+                            <div class="box box-info">
+                                <div class="box-body">
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <canvas id="myPie" style="max-width: 700px; height: auto; margin-bottom: 20px"></canvas>
+                                    </div>
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <label id="lbl_sum"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="box box-info">
+                                <div class="box-body">
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <canvas id="myDoughnut" style="max-width: 700px; height: auto; margin-bottom: 20px"></canvas>
+                                    </div>
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <label id="lbl_sum_doughnut"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="col-md-6">
+                            <div class="box box-info">
+                                <div class="box-body">
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <canvas id="myPie2" style="max-width: 700px; height: auto; margin-bottom: 20px"></canvas>
+                                    </div>
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <label id="lbl_sum2"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="box box-info">
+                                <div class="box-body">
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <canvas id="myPie3" style="max-width: 700px; height: auto; margin-bottom: 20px"></canvas>
+                                    </div>
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <label id="lbl_sum3"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @*01226*@
+                        <div class="col-md-6">
+                            <div class="box box-info">
+                                <div class="box-body">
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <canvas id="myPieConsider" style="max-width: 700px; height: auto; margin-bottom: 20px"></canvas>
+                                    </div>
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <label id="lbl_sumConsider"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            @*<div class="box box-info">
+                                    <div class="box-body">
+                                        <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                            <canvas id="myPie3" style="max-width: 700px; height: auto; margin-bottom: 20px"></canvas>
+                                        </div>
+                                        <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                            <label id="lbl_sum3"></label>
+                                        </div>
+                                    </div>
+                                </div>*@
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="box box-info">
+                                <div class="box-body">
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <canvas id="myLine" style="max-width: 900px; height: auto; margin-bottom: 10px"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="col-md-12">
+                            <div class="box box-info">
+                                <div class="box-body">
+                                    <div class="col-sm-12 col-md-12">
+                                        <div class="box box-solid">
+                                            <div class="box-body">
+                                                <div class="row" style="background-color: #f7f7f7; text-align: right; padding: 7px 10px; margin-top: 0;">
+                                                    <div class="col-sm-8">
+                                                        <h4 style="font-weight: bold;">
+                                                            [ผอ.พท] สถานะรายการแต่ละพื้นที่ - ตามรอบ DCR <span id="dcr_text"></span>
+                                                        </h4>
+                                                    </div>
+                                                    <button class="btn btn-success btn-flat pull-right" id="button_export" style="margin-top: 5px"><i class="fa fa-file"></i> Export Excel(เขตพื้นที่)</button>
+                                                </div>
+                                                <table id="table_id" class="table table-bordered table-striped display responsive" style="width: 100%"></table>
+
+                                                <div class="row" style="background-color: #f7f7f7; text-align: right; padding: 7px 10px; margin-top: 0;">
+                                                    <div class="col-sm-8">
+                                                        <h4 style="font-weight: bold;">
+                                                            [ประธานสาขา] สถานะรายการแต่ละพื้นที่ - ตามรอบ DCR <span id="dcr_text_CM"></span>
+                                                        </h4>
+                                                    </div>
+                                                    <button class="btn btn-success btn-flat pull-right" id="button_export_CM" style="margin-top: 5px"><i class="fa fa-file"></i> Export Excel(เขตุพื้นที่)</button>
+                                                    <button class="btn btn-primary btn-flat pull-right" id="button_export_CM_2" style="margin-top: 5px"><i class="fa fa-file"></i> Export Excel(รายบุคคล)</button>
+                                                </div>
+                                                <table id="table_CM" class="table table-bordered table-striped display responsive" style="width: 100%"></table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @*-------------------------TAB 2---------------------*@
+            <div class="tab-pane" id="tab_2">
+                <div class="row">
+                    <div class="form-group form-group-lg-flat col-md-12 col-sm-12">
+                        <div class="col-md-offset-10 col-md-2" style="margin-top: 12px;text-align: right">
+                            <a class="btn btn-success btn-flat" id="button_export_main_2"><i class="fa fa-file"></i> Export Excel</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="col-md-6">
+                            <div class="box box-info">
+                                <div class="box-body">
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <canvas id="myPie_2" style="max-width: 700px; height: auto; margin-bottom: 20px"></canvas>
+                                    </div>
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <label id="lbl_sum_2"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="box box-info">
+                                <div class="box-body">
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <canvas id="myDoughnut2" style="max-width: 700px; height: auto; margin-bottom: 20px"></canvas>
+                                    </div>
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <label id="lbl_sum_doughnut_2"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="col-md-6">
+                            <div class="box box-info">
+                                <div class="box-body">
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <canvas id="myPie2_2" style="max-width: 700px; height: auto; margin-bottom: 20px"></canvas>
+                                    </div>
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <label id="lbl_sum2_2"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="box box-info">
+                                <div class="box-body">
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <canvas id="myPie3_2" style="max-width: 700px; height: auto; margin-bottom: 20px"></canvas>
+                                    </div>
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <label id="lbl_sum3_2"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="box box-info">
+                                <div class="box-body">
+                                    <div class="col-sm-12 col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                                        <canvas id="myLine_2" @*style="max-width: 900px; height: auto; margin-bottom: 10px"*@ style="margin-bottom: 10px"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="col-md-12">
+                            <div class="box box-info">
+                                <div class="box-body">
+                                    <div class="col-sm-12 col-md-12">
+                                        <div class="box box-solid">
+                                            <div class="box-body">
+                                                <div class="row" style="background-color: #f7f7f7; text-align: right; padding: 7px 10px; margin-top: 0;">
+                                                    <div class="col-sm-8">
+                                                        <h4 style="font-weight: bold;">
+                                                            [ผอ.พท] สถานะรายการแต่ละพื้นที่ - ระยะเวลา @ViewBag.Config วัน
+                                                        </h4>
+                                                    </div>
+                                                    <button class="btn btn-success btn-flat pull-right" id="button_export_2" style="margin-top: 5px"><i class="fa fa-file"></i> Export Excel(เขตพื้นที่)</button>
+                                                </div>
+                                                <table id="table_id_2" class="table table-bordered table-striped display responsive" style="width: 100%"></table>
+                                                <div class="row" style="background-color: #f7f7f7; text-align: right; padding: 7px 10px; margin-top: 0;">
+                                                    <div class="col-sm-8">
+                                                        <h4 style="font-weight: bold;">
+                                                            [ประธานสาขา] สถานะรายการแต่ละพื้นที่ - ระยะเวลา @ViewBag.Config วัน
+                                                        </h4>
+                                                    </div>
+                                                    <button class="btn btn-success btn-flat pull-right" id="button_export_CM2" style="margin-top: 5px"><i class="fa fa-file"></i> Export Excel(เขตพื้นที่)</button>
+                                                    <button class="btn btn-primary btn-flat pull-right" id="button_export_CM2_2" style="margin-top: 5px"><i class="fa fa-file"></i> Export Excel(รายบุคคล)</button>
+                                                </div>
+                                                <table id="table_CM2" class="table table-bordered table-striped display responsive" style="width: 100%"></table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+@section ViewSpecificJavascript
+{
+
+    <script>
+        var serach_str;
+        var serach_str2;
+        var serach_strCM;
+        var serach_strCM2;
+        $(function () {
+            loadChart_Pie(config_pie, 1);
+            loadChart_Doughnut(config_doughnut, 1);
+            loadChart_Pie2(config_pie2, 1);
+             //load cmresult chart  01226
+             loadChart_CMResult(configChart_CMResult, 1);
+
+            loadChart_Pie3(config_pie3, 1);
+            loadChart_Line(config_line, 1);
+            loadDatatables("table_id", $('#select_dcr').val(), 1);
+            loadDatatablesCM("table_CM", $('#select_dcr').val(), 1);
+
+            $('#select_dcr').change(function (e) {
+                e.preventDefault();
+                loadingSpinner('fadeIn', 500);
+                clearDataset(config_pie, config_pie2, configChart_CMResult, config_pie3, config_line, config_doughnut);
+                loadChart_Pie(config_pie, 1);
+                loadChart_Doughnut(config_doughnut, 1);
+                loadChart_Pie2(config_pie2, 1);
+                  //load cmresult chart  01226
+                loadChart_CMResult(configChart_CMResult, 1);
+                loadChart_Pie3(config_pie3, 1);
+                loadChart_Line(config_line, 1);
+                loadDatatables("table_id", $('#select_dcr').val(), 1);
+                loadDatatablesCM("table_CM", $('#select_dcr').val(), 1);
+            });
+
+            /*tab1 period*/
+            $('#button_export_main').click(function (e) {
+                e.preventDefault();
+                exportExcel_phQueueDetail($('#select_dcr').val());
+            });
+            $('#button_export').click(function (e) {
+                e.preventDefault();
+                exportExcel($('#select_dcr').val(), serach_str);
+            });
+            //พื้นที่
+            $('#button_export_CM').click(function (e) {
+                e.preventDefault();
+                exportExcelCM($('#select_dcr').val(), serach_strCM);
+            });
+            //รายบุคคล
+            $('#button_export_CM_2').click(function (e) {
+                e.preventDefault();
+                exportExcelCM2($('#select_dcr').val(), serach_strCM);
+            });
+
+            /*tab2 duration days*/
+            $('#button_export_main_2').click(function (e) {
+                e.preventDefault();
+                exportExcel_phQueueDetail("");
+            });
+            $('#button_export_2').click(function (e) {
+                e.preventDefault();
+                exportExcel("", serach_str2);
+            });
+            //พื้นที่
+            $('#button_export_CM2').click(function (e) {
+                e.preventDefault();
+                exportExcelCM("", serach_strCM2);
+            });
+            //รายบุคคล
+            $('#button_export_CM2_2').click(function (e) {
+                e.preventDefault();
+                exportExcelCM2("", serach_strCM2);
+            });
+
+            /*get value in datatables 1*/
+            $('#table_id').on('search.dt',
+                function () {
+                    serach_str = $('#table_id_filter input').val(); // <-- the value
+                });
+            /*get value in datatables 2*/
+            $('#table_id_2').on('search.dt',
+                function () {
+                    serach_str2 = $('#table_id_2_filter input').val(); // <-- the value
+                });
+            /*get value in datatables 2*/
+            $('#table_CM').on('search.dt',
+                function () {
+                    serach_strCM = $('#table_CM_filter input').val(); // <-- the value
+                });
+            /*get value in datatables 2*/
+            $('#table_CM2').on('search.dt',
+                function () {
+                    serach_strCM2 = $('#table_CM2_filter input').val(); // <-- the value
+                });
+
+            /*tab*/
+            $('a[data-toggle="tab"]').on('shown.bs.tab',
+                function (e) {
+                    e.preventDefault();
+                    loadingSpinner('fadeIn', 500);
+                    const target = $(e.target).attr("href");
+                    switch (target) {
+                        case "#tab_1":
+                            clearDataset(config_pie, config_pie2, configChart_CMResult, config_pie3, config_line, config_doughnut);
+                            loadChart_Pie(config_pie, 1);
+                            loadChart_Doughnut(config_doughnut, 1);
+                            loadChart_Pie2(config_pie2, 1);
+                              //load cmresult chart  01226
+                            loadChart_CMResult(configChart_CMResult, 1);
+                            loadChart_Pie3(config_pie3, 1);
+                            loadChart_Line(config_line, 1);
+                            loadDatatables("table_id", $('#select_dcr').val(), 1);
+                            loadDatatablesCM("table_CM", $('#select_dcr').val(), 1);
+                            break;
+                        case "#tab_2":
+                            clearDataset(config_pie, config_pie2, config_pie3, config_line, config_doughnut);
+                            loadChart_Pie(config_pie, 2);
+                            loadChart_Doughnut(config_doughnut, 2);
+                            loadChart_Pie2(config_pie2, 2);
+                            loadChart_Pie3(config_pie3, 2);
+                            loadChart_Line(config_line, 2);
+                            loadDatatables("table_id_2", "", 2);
+                            loadDatatablesCM("table_CM2", "", 2);
+                            break;
+                        default:
+                    }
+                });
+        });
+
+        /*config doughnut*/
+        const config_doughnut = {
+            type: 'doughnut',
+            data: {
+                labels: [],
+                datasets: []
+            },
+            options: {
+                legend: {
+                    display: true
+                },
+                title: {
+                    display: true,
+                    text: 'สถานะคัดกรอง',
+                    fontSize: 16,
+                    fontStyle: 'bold',
+                    fontColor: '#000'
+                },
+                plugins: {
+                    labels: [
+                        {
+                            render: 'label',
+                            position: 'outside',
+                            fontSize: 14,
+                            fontStyle: 'bold',
+                            fontColor: '#000'
+                        },
+                        {
+                            render: 'value',
+                            fontSize: 14,
+                            fontStyle: 'bold',
+                            fontColor: '#000'
+                        }
+                    ]
+                },
+                //responsive: true,
+                //responsiveAnimationDuration: 0,
+                //animation: {
+                //    duration: 0
+                //}
+            }
+        }
+
+        /*config pie*/
+        const config_pie = {
+            type: 'pie',
+            data: {
+                labels: [],
+                datasets: []
+            },
+            options: {
+                legend: {
+                    display: true
+                },
+                title: {
+                    display: true,
+                    text: 'สถานะคิวงาน',
+                    fontSize: 16,
+                    fontStyle: 'bold',
+                    fontColor: '#000'
+                },
+                plugins: {
+                    labels: [
+                        {
+                            render: 'label',
+                            position: 'outside',
+                            fontSize: 14,
+                            fontStyle: 'bold',
+                            fontColor: '#000'
+                        },
+                        {
+                            render: 'value',
+                            fontSize: 14,
+                            fontStyle: 'bold',
+                            fontColor: '#000'
+                        }
+                    ]
+                },
+                //responsive: true,
+                //responsiveAnimationDuration: 0,
+                //animation: {
+                //    duration: 0
+                //}
+            }
+        }
+
+        const config_pie2 = {
+            type: 'pie',
+            data: {
+                labels: [],
+                datasets: []
+            },
+            options: {
+                legend: {
+                    display: true
+                },
+                title: {
+                    display: true,
+                    text: 'สถานะการโทร',
+                    fontSize: 16,
+                    fontStyle: 'bold',
+                    fontColor: '#000'
+                },
+                plugins: {
+                    labels: [
+                        {
+                            render: 'label',
+                            position: 'outside',
+                            fontSize: 14,
+                            fontStyle: 'bold',
+                            fontColor: '#000'
+                        },
+                        {
+                            render: 'value',
+                            fontSize: 14,
+                            fontStyle: 'bold',
+                            fontColor: '#000'
+                        }
+                    ]
+                },
+                //responsive: true,
+                //responsiveAnimationDuration: 0,
+                //animation: {
+                //    duration: 0
+                //}
+            }
+        }
+
+        //ConfigChartCMResult 01226
+        const configChart_CMResult = {
+            type: 'pie',
+            data: {
+                labels: [],
+                datasets: []
+            },
+            options: {
+                legend: {
+                    display: true
+                },
+                title: {
+                    display: true,
+                    text: 'ผลการพิจารณาประธานสาขา',
+                    fontSize: 16,
+                    fontStyle: 'bold',
+                    fontColor: '#000'
+                },
+                plugins: {
+                    labels: [
+                        {
+                            render: 'label',
+                            position: 'outside',
+                            fontSize: 14,
+                            fontStyle: 'bold',
+                            fontColor: '#000'
+                        },
+                        {
+                            render: 'value',
+                            fontSize: 14,
+                            fontStyle: 'bold',
+                            fontColor: '#000'
+                        }
+                    ]
+                },
+                //responsive: true,
+                //responsiveAnimationDuration: 0,
+                //animation: {
+                //    duration: 0
+                //}
+            }
+        }
+
+        const config_pie3 = {
+            type: 'pie',
+            data: {
+                labels: [],
+                datasets: []
+            },
+            options: {
+                legend: {
+                    display: true
+                },
+                title: {
+                    display: true,
+                    text: 'สถานะการพิจารณาของประธานสาขา',
+                    fontSize: 16,
+                    fontStyle: 'bold',
+                    fontColor: '#000'
+                },
+                plugins: {
+                    labels: [
+                        {
+                            render: 'label',
+                            position: 'outside',
+                            fontSize: 14,
+                            fontStyle: 'bold',
+                            fontColor: '#000'
+                        },
+                        {
+                            render: 'value',
+                            fontSize: 14,
+                            fontStyle: 'bold',
+                            fontColor: '#000'
+                        }
+                    ]
+                },
+                //responsive: true,
+                //responsiveAnimationDuration: 0,
+                //animation: {
+                //    duration: 0
+                //}
+            }
+        }
+
+        /*config chart line*/
+        const config_line = {
+            // The type of chart we want to create
+            type: 'line',
+            // The data for our dataset
+            data: {
+                labels: [],
+                datasets: []
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: 'จำนวนการทำรายการต่อวัน',
+                    fontSize: 16,
+                    fontStyle: 'bold',
+                    fontColor: '#000'
+                },
+                scales: {
+                    xAxes: [
+                        {
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'วันที่'
+                            }
+                        }
+                    ],
+                    yAxes: [
+                        {
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'จำนวนคิว'
+                            }
+                        }
+                    ]
+                },
+                //responsive: true,
+                //responsiveAnimationDuration: 0,
+                //animation: {
+                //    duration: 0
+                //}
+            }
+        }
+
+        /*Load dataset pie*/
+        const loadDataset_pie = (config) => {
+            const newDataset = {
+                backgroundColor: [],
+                data: [],
+                labels: 'dataset ' + config.data.datasets.length
+            };
+            $.get('@Url.Action("Get_PHQueueStatusCountAll")',
+                { period: $('#select_dcr').val() },
+                (data) => {
+                    /*sum value*/
+                    const sum = data.PHQueueComplete + data.PHQueueOnProcess + data.PHQueueOverdue + data.PHQueueOverdueComplete + data.PHQueueCancel + data.PHQueueNotYet + data.PHQueueDueComplete;
+                    /*sum value all*/
+                    $('#lbl_sum').text(`รวม : ${sum}`);
+
+                    /*Map Status*/
+                    const mapStatus = {
+                        PHQueueOnProcess: [window.chartColors.yellow, "ยังไม่คัดกรอง"],
+                        PHQueueOverdue: [window.chartColors.red, "เกินกำหนด"],
+                        PHQueueComplete: [window.chartColors.green2, "คัดกรองแล้ว"],
+                        PHQueueNotYet: [window.chartColors.purple, "ยังไม่ได้ดำเนินการ"],
+                        PHQueueDueComplete: [window.chartColors.green, "คัดกรองแล้วภายในกำหนด"],
+                        PHQueueOverdueComplete: [window.chartColors.blue, "คัดกรองแล้วเกินกำหนด"],
+                        PHQueueCancel: [window.chartColors.red2, "ยกเลิก"]
+                    };
+
+                    for (let key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            /*push key to labels*/
+                            config.data.labels.push(mapStatus[key][1]);
+                            /*push data to array*/
+                            newDataset.data.push(data[key]);
+                            /*push color to array*/
+                            newDataset.backgroundColor.push(mapStatus[key][0]);
+                        }
+                    }
+                    config.data.datasets.push(newDataset);
+                    /*update*/
+                    window.myPie.update();
+                });
+        };
+
+        /*Load dataset pie Tab 2*/
+        const loadDataset_pie_tab2 = (config) => {
+            const newDataset = {
+                backgroundColor: [],
+                data: [],
+                labels: 'dataset ' + config.data.datasets.length
+            };
+            $.get('@Url.Action("Get_PHQueueStatusCountAll")',
+                (data) => {
+                    /*sum value*/
+                    const sum = data.PHQueueComplete + data.PHQueueOnProcess + data.PHQueueOverdue + data.PHQueueOverdueComplete + data.PHQueueCancel + data.PHQueueNotYet + data.PHQueueDueComplete;
+                    /*sum value all*/
+                    $('#lbl_sum_2').text(`รวม : ${sum}`);
+
+                    /*Map Status*/
+                    const mapStatus = {
+                        PHQueueOnProcess: [window.chartColors.yellow, "ยังไม่คัดกรอง"],
+                        PHQueueOverdue: [window.chartColors.red, "เกินกำหนด"],
+                        PHQueueComplete: [window.chartColors.green2, "คัดกรองแล้ว"],
+                        PHQueueNotYet: [window.chartColors.purple, "ยังไม่ได้ดำเนินการ"],
+                        PHQueueDueComplete: [window.chartColors.green, "คัดกรองแล้วภายในกำหนด"],
+                        PHQueueOverdueComplete: [window.chartColors.blue, "คัดกรองแล้วเกินกำหนด"],
+                        PHQueueCancel: [window.chartColors.red2, "ยกเลิก"]
+                    };
+                    for (let key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            /*push key to labels*/
+                            config.data.labels.push(mapStatus[key][1]);
+                            /*push data to array*/
+                            newDataset.data.push(data[key]);
+                            /*push color to array*/
+                            newDataset.backgroundColor.push(mapStatus[key][0]);
+                        }
+                    }
+                    //push new dataset
+                    config.data.datasets.push(newDataset);
+                    /*update*/
+                    window.myPie_2.update();
+                });
+        };
+
+        /*Load dataset doughnut*/
+        const loadDataset_doughnut = (config) => {
+            const newDataset = {
+                backgroundColor: [],
+                data: [],
+                labels: 'dataset ' + config.data.datasets.length
+            };
+            $.get('@Url.Action("Get_PHQueueUnderwriteBranchResultCountAll_Select")',
+                { period: $('#select_dcr').val() },
+                (data) => {
+                    /*sum value*/
+                    const sum = data.UnderwriteBranchResultTrue + data.UnderwriteBranchResultFalse + data.UnderwriteBranchResultNA;
+                    /*sum value all*/
+                    $('#lbl_sum_doughnut').text(`รวม : ${sum}`);
+
+                    /*Map Status*/
+                    const mapStatus = {
+                        UnderwriteBranchResultTrue: [window.chartColors.green, "คัดกรองแล้ว"],
+                        UnderwriteBranchResultFalse: [window.chartColors.yellow, "ยังไม่คัดกรอง"],
+                        UnderwriteBranchResultNA: [window.chartColors.brown, "ไม่ระบุ"]
+                    };
+
+                    for (let key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            /*push key to labels*/
+                            config.data.labels.push(mapStatus[key][1]);
+                            /*push data to array*/
+                            newDataset.data.push(data[key]);
+                            /*push color to array*/
+                            newDataset.backgroundColor.push(mapStatus[key][0]);
+                        }
+                    }
+                    //push new dataset
+                    config.data.datasets.push(newDataset);
+                    /*update*/
+                    window.myDoughnut.update();
+                });
+        };
+
+        /*Load dataset doughnut tab2*/
+        const loadDataset_doughnut_tab2 = (config) => {
+            const newDataset = {
+                backgroundColor: [],
+                data: [],
+                labels: 'dataset ' + config.data.datasets.length
+            };
+            $.get('@Url.Action("Get_PHQueueUnderwriteBranchResultCountAll_Select")',
+                (data) => {
+                    /*sum value*/
+                    const sum = data.UnderwriteBranchResultTrue + data.UnderwriteBranchResultFalse + data.UnderwriteBranchResultNA;
+                    /*sum value all*/
+                    $('#lbl_sum_doughnut_2').text(`รวม : ${sum}`);
+
+                    /*Map Status*/
+                    const mapStatus = {
+                        UnderwriteBranchResultTrue: [window.chartColors.green, "คัดกรองแล้ว"],
+                        UnderwriteBranchResultFalse: [window.chartColors.yellow, "ยังไม่คัดกรอง"],
+                        UnderwriteBranchResultNA: [window.chartColors.brown, "ไม่ระบุ"]
+                    };
+
+                    for (let key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            /*push key to labels*/
+                            config.data.labels.push(mapStatus[key][1]);
+                            /*push data to array*/
+                            newDataset.data.push(data[key]);
+                            /*push color to array*/
+                            newDataset.backgroundColor.push(mapStatus[key][0]);
+                        }
+                    }
+                    //push new dataset
+                    config.data.datasets.push(newDataset);
+                    /*update*/
+                    window.myDoughnut2.update();
+                });
+        };
+
+        /*Load dataset pie 2*/
+        const loadDataset_pie2 = (config) => {
+            const newDataset = {
+                backgroundColor: [],
+                data: [],
+                labels: 'dataset ' + config.data.datasets.length
+            };
+            $.get('@Url.Action("Get_PHQueueCallStatusCountAll")',
+                { period: $('#select_dcr').val() },
+                (data) => {
+                    const result = data.reduce((sum, countValue) => {
+                        return sum +
+                            countValue.CallStatusAnswer +
+                            countValue.CallStatusNoAnswer +
+                            countValue.CallStatusBusy +
+                            countValue.CallStatusUnreachable;
+                    },
+                        0);
+
+                    /*sum value all*/
+                    $('#lbl_sum2').text(`รวม : ${result}`);
+
+                    /*Map Status*/
+                    const mapStatus = {
+                        CallStatusAnswer: [window.chartColors.green, "รับสาย"],
+                        CallStatusNoAnswer: [window.chartColors.red, "ไม่รับสาย"],
+                        CallStatusBusy: [window.chartColors.yellow, "ไม่สะดวกคุย"],
+                        CallStatusUnreachable: [window.chartColors.orange, "ติดต่อไม่ได้"]
+                    };
+
+                    for (let key in data[0]) {
+                        if (data[0].hasOwnProperty(key)) {
+                            /*push key to labels*/
+                            config.data.labels.push(mapStatus[key][1]);
+                            /*push data to array*/
+                            newDataset.data.push(data[0][key]);
+                            /*push color to array*/
+                            newDataset.backgroundColor.push(mapStatus[key][0]);
+                        }
+                    }
+                    //push new dataset
+                    config.data.datasets.push(newDataset);
+                    /*update*/
+                    window.myPie2.update();
+                });
+        };
+
+        /*Load dataset pie2 tab2*/
+        const loadDataset_pie2_tab2 = (config) => {
+            const newDataset = {
+                backgroundColor: [],
+                data: [],
+                labels: 'dataset ' + config.data.datasets.length
+            };
+            $.get('@Url.Action("Get_PHQueueCallStatusCountAll")',
+                (data) => {
+                    const result = data.reduce((sum, countValue) => {
+                        return sum +
+                            countValue.CallStatusAnswer +
+                            countValue.CallStatusNoAnswer +
+                            countValue.CallStatusBusy +
+                            countValue.CallStatusUnreachable;
+                    },
+                        0);
+                    /*sum value all*/
+                    $('#lbl_sum2_2').text(`รวม : ${result}`);
+                    /*Map Status*/
+                    const mapStatus = {
+                        CallStatusAnswer: [window.chartColors.green, "รับสาย"],
+                        CallStatusNoAnswer: [window.chartColors.red, "ไม่รับสาย"],
+                        CallStatusBusy: [window.chartColors.yellow, "ไม่สะดวกคุย"],
+                        CallStatusUnreachable: [window.chartColors.orange, "ติดต่อไม่ได้"]
+                    };
+
+                    for (let key in data[0]) {
+                        if (data[0].hasOwnProperty(key)) {
+                            /*push key to labels*/
+                            config.data.labels.push(mapStatus[key][1]);
+                            /*push data to array*/
+                            newDataset.data.push(data[0][key]);
+                            /*push color to array*/
+                            newDataset.backgroundColor.push(mapStatus[key][0]);
+                        }
+                    }
+
+                    /*push newDataset to datasets*/
+                    config.data.datasets.push(newDataset);
+                    /*update*/
+                    window.myPie2_2.update();
+                });
+        };
+
+        /*Load Dataset ChartCMResult  01226*/
+        const loadDataset_chartCMResult = (config) => {
+            const newDataset = {
+                backgroundColor: [],
+                data: [],
+                labels: 'dataset ' + config.data.datasets.length
+            };
+            $.get('@Url.Action("Get_PHQueueCMResultCountAll")',
+                { period: $('#select_dcr').val() },
+                (data) => {
+                    const result = data.reduce((sum, countValue) => {
+                        return sum +
+                            countValue.PHQueueCMApprovePass +
+                            countValue.PHQueueCMApprovePassCondition +
+                            countValue.PHQueueCMNotApprove;
+                    },
+                        0);
+
+                    /*sum value all*/
+                    $('#lbl_sumConsider').text(`รวม : ${result}`);
+
+                    /*Map Status*/
+                    const mapStatus = {
+                        PHQueueCMApprovePass: [window.chartColors.blue, "อนุมัติให้ผ่านคัดกรอง"],
+                        PHQueueCMApprovePassCondition: [window.chartColors.green, "อนุมัติให้ผ่านคัดกรองแบบติดเงื่อนไข"],
+                        PHQueueCMNotApprove: [window.chartColors.red, "อนุมัติไม่ให้ผ่านคัดกรอง"]
+
+                    };
+
+                    for (let key in data[0]) {
+                        if (data[0].hasOwnProperty(key)) {
+                            /*push key to labels*/
+                            config.data.labels.push(mapStatus[key][1]);
+                            /*push data to array*/
+                            newDataset.data.push(data[0][key]);
+                            /*push color to array*/
+                            newDataset.backgroundColor.push(mapStatus[key][0]);
+                        }
+                    }
+                    //push new dataset
+                    config.data.datasets.push(newDataset);
+                    /*update*/
+                    window.myPieConsider.update();
+                });
+        };
+
+        /*Load dataset pie2 tab2*/
+        const loadDataset_pie3 = (config) => {
+            const newDataset = {
+                backgroundColor: [],
+                data: [],
+                labels: 'dataset ' + config.data.datasets.length
+            };
+            $.get('@Url.Action("Get_PHQueueCMConsiderCountAll")',
+                { period: $('#select_dcr').val() },
+                (data) => {
+                    const result = data.reduce((sum, countValue) => {
+                        return sum +
+                            countValue.PHQueueCMCompleteConsider +
+                            countValue.PHQueueCMPendingConsider
+                    },
+                        0);
+                    /*sum value all*/
+                    $('#lbl_sum3').text(`รวม : ${result}`);
+                    /*Map Status*/
+                    const mapStatus = {
+                        PHQueueCMCompleteConsider: [window.chartColors.green, "พิจารณาแล้ว"],
+                        PHQueueCMPendingConsider: [window.chartColors.yellow, "รอพิจารณา"],
+                    };
+
+                    for (let key in data[0]) {
+                        if (data[0].hasOwnProperty(key)) {
+                            /*push key to labels*/
+                            config.data.labels.push(mapStatus[key][1]);
+                            /*push data to array*/
+                            newDataset.data.push(data[0][key]);
+                            /*push color to array*/
+                            newDataset.backgroundColor.push(mapStatus[key][0]);
+                        }
+                    }
+
+                    /*push newDataset to datasets*/
+                    config.data.datasets.push(newDataset);
+                    /*update*/
+                    window.myPie3.update();
+                });
+        };
+
+        /*Load dataset pie2 tab2*/
+        const loadDataset_pie3_tab2 = (config) => {
+            const newDataset = {
+                backgroundColor: [],
+                data: [],
+                labels: 'dataset ' + config.data.datasets.length
+            };
+            $.get('@Url.Action("Get_PHQueueCMConsiderCountAll")',
+                (data) => {
+                    const result = data.reduce((sum, countValue) => {
+                        return sum +
+                            countValue.PHQueueCMCompleteConsider +
+                            countValue.PHQueueCMPendingConsider
+                    },
+                        0);
+                    /*sum value all*/
+                    $('#lbl_sum3_2').text(`รวม : ${result}`);
+                    /*Map Status*/
+                    const mapStatus = {
+                        PHQueueCMCompleteConsider: [window.chartColors.green, "พิจารณาแล้ว"],
+                        PHQueueCMPendingConsider: [window.chartColors.yellow, "รอพิจารณา"],
+                    };
+
+                    for (let key in data[0]) {
+                        if (data[0].hasOwnProperty(key)) {
+                            /*push key to labels*/
+                            config.data.labels.push(mapStatus[key][1]);
+                            /*push data to array*/
+                            newDataset.data.push(data[0][key]);
+                            /*push color to array*/
+                            newDataset.backgroundColor.push(mapStatus[key][0]);
+                        }
+                    }
+
+                    /*push newDataset to datasets*/
+                    config.data.datasets.push(newDataset);
+                    /*update*/
+                    window.myPie3_2.update();
+                });
+        };
+
+        /*Load dataset*/
+        const loadDataset_line = (config) => {
+            const newDataset = {
+                label: [],
+                backgroundColor: [],
+                borderColor: [],
+                data: [],
+                fill: false
+            };
+            const newDataset2 = {
+                label: [],
+                backgroundColor: [],
+                borderColor: [],
+                data: [],
+                fill: false
+            };
+            $.get('@Url.Action("Get_AdminLineChartByDCR")',
+                { period: $('#select_dcr').val() },
+                (data) => {
+                    /*push backgroundColor to array*/
+                    newDataset.backgroundColor.push(window.chartColors.red);
+                    newDataset2.backgroundColor.push(window.chartColors.blue);
+                    /*push borderColor to array*/
+                    newDataset.borderColor.push(window.chartColors.red);
+                    newDataset2.borderColor.push(window.chartColors.blue);
+                    /*push label to array*/
+                    newDataset.label.push('จำนวนคิวที่ถูกสร้าง');
+                    newDataset2.label.push('จำนวนคิวที่ถูกปิด');
+                    /*each data to config && newDataset*/
+                    data.forEach((d) => {
+                        config.data.labels.push(moment(d.DateTransaction).format('DD-MM-YY'));
+                        newDataset.data.push(d.QueueCreateCount);
+                        newDataset2.data.push(d.QueueCloseCount);
+                    });
+
+                    /*push newDataset */
+                    config.data.datasets.push(newDataset);
+                    config.data.datasets.push(newDataset2);
+                    /*update*/
+                    window.myLine.update();
+                });
+        };
+
+        /*Load dataset*/
+        const loadDataset_line_tab2 = (config) => {
+            const newDataset = {
+                label: [],
+                backgroundColor: [],
+                borderColor: [],
+                data: [],
+                fill: false
+            };
+            const newDataset2 = {
+                label: [],
+                backgroundColor: [],
+                borderColor: [],
+                data: [],
+                fill: false
+            };
+            $.get('@Url.Action("Get_AdminLineChartByDCR")',
+                (data) => {
+                    /*push backgroundColor to array*/
+                    newDataset.backgroundColor.push(window.chartColors.red);
+                    newDataset2.backgroundColor.push(window.chartColors.blue);
+                    /*push borderColor to array*/
+                    newDataset.borderColor.push(window.chartColors.red);
+                    newDataset2.borderColor.push(window.chartColors.blue);
+                    /*push label to array*/
+                    newDataset.label.push('จำนวนคิวที่ถูกสร้าง');
+                    newDataset2.label.push('จำนวนคิวที่ถูกปิด');
+                    /*each data to config && newDataset*/
+                    data.forEach((e) => {
+                        config.data.labels.push(moment(e.DateTransaction).format('DD-MM-YY'));
+                        newDataset.data.push(e.QueueCreateCount);
+                        newDataset2.data.push(e.QueueCloseCount);
+                    });
+
+                    /*push newDataset */
+                    config.data.datasets.push(newDataset);
+                    config.data.datasets.push(newDataset2);
+                    /*update*/
+                    window.myLine_2.update();
+                });
+        };
+
+        /* fn load chart line*/
+        const loadChart_Line = (config, tab) => {
+            let ctx;
+            switch (tab) {
+                case 1:
+                    loadDataset_line(config);
+                    ctx = document.getElementById('myLine').getContext('2d');
+                    window.myLine = new Chart(ctx, config);
+                    break;
+                case 2:
+                    loadDataset_line_tab2(config);
+                    ctx = document.getElementById('myLine_2').getContext('2d');
+                    window.myLine_2 = new Chart(ctx, config);
+                    break;
+                default:
+            }
+
+        }
+        /*fn load chart pie*/
+        const loadChart_Pie = (config, tab) => {
+            let ctx;
+            /*load dataset*/
+            switch (tab) {
+                case 1:
+                    loadDataset_pie(config);
+                    ctx = document.getElementById('myPie').getContext('2d');
+                    window.myPie = new Chart(ctx, config);
+                    break;
+                case 2:
+                    loadDataset_pie_tab2(config);
+                    ctx = document.getElementById('myPie_2').getContext('2d');
+                    window.myPie_2 = new Chart(ctx, config);
+                    break;
+                default:
+            }
+
+        }
+
+        /*fn load chart pie*/
+        const loadChart_Pie2 = (config, tab) => {
+            let ctx;
+            /*load dataset*/
+            switch (tab) {
+                case 1:
+                    loadDataset_pie2(config);
+                    ctx = document.getElementById('myPie2').getContext('2d');
+                    window.myPie2 = new Chart(ctx, config);
+                    break;
+                case 2:
+                    loadDataset_pie2_tab2(config);
+                    ctx = document.getElementById('myPie2_2').getContext('2d');
+                    window.myPie2_2 = new Chart(ctx, config);
+                    break;
+                default:
+            }
+
+        }
+
+                /*fn load chart pie 01226*/
+        const loadChart_CMResult = (config, tab) => {
+            let ctx;
+            /*load dataset*/
+            switch (tab) {
+                case 1:
+                    loadDataset_chartCMResult(config);
+                    ctx = document.getElementById('myPieConsider').getContext('2d');
+                    window.myPieConsider = new Chart(ctx, config);
+                    break;
+                case 2:
+                    //loadDataset_pie2_tab2(config);
+                    //ctx = document.getElementById('myPieConsider').getContext('2d');
+                    //window.myPie2_2 = new Chart(ctx, config);
+                    break;
+                default:
+            }
+
+        }
+
+        /*fn load chart pie*/
+        const loadChart_Pie3 = (config, tab) => {
+            let ctx;
+            /*load dataset*/
+            switch (tab) {
+                case 1:
+                    loadDataset_pie3(config);
+                    ctx = document.getElementById('myPie3').getContext('2d');
+                    window.myPie3 = new Chart(ctx, config);
+                    break;
+                case 2:
+                    loadDataset_pie3_tab2(config);
+                    ctx = document.getElementById('myPie3_2').getContext('2d');
+                    window.myPie3_2 = new Chart(ctx, config);
+                    break;
+                default:
+            }
+
+        }
+
+        /*fn load chart pie*/
+        const loadChart_Doughnut = (config, tab) => {
+            let ctx;
+            /*load dataset*/
+            switch (tab) {
+                case 1:
+                    loadDataset_doughnut(config);
+                    ctx = document.getElementById('myDoughnut').getContext('2d');
+                    window.myDoughnut = new Chart(ctx, config);
+                    break;
+                case 2:
+                    loadDataset_doughnut_tab2(config);
+                    ctx = document.getElementById('myDoughnut2').getContext('2d');
+                    window.myDoughnut2 = new Chart(ctx, config);
+                    break;
+                default:
+            }
+
+        }
+        /*clear dataset*/
+        const clearDataset = (...config) => {
+            for (let i = 0; i < config.length; i++) {
+                config[i].data.datasets = [];
+                config[i].data.labels = [];
+            }
+        }
+
+        /*load datatables*/
+        const loadDatatables = (t, period, tab) => {
+            $('#dcr_text').text($('#select_dcr option:selected').text());
+            // ReSharper restore IdentifierTypo
+            $(`#${t}`).empty();
+            const table = $(`#${t}`).DataTable({
+                pageLength: 5,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: true,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("Get_DRPHQueueStudyAreaStatusCount")',
+                    method: "POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.period = period;
+                    }
+                },
+                // ReSharper disable once IdentifierTypo
+                columnDefs: [
+                    {
+                        searchable: false,
+                        orderable: false,
+                        targets: 0
+                    }
+                ],
+                columns: [
+                    {
+                        title: 'ลำดับ',
+                        data: null,
+                        orderable: false,
+                        className: 'h-dt-center d-dt-center nowrap'
+
+                    },
+                    {
+                        title: 'เขตพื้นที่',
+                        data: 'StudyArea',
+                        orderable: true,
+                        className: 'h-dt-center nowrap'
+                    },
+                    {
+                        title: 'ผู้รับผิดชอบ',
+                        data: 'DirectorFullName',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-left nowrap'
+                    },
+                    {
+                        title: 'ทั้งหมด',
+                        data: 'PHQueueAll',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-right nowrap'
+                    },
+                    {
+                        title: 'คัดกรองแล้วภายในกำหนด',
+                        data: 'PHQueueDueComplete',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-right'
+                    },
+                    {
+                        title: 'ยังไม่ได้คัดกรอง',
+                        data: 'PHQueueOnProcess',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-right'
+                    },
+                    {
+                        title: 'เกินกำหนด',
+                        data: 'PHQueueOverdue',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-right nowrap'
+                    },
+                    {
+                        title: 'คัดกรองแล้วเกินกำหนด',
+                        data: 'PHQueueOverdueComplete',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-right'
+                    },
+                    {
+                        title: 'ยกเลิก',
+                        data: 'PHQueueCancel',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-right nowrap'
+                    },
+                    {
+                        title: 'ยังไม่ดำเนินการ',
+                        data: 'PHQueueNotYet',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-right'
+                    },
+                    {
+                        title: 'คัดกรองแล้ว',
+                        data: 'PHQueueComplete',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-right nowrap'
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        orderable: false,
+                        className: 'h-dt-center d-dt-center',
+                        render: (d) => {
+                            return `<button  class="btn btn-info" onclick="goto_page(${d.StudyAreaId},'${d.StudyArea}',${tab});selectedRow('${t}',${d.StudyAreaId})"><i class="fa fa-search"></i> เปิด</button>`;
+                        }
+                    }
+                ]
+            });
+
+            //RUN INDEX NUMBER
+            table.on('draw.dt',
+                function () {
+                    var PageInfo = table.page.info();
+                    table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                        cell.innerHTML = i + 1 + PageInfo.start;
+                    });
+                });
+
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        /*load datatables*/
+        const loadDatatablesCM = (t, period, tab) => {
+            $('#dcr_text_CM').text($('#select_dcr option:selected').text());
+            // ReSharper restore IdentifierTypo
+            $(`#${t}`).empty();
+            const tableCM = $(`#${t}`).DataTable({
+                pageLength: 5,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: true,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("Get_CMPHQueueStudyAreaStatusCount")',
+                    method: "POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.period = period;
+                    }
+                },
+                // ReSharper disable once IdentifierTypo
+                columnDefs: [
+                    {
+                        searchable: false,
+                        orderable: false,
+                        targets: 0
+                    }
+                ],
+                columns: [
+                    {
+                        title: 'ลำดับ',
+                        data: null,
+                        orderable: false,
+                        className: 'h-dt-center d-dt-center nowrap'
+
+                    },
+                    {
+                        title: 'เขตพื้นที่',
+                        data: 'StudyArea',
+                        orderable: true,
+                        className: 'h-dt-center nowrap'
+                    },
+                    {
+                        title: 'ผู้รับผิดชอบ',
+                        data: 'DirectorFullName',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-left nowrap'
+                    },
+                     {
+                         title: 'ผู้อนุมัติคัดกรองสาขา',
+                         data: 'CMFullName',
+                         orderable: true,
+                         className: 'h-dt-center d-dt-left'
+                     },
+                    {
+                        title: 'ทั้งหมด',
+                        data: 'PHQueueAll',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-right nowrap'
+                    },
+                    {
+                        title: 'รอพิจารณา',
+                        data: 'CMPendingConsider',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-right nowrap'
+                    },
+                    {
+                        title: 'พิจารณาแล้ว',
+                        data: 'CMCompleteConsider',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-right nowrap'
+                    },
+                    {
+                        title: 'อนุมัติให้ผ่านคัดกรอง',
+                        data: 'CMApprove',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-right'
+                    },
+                    {
+                        title: 'อนุมัติไม่ให้ผ่านคัดกรอง',
+                        data: 'CMNotApprove',
+                        orderable: true,
+                        className: 'h-dt-center d-dt-right'
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        orderable: false,
+                        className: 'h-dt-center d-dt-center',
+                        render: (d) => {
+                            return `<button  class="btn btn-info" onclick="goto_page(${d.StudyAreaId},'${d.StudyArea}',${tab});selectedRow('${t}',${d.StudyAreaId})"><i class="fa fa-search"></i> เปิด</button>`;
+                        }
+                    }
+                ]
+            });
+
+            //RUN INDEX NUMBER
+            tableCM.on('draw.dt',
+                function () {
+                    var PageInfo = tableCM.page.info();
+                    tableCM.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                        cell.innerHTML = i + 1 + PageInfo.start;
+                    });
+                });
+
+            window.onresize = function () {
+                tableCM.columns.adjust().responsive.recalc();
+            };
+        }
+
+        /*export*/
+        const exportExcel = (dcr, search) => {
+            window.location.href = `@Url.Action("ExportToExcel_Monitor")?period=${dcr}&search=${search}`;
+        }
+
+        /*export*/
+        const exportExcelCM = (dcr, search) => {
+            window.location.href = `@Url.Action("ExportToExcel_MonitorCM")?period=${dcr}&search=${search}`;
+        }
+
+        /*export*/
+        const exportExcelCM2 = (dcr, search) => {
+            window.location.href = `@Url.Action("ExportToExcel_MonitorCM2")?period=${dcr}&search=${search}`;
+        }
+
+        /*export*/
+        const exportExcel_phQueueDetail = (dcr) => {
+            window.location.href = `@Url.Action("ExportToExcel_PHQueueDetail")?period=${dcr}`;
+        }
+
+        /*goto page*/
+        const goto_page = (areaId, areaName, tab) => {
+            const eId = window.btoa(areaId);
+            switch (tab) {
+                case 1:
+                    var new_str = `${$('#title_tab1').text()}` + "" + `${$('#select_dcr option:selected').text()}`;
+                    window.open(`@Url.Action("MonitorSupervisorBranchStatusDetail")?Id=${eId}&AreaName=${areaName}&period=${
+                        btoa($('#select_dcr').val())}&title=${new_str}`,
+                        '_blank');
+                    break;
+                case 2:
+                    window.open(`@Url.Action("MonitorSupervisorBranchStatusDetail")?Id=${eId}&AreaName=${areaName}&period=${
+                        btoa(null)}&title=${$('#title_tab2').text()}`,
+                        '_blank');
+                    break;
+                default:
+            }
+        }
+
+        /*hilight row selected*/
+        const selectedRow = (t, Id) => {
+            const table = $(`#${t}`).DataTable();
+            /*loop every row*/
+            table.rows().every(function () {
+                /*set data */
+                const d = this.data();
+                /*check id*/
+                if (d.StudyAreaId === Id) {
+                    /*true add class*/
+                    $(this.node().cells).addClass('selected');
+                } else {
+                    /*false remove class*/
+                    $(this.node().cells).removeClass('selected');
+                }
+            });
+        }
+    </script>
+}

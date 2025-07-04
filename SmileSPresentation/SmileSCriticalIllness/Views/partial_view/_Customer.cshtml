@@ -1,0 +1,127 @@
+﻿@*
+    Parameters: ViewBag.CustId
+    Functions: GetDebt_dt(appId)
+*@
+@using SmileSCriticalIllness.Models
+
+@{
+    /**/
+
+    using (var db = new CriticalIllnessEntities())
+    {
+        int cusId = ViewBag.CustId;
+        DateTime startCoverDate = ViewBag.StartCoverDate;
+
+        //customer detail
+        usp_PersonRelatedApplication_Select_Result custDetail = db.usp_PersonRelatedApplication_Select(cusId, null, null, 99, null, null, null).FirstOrDefault();
+
+        //cust age atregister
+        usp_CalculateAge_Select_Result custRegisterAgeCal = db.usp_CalculateAge_Select(custDetail.BirthDate, startCoverDate).FirstOrDefault();
+        var custRegisterAge = custRegisterAgeCal.Year + " ปี " + custRegisterAgeCal.Month + " เดือน " + custRegisterAgeCal.Day + " วัน";
+
+        List<usp_AddressDetail_Select_Result> custAddressList = db.usp_AddressDetail_Select(null, custDetail.PersonRelateApplicationId, null, 99, null, null, null).ToList();
+
+        var CustAddress1 = custAddressList.FirstOrDefault(x => x.AddressTypeId == 3)?.FullAddress;
+        var CustAddress2 = custAddressList.FirstOrDefault(x => x.AddressTypeId == 4)?.FullAddress;
+        var CustAddress3 = custAddressList.FirstOrDefault(x => x.AddressTypeId == 2)?.FullAddress;
+
+        <div id="Customer_form">
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ข้อมูลผู้เอาประกัน</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">คำนำหน้า:</label> <span id="txtCust_Title">@custDetail.Title</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">ชื่อ:</label> <span id="txtCust_fName">@custDetail.FirstName</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">สกุล:</label> <span id="txtCust_lName">@custDetail.LastName</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">เลขที่บัตรประชาชน:</label> <span id="txtCust_idCard">@custDetail.IdentityCardNo</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">เลขที่ Passport:</label> <span id="txtCust_Passport">@custDetail.PassportNo</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">วันเกิด:</label> <span id="txtCust_bDate">@(custDetail.BirthDate.HasValue ? custDetail.BirthDate.Value.ToString("dd/MM/yyyy") : "")</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">อายุเมื่อสมัคร:</label> <span id="txtCust_Age">@custRegisterAge</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">เพศ:</label> <span id="txtCust_Sex">@custDetail.Sex</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">สถานภาพ:</label> <span id="txtCust_Status">@custDetail.MaritalStatus</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">หมู่เลือด:</label> <span id="txtCust_BloodGroup">@custDetail.BloodType</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">อาชีพ:</label> <span id="txtCust_Job">@custDetail.Occupation</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">ระดับอาชีพ:</label> <span id="txtCust_JobClass">@custDetail.OccupationLevel</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">ตำแหน่ง:</label> <span id="txtCust_JobDetail">@custDetail.Position</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">ลักษณะงานที่ทำ:</label> <span id="txtCust_JobDesc">@custDetail.JobDetail</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">รายได้/เดือน:</label> <span id="txtCust_JobProfit">@custDetail.Salary1</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">รายได้อื่นๆ/เดือน:</label> <span id="txtCust_OtherProfit">@custDetail.Salary2</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">เบอร์โทรศัพท์มือถือ:</label> <span id="txtCust_Tel">@custDetail.MobilePhoneNumber</span>
+                        </div>
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">เบอร์โทรศัพท์ที่ทำงาน:</label> <span id="txtCust_OfficeTel">@custDetail.OfficePhoneNumber</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-3 col-md-4">
+                            <label class="control-label">อีเมล:</label> <span id="txtCust_Email">@custDetail.Email</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-12">
+                            <label class="control-label">ที่อยู่ตามบัตรประชาชน:</label> <span id="txtCust_IdAddress">@CustAddress1</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-12">
+                            <label class="control-label">ที่อยู่ที่ทำงาน:</label> <span id="txtCust_OfficeAddress">@CustAddress2</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-12">
+                            <label class="control-label">ที่อยู่ที่สามารถติดต่อได้:</label> <span id="txtCust_ContactAddress">@CustAddress3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}

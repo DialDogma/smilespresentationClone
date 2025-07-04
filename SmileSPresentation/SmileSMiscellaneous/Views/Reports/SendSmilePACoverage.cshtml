@@ -1,0 +1,309 @@
+﻿
+@{
+    ViewBag.Title = "ส่งความคุ้มครอง SmilePA";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div class="box box-primary box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+
+                    <!-- /.box-tools -->
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+
+                    <div class="row">
+                        <div class="col-xs-3 col-xs-offset-2">
+                            <label>วันที่:</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right" id="dtpdateFrom" data-provide="datepicker" data-date-language="th-th">
+                            </div>
+                        </div>
+                        <div class="col-xs-3">
+                            <label>ถึง:</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right" id="dtpdateTo" data-provide="datepicker" data-date-language="th-th">
+                            </div>
+                        </div>
+                        <div class="col-xs-2" style="padding-top:26px">
+                            <button type="button" class="btn btn-primary" id="btnSearch"><i class="fa fa-search"></i> ค้นหา</button>
+                        </div>
+                        <div class="col-xs-2" style="padding-top:26px;text-decoration:none;float:right;text-align:right">
+                            <button type="button" class="btn btn-warning" id="btnCreateReport">สร้างรายการ</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+
+
+            <div class="box box-primary box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายการ</h3>
+
+                    <!-- /.box-tools -->
+                </div>
+
+                <div class="box-body">
+                    <table id="dtMain" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <input type="hidden" id="hdfreportHeaderId" hidden />
+</form>
+
+<!-- /.modal-dialog -->
+<div class="modal fade in" id="modal-UpdateStatusSend" style="display: none;">
+    <div class="modal-dialog">
+        <div class="box box-primary" style="width:120%">
+            <div class="box-header with-border">
+                <h3 class="box-title">Update สถานะการส่ง</h3>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-5 col-xs-offset-2">
+                        <label>สถานะการส่ง:</label>
+                        <input type="radio" class="iradio_minimal-blue minimal" name="status" value="1"/> ส่งแล้ว
+                        <input type="radio" class="iradio_minimal-blue minimal" name="status" value="0"/> ยังไม่ส่ง
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 5px;">
+                    <div class="col-xs-8 col-xs-offset-2">
+                        <label>หมายเหตุ:</label>
+                        <textarea rows="3" class="form-control" id="txtRemark"></textarea>
+                    </div>
+                </div>
+
+                <div class="row" style="padding-top: 5px;">
+                    <div class="col-xs-12" style="text-align:center">
+                        <button type="button" class="btn btn-success" id="btnUpdateStatus"><i class="glyphicon glyphicon-ok"></i> ตกลง</button>
+                        <button type="button" class="btn btn-danger" id="btnCancelUpdateStatus"><i class="glyphicon glyphicon-remove"></i> ยกเลิก</button>
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('.select2').select2();
+
+            $('#dtpdateFrom').datepicker({ autoclose: true, format: 'dd/mm/yyyy' }).datepicker("setDate", new Date());
+            $('#dtpdateTo').datepicker({ autoclose: true, format: 'dd/mm/yyyy' }).datepicker("setDate", new Date());
+
+            $('#btnSearch').click(function (e) {    
+                e.preventDefault();
+                GetData();
+            });
+
+            $('#btnUpdateStatus').click(function (e) {
+                e.preventDefault();
+                if (IsvalidateForUpdateStatus()) {
+                    UpdateSendCoverage();
+                } else {
+                    $('#modal-UpdateStatusSend').modal('show');
+                }
+            });
+
+            $('#btnCancelUpdateStatus').click(function (e) {    
+                e.preventDefault();
+                DoClearUpdateStatus();
+                $('#modal-UpdateStatusSend').modal('hide');
+            });
+
+            $('#btnCreateReport').click(function (e) {  
+                e.preventDefault();
+                CreateReport();
+            });
+        });
+
+
+        const IsvalidateForUpdateStatus = () => {
+            var radioValue = $("input[name='status']:checked").val();
+
+            if (radioValue == "" || radioValue == null) {
+                swal("ตรวจสอบข้อมูล", "กรุณาเลือก สถานะการส่ง", "warning");
+                return false;
+            }
+
+            return true;
+        }
+
+
+        const CreateReport = () => {
+            $.ajax({
+                type: "POST",   
+                url: "@Url.Action("CreateReportHeader","Reports")",
+                //data: "name=John&location=Boston",
+                async: false,
+                dataType: "json",
+                success: function (response) {
+
+                    if (response.IsResult == 1) {
+                        swal("", response.Msg, "success");
+                        GetData();
+                    } else {
+                        swal("", response.Msg, "error");
+                    }
+                }
+            });
+        }
+
+
+         const UpdateSendCoverage = () => {
+            let isSendCoverage;
+            var radioValue = $("input[name='status']:checked").val();
+
+            if (radioValue == '1') {
+                isSendCoverage = true;
+            } else {
+                isSendCoverage = false;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("UpdateStatusSmilePACoverage", "Reports")",
+                data: {
+                    reportHeaderId: $('#hdfreportHeaderId').val(),
+                    isSendInsured: isSendCoverage,
+                    remark: $('#txtRemark').val()
+                },
+                dataType: "json",
+                async:false,
+                success: function (response) {
+
+                    if (response.IsResult == 1) {
+                        swal("", response.Msg, "success");
+                        GetData();
+                        DoClearUpdateStatus();
+                        $('#modal-UpdateStatusSend').modal('hide');
+                    } else {
+
+                        swal("", response.Msg, "error");
+                        $('#modal-UpdateStatusSend').modal('show');
+                    }
+                }
+            });
+        }
+
+        const DoClearUpdateStatus = () => {
+            $('#txtRemark').val('');
+            // remove 'checked' state
+            $('input[name="status"]').iCheck('uncheck');
+            $('#hdfreportHeaderId').val('');
+        }
+
+        const GetData = () => {
+             $('#dtMain').empty();
+            var t = $('#dtMain').dataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                searching: false,
+                info:false,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetReportHeaderInsurance", "Reports")',
+                       type: 'POST',
+                       data: function (d) {
+                           d.draw = d.draw;
+                           d.pageSize = d.length;
+                           d.pageStart = d.start;
+                           d.sortField = d.columns[d.order[0].column].data;
+                           d.orderType = d.order[0].dir;
+                           d.search = d.search.value;
+                           d.dateFrom = $('#dtpdateFrom').val();
+                           d.dateTo = $('#dtpdateTo').val();
+                       }
+                   },
+                   columns: [
+                       { title: 'ReportHeaderId', data: 'ReportHeaderId', className: 'h-dt-center', },
+                       {
+                           title: 'วันที่สร้างรายงาน', data: 'CreatedDate', className: 'h-dt-center',
+                           mRender: function (data) {
+                               return moment(data).add('years', 543).format('DD/MM/YYYY');
+                           }
+                       },
+                       { title: 'บริษัท', data: 'InsuranceCompany', className: 'h-dt-center', },
+                       { title: 'จำนวน Application', data: 'TotalApplicationAmount', className: 'h-dt-center', },
+                       { title: 'เบี้ยรวม', data: 'TotalPremiumAmount', className: 'h-dt-center', },
+                       { title: 'สถานะการส่ง บ.ประกัน', data: 'IsSendInsured', className: 'h-dt-center', },
+                       {
+                           title: 'วันที่ส่ง บ.ประกัน', data: 'SendInsuranceDate', className: 'h-dt-center',
+                           mRender: function (data) {
+                               if (data == null) {
+                                   return '';
+                               } else {
+                                   return moment(data).add('years', 543).format('DD/MM/YYYY');
+                               }
+
+                           }
+                       },
+                       {
+                           title: '', data: null, width: '5%', className: 'h-dt-center d-dt-center', orderable: false,
+                           mRender: function (data) {
+
+                               //let encode = window.btoa(data.ApplicationId);
+
+                               return `<a class="btn btn-info btn-sm" href="@Url.Action("ExportReportHeaderById", "Reports")?reportHeaderId=${data.ReportHeaderId}" >Download</a>`
+
+                           }
+                       },
+
+                       {
+                           title: '', data: null, width: '5%', className: 'h-dt-center d-dt-center', orderable: false,
+                           mRender: function (data) {
+
+                               //data.ApplicationId
+
+                               if (data.IsSendInsured == "ส่งรายงานแล้ว") {
+                                   return '';
+                               } else {
+                                   return `<a class="btn btn-warning btn-sm" onclick="GetUpdateData(${data.ReportHeaderId})">บันทึกนำส่ง</a>`;
+                               }
+
+                               
+
+                           }
+                       }
+                   ],
+                   bLengthChange: false,
+                   //createdRow: function (row, data, index) {
+                   //    if (data.ClaimOnLineStatusId == 3) {
+                   //        $('td', row).addClass('selected');
+                   //    }
+                   //},
+
+           });
+        }
+
+
+        const GetUpdateData = (reportheaderId) => {
+            $('#hdfreportHeaderId').val(reportheaderId);
+            $('#modal-UpdateStatusSend').modal('show');
+        }
+
+
+    </script>
+}

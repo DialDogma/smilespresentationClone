@@ -1,0 +1,475 @@
+﻿
+@{
+    ViewBag.Title = "QueueManageAssign";
+}
+<style>
+    table.dataTable thead {
+        background-color: #337AB7;
+        color: azure;
+    }
+    .select2-container .select2-selection--single {
+        height: 34px !important;
+        border-radius: 0px
+    }
+</style>
+<form class="form-horizontal">
+    <div style="padding-bottom:10px" >
+        <h3 class="box-title">จัดการคิวงาน</h3>
+    </div>
+   
+
+    <div class="box box-widget widget-user-2">
+        <div class="box-body full-width">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="form-group">
+                        <div class="col-xs-12 col-md-2 col-lg-2" style="padding-top:5px; text-align:left">
+                            <label>ค้นหาข้อมูลจาก:</label>
+
+                        </div>
+                        <div class="col-xs-12 col-md-2 col-lg-2" style="padding-top:5px">
+                            <label>สถานะการโทร</label>
+                            <select class="form-control" id="callStatusId">
+                                <option value="-1">ทั้งหมด</option>
+                                @{
+                                    foreach (var item in ViewBag.CallStatus)
+                                    {
+                                        if (@item.CallStatusId != 7)
+                                        {
+                                            <option value="@item.CallStatusId" @((item.CallStatusId == ViewBag.CallStatusId) ? "selected" : "" )>@item.CallStatusDetail</option>
+
+                                        }
+                                    }
+                                }
+
+                            </select>
+                        </div>
+                        <div class="col-xs-12 col-md-2 col-lg-2" style="padding-top:5px">
+                            <label>ผู้รับผิดชอบ</label>
+                            <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" id="QCUser">
+                                <option value="null">ทั้งหมด</option>
+                                @{
+                                    foreach (var item in ViewBag.QCUser)
+                                    {
+                                        if (item.UserId != null)
+                                        {
+                                            <option value="@item.UserId">@item.PersonName</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-xs-12 col-md-2 col-lg-2" style="padding-top:5px">
+                            <label>ชื่อผู้ชำระเบี้ย</label>
+                            <div class="input-group date col-xs-12 col-md-12 col-lg-12">
+                                <input type="text" class="form-control" id="payerName" placeholder="ค้นหาชื่อผู้ชำระเบี้ย" />
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-md-3 col-lg-3" style="padding-top:5px;">
+                            <label>เลขบัตรประชาชน/Passport</label>
+                            <div class="input-group date col-xs-12 col-md-12 col-lg-12">
+                                <input type="text" class="form-control" id="payerIdCard" placeholder="ค้นหาเลขบัตรประชาชน/Passport" />
+                            </div>
+                        </div>
+                        <div class="col-xs-1 col-md-1 col-lg-1" style="padding-top:30px">
+                            <button type="button" class="btn btn-info" id="btnSearch"><i class="fa fa-search" aria-hidden="true"></i>ค้นหา</button>
+                        </div>
+                    </div>
+
+
+                    <div class="box-group">
+
+                        <div class="row" style="padding-top:7px">
+                            <div class="col-xs-12">
+                                <label id="countSelect"></label>
+                                <a id="textSelectAll" style="color:black" onclick=""></a>
+                             @*   <a id="textSelectAllClear" style="display: none; cursor: pointer; margin-right: 10px " class="pull-right" onclick="ClearCheckboxAll();">ล้างข้อมูลที่เลือก</a>*@
+                            </div>
+
+                            <div class="col-xs-12">
+                                <table id="dtClosedQueue" name="dtClosedQueue" class="table table-bordered table-hover dataTable" style="width:100%;"></table>
+                            </div>
+
+                            <div style="text-align:center">
+                                <button type="button" id="btnModal" name="btnModal" class="btn btn-warning">เปลี่ยนผู้รับผิดชอบ</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<div class="modal fade in" id="modal-AreaManager" style="display: none; padding-right: 5px;">
+    <div class="modal-dialog">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">แก้ไขผู้รับผิดชอบ</h3>
+            </div>
+            <div class="box-body">
+                <div class="col-xs-9 col-xs-offset-1">
+                    <label id="countSelect_label"></label>
+                </div>
+                <div class="row" style="padding-top: 5px;">
+
+                    <div class="col-lg-9 col-lg-offset-1">
+                        <div class="col-lg-5 col-md-5">
+                            <label for="" class="control-label ">เลือกผู้รับผิดชอบ :</label>
+                        </div>
+                        <div class="col-lg-7 col-md-7" id="user_append">
+                            <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlEmployee_modal">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 25px;">
+                    <div class="col-xs-12" style="text-align:center; speech-rate:medium">
+                        <button type="button" class="btn btn-danger" id="btncancleUpdate" data-dismiss="modal"><i class="glyphicon glyphicon-remove"></i> ยกเลิก</button>
+                        <button type="button" class="btn btn-success" id="btnUpdateChangeAreaManager"><i class="glyphicon glyphicon-ok"></i> บันทึก</button>
+                    </div>
+                </div>
+                <input type="hidden" id="emp_code" >
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var inited = false;
+        var count = 0;
+        var rowDT = 0;
+        var totalDT = 0;
+        var ListCheckBox = [];
+        var ListCheckBoxAll = [];
+
+        $(function () {
+            $('.select2').select2();
+
+            QueueAssign_DT();
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                QueueAssign_DT();
+                ClearCheckboxAll();
+            });
+
+
+            $('#btnUpdateChangeAreaManager').click(function (e) {
+                e.preventDefault();
+
+                if (IsValidateForUpdate()) {
+                    updateAssignQueue();
+                } else {
+                    $('#modal-AreaManager').modal('show');
+                    $('#countSelect').text(`คิวงานที่เลือก จำนวน ${ListCheckBoxAll.length} รายการ`);
+                }
+            });
+
+            $('#btncancleUpdate').click(function (e) {
+                e.preventDefault();
+                $('#ddlEmployee').val('-1').trigger('change');
+            });
+
+            $("#callStatus").on('change', function (e) {
+                e.preventDefault();
+                GetBranch($(this).val());
+            })
+
+            //event tableQueueAssignDetail paging
+            $('#dtClosedQueue').on('page.dt', function () {
+                if (ListCheckBoxAll.length === totalDT) {
+                    $('table[name="dtClosedQueue"]').find(".chk-row-select").prop('checked', true);
+                    $('table[name="dtClosedQueue"]').find(".chk-row-select-all").prop('checked', true);
+                } else {
+                    $('table[name="dtClosedQueue"]').find(".chk-row-select-all").prop('checked', false);
+                    $('#countSelect').text('');
+                    $('#textSelectAll').hide();
+                    $('#textSelectAllClear').hide();
+                    for (var i = 0; i < ListCheckBox.length; i++) {
+                        if (!(ListCheckBoxAll.includes(ListCheckBox[i]))) {
+                            ListCheckBoxAll.push(ListCheckBox[i]);
+                        }
+                    }
+                    count = 0;
+                    ListCheckBox = [];
+                }
+
+            });
+
+            /*checkbox in datatables change*/
+            $('#dtClosedQueue').on('change', 'input[type="checkbox"]', function (e) {
+                let table = $('#dtClosedQueue').DataTable();
+                let rows = table.rows().nodes();
+                switch (this.className) {
+                    case 'chk-row-select-all':
+                        if (this.checked) {
+                            $('input[class="chk-row-select"]', rows).prop('checked', true).change();
+                            $('#textSelectAllClear').show();
+                        } else {
+                            $('input[class="chk-row-select"]', rows).prop('checked', false).change();
+                            //เมื่อเอา checkbox เลือกทั้งหมดออก จะล้างค่าที่เลือกทั้งหมด
+                            ClearCheckboxAll();
+                        }
+                        break;
+                    case 'chk-row-select':
+                        if (this.checked) {
+
+                            let count = 0;
+                            const value = this.value;
+                            const emp = this.accessKey;
+                            if (emp != "") {
+                                $('#emp_code').val(emp);
+                            }
+                            //adds one or more elements to the end of an array and returns the new length of the array.
+                            if (!ListCheckBox.includes(value)) ListCheckBox.push(this.value);
+                            if (!ListCheckBoxAll.includes(value)) ListCheckBoxAll.push(this.value);
+                            //check count data equal rows.length then checkbox-all is checked
+                            if (!(ListCheckBox.length === rows.length)) {
+                                $('table[name="dtClosedQueue"]').find(".chk-row-select-all").prop('checked', false);
+                                //$('#countSelect').text(`เลือกแล้ว ${ListCheckBox.length} รายการ`)
+                                $('#countSelect').text(`เลือกแล้ว ${ListCheckBoxAll.length} รายการ`)
+                                $('#textSelectAll').text(`จาก ${totalDT} รายการ`).show();
+                               
+
+                            } else {
+                                $('table[name="dtClosedQueue"]').find(".chk-row-select-all").prop('checked', true);
+                                //$('#countSelect').text(`เลือกแล้ว ${ListCheckBox.length} รายการ`)
+                                $('#countSelect').text(`เลือกแล้ว ${ListCheckBoxAll.length} รายการ`)
+                                $('#textSelectAll').text(`จาก ${totalDT} รายการ`).show();
+                            }
+                            $('#textSelectAllClear').show();
+                        } else {
+                            const value = this.value;
+                            //replaces 1 element at indexOd() returnValue index
+                            ListCheckBox.splice(ListCheckBox.indexOf(value), 1);
+                            ListCheckBoxAll.splice(ListCheckBoxAll.indexOf(value), 1);
+
+                            //check count data equal rows.length then checkbox-all is checked
+                            if (!(ListCheckBox.length === rows.length)) {
+                                $('table[name="dtClosedQueue"]').find(".chk-row-select-all").prop('checked', false);
+                               // $('#countSelect').text(`เลือกแล้ว ${ListCheckBox.length} รายการ`)
+                                $('#countSelect').text(`เลือกแล้ว ${ListCheckBoxAll.length} รายการ`)
+                                $('#textSelectAll').text(`จาก ${totalDT} รายการ`).show();
+                                $('#textSelectAllClear').show();
+                               @* $('#textSelectAllClear').hide();*@
+                            } else {
+                                $('table[name="dtClosedQueue"]').find(".chk-row-select-all").prop('checked', true);
+                            }
+                        }
+                        break;
+                    default:
+                }
+                console.log(ListCheckBox);
+                console.log(ListCheckBoxAll);
+            });
+
+           
+
+            $('#btnModal').click(function (e) {
+                e.preventDefault();
+                if (ListCheckBoxAll.length == 0) {
+                    swal("คำเตือน", "กรุณาเลือกคิวงานที่ต้องการเปลี่ยนผู้รับผิดชอบ", "warning");
+                } else {
+                    GetQCuser($('#emp_code').val());
+                    $('#modal-AreaManager').modal('show');
+                    $('#countSelect_label').text(`คิวงานที่เลือก จำนวน ${ListCheckBoxAll.length} รายการ`);
+
+                }
+
+            });
+        });
+        const GetQCuser = (QCuser) => {
+             $.get("@Url.Action("GetQCuser")", function (data) {
+                 $("#ddlEmployee_modal").empty();
+                 if (data.length !== 0) {
+                    let id = $('#emp_code').val();
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i].EmployeeCode == id) {
+                            $("#ddlEmployee_modal").append(`<option value="${data[i].UserId}" selected>${data[i].PersonName}</option>`)
+                        } else if (data[i].EmployeeCode != null && data[i].IsActive == 1){
+                            $("#ddlEmployee_modal").append(`<option value="${data[i].UserId}">${data[i].PersonName}</option>`)
+                        }
+
+                    }
+
+                } else {
+                     $("#ddlEmployee_modal").append(`<option value="N/A">ไม่พบข้อมูลผู้รับคิวงาน</option>`)
+                }
+            });
+        }
+
+
+        const IsValidateForUpdate = () => {
+
+            if ($('#ddlEmployee').val() == "-1") {
+                swal("ตรวจสอบ", "กรุณาเลือกผู้รับผิดชอบ", "warning");
+                return false;
+            }
+
+            return true;
+        }
+
+        const updateAssignQueue = () => {
+            $.post("@Url.Action("updateAssignUserIdInQueue")",
+                {
+                    queueArray: ListCheckBoxAll,
+                    assignToUserId: $('#ddlEmployee_modal').val()
+
+                },
+                function (data, textStatus, jqXHR) {
+
+                    if (data.IsResult) {
+                        swal("", "ดำเนินการเรียบร้อย", "success");
+                        QueueAssign_DT();
+                        ClearCheckboxAll();
+                        $('#modal-AreaManager').modal('hide');
+                    } else {
+                        swal("ผิดพลาด", data.Msg, "error");
+                        $('#modal-AreaManager').modal('show');
+                    }
+                },
+
+            );
+        }
+
+        const QueueAssign_DT = () => {
+            $('#dtClosedQueue').empty();
+            var table = $('#dtClosedQueue').DataTable({
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 75, 100,1000],
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                order: [[1, "asc"]],
+                ajax: {
+                    url: '@Url.Action("getDataQueueManager")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.payerName = $("#payerName").val().trim();
+                        d.payerIdCard = $("#payerIdCard").val();
+                        d.callStatusId = $("#callStatusId").val();
+                        d.assignToUserId = $("#QCUser").val();
+
+                    },
+                    dataSrc: function (json) {
+                        rowDT = json.data.length;
+                        totalDT = json.recordsTotal;
+                        return json.data;
+                    },
+                },
+                columns: [
+                    {
+                        title: '<label>เลือก</label><input id="chk-all" name="chk-all" style="cursor:pointer"  class="chk-row-select-all" type="checkbox" />',
+                        data: null,
+                        orderable: false,
+                        className: 'th-center td-center-checkbox nosort',
+                        width: "33px",
+                        render: function (data) {
+                            let Ischecked = "";
+                            if (ListCheckBoxAll.includes(data.QueueId.toString())) {
+                                //ติ๊กออกทีละตัวเลือก
+                                count++
+                                Ischecked = "checked"
+                                $('#textSelectAllClear').show();
+
+                            }
+                            if (count === rowDT) {
+                                $('input[class="chk-row-select-all"]').prop('checked', true);
+                                rowDT = 0;
+                                count = 0;
+
+                            }
+
+                            return `<input type="checkbox" style="cursor:pointer"  class="chk-row-select" ${Ischecked} id="chkdtrow_${data.QueueId}" name="chkdtrow_${data.QueueId}" value="${data.QueueId}" accesskey="${data.AssignToEmployeeCode}">`;
+                        }
+                    },
+                    {
+                        title: 'ชื่อผู้ชำระเบี้ย',
+                        data: 'PayerName',
+                        orderable: true,
+                        className: "th-center"
+                    },
+                    {
+                        title: 'เลขบัตรประชาชน/Passport',
+                        data: 'PayerIdCardNo',
+                        orderable: true,
+                        className: "th-center"
+                    },
+                    {
+                        title: 'เบอร์โทรผู้ชำระเบี้ย',
+                        data: 'PayerPhone',
+                        orderable: true,
+                        className: "th-center"
+                    },
+                    {
+                        title: 'จำนวนผู้เอาประกัน',
+                        data: 'QueueDetailAllCount',
+                        className: "th-center",
+                        orderable: true,
+
+                    },
+                    {
+                        title: 'สถานะการโทร',
+                        data: 'CallStatusDetail',
+                        orderable: true,
+                        className: "th-center"
+                    },
+                    {
+                        title: 'DCR ยกเลิก',
+                        data: 'Period',
+                        orderable: true,
+                        className: "th-center",
+                        render: function (data)
+                        {
+                        return moment(data).add('years', 543).format("DD/MM/YYYY");
+                        }
+                    },
+                    {
+                        title: 'รหัสผู้รับผิดชอบ',
+                        data: 'AssignToEmployeeCode',
+                        orderable: true,
+                        className: "th-center"
+                    },
+                    {
+                        title: 'ผู้รับผิดชอบ',
+                        data: 'AssignToPersonName',
+                        orderable: true,
+                        className: "th-center"
+                    }
+                ],
+
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        const ClearCheckboxAll = () => {
+            ListCheckBoxAll = [];
+            ListCheckBox = [];
+            $('#countSelect').text('');
+            $('#textSelectAll').hide();
+            $('#textSelectAllClear').hide();
+            $('table[name="dtClosedQueue"]').find(".chk-row-select").prop('checked', false);
+            $('table[name="dtClosedQueue"]').find(".chk-row-select-all").prop('checked', false);
+        }
+    </script>
+}

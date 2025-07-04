@@ -1,0 +1,1298 @@
+﻿@using RoadsideAssistance.Helper;
+@{
+    ViewBag.Title = "ดำเนินการปิดงาน";
+    var userDetail = RoadsideAssistance.Helper.OAuth2Helper.GetLoginDetail();
+
+    ViewBag.Fristname = userDetail.FirstName;
+    ViewBag.Lastname = userDetail.LastName;
+    ViewBag.EmpCode = userDetail.UserName;
+    ViewBag.Department = userDetail.DepartmentDetail;
+    ViewBag.BranchDetail = userDetail.BranchDetail;
+    ViewBag.EmpId = userDetail.User_ID;
+}
+<div class="box box-default">
+    <div class="box-header with-border" style="background-color:rgb(255, 193, 47);">
+        <div class="row">
+            <div class="col-md-2 col-md-offset-1">
+                <label class="control-label" style="font-size:20px;">วันที่ : @(ViewBag.strCreatedDate)</label>
+                <input class="form-control form-group" type="hidden" name="txtDate" id="txtDate" value="@ViewBag.today" readonly>
+            </div>
+            <div class="col-md-3 col-md-offset-6">
+                <label class="control-label" style="font-size:20px;">เวลาบันทึกเหตุ : @(ViewBag.resultCloseJob.CreatedDate != null ?ViewBag.resultCloseJob.CreatedDate.ToString("HH:mm:ss"):"-")</label>
+                <input type="hidden" name="txttime" id="txttime" value="@ViewBag.time" />
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" name="memberid" id="txtmemberid" value="" />
+    <input type="hidden" name="viewOnly" id="viewOnly" value="@ViewBag.viewOnly" />
+    <input type="hidden" name="CancelServiceRemark" id="CancelServiceRemark" value="@ViewBag.CancelServiceRemark" />
+    <div class="box-body">
+        @if (ViewBag.MemberSelect.Count > 0)
+        {
+            <form id="form1">
+                <div class="row" style="padding:15px;">
+                    <div class="form-group col-md-3">
+                        <label>คำนำหน้า</label>
+                        <select class="form-control" disabled>
+                            <option selected>@(ViewBag.MemberSelect[0].Title != null ? ViewBag.MemberSelect[0].Title:"-")</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-3 ">
+                        <label for="txtBankAccNo" class="control-label">ชื่อ</label>
+                        <input class="form-control" type="text" name="txtName" id="txtName" value="@(ViewBag.MemberSelect[0].FirstName != null ?ViewBag.MemberSelect[0].FirstName:"-")" readonly>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="" class="control-label">นามสกุล</label>
+                        <input class="form-control" type="text" name="txtlname" id="txtlname" value="@(ViewBag.MemberSelect[0].LastName != null ?ViewBag.MemberSelect[0].LastName:"-")" readonly>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="" class="control-label">เบอร์ติดต่อ</label>
+                        <input class="form-control" type="text" name="txtcalnumber" id="txtcalnumber" value="@(ViewBag.MemberSelect[0].MobileNumber != null ?ViewBag.MemberSelect[0].MobileNumber:"-")" data-inputmask="&quot;mask&quot;: &quot; 999-999-9999&quot;" data-mask="" readonly>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="" class="control-label">@(ViewBag.MemberSelect[0].CardDetailType != null ?ViewBag.MemberSelect[0].CardDetailType:"-")</label>
+                        <input class="form-control" type="text" name="txtidcard" id="txtidcard" value="@(ViewBag.MemberSelect[0].CardDetail != null ?ViewBag.MemberSelect[0].CardDetail:"-")" readonly>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label>ประเภทลูกค้า</label>
+                        <span class="form-control" type="text" name="txtLastName" id="txtLastName">
+                            @if (ViewBag.SourceTypeList.Length > 0)
+                            {
+                                for (int i = 0; i < ViewBag.SourceTypeList.Length; i++)
+                                {
+                                    <i class="glyphicon glyphicon-user" style="color: @ViewBag.SourceTypeList[i].ColorCode; cursor: pointer" title="@ViewBag.SourceTypeList[i].SourceType"></i>
+                                }
+                            }
+                            else
+                            {
+                                <i class="fa fa-info-circle" style="cursor:pointer" title="ไม่ระบุ"></i>
+                            }
+                        </span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="txtBuilding" class="control-label">หน่วยงาน</label>
+                        <input class="form-control" type="text" name="txtBuilding" id="txtBuilding" value="@(ViewBag.MemberSelect[0].BuildingName != null ?ViewBag.MemberSelect[0].BuildingName:"-")" readonly>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="sday" class="control-label">วันที่คุ้มครอง</label>
+                        <input class="form-control" type="hidden" name="sday" id="sday" value="@(ViewBag.MemberSelect[0].StartCoverDate != null ?ViewBag.MemberSelect[0].StartCoverDate.ToString("dd-MM-yyyy"):"-")" readonly>
+                        <input class="form-control" type="text" name="sdayCoverDate" value="@(ViewBag.strCoverDate != null ? Convert.ToDateTime(ViewBag.strCoverDate).ToString("dd/MM/yyyy"):"-")" readonly />
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="endday" class="control-label">วันที่สิ้นสุด</label>
+                        <input class="form-control" type="text" name="endday" id="endday" value="@(ViewBag.MemberSelect[0].EndCoverDate != null ?ViewBag.MemberSelect[0].EndCoverDate.ToString("dd-MM-yyyy"):"-")" readonly>
+                    </div>
+                    <div class="form-group col-md-2" id="onlyView">
+                        <label for="FreeService1" class="control-label">สิทธิในการใช้</label>
+                        <input class="form-control" type="text" name="FreeService1" id="FreeService1" value="@(ViewBag.resultCloseJob.PayTypeId == 2 && ViewBag.MemberSelect[0].FreeServiceBalance == 0 ?"1":ViewBag.MemberSelect[0].FreeServiceBalance)" readonly>
+                    </div>
+                    <div class="form-group col-md-3 col-md-offset-4 col-md-3">
+                        <label for="txtPhoneNumber" class="control-label">เบอร์โทรติดต่อกลับ</label>
+                        <input class="form-control" type="text" name="txtPhoneNumber" id="txtPhoneNumber" value="@(ViewBag.resultCloseJob.ContactNumber != null ? ViewBag.resultCloseJob.ContactNumber:ViewBag.MemberSelect[0].MobileNumber)" data-inputmask="&quot;mask&quot;: &quot; 999-999-9999&quot;" data-mask="" required>
+                    </div>
+                </div>
+            </form>
+        }
+
+        @if (ViewBag.resultCloseJob != null)
+        {
+            <input type="hidden" name="roadsideId" id="roadsideId" value="@(ViewBag.resultCloseJob.RoadsideAssistanceId)" />
+            <input type="hidden" name="roadsideAssistanceStatusId" id="roadsideAssistanceStatusId" value="@(ViewBag.resultCloseJob.RoadsideAssistanceStatusId)" />
+            <input type="hidden" id="hdTypeUse" value="@ViewBag.TypeUse" />
+            <form id="formCloseJob">
+                <div class="row " style="background-color:rgb(141, 198, 191);padding: 19px;">
+                    <div class="col-md-2">
+                        <label for="txtCar" class="control-label">ทะเบียนรถ</label>
+                        <input class="form-control" type="text" name="txtCar" id="txtCar" value="@(ViewBag.resultCloseJob.VehicleRegistrationDetail != null ?ViewBag.resultCloseJob.VehicleRegistrationDetail:"-") @(ViewBag.resultCloseJob.VehicleRegistrationNumber != null ?ViewBag.resultCloseJob.VehicleRegistrationNumber:"-")" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="txtProvince">จังหวัด</label>
+                        <select class="form-control" name="selectProvince" id="txtProvince" required>
+                            <option value="@ViewBag.resultCloseJob.VehicleRegistrationProvinceId" selected>@ViewBag.resultCloseJob.VehicleRegistrationProvince</option>
+
+                            @{
+                                foreach (var item in ViewBag.Province)
+                                {
+                                    <option value="@item.ProvinceId">@item.Province</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="SeviceType">ประเภทบริการ Roadside Assistance</label>
+                        <select class="form-control" name="selectType" id="SeviceType" required>
+                            <option value="@ViewBag.resultCloseJob.RoadsideAssistanceSeviceTypeId" selected>@ViewBag.resultCloseJob.RoadsideAssistanceServiceType</option>
+
+                            @{
+                                foreach (var item in ViewBag.Service)
+                                {
+                                    <option value="@item.RoadsideAssistanceServiceTypeId">@item.RoadsideAssistanceServiceType</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="radio payType">
+                        <label>
+                            <input type="radio" name="payType" id="payType2" value="2" @(ViewBag.resultCloseJob.PayTypeId == 2 ? "checked" : "")>
+                            ใช้สิทธิ์ฟรี
+                        </label>
+                        <label>
+                            <input type="radio" name="payType" id="payType3" value="3" @(ViewBag.resultCloseJob.PayTypeId != 2 ? "checked" : "")>
+                            ลูกค้าชำระเอง
+                        </label>
+                        <input type="hidden" name="hdPayType" id="hdPayType" value="@(ViewBag.resultCloseJob.PayTypeId == 2 ? "2":"3")" />
+                        <input type="hidden" name="hdtxtPayType" id="hdtxtPayType" value="@(ViewBag.resultCloseJob.PayTypeId == 2 ? "ใช้สิทธิ์ฟรี" : "ลูกค้าชำระเอง")" />
+                    </div>
+                </div>
+                <div class="row " style="background-color:rgb(141, 198, 191);padding: 19px;margin-top: -24px;">
+                    <div class="col-md-5" id="lacation">
+                        <label class="control-label">สถานที่เกิดเหตุ</label>
+                        <textarea class="form-control" rows="3" placeholder="สถานที่เกิดเหตุ" name="txtlocation" id="txtlocation" required>@(ViewBag.resultCloseJob.LocationDetail != null ? ViewBag.resultCloseJob.LocationDetail:"")</textarea>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="control-label">หมายเหตุ</label>
+                        <textarea class="form-control" rows="3" placeholder="หมายเหตุ" id="remark" name="remark">@(ViewBag.resultCloseJob.Remark != null ? ViewBag.resultCloseJob.Remark : "")</textarea>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="ServiceAmount" class="control-label">ค่าบริการสยามสไมล์จ่าย</label>
+
+                        <input class="form-control" type="text" name="ServiceAmount" id="ServiceAmount" value="@(ViewBag.resultCloseJob.TotalAmount != null ?ViewBag.resultCloseJob.TotalAmount:"-")" readonly>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="CustomerAmount" class="control-label">ค่าบริการลูกค้าจ่าย</label>
+                        <input class="form-control" type="text" name="CustomerAmount" id="CustomerAmount" value="@(ViewBag.resultCloseJob.CustomerAmount != null ?ViewBag.resultCloseJob.CustomerAmount:"-")" readonly>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="col-md-2 col-md-offset-8">
+                        <label for="EmployeePointAmount" class="control-label">หักแต้มพนักงาน</label>
+                        <input class="form-control" type="text" name="EmployeePointAmount" id="EmployeePointAmount" value="@(ViewBag.resultCloseJob.EmployeePointAmount != null ?ViewBag.resultCloseJob.EmployeePointAmount:"-")" readonly>
+                    </div>
+
+                    <div class="col-md-2 col-md-offset-8">
+                        <label for="dateHappen" class="control-label">วันที่เกิดเหตุ</label>
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </div>
+                            <input type="text" class="form-control pull-right" id="dateHappen" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy" value="@(ViewBag.dateHappen != null ? ViewBag.dateHappen : "")" required>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="timeHappen" class="control-label">เวลาเกิดเหตุ</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control timepicker" placeholder="HH:mm" name="timeHappen" id="timeHappen" value="@(ViewBag.timeHappen != null ? ViewBag.timeHappen : "")" required>
+                        </div>
+                    </div>
+                </div>
+
+                @*------------------- Modal Confirm --------------------*@
+                <div class="modal fade" data-backdrop="static" tabindex="-1" id="Confirm" role="dialog" aria-labelledby="myLargeModalLabel">
+                    <div class="modal-dialog" role="document" tabindex="-1">
+                        <div class="modal-content">
+                            <div class="modal-header" style="background:#1887db; color:white;">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                </button>
+                                <h4 class="modal-title text-center text-bold">ยืนยันข้อมูลดำเนินการปิดงาน</h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="box-header text-center">
+                                    <h4 style="">Siamsmile Roadside Assistance</h4>
+                                </div>
+                                <div class="box-body">
+                                    <div class="form-group col-md-6">
+                                        <label class="control-label">รหัสทำรายการ :</label>
+                                        <label class="control-label" id="cfDocno"></label>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label class="control-label">เวลา Assist ปิดงาน :</label>
+                                        <label class="control-label" id="cftimeAssist"></label>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label class="control-label">ผู้รับเรื่อง Roadside Assistance</label>
+                                        <input class="form-control" type="text" name="cfrecip" id="cfrecip" readonly>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label class="control-label">หมายเลขอ้างอิง</label>
+                                        <input class="form-control" type="text" name="cfRef" id="cfRef" readonly>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label class="control-label">ผู้แจ้งเรื่อง Call center</label>
+                                        <input class="form-control" type="text" name="cfCallcen" id="cfCallcen" readonly>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label class="control-label">ผู้ปิดงาน Call center</label>
+                                        <input class="form-control" type="text" name="cfnameClosejob" id="cfnameClosejob" readonly>
+                                    </div>
+                                    <div class="form-group col-md-6" id="div_typeUse" hidden>
+                                        <label class="control-label">ประเภทการใช้สิทธิ์</label>
+                                        <input class="form-control" type="text" name="typeUse" id="typeUse" readonly>
+                                    </div>
+                                    <div class="form-group col-md-6" id="div_remarkNotUse" hidden>
+                                        <label class="control-label">สาเหตุที่ไม่ใช้สิทธิ์</label>
+                                        <input class="form-control" type="text" name="remarkNotUse" id="remarkNotUse" readonly>
+                                    </div>
+
+                                    <div class="form-group col-md-6" id="div_ServiceCancelCause" hidden>
+                                        <label class="control-label">หมายเหตุที่ไม่ใช้สิทธิ์</label>
+                                        <input class="form-control" type="text" name="ServiceCancelCause" id="ServiceCancelCause" readonly>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-danger" data-dismiss="modal">ยกเลิก</button>
+                                    <button type="button" class="btn btn-primary" onclick="SaveClosejob()">บันทึก</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- ปิด modal -->
+
+                <div class="modal fade" tabindex="-1" role="dialog" id="remarkCxl" style="top: 155px;">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title">สาเหตุที่ยกเลิกรายการ<b style="color:red">*</b></h4>
+                            </div>
+                            <div class="modal-body">
+                                <textarea class="form-control" rows="3" placeholder="หมายเหตุ" name="txtremarkCxl" id="txtremarkCxl" required></textarea>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">ยกเลิก</button>
+                                <button type="button" class="btn btn-primary" id="cxlSubmit">ยืนยัน</button>
+                            </div>
+                        </div>
+                    </div>
+                </div><!--ปิด modal remark cxl -->
+
+                <div style="padding:15px;">
+                    <div class="row">
+                        <div class="form-group col-md-2">
+                            <label for="docno" class="control-label">รหัสทำรายการ</label>
+                            <input class="form-control" type="text" name="docno" id="docno" value="@(ViewBag.resultCloseJob.RoadsideAssistanceCode != null ?ViewBag.resultCloseJob.RoadsideAssistanceCode:"-")" disabled readonly>
+                        </div>
+                        <div class="form-group col-md-3 col-md-offset-3" id="div_txttypeUse">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="timeAssist" class="control-label">วันที่ Assist ปิดงาน</label>
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-clock-o"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right" name="dateAssist" id="dateAssist" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy" value="@ViewBag.refcloseDate" disabled required>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="timeAssist" class="control-label">เวลา</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control timepicker" placeholder="HH:mm" name="timeAssist" id="timeAssist" value="@ViewBag.refcloseTime" disabled required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-md-4">
+                                <label for="referanceName" class="control-label">ผู้รับเรื่อง Roadside Assistance</label>
+                                <input class="form-control was-validated" type="text" name="referanceName" id="referanceName" aria-invalid="true" value="@(ViewBag.resultCloseJob.ReferanceName != null ?ViewBag.resultCloseJob.ReferanceName:"")" required>
+                            </div>
+                            @{
+                                if (ViewBag.viewOnly != "" && ViewBag.resultCloseJob.UseService != "ใช้สิทธิ์")
+                                {
+                                    if (ViewBag.CancelServiceRemark != "")
+                                    {
+                                        <div class="form-group col-md-3 col-md-offset-1" id="kkk">
+                                            <label class="control-label">สาเหตุที่ไม่ใช้สิทธิ์</label>
+                                            <select class="form-control" rows="1" placeholder="" id="xxx" name="xxx">
+                                                <option value="@ViewBag.CancelServiceRemark" selected disable>@ViewBag.CancelServiceRemark</option>
+                                            </select>
+                                        </div>
+                                    }
+
+                                }
+                            }
+                            <div class="form-group col-md-3 col-md-offset-1" id="div2">
+                            </div>
+
+                            <div class="form-group col-md-4">
+                                <label for="referanceCode" class="control-label">หมายเลขอ้างอิง</label>
+                                <input class="form-control" type="text" name="referanceCode" id="referanceCode" value="@(ViewBag.resultCloseJob.ReferanceCode != null ?ViewBag.resultCloseJob.ReferanceCode:"")" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-md-4">
+                                <label for="txtcreatedBy" class="control-label">ผู้แจ้งเรื่อง Call center </label>
+                                <input class="form-control" type="text" name="txtcreatedBy" id="txtcreatedBy" value="@(ViewBag.resultCloseJob.CreatedByName is null ? String.Format("{0} - {1} {2}", ViewBag.EmpCode , ViewBag.Fristname, ViewBag.Lastname) : String.Format("{0} - {1}", ViewBag.resultCloseJob.CreatedByCode , ViewBag.resultCloseJob.CreatedByName))" readonly>
+                            </div>
+                            @{
+                                if (ViewBag.ServiceCancelCauseId == 9 && ViewBag.viewOnly != "")
+                                {
+                                    <div class="form-group col-md-offset-1 col-md-3" id="cancelremark">
+                                        <label for="txtcreatedBy" class="control-label" id="other_label">หมายเหตุที่ไม่ใช้สิทธ์</label>
+                                        <textarea class="form-control" rows="1" placeholder="" id="other_test" name="other_test">@ViewBag.resultCloseJob.OtherServiceCancelRemark</textarea>
+                                    </div>
+
+                                }
+                                else if (ViewBag.resultCloseJob.RoadsideAssistanceStatusId == 4 && ViewBag.ServiceCancelCauseId == 9)
+                                {
+                                    <div class="form-group col-md-offset-1 col-md-3" id="cancelremark">
+                                        @*  <label for="txtcreatedBy" class="control-label" id="other_label">หมายเหตุที่ไม่ใช้สิทธ์</label>
+                                            <textarea class="form-control" rows="1" placeholder="" id="other_test" name="other_test">@ViewBag.resultCloseJob.OtherServiceCancelRemark</textarea>*@
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="form-group col-md-offset-1 col-md-3" id="div3">
+                                        <label for="txtcreatedBy" class="control-label" style="display:none" id="other_label">หมายเหตุที่ไม่ใช้สิทธ์</label>
+                                        <textarea class="form-control" style="display:none" rows="1" placeholder="" id="other_test" name="other_test">@ViewBag.resultCloseJob.OtherServiceCancelRemark</textarea>
+                                    </div>
+                                }
+                            }
+
+                            <div class="form-group col-md-4 ">
+                                <label for="txtClosejob" class="control-label">ผู้ปิดงาน Call center</label>
+                                <input class="form-control" type="text" name="txtClosejob" id="txtClosejob" value="@(ViewBag.resultCloseJob.ClosedByName is null && ViewBag.viewOnly == "" ? String.Format("{0} - {1} {2}", ViewBag.EmpCode , ViewBag.Fristname, ViewBag.Lastname) : String.Format("{0} - {1}", ViewBag.resultCloseJob.ClosedByCode , ViewBag.resultCloseJob.ClosedByName))" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn" id="cxlRoadside" style="background-color:orangered;color:white">ยกเลิกการทำรายการ</button>
+                        </div>
+                        <div class="col-md-1 col-md-offset-7">
+                            <button type="button" class="btn btn-danger" id="test">ยกเลิก</button>
+                        </div>
+                        <div class="col-md-1 col-md-offset-1">
+                            <button type="button" class="btn btn-success" id="URS_CloseJob">บันทึก</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        }
+    </div>
+    <input class="form-control" type="hidden" id="hdCancelServiceRemark1" value="@ViewBag.CancelServiceRemark" />
+    <input class="form-control" type="hidden" id="hdOtherServiceCancel1" value="@ViewBag.resultCloseJob.OtherServiceCancelRemark" />
+    <input class="form-control form-group" type="hidden" name="strCreatedDate" id="strCreatedDate" value="@(ViewBag.strCreatedDate)" readonly>
+    <input class="form-control form-group" type="hidden" name="strCreatedTime" id="strCreatedTime" value="@ViewBag.resultCloseJob.CreatedDate.ToString("HH:mm:ss")" readonly>
+    <div class="box-footer" style="background: linear-gradient(to right, rgb(37, 80, 177), rgb(28, 176, 230));">
+        <p style="color:white">Copyright SIAMSMILE BROKER (THAILAND) CO., LTD.</p>
+    </div>
+</div>
+@section ViewSpecificJavascript {
+    <script>
+
+        //load
+        $(function () {
+
+            var typesUse = "";
+            //----Date Time-------//
+            $('#dateAssist').datepicker({
+                format: "dd/mm/yyyy",
+                autoclose: true,
+                endDate: "+"
+            });
+
+            //disable hand key
+            $("#dateAssist").keypress(function (e) {
+                return false;
+            });
+
+            //disable hand key
+            $("#dateAssist").keydown(function (e) {
+                return false;
+            });
+
+            $('#dateAssist').datepicker()
+                .on('changeDate', function (ev) {
+                    $(this).valid();
+                });
+
+            //----  begin dateHappen  ----//
+
+            $('#dateHappen').datepicker({
+                autoclose: true,
+                todayBtn: true,
+                todayHighlight: true
+            });
+
+            //disable hand key
+            $("#dateHappen").keypress(function (e) {
+                return false;
+            });
+
+            //disable hand key
+            $("#dateHappen").keydown(function (e) {
+                return false;
+            });
+
+            //set maxDate dateHappen
+            let createdDate = $('#strCreatedDate').val();
+            $('#dateHappen').datepicker('setEndDate', createdDate);
+
+            //----  end dateHappen  ----//
+
+            // make single object
+            var newDate = new Date();
+
+            let strTime = $('#strCreatedTime').val();
+            $('.timepicker').timepicker({
+                showInputs: false,
+                showMeridian: false,
+                showSeconds: true,
+                minuteStep: 5,
+                timeFormat: 'HH:mm:ss',
+                defaultTime: null
+            });
+            //-------------------//
+
+            //disable paytype (ดูอย่างเดียว)
+            if ($('#viewOnly').val() != "") {
+                $(".payType :input").prop("disabled", true);
+                $(".payType label").css("cursor", "not-allowed");
+                //$('input').iCheck('disable');
+
+                //ผู้ปิดงาน Call center
+                if ($('#roadsideAssistanceStatusId').val() != 4 || $('#roadsideAssistanceStatusId').val() == 5) {
+                    $('#txtClosejob').val('');
+                }
+            }
+
+            if ($('#roadsideAssistanceStatusId').val() == 2) {
+                $('#txtClosejob').val('');
+                $('#CustomerAmount').val('0');
+                $('#ServiceAmount').val('0');
+                $('#dateAssist').removeAttr('required');
+                $('#timeAssist').removeAttr('required');
+
+                $(".payType :input").prop("disabled", true);
+                $(".payType label").css("cursor", "not-allowed");
+            }
+
+            if ($('#roadsideAssistanceStatusId').val() == 3 && $('#viewOnly').val() == "") {
+                $('#URS_CloseJob').text("ปิดงาน");
+                $('#div_txttypeUse').show();
+                $('#div_txttypeUse').append(`<label for="txttypeUse" class="control-label">ประเภทการใช้สิทธิ์</label>`);
+                $('#div_txttypeUse').append(`<select class="form-control" name="txttypeUse" id="txttypeUse" required onchange="ServiceCancelCauseFunction()"><option value="1" selected>ใช้สิทธิ์</option><option value="0">ไม่ใช้สิทธิ์</option></select>`);
+
+                $('#dateAssist').removeAttr('disabled');
+                $('#timeAssist').removeAttr('disabled');
+
+                if ('@ViewBag.IsEmployee' == 'True') {
+                    $('#EmployeePointAmount').removeAttr('readonly');
+                    $('#EmployeePointAmount').val("0.00");
+                    $('#EmployeePointAmount').attr('required', 'required');
+                }
+                $('#ServiceAmount').removeAttr('readonly');
+                $('#CustomerAmount').removeAttr('readonly');
+
+                $('#ServiceAmount').attr('required', 'required');
+                //$('#CustomerAmount').attr('required','required');
+                $('#timeAssist').attr('required', 'required');
+
+                $('#CustomerAmount').val('0');
+                $('#ServiceAmount').val('');
+
+                $(".payType :input").prop("disabled", true);
+                $(".payType label").css("cursor", "not-allowed");
+
+            }
+
+            if ($('#roadsideAssistanceStatusId').val() == 4) {
+
+                $('#div_txttypeUse').show();
+                if ($('#viewOnly').val() != "") {
+                    $('#div_txttypeUse').append(`<label for="txttypeUse" class="control-label">ประเภทการใช้สิทธิ์</label>`);
+                    $('#div_txttypeUse').append(`<input class="form-control" type="text" value="@ViewBag.resultCloseJob.UseService" disabled />`);
+                } else {
+                    //เช็ค role ที่มีสิทธ์แก้ไขในสถานะ สำเร็จ  ถ้าไม่ใช่ role นี้ ไม่แสดงการแก้ไข ประเภทการใช้สิทธิ์
+                    if ("@ViewBag.rolelist.Contains("Developer")" == "True" || "@ViewBag.rolelist.Contains("RoadsideAssistance_CallcenterAdmin")" == "True") {
+
+                        var checkdate = @ViewBag.CreatedDatecheck;
+                        var year = @ViewBag.CreatedDatecheckYear;
+                        var month = @ViewBag.CreatedDatecheckMonth;
+                        var true_month = @ViewBag.CreatedDatecheckMonth - 1;
+                        var day = @ViewBag.DueDateEdite;
+
+                        var today = new Date();
+                        var todayMonth = today.getMonth();
+                        var todayYear = today.getFullYear();
+                        var todayDay = today.getDate();
+
+                       //วัน CreatedDate ยังไม่เกิน วันที่ 10 ของเดือน CreatedDate+1
+                        if (year == todayYear && month == todayMonth && todayDay <= day ) {
+                                    $('#div_txttypeUse').append(`<label for="txttypeUse" class="control-label">ประเภทการใช้สิทธิ์</label>`);
+                            $('#div_txttypeUse').append(`<select class="form-control" name="txttypeUse" id="txttypeUse" required onchange="ServiceCancelCauseFunction()" @(ViewBag.resultCloseJob.UseService == "ใช้สิทธิ์" ? "" : "disabled")>
+                    @if (ViewBag.resultCloseJob.UseService == "ใช้สิทธิ์") {
+                    <option value="1"  selected>ใช้สิทธิ์</option>
+                    <option value="0" >ไม่ใช้สิทธิ์</option>
+                     }
+                     else {
+                    <option value="1" >ใช้สิทธิ์</option>
+                    <option value="0" selected>ไม่ใช้สิทธิ์</option>
+                     }
+                    </select>`);
+
+                     if ("@ViewBag.resultCloseJob.UseService" == "ไม่ใช้สิทธิ์") {
+                        $('#div2').append(`<label for="remarkNotUse" class="control-label" disabled>สาเหตุที่ไม่ใช้สิทธิ์</label>`);
+                         $('#div2').append(`<select class="form-control" rows="1" placeholder="หมายเหตุ" id="other" name="other" required onchange="OtherFunction()" disabled>
+                         <option value="1"  disabled>---กรุณาเลือก---</option>
+                         @foreach (var item in ViewBag.ServiceCancelCause)
+                         {
+
+                         if (ViewBag.CancelServiceRemark == @item.ServiceCancelCauseDetail)
+                         {
+                              <option value="@item.ServiceCancelCauseId" selected> @item.ServiceCancelCauseDetail</option>                                                                                                                                      }
+                         else {
+                              <option value="@item.ServiceCancelCauseId"> @item.ServiceCancelCauseDetail</option>
+                             }
+
+                     }
+                         </select >`);
+                           $('#cancelremark').append(' <label for="txtcreatedBy" class="control-label" id="other_label">หมายเหตุที่ไม่ใช้สิทธ์</label>');
+                         $('#cancelremark').append('<textarea class="form-control" rows="1" placeholder="" id="other_test" name="other_test" disabled>@ViewBag.resultCloseJob.OtherServiceCancelRemark</textarea>');
+                    }
+                        } else if (year == todayYear && true_month == todayMonth ) {
+                                    $('#div_txttypeUse').append(`<label for="txttypeUse" class="control-label">ประเภทการใช้สิทธิ์</label>`);
+                            $('#div_txttypeUse').append(`<select class="form-control" name="txttypeUse" id="txttypeUse" required onchange="ServiceCancelCauseFunction()" @(ViewBag.resultCloseJob.UseService == "ใช้สิทธิ์" ? "" : "disabled")>
+                    @if (ViewBag.resultCloseJob.UseService == "ใช้สิทธิ์") {
+                    <option value="1"  selected>ใช้สิทธิ์</option>
+                    <option value="0" >ไม่ใช้สิทธิ์</option>
+                     }
+                     else {
+                    <option value="1" >ใช้สิทธิ์</option>
+                    <option value="0" selected>ไม่ใช้สิทธิ์</option>
+                     }
+                    </select>`);
+
+                     if ("@ViewBag.resultCloseJob.UseService" == "ไม่ใช้สิทธิ์") {
+                        $('#div2').append(`<label for="remarkNotUse" class="control-label" disabled>สาเหตุที่ไม่ใช้สิทธิ์</label>`);
+                         $('#div2').append(`<select class="form-control" rows="1" placeholder="หมายเหตุ" id="other" name="other" required onchange="OtherFunction()" disabled>
+                         <option value="1"  disabled>---กรุณาเลือก---</option>
+                         @foreach (var item in ViewBag.ServiceCancelCause)
+                         {
+
+                         if (ViewBag.CancelServiceRemark == @item.ServiceCancelCauseDetail)
+                         {
+                              <option value="@item.ServiceCancelCauseId" selected> @item.ServiceCancelCauseDetail</option>                                                                                                                                      }
+                         else {
+                              <option value="@item.ServiceCancelCauseId"> @item.ServiceCancelCauseDetail</option>
+                             }
+
+                     }
+                         </select >`);
+                           $('#cancelremark').append(' <label for="txtcreatedBy" class="control-label" id="other_label">หมายเหตุที่ไม่ใช้สิทธ์</label>');
+                         $('#cancelremark').append('<textarea class="form-control" rows="1" placeholder="" id="other_test" name="other_test" disabled>@ViewBag.resultCloseJob.OtherServiceCancelRemark</textarea>');
+
+                    }
+                        } else {
+                              $('#div_txttypeUse').append(`<label for="txttypeUse" class="control-label">ประเภทการใช้สิทธิ์</label>`);
+                            $('#div_txttypeUse').append(`<select class="form-control" name="txttypeUse" id="txttypeUse" required onchange="ServiceCancelCauseFunction()" disabled>
+                    @if (ViewBag.resultCloseJob.UseService == "ใช้สิทธิ์") {
+                    <option value="1"  selected>ใช้สิทธิ์</option>
+                    <option value="0" >ไม่ใช้สิทธิ์</option>
+                     }
+                     else {
+                    <option value="1" >ใช้สิทธิ์</option>
+                    <option value="0" selected>ไม่ใช้สิทธิ์</option>
+                     }
+                    </select>`);
+
+                     if ("@ViewBag.resultCloseJob.UseService" == "ไม่ใช้สิทธิ์") {
+                        $('#div2').append(`<label for="remarkNotUse" class="control-label" disabled>สาเหตุที่ไม่ใช้สิทธิ์</label>`);
+                         $('#div2').append(`<select class="form-control" rows="1" placeholder="หมายเหตุ" id="other" name="other" required onchange="OtherFunction()" disabled>
+                         <option value="1"  disabled>---กรุณาเลือก---</option>
+                         @foreach (var item in ViewBag.ServiceCancelCause)
+                         {
+
+                         if (ViewBag.CancelServiceRemark == @item.ServiceCancelCauseDetail)
+                         {
+                              <option value="@item.ServiceCancelCauseId" selected> @item.ServiceCancelCauseDetail</option>                                                                                                                                      }
+                         else {
+                              <option value="@item.ServiceCancelCauseId"> @item.ServiceCancelCauseDetail</option>
+                             }
+
+                     }
+                         </select >`);
+                           $('#cancelremark').append(' <label for="txtcreatedBy" class="control-label" id="other_label">หมายเหตุที่ไม่ใช้สิทธ์</label>');
+                         $('#cancelremark').append('<textarea class="form-control" rows="1" placeholder="" id="other_test" name="other_test" disabled>@ViewBag.resultCloseJob.OtherServiceCancelRemark</textarea>');
+                    }
+                        }
+                    }
+
+                }
+
+                $('#ServiceAmount').removeAttr('readonly');
+                $('#CustomerAmount').removeAttr('readonly');
+
+                $('#dateAssist').removeAttr('disabled');
+                $('#timeAssist').removeAttr('disabled');
+
+                 if ('@ViewBag.IsEmployee' == 'True' && '@ViewBag.IsEmployeePointLocked' == 'True') {
+                    $('#EmployeePointAmount').val();
+                    $('#EmployeePointAmount').attr('required', 'required');
+                }
+                 else if ('@ViewBag.IsEmployee' == 'True' && '@ViewBag.IsEmployeePointLocked' == 'False') {
+                     $('#EmployeePointAmount').removeAttr('readonly');
+                     $('#EmployeePointAmount').attr('required', 'required');
+                 }
+
+                $('#dateAssist').attr('required');
+                $('#timeAssist').attr('required');
+
+                $(".payType :input").prop("disabled", true);
+                $(".payType label").css("cursor", "not-allowed");
+                //$('input').iCheck('enable');
+
+                $('#cxlRoadside').attr('style', 'display: none');
+            }
+            if ($('#roadsideAssistanceStatusId').val() == 5) {
+
+                $('#txtCar').attr('readonly', 'readonly');
+                $('#SeviceType').attr('disabled','disabled');
+                $('#txtProvince').attr('disabled','disabled');
+                $('#txtlocation').attr('readonly', 'readonly');
+                $('#remark').attr('readonly', 'readonly');
+                $('#referanceName').attr('readonly', 'readonly');
+                $('#referanceCode').attr('readonly', 'readonly');
+                $('#txtPhoneNumber').attr('readonly', 'readonly');
+                $('#URS_CloseJob').attr('style', 'display: none');
+                $("#test").html('ย้อนกลับ');
+                $('#cxlRoadside').attr('style', 'display: none');
+                $("#dateHappen").attr('disabled', 'disabled');
+                $("#timeHappen").attr('disabled', 'disabled');
+                $('#kkk').empty();
+
+                $(".payType :input").prop("disabled", true);
+                $(".payType label").css("cursor", "not-allowed");
+                //$('input').iCheck('enable');
+            }
+
+            window.jQuery.validator.addMethod("checkOnlyNum", function (value) {
+                var regex = new RegExp("^[0-9]+$");
+
+                if (!regex.test(value)) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }, "กรอกเฉพาะตัวเลขเท่านั้น(0-9)");
+
+            $('#formCloseJob').validate();
+
+            //back google chrome
+            history.pushState(null, null, location.href);
+            history.back();
+            history.forward();
+            window.onpopstate = function () {
+                history.go(1);
+                };
+
+                $("#ServiceAmount").inputmask({
+                    rightAlign: true,
+                    alias: "currency",
+                    prefix: ''
+                });
+                $("#CustomerAmount").inputmask({
+                    rightAlign: true,
+                    alias: "currency",
+                    prefix: ''
+                });
+            $("#EmployeePointAmount").inputmask({
+                rightAlign: true,
+                alias: "currency",
+                prefix: ''
+            });
+
+            //  ใช้สิทธิ์หรือไม่
+            $('#txttypeUse').change(function () {
+
+                const val = $(this).val();
+                switch (val) {
+                    case '1':
+                        $('#div2').empty();
+                        break;
+                    case '0':
+                        $('#div2').empty();
+                        $('#div2').append(`<label for="remarkNotUse" class="control-label">สาเหตุที่ไม่ใช้สิทธิ์</label>`);
+                        $('#div2').append(`<select class="form-control" rows="1" placeholder="หมายเหตุ" id="other" name="other" required onchange="OtherFunction()">
+                         <option value="1" selected disabled>---กรุณาเลือก---</option>
+                         @foreach (var item in ViewBag.ServiceCancelCause)
+                         {
+                         <option value="@item.ServiceCancelCauseId"> @item.ServiceCancelCauseDetail</option>
+                          }
+                         </select >`);
+                        break;
+                    default:
+                }
+            });
+
+            if ($('#viewOnly').val() != "") {
+
+                $('.form-control').attr('disabled', 'disabled');
+                $('#cxlRoadside').attr('style', 'display: none');
+                $('#URS_CloseJob').attr('style', 'display: none');
+                $('#test').html('ย้อนกลับ');
+                $('#onlyView').empty();
+                if ($('#CancelServiceRemark').val() != "" && $('#roadsideAssistanceStatusId').val() == 4) {
+                    $('#div2').hide();
+
+                }
+            }
+
+        });//end load
+
+        function OtherFunction() {
+            var val = $('#other').val();
+            if (val == '9') {
+                $('#other_test').attr('required', 'required');
+                $('#other_label').css("display", "block");
+                $('#other_test').css("display", "block");
+            } else {
+                $('#other_test-error').hide();
+                $('#other_test').removeAttr('required', 'required');
+                $('#other_test').val('');
+                $('#other_label').css("display", "none");
+                $('#other_test').css("display", "none");
+
+            }
+
+        }
+        function ServiceCancelCauseFunction() {
+            var val = $('#txttypeUse').val();
+            if (val == '0' && $('#other').val()=="9") {
+                $('#other_test').attr('required', 'required');
+                $('#other_label').css("display", "block");
+                $('#other_test').css("display", "block");
+            } else {
+                $('#other_test-error').hide();
+                $('#other_test').removeAttr('required', 'required');
+                $('#other_test').val('');
+                $('#other_label').css("display", "none");
+                $('#other_test').css("display", "none");
+
+            }
+
+        }
+
+        $('#test').click(function (e) {
+            e.preventDefault();
+            //see detail close tap
+            if ($('#viewOnly').val() != "") {
+                window.close();
+            } else {
+                window.location.replace("@Url.Action("FollowRoadsideAssis", "RoadsideAssistance")");
+            }
+        });
+
+        $('#URS_CloseJob').click(function (e) {
+
+            let phone = $('#txtPhoneNumber').val().trim().replaceAll('-', '').replaceAll('_','');
+            if (phone.length != 10) {
+                swal("แจ้งเตือน", "เบอร์โทรติดต่อกลับไม่ถูกต้อง !", "warning");
+                return false;
+            }
+            const res = ValidVehicleRegistration();
+            if (res.IsResult) {
+
+                if ($('#form1').valid() && $('#formCloseJob').valid()) {
+                    $('#cfrecip').val($('#referanceName').val());
+                    $('#cfRef').val($('#referanceCode').val());
+                    $('#cfDocno').text($('#docno').val());
+                    $('#cftimeAssist').text($('#timeAssist').val());
+                    $('#cfCallcen').val($('#txtcreatedBy').val());
+                    $('#cfnameClosejob').val($('#txtClosejob').val());
+                    if ($('#roadsideAssistanceStatusId').val() == 3 ) {
+                        if ($('#txttypeUse').val() == "1") {
+                            $('#div_typeUse').hide();
+                            $('#div_remarkNotUse').hide();
+                            $('#div_ServiceCancelCause').hide();
+
+                            $('#Confirm').modal('show');
+
+                        } else {
+
+                            $('#div_typeUse').show();
+                            $('#div_remarkNotUse').show();
+                            $('#remarkNotUse').val($('#other option:selected').text());
+                            $('#typeUse').val($("#txttypeUse option:selected").text());
+                            $('#Confirm').modal('show');
+
+                            if ($('#other').val() == "9") {
+                                $('#div_ServiceCancelCause').show();
+                                $('#ServiceCancelCause').val($('#other_test').val());
+                            } else {
+
+                                $('#div_ServiceCancelCause').hide();
+
+                            }
+                        }
+                    } else if ($('#roadsideAssistanceStatusId').val() == 4) {
+                        if ($('#txttypeUse').val() == "1") {
+                            $('#div_typeUse').hide();
+                            $('#div_remarkNotUse').hide();
+                            $('#div_ServiceCancelCause').hide();
+
+                            $('#Confirm').modal('show');
+
+                        } else {
+
+                            $('#div_typeUse').show();
+                            $('#div_remarkNotUse').show();
+                            $('#remarkNotUse').val($('#other option:selected').text());
+                            $('#typeUse').val($("#txttypeUse option:selected").text());
+                            $('#Confirm').modal('show');
+
+                            if ($('#other').val() == "9") {
+                                $('#div_ServiceCancelCause').show();
+                                $('#ServiceCancelCause').val($('#other_test').val());
+                            } else {
+
+                                $('#div_ServiceCancelCause').hide();
+
+                            }
+                        }
+                    } else {
+                        $('#Confirm').modal('show');
+                    }
+
+                } else {
+                    swal("แจ้งเตือน", "กรุณากรอกข้อมูลให้ครบถ้วน !", "warning");
+                }
+            } else {
+                swal("กรุณาตรวจสอบข้อมูล", res.Msg, "warning")
+            }
+        })
+
+      //save
+
+        const SaveClosejob = () => {
+
+            let customerAmount = '';
+            let employeePointAmount = '';
+            let totalAmount = '';
+            let cancelServiceRemark = '';
+            let serviceCancelCauseId = '';
+            let otherServiceCancelRemark = '';
+            @*let cTotal = totalAmount.replaceAll(',', '')
+            let cCustomerAmount = customerAmount.replaceAll(',', '');
+            let EmployeePointAmount = employeePointAmount.replaceAll(',', '');*@
+
+            //if (parseFloat(cTotal) < parseFloat(cCustomerAmount)) {
+            //    $('#Confirm').modal('hide');
+            //    swal("แจ้งเตือน", "กรุณาตรวจสอบค่าบริการ", "warning");
+            //    return false
+            //} else {
+
+            if ($('#dateAssist').val() != '' && $('#timeAssist').val() != '') { //check date time Assit in null
+                $('#Confirm').modal('hide');
+
+                if ($('#roadsideAssistanceStatusId').val() != 4) {
+                    ValidDateTimeAssitDatetimeHappen();
+                } else {
+                    ValidDateTimeAssitDatetimeHappen();
+                }
+            } else {
+                CloseJobInsert();
+            }
+        }
+
+        const ValidDateTimeAssitDatetimeHappen = () => {
+            let time = $('#timeAssist').val().split(':');
+            let timeAs = time[0] * 3600 + time[1] * 60 + time[2];
+            let dateAs = $('#dateAssist').datepicker('getDate');
+            let dateAsParse = new Date(dateAs);
+            let a1 = dateAs.getDate();
+            let a2 = dateAs.getMonth();
+            let a3 = dateAs.getFullYear();
+
+            let timeHappen = $('#timeHappen').val().split(':');
+            let timeHap = timeHappen[0] * 3600 + timeHappen[1] * 60 + timeHappen[2];
+            var dateHappen = $('#dateHappen').datepicker('getDate');
+            let dateHappenParse = new Date(dateHappen);
+            let b1 = dateHappen.getDate();
+            let b2 = dateHappen.getMonth();
+            let b3 = dateHappen.getFullYear();
+
+            let aaa = Date.parse(dateAs);
+            let bbb = Date.parse(dateHappen);
+
+            console.log(dateAs,"dateAssist");
+            console.log(dateHappen, "วันที่เกิดเหตุ");
+
+            console.log(aaa, "dateAsParse");
+            console.log(bbb, "dateHappenParse");
+
+            //string to DateTime
+            let d1 = new Date(a3, a2, a1, parseInt(time[0]), parseInt(time[1]), parseInt(time[2]));
+            let d2 = new Date(b3, b2, b1, parseInt(timeHappen[0]), parseInt(timeHappen[1]), parseInt(timeHappen[2]));
+
+            //เช็ควันที่แจ้งเหตุ ว่า มากกว่าวันที่ปิดงานหรือเปล่า
+            if (Date.parse(dateAs) < Date.parse(dateHappen)) {
+                console.log("วันที่ Assist ปิดงาน < วันที่เกิดเหตุ = true")
+                swal("แจ้งเตือน", "กรุณาตรวจสอบวันที่ Assist ปิดงาน", "warning");
+                return false;
+            } else if (Date.parse(dateAs) == Date.parse(dateHappen)) {
+                console.log("วันที่ Assist ปิดงาน == วันที่เกิดเหตุ = true")
+
+                if (parseInt(time[0]) < parseInt(timeHappen[0])) {
+                    console.log("เวลา Assist ปิดงาน (ชัวโมง) < เวลาเกิดเหตุ (ชัวโมง) = true")
+                    $('#Confirm').modal('hide');
+                    swal("แจ้งเตือน", "กรุณาตรวจสอบเวลา Assist ปิดงาน", "warning");
+                    return false;
+                } else if (parseInt(time[0]) == parseInt(timeHappen[0])) {
+                    console.log("เวลา Assist ปิดงาน (ชัวโมง) == เวลาเกิดเหตุ (ชัวโมง) = true")
+
+                    if (parseInt(time[1]) < parseInt(timeHappen[1])) {
+
+                        console.log("เวลา Assist ปิดงาน (นาที) < เวลาเกิดเหตุ (นาที) = true")
+                        $('#Confirm').modal('hide');
+                        swal("แจ้งเตือน", "กรุณาตรวจสอบเวลา Assist ปิดงาน", "warning");
+                        return false;
+
+                    } else if (parseInt(time[1]) == parseInt(timeHappen[1])){
+                        console.log("เวลา Assist ปิดงาน (นาที) == เวลาเกิดเหตุ (นาที) = true")
+
+                        if (parseInt(time[2]) < parseInt(timeHappen[2])) {
+
+                            console.log("เวลา Assist ปิดงาน (วินาที) < เวลาเกิดเหตุ (วินาที) = true")
+                            $('#Confirm').modal('hide');
+                            swal("แจ้งเตือน", "กรุณาตรวจสอบเวลา Assist ปิดงาน", "warning");
+                            return false;
+
+                        } else if (parseInt(time[2]) == parseInt(timeHappen[2])) {
+
+                            console.log("เวลา Assist ปิดงาน (วินาที) == เวลาเกิดเหตุ (วินาที) = true")
+                            $('#Confirm').modal('hide');
+                            swal("แจ้งเตือน", "กรุณาตรวจสอบเวลา Assist ปิดงาน", "warning");
+                            return false;
+
+                        } else {
+                            console.log("เวลา Assist ปิดงาน (วินาที) < เวลาเกิดเหตุ (วินาที) = false")
+                            ValidDateTimeAssitDateTimeToday();
+                        }
+                    } else {
+                        console.log("เวลา Assist ปิดงาน (นาที) < เวลาเกิดเหตุ (นาที) = false")
+                        ValidDateTimeAssitDateTimeToday();
+                    }
+                } else {
+                    console.log("เวลา Assist ปิดงาน (ชัวโมง) < เวลาเกิดเหตุ (ชัวโมง) = false")
+                    ValidDateTimeAssitDateTimeToday();
+                }
+            } else {
+                console.log("dateAsParse == dateHappenParse = false")
+                ValidDateTimeAssitDateTimeToday();
+            }
+        }
+
+        //เช้ควันที่ปิดงานมากกว่าวันที่ปัจจุบันหรือเปล่า
+        const ValidDateTimeAssitDateTimeToday = () => {
+
+            let time = $('#timeAssist').val().split(':');
+            let timeAs = time[0] * 3600 + time[1] * 60 + time[2];
+            let dateAs = $('#dateAssist').datepicker('getDate');
+            let dateAsParse = new Date(dateAs);
+
+            let d = new Date();
+            let todayTime = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds(); //get today time
+            let dayToday = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+            console.log(dayToday, "dayToday")
+            console.log(Date.parse(dayToday),"dayTodayParse")
+            let sTime = todayTime.split(':');
+            var sTimeToday = sTime[0] * 3600 + sTime[1] * 60 + sTime[2];
+            //วันที่เวลาเกิดเหตุ เท่ากับวันที่ปัจจุบัน
+            if (Date.parse(dateAsParse) == Date.parse(dayToday)) {
+                console.log("วันที่ Assist ปิดงาน == dayToDay = true")
+                //เวลาเกิดเหตุ (ชัวโมง) > เวลาปัจจุบัน (ชัวโมง)
+                if (parseInt(time[0]) > parseInt(sTime[0])) {
+                    console.log("เวลา Assist ปิดงาน > timeToDay = true")
+                    swal("แจ้งเตือน", "กรุณาตรวจสอบเวลา Assist ปิดงาน", "warning");
+                    return false;
+                    //เวลาเกิดเหตุ (ชัวโมง) == เวลาปัจจุบัน (ชัวโมง)
+                } else if (parseInt(time[0]) == parseInt(sTime[0])) {
+                    console.log("เวลา Assist ปิดงาน (ชัวโมง) == timeToDay (ชัวโมง) = true")
+                    //เวลาเกิดเหตุ (นาที) > เวลาปัจจุบัน (นาที)
+                    if (parseInt(time[1]) > sTime[1]) {
+                        console.log("เวลา Assist ปิดงาน (ชัวโมง) > timeToDay (ชัวโมง) = true");
+                        swal("แจ้งเตือน", "กรุณาตรวจสอบเวลา Assist ปิดงาน", "warning");
+                        return false;
+                         //เวลาเกิดเหตุ (นาที) == เวลาปัจจุบัน (นาที)
+                    } else if (parseInt(time[1]) == parseInt(sTime[1])) {
+                        console.log("เวลา Assist ปิดงาน (นาที) == timeToDay (นาที) = true")
+                        //เวลาเกิดเหตุ (วินาที) > เวลาปัจจุบัน (วินาที)
+                        if (parseInt(time[2]) > parseInt(sTime[2])) {
+                            console.log("เวลา Assist ปิดงาน (วินาที) > timeToDay (วินาที) = true")
+                            swal("แจ้งเตือน", "กรุณาตรวจสอบเวลา Assist ปิดงาน", "warning");
+                            return false;
+                             //เวลาเกิดเหตุ (วินาที) == เวลาปัจจุบัน (วินาที)
+                        } else if (parseInt(time[2]) == parseInt(sTime[2])) {
+                            console.log("เวลา Assist ปิดงาน (วินาที) == timeToDay (วินาที) = true")
+                            swal("แจ้งเตือน", "กรุณาตรวจสอบเวลา Assist ปิดงาน", "warning");
+                            return false;
+                        } else {
+                            console.log("เวลา Assist ปิดงาน (วินาที) > timeToDay (วินาที) = false")
+                            CloseJobInsert();
+
+                        }
+                    } else {
+                        console.log("เวลา Assist ปิดงาน == timeToDay = false")
+                        CloseJobInsert();
+                    }
+                } else {
+                    console.log("เวลา Assist ปิดงาน == timeToDay = false")
+                    CloseJobInsert();
+                }
+            } else {
+                console.log("วันที่ Assist ปิดงาน == dayToDay = false")
+                CloseJobInsert();
+            }
+        }
+
+      //cxl Roadside status 5
+      $('#cxlRoadside').click(function () {
+          $('#remarkCxl').modal('show');
+      })
+      //save cxl
+      $('#cxlSubmit').click(function () {
+          if ($('#txtremarkCxl').val() === "" || $('#txtremarkCxl').val().trim() === "") {
+              swal("แจ้งเตือน", "กรุณากรอกข้อมูลให้ครบถ้วน !", "warning");
+          } else {
+              $('#remarkCxl').modal('hide');
+              roadsideCxl();
+          }
+      })
+
+      //close job insert
+        function CloseJobInsert() {
+          $('#Confirm').modal('hide');
+          let roadsideAssistanceStatusId = '';
+
+            if ($('#roadsideAssistanceStatusId').val() == 2) {
+                roadsideAssistanceStatusId = 3;
+                totalAmount = "0";
+                customerAmount = "0";
+                employeePointAmount = "0";
+                cancelServiceRemark = "";
+                otherServiceCancelRemark = "";
+                serviceCancelCauseId = "0";
+
+            } else if ($('#roadsideAssistanceStatusId').val() == 3) {
+                roadsideAssistanceStatusId = 4
+                totalAmount = $('#ServiceAmount').val();
+                customerAmount = $('#CustomerAmount').val();
+                employeePointAmount = $('#EmployeePointAmount').val();
+                cancelServiceRemark = $("#other option:selected").text();
+                otherServiceCancelRemark = $('#other_test').val();
+                serviceCancelCauseId = $('#other').val();
+            } else if ($('#roadsideAssistanceStatusId').val() == 4) {
+                // อัพเดท สถานะสำเร็จ ส่งข้อมูลไปให้ สโตร
+                var txt = $('#txttypeUse').val();
+                if (txt == 1) {
+                    serviceCancelCauseId = "0";
+                } else if (txt == 0) {
+                    serviceCancelCauseId = $('#other').val();
+                }
+                roadsideAssistanceStatusId = 4
+                totalAmount = $('#ServiceAmount').val();
+                customerAmount = $('#CustomerAmount').val();
+                employeePointAmount = $('#EmployeePointAmount').val();
+                if ($('#roadsideAssistanceStatusId').val() == 4 && $('#viewOnly').val() == "") {
+                    cancelServiceRemark = $("#other option:selected").text();
+                    otherServiceCancelRemark = $('#other_test').val();
+                } else {
+                    cancelServiceRemark = $('#hdCancelServiceRemark1').val();
+                    otherServiceCancelRemark = $('#hdOtherServiceCancel1').val();
+                }
+
+                $('#ServiceAmount').attr('required')
+                $('#CustomerAmount').attr('required');
+                $('#EmployeePointAmount').attr('required');
+
+                //$('#timeAssist').attr('required');
+            } else {
+                var txt = $('#hdTypeUse').val();
+                if (txt == "ใช้สิทธิ์") {
+                    serviceCancelCauseId = "0";
+                } else if (txt == "ไม่ใช้สิทธิ์") {
+                    serviceCancelCauseId = $('#other').val();
+                }
+                roadsideAssistanceStatusId = 4
+                totalAmount = $('#ServiceAmount').val();
+                customerAmount = $('#CustomerAmount').val();
+                employeePointAmount = $('#EmployeePointAmount').val();
+                if ($('#roadsideAssistanceStatusId').val() == 4 && $('#viewOnly').val() == "") {
+                    cancelServiceRemark = $("#other option:selected").text();
+                    otherServiceCancelRemark = $('#other_test').val();
+                } else {
+                    cancelServiceRemark = $('#hdCancelServiceRemark1').val();
+                    otherServiceCancelRemark = $('#hdOtherServiceCancel1').val();
+                }
+
+                $('#ServiceAmount').attr('required')
+                $('#CustomerAmount').attr('required');
+                $('#EmployeePointAmount').attr('required');
+
+                //$('#timeAssist').attr('required');
+            }
+          const res = ValidVehicleRegistration();
+          if (res.IsResult) {
+
+              if (!$('#txttypeUse').val()) {
+                  var txt = $('#hdTypeUse').val();
+                  if (txt == "ไม่ใช้สิทธิ์") {
+                      typesUse = "0";
+                  } else if (txt == "ใช้สิทธิ์") {
+                      typesUse = "1";
+                  } else {
+                      typesUse = "xxx";
+                  }
+              } else {
+                  typesUse = $('#txttypeUse').val();
+              }
+              $.ajax({
+                  type: 'POST',
+                  url: "@Url.Action("TakeActionCloseJobInsert", "RoadsideAssistance")",
+                  data: {
+                      roadsideId: $('#roadsideId').val(),
+                      roadsideAssistanceStatusId: roadsideAssistanceStatusId,
+                      memberid: $('#txtMemberId').val(),
+                      contactNumber: $('#txtPhoneNumber').val(),
+                      vehicleRegistrationDetail: res.vRegisNumber,
+                      vehicleRegistrationNumber: res.vRegisDetail,
+                      vehicleRegistrationProvinceId: $('#txtProvince').val(),
+                      locationDetail: $('#txtlocation').val(),
+                      remark: $('#remark').val(),
+                      roadsideAssistanceSeviceTypeId: $('#SeviceType').val(),
+                      payTypeId: $('#hdPayType').val(),
+                      totalAmount: totalAmount,
+                      customerAmount: customerAmount,
+                      employeePointAmount: employeePointAmount,
+                      referanceCode: $('#referanceCode').val(),
+                      referanceName: $('#referanceName').val(),
+                      referanceClosedDate: $('#dateAssist').val(),
+                      referanceClosedTime: $('#timeAssist').val(),
+                      isService: typesUse,
+                      cancelRemark: $('#txtremarkCxl').val(),
+                      cancelServiceRemark: cancelServiceRemark,
+                      createdByUserId: @ViewBag.EmpId,
+                      dateHappent: $('#dateHappen').val(),
+                      timeHappent: $('#timeHappen').val(),
+                      otherServiceCancelRemark: otherServiceCancelRemark,
+                      serviceCancelCauseId: serviceCancelCauseId
+                  },
+                  dataType: 'json',
+                  success: function (data) {
+                      if (data.IsResult) {
+                          $('#Confirm').modal('hide');
+                          swal_confirm2("แจ้งเตือน", "บันทึกข้อมูลเรียบร้อย", function (e) {
+                              window.location.replace(`@Url.Action("FollowRoadsideAssis", "RoadsideAssistance")?RoadsideAssistanceId=${data.Result}`);
+                          });
+                      } else {
+                          swal("เกิดข้อผิดพลาด", data.Msg, "error");
+                      }
+                  }
+              });
+          }
+          else {
+              swal("กรุณาตรวจสอบข้อมูล", res.Msg, "warning")
+          }
+      }
+
+      //cxl roadside
+      const roadsideCxl = () => {
+          totalAmount = "0";
+          customerAmount = "0";
+          roadsideAssistanceStatusId = 5;
+
+          @*if ($('#roadsideAssistanceStatusId').val() == 4 && $('#viewOnly').val() == "") {
+              cancelServiceRemark = $("#other option:selected").text();
+              otherServiceCancelRemark = $('#other_test').val();
+          } else {
+              cancelServiceRemark = $('#hdCancelServiceRemark1').val();
+              otherServiceCancelRemark = $('#hdOtherServiceCancel1').val();
+          }*@
+          const res = ValidVehicleRegistration();
+          if (res.IsResult) {
+
+              updateRodeside();
+          }
+          else {
+              swal("กรุณาตรวจสอบข้อมูล", res.Msg, "warning")
+          }
+      }
+
+      //update rodeside
+        const updateRodeside = () => {
+          const res = ValidVehicleRegistration();
+          $.ajax({
+              type: 'POST',
+              url: "@Url.Action("TakeActionCloseJobInsert", "RoadsideAssistance")",
+              data: {
+                  roadsideId: $('#roadsideId').val(),
+                  roadsideAssistanceStatusId: roadsideAssistanceStatusId,
+                  memberid: $('#txtMemberId').val(),
+                  contactNumber: $('#txtPhoneNumber').val(),
+                  vehicleRegistrationDetail: res.vRegisNumber,
+                  vehicleRegistrationNumber: res.vRegisDetail,
+                  vehicleRegistrationProvinceId: $('#txtProvince').val(),
+                  locationDetail: $('#txtlocation').val(),
+                  remark: $('#remark').val(),
+                  roadsideAssistanceSeviceTypeId: $('#SeviceType').val(),
+                  payTypeId: $('#hdPayType').val(),
+                  totalAmount: totalAmount,
+                  customerAmount: customerAmount,
+                  referanceCode: $('#referanceCode').val(),
+                  referanceName: $('#referanceName').val(),
+                  referanceClosedDate: $('#dateAssist').val(),
+                  referanceClosedTime: $('#timeAssist').val(),
+                  isService: $('#txttypeUse').val(),
+                  cancelRemark: $('#txtremarkCxl').val(),
+                  cancelServiceRemark: $("#other option:selected").text(),
+                  createdByUserId: @ViewBag.EmpId,
+                  dateHappent: $('#dateHappen').val(),
+                  timeHappent: $('#timeHappen').val(),
+                  otherServiceCancelRemark: $('#other_test').val(),
+                  serviceCancelCauseId: $('#other').val()
+              },
+              dataType: 'json',
+              success: function (data) {
+                  if (data.IsResult) {
+                      $('#Confirm').modal('hide');
+                      swal_confirm2("แจ้งเตือน", "บันทึกข้อมูลเรียบร้อย", function (e) {
+                          window.location.replace(`@Url.Action("FollowRoadsideAssis", "RoadsideAssistance")?RoadsideAssistanceId=${data.Result}`);
+                      });
+                  } else {
+                      swal("เกิดข้อผิดพลาด", data.Msg, "error");
+                  }
+              }
+          });
+      }
+
+      //validate ทะเบียนรถ
+      const ValidVehicleRegistration = () => {
+
+          const textCar = $('#txtCar').val().replace(/[^a-zA-Z0-9ก-ฮ]/g, '').trim();
+          var arr = textCar.match(/[\d\.]+|\D+/g);
+
+          let objResult = { IsResult: false, Msg: "", vRegisNumber: "", vRegisDetail: "" };
+
+          //check format e.g. : 1กก1111
+          if (arr.length === 3) {
+              objResult.IsResult = true;
+              objResult.vRegisNumber = arr[0].concat(arr[1]);
+              objResult.vRegisDetail = arr[2];
+          }
+          //check format e.g. : กก1111
+          else if (arr.length === 2) {
+              objResult.IsResult = true;
+              objResult.vRegisNumber = arr[0];
+              objResult.vRegisDetail = arr[1];
+          }
+          //else throw format is not valid.
+          else {
+              objResult.IsResult = false;
+              objResult.Msg = " ทะเบียนรถ จะต้องระบุตัวอักษรและตัวเลข ตัวอย่าง กก 9998 หรือ 1กก 9988";
+          }
+
+          return objResult;
+        }
+    </script>
+}

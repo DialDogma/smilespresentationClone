@@ -1,0 +1,140 @@
+﻿@{
+    /**/
+
+    ViewBag.Title = "รายงานคัดกรอง";
+    Layout = "~/Views/Shared/_LayoutForTopPHIndex.cshtml";
+}
+
+<div class="row" style="margin-top: 25px">
+    @* top form *@
+    <div class="col-sm-12 col-md-12">
+        @* search form *@
+        <div class="col-sm-12 col-md-6">
+            <div class="box box-info">
+                <div class="box-header">
+                    <h4>รายงาน</h4>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-offset-1 col-md-10">
+                            <label class="control-label">งวดความคุ้มครอง:</label>
+                            <select class="form-control" id="select_period">
+                                <option value="-1">----กรุณาเลือก----</option>
+                                @foreach (var itm in ViewBag.PeriodList)
+                                {
+                                    <option value="@itm.Value.ToString("dd/MM/yyyy")"> @itm.Display</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end form *@
+    </div>
+    @* end top *@
+    @* right form *@
+    <div class="col-sm-12 col-md-12">
+        @* download form *@
+        <div class="col-sm-12 col-md-6" id="Download_form">
+            <div class="box box-success">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="box-header">
+                            <h4 class="text-center">รายงานคัดกรอง</h4>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-offset-3 col-md-6">
+                            <button type="button" id="btnDownload1" class="btn btn-block btn-success" onclick="getDownloadLink()">Export to Excel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end download *@
+        @* download form *@
+        <div class="col-sm-12 col-md-6" id="Download2_form">
+            <div class="box box-success">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="box-header">
+                            <h4 class="text-center">รายงาน2</h4>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-md-offset-3 col-md-6">
+                            <button type="button" id="btnDownload2" class="btn btn-block btn-success">Export to Excel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end download *@
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        $(function () {
+
+            $('#Download2_form').hide();
+            $('#Download_form').hide();
+            $('#select_period').change((e) => {
+                e.preventDefault();
+                if ($('#select_period').val() != -1) {
+                    $('#Download_form').show();
+                }
+            });
+
+        });
+
+        function getDownloadLink() {
+            loadingSpinner('fadeIn', 999999);
+            $.ajax({
+                url: "@Url.Action("underwriteExportQueueReportCheckPeriod", "ReportsV2")",
+                type: "POST",
+                data: {
+                    period: $('#select_period').val()
+                },
+                success: function (data) {
+                      if (data.IsResult == false) {
+                            loadingSpinner('fadeOut');
+                            swal("ผลการค้นหา", data.Msg, "warning", function (e) {
+                                swal.close();
+                                return false;
+                            });
+                          } else {
+                               let reportName = "รายงานคัดกรอง_PH_";
+                            window.location = `@Url.Action("underwriteDownloadQueueReport", "ReportsV2")?reportName=${reportName}`;
+                            loadingSpinner('fadeOut');
+                        }
+                },
+                 error: function (jqXHR, exception) {
+                     checkXHRStatus(jqXHR.status);
+                     loadingSpinner('fadeOut');
+                 }
+            });
+        }
+        function checkXHRStatus(xhrStatus) {
+           var msg = '';
+              if (xhrStatus === 0) {
+                  msg = 'Not connect.\n Verify Network.';
+              } else if (jqXHR.status == 404) {
+                  msg = 'Requested page not found. [404]';
+              } else if (jqXHR.status == 500) {
+                  msg = 'Internal Server Error [500].';
+              } else if (exception === 'parsererror') {
+                  msg = 'Requested JSON parse failed.';
+              } else if (exception === 'timeout') {
+                  msg = 'Time out error.';
+              } else if (exception === 'abort') {
+                  msg = 'Ajax request aborted.';
+              } else {
+                  msg = 'Uncaught Error.\n' + jqXHR.responseText;
+            }
+            swal("ไม่สำเร็จ", msg, "error");
+        }
+    </script>
+}

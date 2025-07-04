@@ -1,0 +1,627 @@
+﻿@using Microsoft.Ajax.Utilities
+@{
+    ViewBag.Title = "HeirAndEmergencyContact";
+    Layout = "~/Views/Shared/_MasterApplication.cshtml";
+}
+<style>
+    .bgButton {
+        text-align: center;
+        background-color: #337ab7;
+        cursor: pointer;
+        /*height: 69px;*/
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        /*margin-top: 50px;*/
+    }
+
+    .btnNext {
+        /*padding: 10px;*/
+        font-size: 25px;
+        color: #fff;
+        background-color: #337ab7;
+        border-color: transparent;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+    }
+</style>
+<div class="container-fluid">
+    @* form Header *@
+    @*<div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 bg-primary text-white">
+                <h4>Heir & EmergencyContact</h4>
+            </div>
+        </div>*@
+    @* end form Header *@
+    @* form Header Heir *@
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 bg-primary text-white">
+            <h3>ผู้รับผลประโยชน์</h3>
+        </div>
+        @{ float sumPercent = 0;}
+    </div>
+    <br />
+    @* end header Heir *@
+    @* form body Heir *@
+    <form class="form-horizontal">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-lg-12">
+                    <div class="form-group form-group-lg">
+                        <label for="Heir_modal" class="col-xs-4 col-sm-4 col-md-4 col-lg-4 control-label">Add Heir :</label>
+                        <div class="col-xs-6 col-sm-3 col-md-3 col-lg-3 ">
+                            <button type="button" class="btn btn-primary btn-md btn-block buttonhover form-control" id="Heir_modal" data-toggle="modal" href='#Heir-modal' @(@ViewBag.SumPercent >= 100 ? "disabled=disabled" : "")>
+                                <span>
+                                    +Heir
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-lg-12">
+                    <input type="hidden" name="AppId" id="AppId" value="@ViewBag.AppId" />
+                    @* loop get data of heir *@
+                    @foreach (var item in ViewBag.HeirList)
+                    {
+                        {
+                            sumPercent += item.PercentShare;
+                        }
+                        <div class="form-group clearfix form-group-lg">
+                            <div class="col-xs-0 col-sm-1 col-md-1 col-lg-1 "></div>
+                            <input type="hidden" id="Heir_Code_@item.Code" name="Heir_Code_@item.Code" value="@item.Code" />
+                            @* name *@
+                            <div class="col-xs-10 col-sm-4 col-md-4 col-lg-4">
+                                <label for="" class="control-label">@item.HeirName</label>
+                            </div>
+                            @* relation *@
+                            <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2 ">
+                                <label for="" class="control-label">@item.Relation</label>
+                            </div>
+                            @* percent *@
+                            <div class="col-xs-8 col-sm-2 col-md-2 col-lg-2 ">
+                                <label for="" class="control-label">@item.PercentShare %</label>
+                            </div>
+                            @* delete heir *@
+                            <div class="col-xs-4 col-sm-2 col-md-2 col-lg-2 ">
+                                <button type="button" class="btn btn-default btn-md btn-block form-control" value="@item.Code" onclick="deleteHeir(value)">
+                                    <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <br />
+                    }
+                    <input type="hidden" id="sumPercent" name="sumPercent" value="@sumPercent" />
+                </div>
+            </div>
+        </div>
+    </form>
+
+    @* end form body heir *@
+    @* form header contact *@
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 bg-primary text-white">
+            <h3>ผู้ติดต่อกรณีฉุกเฉิน</h3>
+        </div>
+    </div>
+    @* end form header Contact *@
+    @* form body contact *@
+    <br />
+    <div class="container-fluid">
+        <form class="form-horizontal">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12 col-lg-12">
+                        <div class="form-group form-group-lg">
+                            <label for="Contact_modal" class="col-xs-4 col-sm-4 col-md-4 col-lg-4 control-label">Add Contact :</label>
+                            <div class="col-xs-6 col-sm-3 col-md-3 col-lg-3 ">
+                                <button type="button" class="btn btn-primary btn-md btn-block buttonhover form-control" id="Contact_modal" data-toggle="modal" href='#Contact-modal'>
+                                    <span>
+                                        +Contact
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12 col-lg-12">
+                        @* loop get data of Contact *@
+                        @foreach (var item in ViewBag.ContactList)
+                        {
+                            <div class="form-group form-group-lg">
+                                <div class="col-xs-0 col-sm-1 col-md-1 col-lg-1 ">
+                                    <input type="hidden" name="ContactCode" id="ContactCode" value="@item.Code" />
+                                </div>
+                                @* name *@
+                                <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4 ">
+                                    <label for="" class="control-label">@item.ContactName</label>
+                                </div>
+                                @* percent *@
+                                <div class="col-xs-8 col-sm-2 col-md-2 col-lg-2 ">
+                                    <label for="" class="control-label">@item.PhoneNumber</label>
+                                </div>
+                                @*<div class="col-xs-4 col-sm-1 col-md-3 col-lg-1"></div>*@
+
+                                <div class="col-xs-4 col-sm-offset-2 col-sm-2 col-md-offset-2 col-md-2 col-lg-offset-2 col-lg-2 ">
+                                    <button type="button" class="btn btn-default btn-md btn-block form-control" value="@item.Code" onclick="deleteContact(value)">
+                                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                                    </button>
+                                </div>
+                            </div>
+                            <br />
+                        }
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    @* next form button *@
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 bgButton">
+            <button type="submit" class="btnNext" onclick="SubmitForm(@sumPercent)" style="width: 100%">ถัดไป</button>
+        </div>
+        <hr />
+    </div>
+</div>
+@* Expand Modal 1 *@
+<form class="form-horizontal" action="" method="post" enctype="multipart/form-data" name="AddNewHeir" id="AddNewHeir">
+    <div class="modal fade" id="Heir-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title">ผู้รับผลประโยชน์</h4>
+                </div>
+                <fieldset>
+                    <div class="modal-body">
+                        @* body of modal *@
+                        <div class="row">
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group form-group-lg">
+                                    <div class="col-xs-12 col-sm-4  col-md-4 col-lg-4  ">
+                                        <label>ความสัมพันธ์</label>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-8  col-md-8 col-lg-8   ">
+                                        <select name="" id="select_relation" class=" form-control select2 checkNA" required="required">
+                                            @foreach (var item in ViewBag.RelationType)
+                                            {
+                                                <option value="@item.PersonRelationTypeCode">@item.PersonRelationType</option>
+                                            }
+                                        </select>
+                                        <input type="hidden" name="relation_value" id="relation_value" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group form-group-lg">
+                                    <div class="col-xs-12 col-sm-4  col-md-4 col-lg-4  ">
+                                        <label>คำนำหน้า</label>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-8  col-md-8 col-lg-8   ">
+                                        <select name="heir_title" id="heir_title" class="form-control select2 checkNA" required="required">
+                                            @foreach (var item in ViewBag.TitleContact)
+                                            {
+                                                <option value="@item.TempCode">@item.TitleDetail</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group form-group-lg">
+                                    <div class="col-xs-12 col-sm-4  col-md-4 col-lg-4  ">
+                                        <label>ชื่อ</label>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-8  col-md-8 col-lg-8   ">
+                                        <input type="text" name="txtHeirName1" id="txtHeirName1" class="form-control" value="" required="required" pattern="" title=""
+                                               placeholder="ชื่อ">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group form-group-lg">
+                                    <div class="col-xs-12 col-sm-4  col-md-4 col-lg-4  ">
+                                        <label>นามสกุล</label>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-8  col-md-8 col-lg-8   ">
+                                        <input type="text" name="txtHeirSurName1" id="txtHeirSurName1" class="form-control" value="" required="required" pattern="" title=""
+                                               placeholder="นามสกุล">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group form-group-lg">
+                                    <div class="col-xs-12 col-sm-4  col-md-4 col-lg-4  ">
+                                        <label>เลขบัตรประชาชน</label>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-8  col-md-8 col-lg-8   ">
+                                        <input type="number" name="txtHeirIDCard" id="txtHeirIDCard" class="form-control" value="" pattern="" title=""
+                                               placeholder="เลขบัตรประจำตัวประชาชน13หลัก">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group form-group-lg">
+                                    <div class="col-xs-12 col-sm-4  col-md-4 col-lg-4  ">
+                                        <label>เบอร์โทรศัพท์</label>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-8  col-md-8 col-lg-8   ">
+                                        <input type="tel" name="txtHeirPhoneNo" id="txtHeirPhoneNo" class="form-control" value="" pattern="" title=""
+                                               placeholder="เบอร์โทรศัพท์">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group form-group-lg">
+                                    <div class="col-xs-12 col-sm-4  col-md-4 col-lg-4  ">
+                                        <label>เบอร์โทรศัพท์ที่ทำงาน</label>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-8  col-md-8 col-lg-8   ">
+                                        <input type="tel" name="txtHeirWorkPhoneNo" id="txtHeirWorkPhoneNo" class="form-control" value="" pattern="" title=""
+                                               placeholder="เบอร์โทรศัพท์ที่ทำงาน">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group form-group-lg">
+                                    <div class="col-xs-12 col-sm-4  col-md-4 col-lg-4  ">
+                                        <label>เบอร์โทรศัพท์มือถือ</label>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-8  col-md-8 col-lg-8   ">
+                                        <input type="tel" name="txtHeirMobilePhoneNo" id="txtHeirMobilePhoneNo" class="form-control" value="" pattern="" title=""
+                                               placeholder="เบอร์โทรศัพท์มือถือ">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group form-group-lg">
+                                    <div class="col-xs-12 col-sm-4  col-md-4 col-lg-4  ">
+                                        <label>อีเมล์</label>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-8  col-md-8 col-lg-8   ">
+                                        <input type="email" name="txtHeirEmail" id="txtHeirEmail" class="form-control" value="" pattern="" title=""
+                                               placeholder="example@siamsmile">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group form-group-lg">
+                                    <div class="col-xs-12 col-sm-4  col-md-4 col-lg-4  ">
+                                        <label>เปอร์เซ็นต์</label>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-8  col-md-8 col-lg-8   ">
+                                        <input type="number" name="txtHeirPercent" id="txtHeirPercent" class="form-control" value="" pattern="" title="" required="required"
+                                               placeholder="เปอร์เซ็นต์ของผลประโยชน์" maxlength="3">
+                                        <span class="help-block">เปอร์เซ็นต์คงเหลือ @ViewBag.dividePercent %</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="clearfix"></div>
+                        <div class="col-xs-6 col-sm-6  col-md-6 col-lg-6  Asetmarginformcontrol">
+                            <button type="submit" class="btn btn-primary" id="Heir_modal_Save">Save</button>
+                        </div>
+                        <div class="col-xs-6 col-sm-6  col-md-6 col-lg-6  Asetmarginformcontrol setleftt">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+</form>
+@* Expand Modal 2 *@
+<form class="form-horizontal" action="" method="post" enctype="multipart/form-data" name="AddContact" id="AddContact">
+    <div id="Contact-modal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title">ผู้ติดต่อ</h4>
+                </div>
+                <fieldset>
+                    <div class="modal-body">
+                        @* body of modal *@
+                        <div class="row">
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group form-group-lg">
+                                    <div class="col-xs-12 col-sm-4  col-md-4 col-lg-4  ">
+                                        <label>คำนำหน้า</label>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-8  col-md-8 col-lg-8   ">
+                                        <select name="contact_title" id="contact_title" class="form-control select2 checkNA" required="required">
+                                            @foreach (var item in ViewBag.TitleContact)
+                                            {
+                                                <option value="@item.TempCode" @(item.Title_ID == ViewBag.RelationshipId ? "selected" : "")>@item.TitleDetail</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group form-group-lg">
+                                    <div class="col-xs-12 col-sm-4  col-md-4 col-lg-4  ">
+                                        <label>ชื่อ</label>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-8  col-md-8 col-lg-8   ">
+                                        <input type="text" name="contact_name" id="contact_name" class="form-control" value="" required="required" pattern="" title=""
+                                               placeholder="ชื่อ">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group form-group-lg">
+                                    <div class="col-xs-12 col-sm-4  col-md-4 col-lg-4  ">
+                                        <label>นามสกุล</label>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-8  col-md-8 col-lg-8   ">
+                                        <input type="text" name="contact_surname" id="contact_surname" class="form-control" value="" required="required" pattern="" title=""
+                                               placeholder="นามสกุล">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group form-group-lg">
+                                    <div class="col-xs-12 col-sm-4  col-md-4 col-lg-4  ">
+                                        <label>เบอร์โทรศัพท์</label>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-8  col-md-8 col-lg-8   ">
+                                        <input type="tel" name="contact_phone" id="contact_phone" class="form-control" value="" pattern="" title="" required="required"
+                                               placeholder="เบอร์โทรศัพท์">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="clearfix"></div>
+                        <div class="col-xs-6 col-sm-6  col-md-6 col-lg-6  Asetmarginformcontrol">
+                            <button type="button" class="btn btn-primary" id="Contact_modal_Save">Save</button>
+                        </div>
+                        <div class="col-xs-6 col-sm-6  col-md-6 col-lg-6  Asetmarginformcontrol setleftt">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+</form>
+@section scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#AddContact').validate();
+            $('#AddNewHeir').validate();
+
+            $('#Heir_modal_Save').click(function () {
+                if ($('#AddNewHeir').valid()==true) {
+                    SaveHeir();
+                } //else {
+                //    BootstrapDialog.alert('กรุณากรอกข้อมูลให้ครบ!');
+                //}
+            });
+            $('#Contact_modal_Save').click(function () {
+                if ($('#AddContact').valid()==true) {
+                    SaveContact();
+                } //else {
+                //    BootstrapDialog.alert('กรุณากรอกข้อมูลให้ครบ!');
+                //}
+            });
+            $('#btnSubmitForm').click(function (e) {
+                e.preventDefault();
+                SubmitForm($('#sumPercent').val());
+            });
+            //custom validation
+            $('#txtHeirPercent').on('keyup blur',function() {
+                const  dividePercent = @ViewBag.dividePercent;
+                if ($('#txtHeirPercent').val() > dividePercent) {
+                    alert('ไม่สามารถใส่เปอร์เซ็นต์ได้มากกว่านี้!');
+                    $('#txtHeirPercent').val("");
+                }
+            });
+
+            //บุคคลเดียวกัน
+            $('#select_relation').change(function() {
+                $('#AddNewHeir').validate().resetForm();
+                if ($('#select_relation').val() == '3000') {
+                    GetCustomerDetail();
+                    SetReadOnly(true);
+                } else {
+                    $('#relation_value').val($('#select_relation').val());
+                }
+            });
+
+            //change keyup
+            $('#txtHeirIDCard').on("change paste keyup",
+                function () {
+                    //Call method Check identityCard
+                    $('#txtHeirIDCard').css("color", "black");
+                    //debugger;
+                    var idcard = $('#txtHeirIDCard').val();
+                    if (idcard.length == 13) {
+                        if (CheckIdentityCard(idcard) == true) {
+                            //alert("true");
+                            $('#txtHeirIDCard').css('color', 'green');
+                        } else {
+                            alert("ข้อมูลการ์ดไม่ถูกต้อง!");
+                            $('#txtHeirIDCard').css('color', 'red');
+                            $('#txtHeirIDCard').focus();
+                        }
+                    };
+                });
+
+        });
+
+        function GetCustomerDetail() {
+            $('#heir_title').val('@ViewBag.CusDetail.Title_id').trigger('change');
+            $('#relation_value').val('@ViewBag.CusDetail.Title_id');
+            $('#txtHeirName1').val('@ViewBag.CusDetail.FirstName');
+            $('#txtHeirSurName1').val('@ViewBag.CusDetail.LastName');
+            $('#txtHeirIDCard').val('@ViewBag.CusDetail.ZCard_id');
+            $('#txtHeirMobilePhoneNo').val('@ViewBag.CusDetail.MobilePhoneNumber');
+        }
+
+        function SetReadOnly(value) {
+            $('#heir_title').prop('disabled', value);
+            $('#txtHeirName1').prop('readonly', value);
+            $('#txtHeirSurName1').prop('readonly', value);
+            $('#txtHeirIDCard').prop('readonly', value);
+            $('#txtHeirPhoneNo').prop('readonly', value);
+            $('#txtHeirWorkPhoneNo').prop('readonly', value);
+            $('#txtHeirMobilePhoneNo').prop('readonly', value);
+            $('#txtHeirEmail').prop('readonly', value);
+        }
+
+        //promt confirm to delete heir
+        function deleteHeir(value) {
+            window.BootstrapDialog.confirm('ต้องการลบข้อมูลใช่หรือไม่',
+                function(result) {
+                    if (result) {
+                        DeleteHeirFunc(value);
+                    } else {
+                        var params = "AppId=" + $('#AppId').val();
+                        window.location.href =
+                            "http://" + window.location.host + window.location.pathname + '?' + params;
+                    }
+                });
+        };
+        //promt confirm to delete contact
+        function deleteContact(value) {
+            window.BootstrapDialog.confirm('ต้องการลบข้อมูลใช่หรือไม่',
+                function(result) {
+                    if (result) {
+                        DeleteContactFunc(value);
+                    } else {
+                        var params = "AppId=" + $('#AppId').val();
+                        window.location.href =
+                            "http://" + window.location.host + window.location.pathname + '?' + params;
+                    }
+                });
+        };
+
+        //ajax save heir
+        function SaveHeir() {
+            $.ajax({
+                type: "POST",
+                url: "@ViewBag.APIUrlApplication/MobileApi/Applications/SetHeir",
+                data: {
+                    "AppId": $('#AppId').val(),
+                    "RelationId": $('#select-relation').val(),
+                    "TitleId": $('#heir_title').val(),
+                    "FirstName": $('#txtHeirName1').val(),
+                    "LastName": $('#txtHeirSurName1').val(),
+                    "ZCardId": $('#txtHeirIDCard').val(),
+                    "PhoneNo": $('#txtHeirPhoneNo').val(),
+                    "PhoneCoNo": $('#txtHeirWorkPhoneNo').val(),
+                    "MobileNo": $('#txtHeirMobilePhoneNo').val(),
+                    "Email": $('#txtHeirEmail').val(),
+                    "Percentage": $('#txtHeirPercent').val()
+                },
+                success: function (response) {
+                    var params = "AppId=" + $('#AppId').val();
+                    window.location.href =
+                        "http://" + window.location.host + window.location.pathname + '?' + params;
+                },
+                error: function (xhr, error) {
+                    alert(xhr.responseText);
+                }
+            });
+        }
+        //ajax save contact
+        function SaveContact() {
+            $.ajax({
+                type: "POST",
+                url: "@ViewBag.APIUrlApplication/MobileApi/Applications/SetContact",
+                data: {
+                    "AppId": $('#AppId').val(),
+                    "TitleId": $('#contact_title').val(),
+                    "FirstName": $('#contact_name').val(),
+                    "LastName": $('#contact_surname').val(),
+                    "PhoneNo": $('#contact_phone').val()
+                },
+                success: function (response) {
+                    var params = "AppId=" + $('#AppId').val();
+                    window.location.href =
+                        "http://" + window.location.host + window.location.pathname + '?' + params;
+                },
+                error: function (xhr, error) {
+                    alert(xhr.responseText);
+                }
+            });
+        }
+        //ajax delete heir
+        function DeleteHeirFunc(value) {
+            $.ajax({
+                type: "DELETE",
+                url: "@ViewBag.APIUrlApplication/MobileApi/Applications/DeleteHeir?heirId=" + value,
+                success: function (response) {
+                    var params = "AppId=" + $('#AppId').val();
+                    window.location.href =
+                        "http://" + window.location.host + window.location.pathname + '?' + params;
+                },
+                error: function (xhr, error) {
+                    alert(xhr.responseText);
+                }
+            });
+        }
+        //ajax delete contact
+        function DeleteContactFunc(value) {
+            $.ajax({
+                type: "DELETE",
+                url: "@ViewBag.APIUrlApplication/MobileApi/Applications/DeleteContact?ContactId=" + value,
+                success: function (response) {
+                    var params = "AppId=" + $('#AppId').val();
+                    window.location.href =
+                        "http://" + window.location.host + window.location.pathname + '?' + params;
+                },
+                error: function (xhr, error) {
+                    alert(xhr.responseText);
+                }
+            });
+        }
+
+        //function submit form
+        function SubmitForm(value) {
+            if (@ViewBag.SumPercent == 100) {
+                var params = "AppId=" + $('#AppId').val();
+                window.location.href = '@ViewBag.UrlPage/Application/Underwrite?' + params;
+            } else {
+                window.BootstrapDialog.alert("ค่าเปอร์เซ็นต์ไม่ถูกต้อง : กรุณาตรวจสอบ!!");
+            }
+        }
+
+        function CheckIdentityCard(cardId) {
+            if (cardId.length != 13) return false;
+            var sum = 0;
+            for (var i = 0; i < 12; i++) {
+                sum += parseFloat(cardId.charAt(i)) * (13 - i);
+            }
+            if ((11 - (sum % 11)) % 10 != parseFloat(cardId.charAt(12))) {
+                return false;
+            }
+
+            return true;
+        }
+
+        //function ValidationPercent() {
+        //    if ($('#AddHeir').valid()) {
+        //        $('#Heir_modal_Save').prop('disabled', false);
+        //    } else {
+        //        $('#Heir_modal_Save').prop('disabled', 'disabled');
+        //    }
+        //}
+    </script>
+}

@@ -1,0 +1,347 @@
+﻿@{
+    ViewBag.Title = "ตรวจ Application";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal" id="frmUnderwriteApprove" name="frmUnderwriteApprove">
+    <div class="row">
+        <div class="col-xs-12">
+            @Html.Partial("~/Views/PartialView/_ApplicationDetail.cshtml")
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            @Html.Partial("~/Views/PartialView/_DocumentDetail.cshtml")
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            @Html.Partial("~/Views/PartialView/_AssuredDetail.cshtml")
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            @Html.Partial("~/Views/PartialView/_PayerOrBeneficiaryDetail.cshtml")
+        </div>
+    </div>
+
+            @Html.Partial("~/Views/PartialView/_PDPADetail.cshtml")
+    <div class="row">
+        <div class="col-xs-12">
+            @Html.Partial("~/Views/PartialView/_PremiumReceived.cshtml")
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            @Html.Partial("~/Views/PartialView/_TransactionDetail.cshtml")
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-2 col-xs-offset-3">
+            <button type="button" class="btn btn-success pull-right" style="width:70%" id="btnApprove"><i class="glyphicon glyphicon-ok"></i>อนุมัติ</button>
+        </div>
+        <div class="col-xs-2 col-xs-offset-2">
+            <button type="button" class="btn btn-danger" style="width:70%" id="btnUnapprove"><i class="glyphicon glyphicon-remove"></i>ไม่อนุมัติ</button>
+        </div>
+    </div>
+
+    <!-- /.modal-dialog -->
+    <div class="modal fade in" id="modal-UnApproveApp" style="display: none; padding-right: 5px;">
+        <div class="modal-dialog" style="width:40%">
+            <div class="box box-danger box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">สาเหตุการไม่อนุมัติ</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group">
+                        <div class="col-xs-8 col-xs-offset-2">
+                            <label>สาเหตุ :</label>
+                            <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlUnApproveCause" name="ddlUnApproveCause">
+                                <option value="-1">--โปรดระบุ--</option>
+                                @{
+                                    foreach (var item in ViewBag.CancelCause)
+                                    {
+                                        <option value="@item.ApplicationUnApproveCauseId">@item.ApplicationUnApproveCause</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-xs-8 col-xs-offset-2">
+                            <label>หมายเหตุ :</label>
+                            <textarea class="span8" rows="3" style="width:100%" placeholder="กรุณาใส่หมายเหตุ" required id="txtRemark"></textarea>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-12" style="text-align:center">
+                            <button type="button" class="btn btn-success" id="btnSaveUnApprove"><i class="glyphicon glyphicon-ok"></i>ตกลง</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="glyphicon glyphicon-remove"></i>ยกเลิก</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="hdfAppId" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+        var chat = $.connection.myHub;
+
+        //Start Connection
+        $.connection.hub.start().done(function () {
+
+            debugger;
+            chat.server.joinGroup(@ViewBag.userID);
+            //chat.server.sendNotice("done");
+            //ปุ่ม อนุมัติ
+            $('#btnApprove').click(function (e) {
+                e.preventDefault();
+                swal({
+                    title: "",
+                    text: "ยืนยันการอนุมัติรายการ",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "ตกลง",
+                    cancelButtonText: "ยกเลิก",
+                    closeOnConfirm: false,
+                    closeOnCancel: true
+                },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            //if (IsvalidateForPDPA()) {
+                                chat.server.sendNotice("", "");
+                                SaveApprove(5);
+                            //}
+
+                        } else {
+                            //swal("ยกเลิกทำรายการ", "", "error");
+                        }
+                    }
+                );
+            });
+            //ปุ่ม ไม่อนุมัติ
+            $('#btnSaveUnApprove').click(function (e) {
+                e.preventDefault();
+                if ($('#ddlUnApproveCause').val() == "-1") {
+                    swal("", "กรุณาเลือกสาเหตุ", "warning");
+                    return;
+                }
+                if ($('#txtRemark').val() == "") {
+                    swal("", "กรุณากรอกหมายเหตุ", "warning");
+                    return;
+                }
+
+                swal({
+                    title: "",
+                    text: "ยืนยันไม่อนุมัติรายการ",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "ตกลง",
+                    cancelButtonText: "ยกเลิก",
+                    closeOnConfirm: false,
+                    closeOnCancel: true
+                },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            chat.server.sendNotice("", "");
+                            SaveApprove(4);
+
+                        } else {
+                            //swal("ยกเลิกทำรายการ", "", "error");
+                        }
+                    }
+                );
+            });
+
+        });
+    });
+
+        $(function () {
+
+            GetHeir_dt(@ViewBag.AppId);
+            GetTranHead_dt(@ViewBag.AppId);
+            GetPremiumReceive_dt(@ViewBag.AppId);
+            GetDocumentDT(@ViewBag.AppId);
+            $('#hdfAppId').val(@ViewBag.AppId);
+            $('#ddlUnApproveCause').select2();
+            //$('#btnApprove').click(function (e) {
+            //    e.preventDefault();
+            //    swal({
+            //        title: "",
+            //        text: "ยืนยันการอนุมัติรายการ",
+            //        type: "warning",
+            //        showCancelButton: true,
+            //        confirmButtonClass: "btn-danger",
+            //        confirmButtonText: "ตกลง",
+            //        cancelButtonText: "ยกเลิก",
+            //        closeOnConfirm: false,
+            //        closeOnCancel: true
+            //    },
+            //        function (isConfirm) {
+            //            if (isConfirm) {
+            //                SaveApprove(5);
+            //                //chat.server.sendNotice("done");
+            //            } else {
+            //                //swal("ยกเลิกทำรายการ", "", "error");
+            //            }
+            //        }
+            //    );
+            //});
+            ////ปุ่ม ไม่อนุมัติ
+            //$('#btnSaveUnApprove').click(function (e) {
+            //    e.preventDefault();
+            //    if ($('#ddlUnApproveCause').val() == "-1") {
+            //        swal("", "กรุณาเลือกสาเหตุ", "warning");
+            //        return;
+            //    }
+            //    if ($('#txtRemark').val() == "") {
+            //        swal("", "กรุณากรอกหมายเหตุ", "warning");
+            //        return;
+            //    }
+
+            //    swal({
+            //        title: "",
+            //        text: "ยืนยันไม่อนุมัติรายการ",
+            //        type: "warning",
+            //        showCancelButton: true,
+            //        confirmButtonClass: "btn-danger",
+            //        confirmButtonText: "ตกลง",
+            //        cancelButtonText: "ยกเลิก",
+            //        closeOnConfirm: false,
+            //        closeOnCancel: true
+            //    },
+            //        function (isConfirm) {
+            //            if (isConfirm) {
+            //                SaveApprove(4);
+            //                //chat.server.sendNotice("done");
+            //            } else {
+            //                //swal("ยกเลิกทำรายการ", "", "error");
+            //            }
+            //        }
+            //    );
+            //});
+            $('#btnUnapprove').click(function () {
+                $('#modal-UnApproveApp').addClass("modal_itemcenter");
+                $('#modal-UnApproveApp').modal('show');
+            });
+
+            $('#btnPDPA').click(function (e) {     // Link ไป PDPD from
+                e.preventDefault();
+                let appId = $('#hdfAppId').val();
+                AllMethod(appId, "upsert");
+            });
+
+        });
+
+        const SaveApprove = (apvStatusId) => {
+            let unapproveCauseId = null;
+            let remarkstr = null;
+            //ser param
+            if (apvStatusId == 4)//ไม่อนุมัติ
+            {
+                unapproveCauseId = $('#ddlUnApproveCause').val();
+                remarkstr = $('#txtRemark').val();
+            };
+
+            //Check
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("SaveUnderwriteApprove", "Approve")',
+                data: {
+                    appId : $('#hdfAppId').val(),
+                    approveStatusId : apvStatusId,
+                    unappCauseId : unapproveCauseId,
+                    remark : remarkstr,
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    if (response != null) {
+                        if (response[0] == "True") {
+                            $('#modal-UnApproveApp').modal('hide');
+                            window.swal({
+                                title: 'รายการ',
+                                type: 'success',
+                                text: 'ทำรายการสำเร็จ',
+                                showCancelButton: false,
+                                confirmButtonColor: '#26A65B',
+                                confirmButtonText: 'ตกลง',
+                                closeOnEsc: false,
+                                className: "text"
+                            }, function () {
+
+                                //Close Page
+                                window.close();
+
+                            });
+                        }
+                        else {
+                            window.swal({
+                                title: 'ทำรายการไม่สำเร็จ',
+                                type: 'error',
+                                text: response[2],
+                                showCancelButton: false,
+                                confirmButtonColor: '#26A65B',
+                                confirmButtonText: 'ตกลง',
+                                closeOnEsc: false,
+                                className: "text"
+                            }, function () {
+
+                            }); }
+                    }
+                    else { swal("เกิดข้อผิดพลาด", "ไม่สามารถบันทึกได้", "error"); }
+                },
+                error: function (response) {
+                    swal("เกิดข้อผิดพลาด", response[2], "error");
+                }
+
+            });
+        }
+
+        const IsvalidateForPDPA = () => {
+            var ObjValiDate = GetPDPADetail();
+
+            if (ObjValiDate.IsResult == false) {
+                swal("ตรวจสอบข้อมูล", ObjValiDate.Msg, "warning");
+                return false;
+            }
+            else {
+                if (ObjValiDate.Result == false) {
+                    swal("ตรวจสอบข้อมูล", "กรุณาระบุ ข้อมูลPDPA", "warning");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+
+        function GetPDPADetail() {               /// GetData Api PDPA
+            debugger;
+         var objPDPADetail;
+            $.ajax({
+            type: "GET",
+            url: "@Url.Action("GetPDPAByAppId", "Application")",
+            data: {
+
+                AppCode: $('#hdfAppCode').val()
+                },
+                async: false,
+            dataType: "json",
+            success: function (data) {
+                objPDPADetail =  data;
+            }
+          });
+            // ส่งdata ไป function
+            return objPDPADetail;
+        }
+
+    </script>
+}

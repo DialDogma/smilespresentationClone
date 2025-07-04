@@ -1,0 +1,313 @@
+﻿@{
+    ViewBag.Title = "ยืนยันข้อมูลรถม้าลาย";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-primary" style="margin-top:15px">
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-xs-12" style="text-align:right">
+                                <label id="countSelect"></label>
+                                <a id="textSelectAll" style="display:none;cursor:pointer" onclick="GetZebraAll();"></a>
+                                <a id="textSelectAllClear" style="display:none;cursor:pointer" onclick="ClearCheckboxAll();">ล้างข้อมูลที่เลือกทั้งหมด</a>
+                            </div>
+
+                            <div class="col-xs-12">
+                                <table id="dtMonitor" name="dtMonitor" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                            </div>
+
+                            <div class="col-xs-12" style="text-align:right">
+                                <button type="button" class="btn btn-success" id="btnconfirm">ยืนยันข้อมูล</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var inited = false;
+        var count = 0;
+        var rowDT = 0;
+        var totalDT = 0;
+        var ListCheckBox = [];
+        var ListCheckBoxAll = [];
+
+        $(function () {
+
+            LoadData();
+
+            $('#btnconfirm').click(function (e) {
+                e.preventDefault();
+                //Validate
+                if (Isvalidate()) {
+                    swal({
+                        title: "",
+                        text: "ยืนยันการทำรายการ",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonClass: "btn-danger",
+                        confirmButtonText: "ตกลง",
+                        cancelButtonText: "ยกเลิก",
+                        closeOnConfirm: false,
+                        closeOnCancel: true
+                    },
+                        function (isConfirm) {
+                            if (isConfirm) {
+
+                                //ConfirmZebra
+                                ConfirmZebra();
+                            } else {
+                                //swal("ยกเลิกทำรายการ", "", "error");
+                            }
+                        }
+                    );
+                }
+            });
+
+            //event tableDetail paging
+            $('#dtMonitor').on('page.dt', function () {
+                if (ListCheckBoxAll.length === totalDT) {
+                    $('table[name="dtMonitor"]').find(".chk-row-select").prop('checked', true);
+                    $('table[name="dtMonitor"]').find(".chk-row-select-all").prop('checked', true);
+                } else {
+                    $('table[name="dtMonitor"]').find(".chk-row-select-all").prop('checked', false);
+                    $('#countSelect').text('');
+                    $('#textSelectAll').hide();
+                    $('#textSelectAllClear').hide();
+                    for (var i = 0; i < ListCheckBox.length; i++) {
+                        if (!(ListCheckBoxAll.includes(ListCheckBox[i]))) {
+                            ListCheckBoxAll.push(ListCheckBox[i]);
+                        }
+                    }
+                    count = 0;
+                    ListCheckBox = [];
+                }
+                //console.log(ListCheckBoxAll)
+            });
+
+            /*checkbox in datatables change*/
+            $('#dtMonitor').on('change', 'input[type="checkbox"]', function (e) {
+                let table = $('#dtMonitor').DataTable();
+                let rows = table.rows().nodes();
+                switch (this.className) {
+                    case 'chk-row-select-all':
+                        if (this.checked) {
+                            $('input[class="chk-row-select"]', rows).prop('checked', true).change();
+                        } else {
+                            $('input[class="chk-row-select"]', rows).prop('checked', false).change();
+                        }
+                        break;
+                    case 'chk-row-select':
+                        if (this.checked) {
+                            let count = 0;
+                            const value = this.value;
+                            //adds one or more elements to the end of an array and returns the new length of the array.
+                            if (!ListCheckBox.includes(value)) ListCheckBox.push(this.value);
+                            if (!ListCheckBoxAll.includes(value)) ListCheckBoxAll.push(this.value);
+                            //check count data equal rows.length then checkbox-all is checked
+                            if (!(ListCheckBox.length === rows.length)) {
+                                $('table[name="dtMonitor"]').find(".chk-row-select-all").prop('checked', false);
+                                $('#countSelect').text('')
+                            } else {
+                                $('table[name="dtMonitor"]').find(".chk-row-select-all").prop('checked', true);
+                                $('#countSelect').text(`คุณเลือกข้อมูลทั้ง ${ListCheckBox.length} รายการในหน้านี้`)
+                                $('#textSelectAll').text(`เลือกทั้งหมด ${totalDT}`).show();
+                            }
+
+                            $('#textSelectAllClear').show()
+                        } else {
+                            const value = this.value;
+                            //replaces 1 element at indexOd() returnValue index
+                            ListCheckBox.splice(ListCheckBox.indexOf(value), 1);
+                            ListCheckBoxAll.splice(ListCheckBoxAll.indexOf(value), 1);
+
+                            //check count data equal rows.length then checkbox-all is checked
+                            if (!(ListCheckBox.length === rows.length)) {
+                                $('table[name="dtMonitor"]').find(".chk-row-select-all").prop('checked', false);
+                                $('#countSelect').text('')
+                                $('#textSelectAll').hide();
+                                $('#textSelectAllClear').hide();
+                            } else {
+                                $('table[name="dtMonitor"]').find(".chk-row-select-all").prop('checked', true);
+                            }
+                        }
+                        break;
+                    default:
+                }
+                //console.log(ListCheckBox);
+                //console.log(ListCheckBoxAll);
+            });
+
+        });
+
+        //////////////////////// Function //////////////////////////////////
+
+        const ConfirmZebra = () => {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("ConfirmZebraUpdate", "ZebraManagement")",
+                data: {
+                    zebraIdArray : ListCheckBoxAll
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+                    debugger;
+                    if (response.IsResult == true) {
+
+                        //alert Msg
+                        swal("", response.Msg, "success");
+
+                        ClearCheckboxAll();
+
+                        LoadData();
+
+                    } else {
+                        //alert Msg
+                        swal("ตรวจสอบข้อมูล", response.Msg, "warning");
+                    }
+                }
+            });
+        }
+
+        const Isvalidate = () => {
+            if (ListCheckBoxAll.length == 0) {
+                swal('ตรวจสอบ', 'กรุณาเลือก รายการที่ต้องการยืนยันข้อมูล', 'warning');
+                return false;
+            }
+
+            return true;
+        }
+
+        const LoadData = () => {
+            $('#dtMonitor').empty();
+            var t = $('#dtMonitor').dataTable({
+                    pageLength: 10,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    searching: false,
+                    //"order": [[0, "desc"]],
+                    destroy: true,
+                    ajax: {
+                        url: '@Url.Action("GetZebraConfirmManagement", "ZebraManagement")',
+                        type: 'POST',
+                        async: false,
+                           data: function (d) {
+                               d.draw = d.draw;
+                               d.pageSize = d.length;
+                               d.pageStart = d.start;
+                               d.sortField = d.columns[d.order[0].column].data;
+
+                               d.orderType = d.order[0].dir;
+                               d.search = d.search.value;
+                        },dataSrc: function (json) {
+                            debugger;
+                            rowDT = json.data.length;
+                            totalDT = json.recordsTotal;
+                            return json.data;
+                        },
+                       },
+                       columns: [
+                           {
+                               title: '<label>เลือก</label><input id="chk-all" name="chk-all" style="cursor:pointer"  class="chk-row-select-all" type="checkbox" />',
+                               data: null,
+                               orderable: false,
+                               className: 'th-center td-center-checkbox nosort',
+                               render: function (data) {
+                                   let Ischecked = "";
+                                   if (ListCheckBoxAll.includes(data.Zebra_ID.toString())) {
+                                       count++
+                                       Ischecked = "checked"
+                                   }
+
+                                   if (!(totalDT === ListCheckBoxAll.length)) {
+                                       if (count === rowDT) {
+                                           $('input[class="chk-row-select-all"]').prop('checked', true);
+                                           $('#countSelect').text(`คุณเลือกข้อมูลทั้ง ${rowDT} รายการในหน้านี้`)
+                                           $('#textSelectAll').text(`เลือกทั้งหมด ${totalDT}`).show();
+                                           rowDT = 0;
+                                           count = 0;
+                                       }
+                                   }
+
+                                   debugger;
+
+                                   if (count === rowDT) {
+                                       $('input[class="chk-row-select-all"]').prop('checked', true);
+                                       //$('#countSelect').text(`คุณเลือกข้อมูลทั้ง ${rowDT} รายการในหน้านี้`)
+                                       rowDT = 0;
+                                       count = 0;
+                                   }
+
+                                   return `<input type="checkbox" style="cursor:pointer"  class="chk-row-select" ${Ischecked} id="chkdtrow_${data.Zebra_ID}" name="chkdtrow_${data.Zebra_ID}" value="${data.Zebra_ID}">`;
+                               }
+                           },
+                           { title: 'ประเภทรถ', data: 'ZebraType', className: 'h-dt-center text-font-small', width: '10%' },
+                           { title: 'เบอร์รถ', data: 'Zebra_No', className: 'h-dt-center text-font-small', width: '8%' },
+                           { title: 'ผู้ดูแลคนเดิม', data: 'OwnerEmployeeFullName', className: 'h-dt-center text-font-small', width: '20%' },
+                           { title: 'ผู้ดูแลคนใหม่', data: 'NewOwnerEmployeefullName', className: 'h-dt-center text-font-small', width: '20%' },
+                           { title: 'สถานะรถ', data: 'CarStatus', className: 'h-dt-center text-font-small', width: '10%' },
+                           { title: 'การใช้งาน', data: 'CarOwnerStatus', className: 'h-dt-center text-font-small', width: '10%' },
+                           {
+                               title: 'วันที่ทำรายการ', data: 'UpdatedDate', className: 'h-dt-center', width: '10%',
+                               mRender: function (data) {
+                                   moment.locale('th');
+
+                                   if (data != null) {
+                                       return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:ss", "LLLL");
+                                   } else {
+                                       return '';
+                                   }
+
+                               }
+                           },
+                           { title: 'ผู้ทำรายการ', data: 'UpdateByUserName', className: 'h-dt-center text-font-small', width: '10%' },
+
+                       ],
+                       bLengthChange: false,
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        const GetZebraAll = () => {
+            $.post("@Url.Action("GetZebraConfirmManagement", "ZebraManagement")", {
+                draw: 0,
+                pageSize: 0,
+                pageStart: 999999999,
+            }, function (data) {
+                    ListCheckBoxAll = []
+                    for (var i = 0; i < data.length; i++) {
+                        if (!ListCheckBoxAll.includes(data[i].Zebra_ID.toString())) ListCheckBoxAll.push(data[i].Zebra_ID.toString())
+                    }
+                    $('#countSelect').text(`ทั้ง ${totalDT} รายการถูกเลือกอยู่`)
+                    $('#textSelectAllClear').show();
+                    $('#textSelectAll').hide();
+                   //console.log(ListCheckBoxAll);
+            });
+        }
+
+        const ClearCheckboxAll = () => {
+            ListCheckBoxAll = [];
+            ListCheckBox = [];
+            $('#countSelect').text('');
+            $('#textSelectAll').hide();
+            $('#textSelectAllClear').hide();
+            $('table[name="dtMonitor"]').find(".chk-row-select").prop('checked', false);
+            $('table[name="dtMonitor"]').find(".chk-row-select-all").prop('checked', false);
+            //console.log(ListCheckBoxAll);
+            //console.log(ListCheckBox);
+        }
+    </script>
+}

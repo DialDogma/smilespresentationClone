@@ -1,0 +1,381 @@
+﻿@{
+    ViewBag.Title = "ระบบตรวจสอบเอกสารรับรองหักผ่านธนาคาร";
+}
+
+<section id="track-account-monitor">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-info">
+                <div class="box-header" style="background-color: #b2f3f6;">
+                    <h3 class="box-title">จำนวนบัญชีที่ยังไม่ได้รับรองของสาขา</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-md-12" style="width: 26%">
+                            <label for="ddlBranch" class="control-label">สาขา:</label>
+                            <select class="form-control" style="display: inline; width: 80%" tabindex="-1" aria-hidden="true" id="ddlBranch" name="ddlBranch">
+                                @{
+                                    if (ViewBag.BranchList.Count > 1)
+                                    {
+                                        <option value="-1">--ทั้งหมด--</option>
+                                    }
+
+                                    foreach (var itm in ViewBag.BranchList)
+                                    {
+                                        if (itm.Branch_ID != 1)
+                                        {
+                                            <option value="@itm.Branch_ID" @(itm.Branch_ID == ViewBag.BranchUser ? "selected" : "")>@itm.BranchDetail</option>
+                                        }
+
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-md-3">
+                            <!-- small box -->
+                            <div class="small-box-custom" style="background-color: rgba(243, 156, 18, 0.64) !important">
+                                <div style="padding: 1px 4px 1px 5px;">
+                                    <h4><span>รอดำเนินการ</span></h4>
+                                    <div style="text-align: center">
+                                        <h3><span id="wait">0</span></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <!-- small box -->
+                            <div class="small-box-custom" style="background-color: rgba(0, 192, 239, 0.64) !important">
+                                <div style="padding: 1px 4px 1px 5px;">
+                                    <h4><span>รอตรวจสอบจาก KTB</span></h4>
+                                    <div style="text-align: center">
+                                        <h3><span id="waitKTB">0</span></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <!-- small box -->
+                            <div class="small-box-custom" style="background-color: rgba(0, 166, 90, 0.72) !important">
+                                <div style="padding: 1px 4px 1px 5px;">
+                                    <h4><span>รับรอง</span></h4>
+                                    <div style="text-align: center">
+                                        <h3><span id="confirm">0</span></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <!-- small box -->
+                            <div class="small-box-custom" style="background-color: rgba(237, 66, 45, 0.78) !important">
+                                <div style="padding: 1px 4px 1px 5px;">
+                                    <h4><span>ไม่รับรอง</span></h4>
+                                    <div style="text-align: center">
+                                        <h3><span id="unConfirm">0</span></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <hr />
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="ddlStatus" class="control-label">สถานะ:</label>
+                                    <select class="form-control" style="display: inline; width: 58%" tabindex="-1" aria-hidden="true" id="ddlStatus" name="ddlStatus">
+                                        <option value="-1">--ทั้งหมด--</option>
+                                        @{
+                                            foreach (var itm in ViewBag.CheckStatus)
+                                            {
+                                                <option value="@itm.TrackAccountStatusId">@itm.TrackAccountStatus</option>
+
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-offset-4 col-md-2" style="text-align: right">
+                                    <button id="btn-refresh" class="btn btn-default"><i class="fa fa-refresh"></i> Refresh</button>
+                                </div>
+                                <div class="col-md-2">
+                                    <button id="btn-export" class="btn btn-success" style="width: 100%" onclick="exportExcel();"><i class="fa fa-file"></i>  Export</button>
+                                </div>
+                            </div>
+                            <hr />
+                            <table id="table_trackaccountlist" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal -->
+<div class="modal fade" id="trackAccountModal" tabindex="-1" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #04ceff">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h3 class="modal-title" id="ModalLabel"></h3>
+            </div>
+            <div class="modal-body">
+                <table id="table_modal" class="table table-bordered table-striped" style="width: 100%"></table>
+            </div>
+            @*<div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">ปิด</button>
+                </div>*@
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script>
+
+        $(function () {
+            //ONLOAD
+            //LOAD ACCOUNT MONITOR
+            TrackAccountMonitor($('#ddlBranch').val());
+            //LOAD DATATABLES
+            loadDatatables('table_trackaccountlist');
+
+            //EVENT BRANCH CHANGE
+            $('#ddlBranch').on('change',
+                function (e) {
+                    e.preventDefault();
+                    //RELOAD ACCOUNT MONITOR
+                    TrackAccountMonitor($('#ddlBranch').val());
+                    //RELOAD DATATABLES
+                    loadDatatables('table_trackaccountlist');
+                });
+
+            //EVENT BRANCH CHANGE
+            $('#ddlStatus').on('change',
+                function (e) {
+                    //RELOAD DATATABLES
+                    loadDatatables('table_trackaccountlist');
+                });
+
+            //EVENT BUTTON REFRESH CLICK
+            $('#btn-refresh').on('click',
+                function (e) {
+                    e.preventDefault();
+                    //RELOAD DATATABLE
+                    loadDatatables('table_trackaccountlist');
+                    //RELOAD TRACK ACCOUNT MONITOR
+                    TrackAccountMonitor($('#ddlBranch').val());
+                });
+        });
+
+        //GET TRACK ACCOUNT MONITOR
+        const TrackAccountMonitor = (branchId) => {
+            $.get('@Url.Action("TrackAccountMonitor", "BankDirectDebit")',
+                { branchId: branchId },
+                (data) => {
+                    $('#wait').text(data[0].Wait);
+                    $('#waitKTB').text(data[0].WaitKTB);
+                    $('#unConfirm').text(data[0].UnConfirm);
+                    $('#confirm').text(data[0].Comfirm);
+                });
+        }
+        /*EXPORT EXCEL*/
+        const exportExcel = () => {
+            window.location.href = `@Url.Action("ExportToExcel_TrackAccountDetail")?payerBranchId=${$('#ddlBranch').val()}&bankDirectDebitStatusDisplayId=${$('#ddlStatus').val()}`;
+        }
+
+        //FUNCTION LOAD DATATABLE IN MODAL && SET HEADER MODAL
+        const fnLoadModal = (value) => {
+            //SET HEADER
+            setModalLabel(value);
+            //LOAD DATATABLE
+            loadDatatablesModal(value);
+        }
+
+        //FUNCTION SET LABEL IN HEADER MODAL
+        const setModalLabel = (text) => {
+            const str = `เลขที่บัญชี ${text}`;
+            $('#ModalLabel').text(str);
+        }
+
+        //FUNCTION LOAD DATA TABLES
+        const loadDatatablesModal = (account) => {
+            $('#table_modal').empty();
+            $('#table_modal').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: false,
+                destroy: true,
+                lengthChange: false,
+                searching: false,
+                info: true,
+                paging: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.19/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("TrackAccountSelect")',
+                    method: "POST",
+                    data: (d) => {
+                        d.draw = d.draw;
+                        d.pageSize = 10;
+                        d.IndexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.payerBranchId = $('#ddlBranch').val();
+                        d.accountNo = account;
+                    }
+                },
+
+                columns: [
+                    {
+                        title: 'AppID',
+                        data: 'ApplicationCode',
+                        orderable: true,
+                        className: "dt-left",
+                        width: "25%"
+                    },
+                    {
+                        title: 'ชื่อผู้เอาประกัน',
+                        data: 'CustName',
+                        orderable: false,
+                        className: "dt-left",
+                        width: "25%"
+                    },
+                    {
+                        title: 'ชื่อผู้ชำระเบี้ย',
+                        data: 'PayerName',
+                        orderable: false,
+                        className: "dt-left",
+                        width: "25%"
+                    },
+                    {
+                        title: 'Link SmileDoc',
+                        data: 'LinkSnileDoc',
+                        orderable: false,
+                        className: "dt-center",
+                        width: "25%",
+                        render: (data) => {
+                            console.log(data);
+                            return `<a type="button" class="btn btn-primary" href="${data}" target="_blank"><i class="fa fa-search"></i></a>`;
+                        }
+                    },
+                ]
+            });
+        }
+
+        //FUNCTION LOAD DATA TABLES
+        const loadDatatables = (tName) => {
+            $(`#${tName}`).empty();
+            $(`#${tName}`).DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: false,
+                destroy: true,
+                lengthChange: false,
+                searching: true,
+                info: true,
+                paging: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.19/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("TrackAccountList")',
+                    method: "POST",
+                    data: (d) => {
+                        d.draw = d.draw;
+                        d.pageSize = 10;
+                        d.IndexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.payerBranchId = $('#ddlBranch').val();
+                        d.bankDirectDebitStatusDisplayId = $('#ddlStatus').val();
+                        d.search = d.search.value;
+                    }
+                },
+
+                columns: [
+                    {
+                        title: '#',
+                        data: 'AccountNo',
+                        orderable: false,
+                        width: "5%",
+                        className: "dt-center",
+                        render: (data) => {
+                            //Trigger the modal with a button
+                            return `<button type="button" class="btn btn-info" data-toggle="modal" data-target="#trackAccountModal" onclick="fnLoadModal('${data}')";><i class="fa fa-search"></i></button>`;
+                        }
+                    },
+                    {
+                        title: 'เลขที่บัญชี',
+                        data: 'AccountNo',
+                        orderable: true,
+                        width: "15%",
+                        className: "dt-center",
+                    },
+                    {
+                        title: 'ชื่อบัญชี',
+                        data: 'AccountName',
+                        orderable: false,
+                        width: "20%",
+                    },
+                    {
+                        title: 'วันที่ดำเนินการนำส่ง KTB',
+                        data: 'UpdateDate',
+                        orderable: false,
+                        width: "15%",
+                        className: "dt-center",
+                        render: (data) => {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            }
+                            return "-";
+                        }
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: null,
+                        orderable: false,
+                        width: "15%",
+                        className: "dt-center",
+                        render: (data) => {
+                            switch (data.BankDirectDebitStatusDisplayId) {
+                                case 4: //รับรอง
+                                    return `<span class="badge badge-confirm" style="width:50%">${data.BankDirectDebitStatusDisplay}</span>`;
+                                case 5: //ไม่รับรอง
+                                    return `<span class="badge badge-unconfirm" style="width:50%">${data.BankDirectDebitStatusDisplay}</span>`;
+                                case 2: //รอดำเนินการ
+                                    return `<span class="badge badge-wait" style="width:50%">${data.BankDirectDebitStatusDisplay}</span>`;
+                                case 3: //รอรับรอง ktb
+                                    return `<span class="badge badge-wait-blue" style="width:50%">${data.BankDirectDebitStatusDisplay}</span>`;
+                                default: //อื่นๆ
+                                    return `<span class="badge" style="width:50%">${data.BankDirectDebitStatusDisplay}</span>`;;
+                            }
+                        }
+                    },
+                    {
+                        title: 'วันที่ KTB ตรวจสอบ',
+                        data: 'KTBApplyDate',
+                        orderable: false,
+                        width: "15%",
+                        className: "dt-center",
+                        render: (data) => {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY');
+                            }
+                            return "-";
+                        }
+                    },
+                    {
+                        title: 'จำนวน App',
+                        data: 'AppCount',
+                        orderable: false,
+                        width: "10%",
+                        className: "dt-center",
+                    },
+                ]
+            });
+        }
+    </script>
+}

@@ -1,0 +1,172 @@
+﻿@{
+    ViewBag.Title = "Smile Covid-19";
+    ViewBag.Description = "Application List";
+}
+<style>
+    .table {
+        font: 11pt Kanit, sans-serif;
+    }
+
+    .toolbar {
+        float: left;
+    }
+</style>
+<div class="row">
+    @* operation *@
+    <div class="col-sm-12 col-md-12" id="Operate_Form">
+        <div class="box box-default">
+            <div class="box-body">
+                <div class="col-sm-12 col-md-offset-5 col-md-5">
+                    <label class="control-label" for=""></label>
+                    <form id="formsearch">
+                        <input type="text" id="txtSearch" class="form-control" placeholder="เลข Application/ชื่อ-สกุล ผู้เอาประกัน/เลขบัตรประชาชน/เบอร์โทรศัพท์" />
+                    </form>
+                </div>
+                <div class="col-sm-12 col-md-2">
+                    <label class="control-label" for=""></label>
+                    <button class="btn btn-block btn-info" id="btnSearch" type="button">ค้นหา</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end *@
+    <div class="col-sm-12 col-md-12">
+        @* DT form *@
+        <div id="dt_form">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtApplicationMonitor" name="dtApplicationMonitor" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end form *@
+    </div>
+</div>
+
+@* hidden *@
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            GetMonitorApplication();
+        });
+
+        //enter to search
+        $('#formsearch').keypress(function (e) {
+            if (e.which == 13) {
+                e.preventDefault();
+
+                //reload dataTable
+                $('#dtApplicationMonitor').DataTable().ajax.reload();
+            }
+        });
+
+        //click button to search
+        $('#btnSearch').click((e) => {
+            e.preventDefault();
+
+            //reload dataTable
+            $('#dtApplicationMonitor').DataTable().ajax.reload();
+        });
+
+         const GetMonitorApplication = () => {
+
+            //call api
+            $('#dtApplicationMonitor').empty();
+            var appTable = $('#dtApplicationMonitor').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetAllApplicationMonitor", "Covid19Application")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchDetail = $('#txtSearch').val();
+                    }
+                },
+                columns: [
+                    //{ className: 'text-center', targets: [0] },
+                    { title: 'Application ID', data: 'ApplicationCode' },
+                    { title: 'ผู้เอาประกัน', data: 'CusFullName' },
+                    { title: 'เลขที่บัตรประชาชน', data: 'IdentityCardNo', className: 'text-center' },
+                    {
+                        title: 'วันที่คุ้มครอง', data: 'StartCoverDate', className: 'text-center',
+                        render: function (data) {
+                            if (data != null) {
+                                let startCoverDate = moment(data)._d;
+                                let yearBE = startCoverDate.getFullYear() + 543;
+                                let startCoverDateBE = moment(startCoverDate.setFullYear(yearBE)).format("DD/MM/YYYY HH:mm:ss");
+                                return startCoverDateBE;
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    { title: 'แผนประกัน', data: 'ProductDetail', className: 'text-center' },
+                    {
+                        title: 'เบอร์โทรศัพท์',
+                        data: null,
+                        className: 'text-center',
+                        mRender: function (data) {
+                            var str = `${data.MobilePhoneNumber}`;
+                            var res = str.trim().replaceAll('-', '');
+                            var patt1 = /[0-9]/g;
+                            var result = res.match(patt1);
+                            if (result.length == 10) {
+                                return `${result[0]}${result[1]}${result[2]}-${result[3]}${result[4]}${result[5]}-${result[6]}${result[7]}${result[8]}${result[9]}`;
+                            } else {
+                                return `${data.MobilePhoneNumber}`;
+                            }
+
+                        }
+                    },
+                    { title: 'สถานะกรมธรรม์', data: 'CovidApplicationStatus', className: 'text-center'},
+                    {
+                        title: 'แก้ไข',
+                        data: null,
+                        className: 'text-center',
+                        searchable: false,
+                        orderable: false,
+                        mRender: function (data) {
+
+                            let covidApplicationId = window.btoa(data.CovidApplicationId);
+                            return '<a target="_blank" href="@Url.Action("Edit")?appId=' + covidApplicationId +'" class="btn btn-block btn-warning"><i class="glyphicon glyphicon-pencil" />_แก้ไข</a>';
+                        }
+                    },
+
+                ],
+                language: {
+                    processing: "กำลังโหลดข้อมูล. กรุณารอสักครู่...",
+                    emptyTable: "ไม่พบข้อมูลที่ค้นหา"
+                },
+            });
+        }
+
+        const Delete = (appId) => {
+            swal_confirm("ยืนยันการทำรายการ", "ต้องการลบApplicationนี้", () => {
+                $.post('@Url.Action("DeleteApplication","Covid19Application")', { appId: appId }, (data) => {
+                    if (data.IsResult) {
+                        swal_success(data.Msg);
+                        setTimeout(() => { window.location = "@Url.Action("Index","Covid19Application")"; }, 1500);
+                    } else {
+                        swal_fail(data.Msg);
+                    }
+                });
+            });
+
+        }
+    </script>
+}

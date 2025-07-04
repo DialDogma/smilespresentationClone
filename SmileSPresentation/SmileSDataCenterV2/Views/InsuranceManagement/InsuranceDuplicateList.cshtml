@@ -1,0 +1,107 @@
+﻿@{
+    ViewBag.Title = "ผลตรวจสอบชื่อบริษัทประกันภัย";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div class="box box-primary" style="margin-top:15px">
+
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="row" style="padding-top:6px">
+                            <div class="col-xs-12">
+
+                                <table id="dtDuplicateList" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="hdforganizeTypeId" value="@ViewBag.organizeTypeId" />
+    <input type="hidden" id="hdfsubDistrictId" value="@ViewBag.subDistrictId" />
+    <input type="hidden" id="hdfkeyword" value="@ViewBag.keyword" />
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+    $(function () {
+        GetData();
+    });
+
+    const GetData = () => {
+        $('#dtDuplicateList').empty();
+        var t = $('#dtDuplicateList').dataTable({
+                    pageLength: 10,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    searching: false,
+                    "order": [[0, "desc"]],
+                    destroy: true,
+                    ajax: {
+                        url: '@Url.Action("GetOrganizeDuplicateList", "InsuranceManagement")',
+                        type: 'POST',
+                        async: false,
+                           data: function (d) {
+                               d.draw = d.draw;
+                               d.pageSize = d.length;
+                               d.pageStart = d.start;
+                               d.sortField = d.columns[d.order[0].column].data;
+                               d.orderType = d.order[0].dir;
+                               d.search = d.search.value;
+                               d.organizeTypeId = $('#hdforganizeTypeId').val();
+                               d.subDistrictId = $('#hdfsubDistrictId').val();
+                               d.keyword = decodeURIComponent($('#hdfkeyword').val());
+                           }
+                       },
+            columns: [
+                           { title: 'รหัสรายการ', data: 'Organize_ID', className: 'h-dt-center text-font-small', width: '8%' },
+                           { title: 'ประเภท', data: 'OrganizeTypeDetail', className: 'h-dt-center text-font-small',width: '8%' },
+                           { title: 'ชื่อบริษัทประกันภัย', data: 'OrganizeDetail', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'ที่อยู่', data: 'AddressDetail', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'ตำบล', data: 'SubDistrictDetail', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'อำเภอ', data: 'DistrictDetail', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'จังหวัด', data: 'ProvinceDetail', className: 'h-dt-center text-font-small', width: '15%' },
+                           //{ title: 'วันที่ทำรายการ', data: 'BusinessPromoteTeamName', className: 'h-dt-center text-font-small', width: '15%' },
+                           {
+                               title: 'วันที่ทำรายการ', data: 'OrganizeCreateDate', className: 'h-dt-center', width: '10%',
+                               mRender: function (data) {
+                                   moment.locale('th');
+                                   return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                               }
+                           },
+                           {
+                               title: 'สถานะใช้งาน',
+                               data: 'IsActive',
+                               className: 'h-dt-center d-dt-center text-font-small',
+                               width: '10%',
+                               mRender: (data, type, full) => {
+
+                                   if (data == true) {
+                                       return 'ใช้งาน';
+                                   } else {
+                                       return 'ไม่ใช้งาน';
+                                   }
+
+                               }, width: '5%'
+                           },
+                       ],
+                       bLengthChange: false,
+                       //createdRow: function (row, data, index) {
+                       //    if (data.ClaimOnLineStatusId == 3) {
+                       //        $('td', row).addClass('selected');
+                       //    }
+                       //},
+
+           });
+    }
+    </script>
+}

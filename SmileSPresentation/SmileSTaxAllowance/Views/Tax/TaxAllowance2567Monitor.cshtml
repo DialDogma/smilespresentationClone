@@ -1,0 +1,221 @@
+﻿
+@{
+    ViewBag.Title = "ค้นหาใบลดหย่อนภาษี ประจำปี 2567";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">ค้นหาข้อมูล</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <label class="control-label">เลขบัตรประชาชน :</label>
+                            <input data-inputmask="'mask': '9-9999-99999-99-9'" id="txtIdCard" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <label class="control-label">ชื่อ :</label>
+                            <input type="text" class="form-control" placeholder="ชื่อ..." id="txtFirstName" name="txtFirstName">
+                        </div>
+                        <div class="col-sm-3">
+                            <label class="control-label">นามสกุล :</label>
+                            <input type="text" class="form-control" placeholder="นามสกุล..." id="txtLastName" name="txtLastName">
+                        </div>
+                        <div class="col-sm-2" style="padding-top:27px">
+                            <button type="button" class="btn btn-block btn-primary" id="btnSearch">ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">รายละเอียด</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="form-group row" style="width: 100%">
+                        <div class="col-sm-12">
+                            <table id="dtDetail" class="table table-bordered table-striped display" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        var AccCheckBox = [];
+        $(document).ready(function () {
+
+            $("#txtIdCard").inputmask("9-9999-99999-99-9");
+
+            $("#btnSearch").on('click', function (e) {
+
+                //GetMonitor
+                GetMonitor();
+
+                //window.alert($("#txtIdCard").val());
+                debugger;
+                $('#dtDetail').on('change', 'input[type="checkbox"]', function () {
+                    debugger;
+
+                    if (this.checked) {
+                        AccCheckBox.push(this.value);
+                        $(this).closest('tr').find('input[type="button"]').attr('disabled', false
+                        );
+                    } else {
+
+                        AccCheckBox.splice(AccCheckBox.indexOf(this.value), 1);
+                        $(this).closest('tr').find('input[type="button"]').attr('disabled', true
+                        );
+                    }
+
+                });
+
+                //GetSelectedRow();
+            });
+
+        })
+
+        function GetMonitor() {
+            $('#dtDetail').empty();
+            var table = $('#dtDetail').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                lengthChange: false,
+                //lengthMenu: [10, 20, 35, 50 ,100],
+                async: false,
+                ajax: {
+                    method: 'POST',
+                    async: false,
+                    url: '@Url.Action("GetTaxAllowance2567Monitor", "Tax")',
+                    data: function (d) {
+                        debugger;
+                        d.draw = d.draw;
+                        d.pageStart = d.start;
+                        d.pageSize = d.length;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.cardId = $("#txtIdCard").val();
+                        d.firstName = $("#txtFirstName").val();
+                        d.lastName = $("#txtLastName").val();
+                    }
+                },
+                columns: [
+                    { title: 'Id', data: 'No', className: 'dt-center'},
+                    { title: 'Company', data: 'Company', className: 'dt-center' },
+                    { title: 'Product', data: 'Product', className: 'dt-center' },
+                    { title: 'Detail', data: 'Detail' },
+                    { title: 'CardId', data: 'IDCard', className: 'dt-center' },
+                    //{ title: 'BuildingName', data: 'BuildingName' },
+                    //{ title: 'SubDistrict', data: 'SubDistrict' },
+                    //{ title: 'District', data: 'District' },
+                    //{ title: 'Province', data: 'Province' },
+                    {
+                        title: 'คำแจ้งเตือน',
+                        className: 'dt-center',
+                        render: function (data, type, row, meta) {
+
+                            return '**กรุณาตรวจสอบเอกสารยินยอมเปิดเผยเบี้ยประกันภัย**';
+                        }
+                    },
+                    {
+
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        targets:   0,
+                        data: 'Id',
+                        title: '',
+                        render: function (data, type, row, meta) {
+                            debugger;
+
+                            var Ischecked = ""
+
+                            if (AccCheckBox.includes(data) == true) {
+                                Ischecked = "checked"
+                                AccCheckBox.push(data);
+                            }
+
+                            return '<input type="checkbox" class="chk-row-select" ' + Ischecked + ' id="chkdtrow_' + data + '" name="chkdtrow_' + data + '" value="' + data+'" >';
+                        }
+                        ,width: "5%"
+                    },
+
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        data:null,
+                        title: 'Print',
+                        render: function (data, type, row, meta) {
+
+                            //return '<button name="button_1" id="button_1" class="btn btn-block btn-info"  value="เรียกดู" onclick="DoPrint2()"></button>'
+
+                            //return '<div class="col-sm-10" ><a onclick="DoPrint();"  class="btn btn-block btn-danger" ><i class="fa fa-fw fa-minus-circle"></i></a></div>';
+
+                            return `<input type="button" class="btn btn-block btn-info" onclick = "SaveLogDoprint(${data.Id},'${data.URL}')" value="เรียกดู"></input>`;
+                            //'${data}'
+                       }
+
+                    },
+                ],
+                    //select: {
+                    //    style:    'os',
+                    //    selector: 'td:first-child'
+                    //},
+                    //order: [[ 1, 'asc' ]]
+
+                createdRow: function (row, data, index) {
+                    $(row).closest('tr').find('input[type="button"]').attr('disabled', true);
+                },
+
+            });
+        }
+        function DoPrint(url) {
+
+                debugger;
+                var win = window.open(url, '_blank');
+                win.focus();
+         };
+
+        function SaveLogDoprint(allowanceId, url) {
+             $.ajax({
+            type: "POST",
+            url: "@Url.Action("SaveTaxPrintLog", "Tax")",
+            data: {
+                allowanceId: allowanceId
+            },
+            dataType: "json",
+            success: function (d) {
+                if (d.IsResult == true) {
+                    DoPrint(url)
+                } else {
+                    swal('', d.Msg, 'error');
+                }
+            }
+        });
+        }
+
+
+    </script>
+
+}
+

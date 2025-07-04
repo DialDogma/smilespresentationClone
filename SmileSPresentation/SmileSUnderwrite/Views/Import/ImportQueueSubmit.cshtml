@@ -1,0 +1,207 @@
+﻿
+@{
+    ViewBag.Title = "ImportQueueSubmit";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal" id="form1" action="@Url.Action("ExportToExcelByImportQueueHeaderID","Import", new { ImportQueueHeaderID  = @ViewBag.ImportQueueHeaderID })" method="post" enctype="multipart/form-data">
+
+    <input id="hdfImportQueueHeaderID" name="hdfImportQueueHeaderID" type="hidden" value="@ViewBag.ImportQueueHeaderID" />
+
+
+
+
+    <div class="row">
+
+        <div class="col-sm-12">
+
+            @if (ViewBag.IsResult == false)
+            {
+                <div id="form1_msg" class="alert alert-danger alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                    <h4><i class="icon fa fa-ban"></i> เตือน!</h4>
+                    รบกวนตรวจสอบรายการ Import
+                </div>
+            }
+
+            <input id="hdfIsResult" name="hdfIsResult" type="hidden" value="@ViewBag.IsResult" />
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ยืนยันการนำเข้ารายการ</h3>
+                </div>
+                <div class="box-body">
+
+                    <div class="form-group">
+
+                        <div class="col-sm-12">
+                            <table id="dtConfirmImport" class="table table-bordered table-striped" style="width:100%;"></table>
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-2 col-sm-offset-3">
+                            <button type="button" class="btn btn-block btn-success" id="btnConfirm" name="btnConfirm">ยืนยัน</button>
+                        </div>
+                        <div class="col-sm-2">
+                            @*<button type="button" class="btn btn-block btn-danger" id="" name="">ยกเลิก</button>*@
+                            <a href="@Url.Action("ImportQueue")" class="btn btn-block btn-danger">ยกเลิก</a>
+
+                        </div>
+                        <div class="col-sm-2">
+                            <button type="submit" class="btn btn-block btn-info" id="btnExport" name="btnExport">ExportToExcel</button>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+            
+            GetDatatableImportQueueDetail();
+
+            //Validate
+            //$('#ViewBag.IsResult').val();
+            if ($('#hdfIsResult').val() == false) {
+                $('#btnConfirm').prop('disabled', true);
+            } else {
+                $('#btnConfirm').prop('disabled', false);
+            }
+
+
+            $('#btnConfirm').click(function (e) {
+                
+                     window.swal({
+                         title: 'ยืนยันการทำรายการหรือไม่?',
+                         type: 'warning',
+                         showCancelButton: true,
+                         confirmButtonColor: '#277020',
+                         confirmButtonText: 'ตกลง',
+                         cancelButtonText: 'ยกเลิก',
+                         closeOnConfirm: false,
+                         closeOnEsc: false,
+                         closeOnCancel: true
+                     }, function (isConfirm) {
+                         if (isConfirm) {
+                             
+                             var headerId = $('#hdfImportQueueHeaderID').val();
+                             ConfirmImportQueue(headerId);
+
+                         }
+                     });
+            });
+
+        });
+
+        function ConfirmImportQueue(importQueueHeaderId)
+        {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("ConfirmImportQueue", "Import")',
+                data: {
+                    importQueueHeaderId: importQueueHeaderId
+                },
+                success: function (response) {
+                    if (response == true) {
+                        window.swal({
+                            title: 'ทำรายการสำเร็จ',
+                            type: 'success',
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            //GetDatatableQueue();
+                            //GetDatatableQueueEmployee();
+
+                             window.location = "@Url.Action("ImportQueue","Import")";
+
+                        });
+                    } else {
+                        window.swal({
+                            title: 'เกิดข้อผิดพลาด!',
+                            type: 'error',
+                            text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            window.location = "@Url.Action("InternalServerError","Error")";
+                        });
+                    }
+                }
+            });
+        }
+
+
+
+
+        function GetDatatableImportQueueDetail()
+        {
+            $('#dtConfirmImport').empty();
+            var table = $('#dtConfirmImport').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                ajax: {
+                    type: "POST",
+                    url: '@Url.Action("GetImportQueueDetail")',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.importQueueHeaderId = $('#hdfImportQueueHeaderID').val();
+                    }
+                },
+                columns: [
+
+                    { title: 'CreatedByEmpCode', data: 'CreatedByEmpCode' },
+                    { title: 'CreatedByName', data: 'CreatedByName' },
+                    { title: 'AssignToEmpCode', data: 'AssignToEmpCode' },
+                    { title: 'AssignToName', data: 'AssignToName' },
+                    { title: 'RefCode', data: 'RefCode' },
+                    { title: 'Detail01', data: 'Detail01' },
+                    { title: 'Detail02', data: 'Detail02' },
+                    { title: 'Detail03', data: 'Detail03' },
+
+                    {
+                        title: 'Result',
+                        data: 'IsResult',
+                        className: 'dt-center',
+                        mRender: function (data) {
+                            if (data == 1) {
+                                return '<label class="label label-success">ผ่าน</label>';
+                            } else {
+                                return '<label class="label label-danger">ไม่ผ่าน</label>';
+                            }
+
+                        }
+                    }
+
+                ]
+            });
+        }
+
+
+
+    </script>
+}

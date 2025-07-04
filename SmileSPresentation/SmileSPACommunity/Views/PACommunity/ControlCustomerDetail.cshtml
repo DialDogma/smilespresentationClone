@@ -1,0 +1,449 @@
+﻿
+@{
+    ViewBag.Title = "จัดการข้อมูลข้อมูลผู้เอาประกัน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<form class="form-horizontal" id="form1" name="form1" action="@Url.Action("ControlCustomerDetail")" method="post" enctype="multipart/form-data">
+
+    <div class="row">
+
+        <input type="hidden" id="hdfApplicationRoundID" hidden value="@ViewBag.ApplicationRoundID" />
+        <input type="hidden" id="hdfApplicationID" hidden value="" />
+
+        <div class="col-md-12">
+
+            @*ทั้งหน้าอยู่ในนี้*@
+
+            <div class="box box-warning">
+
+                <div class="box-header with-border">
+                    <h3 class="box-title">สรุปข้อมูลผู้เอาประกัน</h3>
+                </div>
+
+                @*box-body*@
+                <div class="box-body">
+
+                    <div class="box-group">
+
+                        <div class="col-xs-3">
+                            <label>Application ID:</label>
+                            <div class="input-group">
+                                <div class="input-group-addon bg-aqua">
+                                    <i class="fa fa-fw fa-heartbeat"></i>
+                                </div>
+                                <input type="text" class="form-control input-sm bg-aqua" disabled id="txtApplicationID" />
+                            </div>
+
+                        </div>
+                        <div class="col-xs-7">
+                            <label id="Pname">ชื่อกรมธรรม์</label>
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-fw fa-desktop"></i>
+                                </div>
+                                <input type="text" class="form-control input-sm" disabled id="txtPolicyName" />
+                            </div>
+
+                        </div>
+                        <div class="col-xs-2">
+                            <label>รอบที่</label>
+                            <input type="text" class="form-control input-sm" disabled id="txtRound" />
+                        </div>
+                        <div class="form-group">
+                            <div class="col-xs-3" style="padding-top:16px;text-align:right">
+                                <label>จำนวนที่สามารถนำเข้าได้</label>
+                            </div>
+                            <div class="col-xs-2" style="padding-top:8px;">
+                                <label>ชำระเบี้ย</label> <label id="txtCustomerBuyImport">0</label> <label>คน</label>
+                                <div class="progress xs">
+                                    <div class="progress-bar progress-bar-green" id="pgbCustomerBuyImport" style="width: 0%;" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-2 " style="padding-top:8px;">
+                                <label>รับสิทธิ์ฟรี</label> <label id="txtCustomerFreeImport">0</label> <label>คน</label>
+                                <div class="progress xs">
+                                    <div class="progress-bar progress-bar-aqua" id="pgbCustomerFreeImport" style="width: 0%;" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-1 " style="padding-top:8px;">
+                            </div>
+                        </div>
+
+                        <div class="col-xs-2" style="padding-top:-5px;">
+                            <button type="button" class="btn btn-block btn-success" id="btnAddCustomer">เพิ่มผู้เอาประกัน</button>
+                        </div>
+                        <div class="col-xs-2">
+                            <button type="button" class="btn btn-block btn-danger" id="btnDelCustomerAll">ลบผู้เอาประกันทั้งหมด</button>
+                        </div>
+
+
+
+
+                    </div>
+                </div>
+            </div>
+
+
+            @*------------------------------------รายชื่อ-----------------------------------------------------------*@
+
+            <div class="box box-warning">
+
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายชื่อผู้เอาประกัน</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+
+
+
+                <div class="box-body">
+                    <div class="box-group">
+                        <table id="dtCustomerDetail" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+<script>
+    $(function () {
+        GetApplicationRoundByID();
+
+    });
+
+
+    $('#btnAddCustomer').click(function (e) {
+        debugger;
+
+        e.preventDefault();
+        var Con = Number($('#txtCustomerBuyImport').text()) + Number($('#txtCustomerFreeImport').text());
+        if (Con > 0) {
+            OpenTabEditCustomerDetail($('#hdfApplicationRoundID').val(), null);
+        } else {
+            swal("ตรวจสอบข้อมูล", "มีรายชื่อนำเข้าครบแล้ว", "warning")
+        }
+
+    });
+
+
+    $('#btnDelCustomerAll').click(function (e) {
+        e.preventDefault();
+        DeleteCustomerAll($('#hdfApplicationRoundID').val());
+    });
+
+
+    const GetApplicationRoundByID = () => {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("GetApplicationRoundByID", "PACommunity")',
+            data: {
+                applicationRoundID: $('#hdfApplicationRoundID').val()
+            },
+            dataType: "json",
+            success: function (response) {
+                $('#txtApplicationID').val(response.ApplicationCode);
+                $('#txtPolicyName').val(response.ApplicationName);
+                $('#txtRound').val(response.Round);
+                $('#txtCustomerBuyImport').text(response.CustomerBuyBalance);
+                $('#txtCustomerFreeImport').text(response.CustomerFreeBalance);
+
+                let v_custBuy = (response.CustomerBuyImport / response.CustomerBuyTotal) * 100;
+                let v_custFree = (response.CustomerFreeImport / response.CustomerFreeTotal) * 100;
+
+                $('#pgbCustomerBuyImport').attr('aria-valuenow', v_custBuy).css('width', v_custBuy + "%");
+                $('#pgbCustomerFreeImport').attr('aria-valuenow', v_custFree).css('width', v_custFree + "%");
+                $('#hdfApplicationID').val(response.ApplicationId)
+
+                var dd = response.ApplicationId;
+                GetCustomerDetail();
+            }
+        });
+    }
+
+
+    const DeleteCustomerDetail = (CustomerDetailId) => {
+
+             window.swal({
+             title: 'ยืนยันการลบรายชื่อหรือไม่?',
+             type: 'warning',
+             showCancelButton: true,
+             confirmButtonColor: '#277020',
+             confirmButtonText: 'ตกลง',
+             cancelButtonText: 'ยกเลิก',
+             closeOnConfirm: false,
+             closeOnEsc: false,
+             closeOnCancel: true
+         }, function () {
+
+              $.ajax({
+                type: "POST",
+                url: '@Url.Action("DoDeleteCustomerDetail", "PACommunity")',
+
+                data: {
+                    CustomerDetailId: CustomerDetailId
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        debugger;
+                        if (response[0] == "True") {
+                            window.swal({
+                            title: 'รายการ' ,
+                            type: 'success',
+                            text: 'ทำรายการสำเร็จ',
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false,
+                            className: "text"
+                            }, function () {
+
+                                GetCustomerDetail();
+
+                            });
+                        } else {
+                            window.swal({
+                            title: 'ทำรายการไม่สำเร็จ' ,
+                            type: 'error',
+                            text: response[2],
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false,
+                            className: "text"
+                            }, function () {
+                                //GetDatatableQueue();
+                                //GetDatatableQueueEmployee();
+                                @*window.location = "@Url.Action("ClaimOnLine","ClaimOnLine")";*@
+                            });
+                        }
+                    }
+            });
+
+
+
+         });
+
+
+    }
+
+    const DeleteCustomerAll = (ApplicationRoundID) => {
+
+             window.swal({
+             title: 'ยืนยันการลบรายชื่อทั้งหมดหรือไม่?',
+             type: 'warning',
+             showCancelButton: true,
+             confirmButtonColor: '#277020',
+             confirmButtonText: 'ตกลง',
+             cancelButtonText: 'ยกเลิก',
+             closeOnConfirm: false,
+             closeOnEsc: false,
+             closeOnCancel: true
+         }, function () {
+
+              $.ajax({
+                type: "POST",
+                url: '@Url.Action("DoDeleteCustomerByApplicationRoundId", "PACommunity")',
+
+                data: {
+                    ApplicationRoundId: ApplicationRoundID
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        debugger;
+                        if (response[0] == "True") {
+                            window.swal({
+                            title: 'ทำรายการสำเร็จ' ,
+                            type: 'success',
+                            text: response[2],
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false,
+                            className: "text"
+                            }, function () {
+
+                                GetApplicationRoundByID();
+
+                            });
+                        } else {
+                            window.swal({
+                            title: 'ทำรายการไม่สำเร็จ' ,
+                            type: 'error',
+                            text: response[2],
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false,
+                            className: "text"
+                            }, function () {
+                                //GetDatatableQueue();
+                                //GetDatatableQueueEmployee();
+                                @*window.location = "@Url.Action("ClaimOnLine","ClaimOnLine")";*@
+                            });
+                        }
+                    }
+            });
+
+
+
+         });
+
+
+    }
+
+    const OpenTabEditCustomerDetail = (applicationid, CustomerDetailId) => {
+
+        let en_appRoundID = window.btoa(applicationid);
+        var en_CustomerDetailID;
+
+        if (CustomerDetailId == null) {
+            en_CustomerDetailID = null;
+        } else {
+            en_CustomerDetailID = window.btoa(CustomerDetailId);
+        }
+
+
+
+        bob = window.open('', '_blank');
+        bob.location = "@Url.Action("AddCustomerDetail", "PACommunity")?ApplicationRoundId=" + en_appRoundID + "&CustomerDetailId=" + en_CustomerDetailID +"";
+    }
+
+
+    const GetCustomerDetail = () => {
+
+        var t = $('#dtCustomerDetail').DataTable({
+
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetCustomerDetail", "PACommunity")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.CustomerDetailId = null;
+                        d.applicatonRoundId = $('#hdfApplicationRoundID').val();
+                        d.applicatonId = $('#hdfApplicationID').val();
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+
+                    }
+                },
+
+                columns: [
+
+                    { title: 'Memder ID', data: 'CustomerDetailCode', width: '10%'},
+                    { title: 'ชื่อ-นามสกุล', data: 'CustomerName', width: '100%' },
+                    { title: 'บัตรประชาชน', data: 'IdCardNumber', className: 'dt-center', width: '10%'} ,
+                    { title: 'Passport', data: 'PassPortNumber', width: '10%'},
+
+                    {
+                        title: 'วันเกิด', data: 'BirthDate', className: 'dt-center'
+                        , mRender: function (data) {
+                            moment.locale('th');
+                            //return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                            var d = moment(data);
+                            return `${d.format("DD/MM")}/${d.year() + 543}`;
+                        }, width: '10%'
+                    },
+                    { title: 'อายุ', data: 'AgeAtRegister_Y', className: 'dt-center', width: '10%'},
+                    { title: 'อาชีพ', data: 'Occupation', width: '10%' },
+                    { title: 'เบอร์โทร', data: 'MobileNumber', width: '10%' },
+                    { title: 'ฟรี', data: 'CustomerDetailType' },
+
+                    { title: 'สถานะ', data: 'CustomerDetailStatus' },
+                    
+                   
+                    {
+                        title: 'วันที่มีผล', data: 'CustomerDetailStartCoverDate', className: 'dt-center'
+                        , mRender: function (data) {
+                            moment.locale('th');
+                            //return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                            var d = moment(data);
+                            return `${d.format("DD/MM")}/${d.year() + 543}`;
+                        }, width: '10%'
+                    },
+
+                    {
+                        data: null,
+                        mRender: (data, type, full) => {
+                            return '<a  type="button" class="btn-warning btn" onclick="OpenTabEditCustomerDetail(\'' + $('#hdfApplicationRoundID').val() + '\' ,\'' + data.CustomerDetailId + '\' );" ; >แก้ไข</a >';
+                        }, width: '5%'
+                    },
+                    {
+                        data: null,
+                        mRender: (data, type, full) => {
+                            return '<a  type="button" class="btn-danger btn" onclick="DeleteCustomerDetail(\'' + data.CustomerDetailId + '\');" ; >ลบ</a >';
+                        }, width: '5%'
+                    },
+                ],
+
+
+                //createdRow: function (row, data, index) {
+                //    if (data.ClaimOnLineStatusId == 3) {
+                //        $('td', row).addClass('selected');
+                //    }
+                //},
+        });
+
+
+
+
+    }
+
+    $(document).ready(function () {
+        // Reference the auto-generated proxy for the hub.
+        var chat = $.connection.myHub;
+        debugger;
+        //Start Connection
+        $.connection.hub.start().done(function () {
+            //join group
+            chat.server.joinGroup(@ViewBag.userID);
+            chat.server.sendNotice("", "");
+
+        });
+
+        //Show addNewNotice to client
+        chat.client.sendNoticeResult = function (Str1, Str2) {
+            debugger;
+
+            GetApplicationRoundByID();
+        };
+    });
+
+
+    $(document).ready(function () {
+        debugger;
+            // Reference the auto-generated proxy for the hub.
+            var chat = $.connection.myHub;
+
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                debugger;
+                //join group
+                chat.server.joinGroup(@ViewBag.userID);
+
+                chat.server.sendNotice("", "");
+            });
+    });
+
+
+</script>
+}

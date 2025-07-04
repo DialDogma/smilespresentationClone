@@ -1,0 +1,208 @@
+﻿@{
+                /**/
+
+                ViewBag.Title = "การจัดการคิวงานตามสาขา";
+                Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-primary" style="margin-top:44px">
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <table id="dtManagementQueueByBranch" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- /.modal-dialog -->
+<div class="modal fade in" id="modal-EditBranchPerson" style="display: none; padding-right: 5px;">
+    <div class="modal-dialog" style="width:20%">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">แก้ไขผู้รับผิดชอบ</h3>
+            </div>
+            <div class="box-body">
+                <div class="row" style="padding-top: 5px;">
+                    <div class="col-xs-8 col-xs-offset-2">
+                        <label>สาขา :</label>
+                        <label id="lblBranch" name="lblBranch"></label>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 5px;">
+                    <div class="col-xs-8 col-xs-offset-2">
+                        <label>ผู้รับผิดชอบคนเดิม :</label>
+                        <label id="lblBranchPerson" name="lblBranchPerson"></label>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 5px;">
+                    <div class="col-xs-8 col-xs-offset-2">
+                        <label>ผู้รับผิดชอบคนใหม่ :</label>
+                        <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlEmployee">
+
+                            <option value="-1">--ทั้งหมด--</option>
+                            @{
+                                foreach (var item in ViewBag.Employee)
+                                {
+                                    <option value="@item.PersonID">@item.EmployeeCode+" "+@item.FullName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 5px;">
+                    <div class="col-xs-12" style="text-align:center">
+                        <button type="button" class="btn btn-success" id="btnSaveUpdate"><i class="glyphicon glyphicon-ok"></i>ตกลง</button>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="glyphicon glyphicon-remove"></i>ยกเลิก</button>
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+</div>
+<input type="hidden" id="hdfBranchId" />
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            //แสดงGrid
+            DoShowGrid()
+        });
+
+        //บันทึกแก้ไข
+        $('#btnSaveUpdate').click(function (e) {
+            e.preventDefault();
+            swal({
+                title: "",
+                text: "ยืนยันการบันทึกรายการ",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "ตกลง",
+                cancelButtonText: "ยกเลิก",
+                closeOnConfirm: false,
+                closeOnCancel: true
+            },
+                function (IsvalidateUpdateSave) {
+                    if (IsvalidateUpdateSave) {
+                        DoSave();
+                    } else {
+                        //swal("ยกเลิกทำรายการ", "", "error");
+                    }
+                }
+            );
+
+        });
+
+        const IsvalidateUpdateSave = () => {
+            if ($('#ddlEmployee').val() == "-1") {
+                swal("ตรวจสอบข้อมูล", "กรุณาเลือก ผู้รับผิดชอบคนใหม่", "warning");
+                return false;
+            }
+
+            return true;
+        }
+
+        function DoShowGrid() {
+            $('#dtManagementQueueByBranch').empty();
+            let t = $('#dtManagementQueueByBranch').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                "autoWidth": false,
+                ajax: {
+                    url: '@Url.Action("GetMonitorManageQueueByBranch", "ManageController")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    { titel: 'id', data: "Branch_ID" },
+                    { title: 'สาขา', data: "BranchDetail" },
+                    { title: 'ผู้รับผิดชอบคิวงาน', data: "BranchPerson" },
+                    {
+                        title: 'แก้ไข', data: null, width: '5%',
+                        mRender: function (data) {
+                            return '<button type="button"  class="btn btn-warning btn-sm" id="btnEdit' + data.Area_ID + '"><i class="glyphicon glyphicon glyphicon-pencil ColorWhite"></i>แก้ไข</button>'
+                        }
+                    }],
+                bLengthChange: false,
+                'columnDefs': [
+                    {
+                        "targets": [0],
+                        "visible": false
+                    }],
+                "oLanguage": {
+                    "sSearch": "ค้นหาจากสาขา, ผู้รับผิดชอบ :"
+                }
+            });
+
+            $('#dtManagementQueueByBranch tbody').on('click', 'td button', function () {
+                //Clear
+                document.getElementById('lblBranch').innerHTML = "";
+                document.getElementById('lblBranchPerson').innerHTML = "";
+                $("#ddlEmployee").val('-1').trigger('change.select2');
+
+                //Get data for show
+                var table = $('#dtAreaManagement').DataTable();
+                var data = table.row($(this).closest('tr')).data()
+                let BranchId = data.Branch_ID;
+                let BranchDetail = data.BranchDetail;
+                let BranchPerson = data.BranchPerson;
+                $('#hdfBranchId').val(BranchId);
+                document.getElementById('lblBranch').innerHTML = BranchDetail;
+                document.getElementById('lblBranchPerson').innerHTML = BranchPerson;
+                $('#modal-EditBranchPerson').addClass("modal_itemcenter");
+                $('#modal-EditBranchPerson').modal('show');
+            });
+        }
+
+        function DoSave() {
+            //Check
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("DoUpdateManageQueueByBranch", "ManageController")',
+                data: {
+                    branchId: $('#hdfBranchId').val(),
+                    empId: $('#ddlEmployee').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    if (response != null) {
+                        if (response[0] == "True") {
+                            $('#modal-EditBranchPerson').modal('hide');
+                            swal("สำเร็จ", response[2], "success");
+                            DoShowGrid();
+                        }
+                        else { swal("ไม่สำเร็จ", response[2], "error"); }
+                    }
+                    else { swal("เกิดข้อผิดพลาด", "", "error"); }
+                },
+                error: function (response) {
+                    swal("เกิดข้อผิดพลาด", response[2], "error");
+                }
+
+            });
+        }
+    </script>
+}

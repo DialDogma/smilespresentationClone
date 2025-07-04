@@ -1,0 +1,418 @@
+﻿
+@{
+    ViewBag.Title = "นำเข้าไฟล์คุมเอกสาร";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .custom-file-input {
+        display: inline-block;
+        overflow: hidden;
+        position: relative;
+    }
+
+        .custom-file-input input[type="file"] {
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            filter: alpha(opacity=0);
+            zoom: 1; /* Fix for IE7 */
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 999;
+        }
+</style>
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">นำเข้าไฟล์คุมเอกสาร</h3>
+                </div>
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-xs-7 col-xs-offset-1" style="padding-right:0px">
+                                <label>เลือกไฟล์เพื่อนำเข้า:</label>
+                                @*เลือกไฟล์ excel*@
+                                <div class="custom-file-input">
+                                    <div class="input-group">
+                                        <div class="input-group-btn">
+                                            <input type="button" id="btnUpload" class="btn btn-primary" value="เลือกไฟล์">
+                                        </div>
+                                        <input type="file" class="form-control" id="ImportFile" accept=".xls, .xlsx">
+                                        <input type="text" id="txtFileName" class="form-control" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-2" style="padding-top:25px; padding-left:0px">
+                                <button type="button" style="" class="btn btn-danger" id="btnClear" onclick="DoClearBrowseFile()"><i class="glyphicon glyphicon-remove"></i> ล้าง</button>
+                            </div>
+                            <div class="col-xs-2" style="padding-top:25px">
+                                @*<button type="button" style="" class="btn btn-warning" id="btnClear"><i class="glyphicon glyphicon-upload"></i> clear</button>*@
+                                <button type="button" style="width:70%" class="btn btn-warning" id="btnImport" disabled><i class="glyphicon glyphicon-upload"></i> นำเข้า</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="" id="boxApplicationList">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">รายการข้อมูลนำเข้า</h3>
+                    </div>
+                    <div class="box-body">
+                        <div style="text-align:right">
+                            <button type="button" class="btn btn-primary" style="text-decoration:none" id="btnExport"><i class="glyphicon glyphicon-download-alt"></i> Export</button>
+                        </div>
+                        <table id="dtAppList" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                    </div>
+                    <div class="box-footer">
+                        <div class="" style="text-align:center;padding-top:15px" id="divbtnSave">
+                            <button type="button" class="btn btn-success" id="btnComfirmImport">ยืนยันการนำเข้าเอกสาร</button>
+                            <button type="button" class="btn btn-danger" id="btnClearImport">ล้างข้อมูล เริ่มใหม่ทั้งหมด</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="hdfTmpCode" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script>
+        $(document).ready(function () {
+            document.getElementById("boxApplicationList").style.display = "none"; // hide
+            debugger;
+
+            $('.custom-file-input input[type="file"]').change(function (e) {
+                debugger;
+
+                var filePath = $(this).val();
+                if (filePath != "") {
+                    $("#txtFileName").val(this.files[0].name);
+                    $('#btnImport').prop('disabled', false);
+                    $('#btnUpload').prop('disabled', false);
+                }
+                else
+                {
+                    $("#txtFileName").val("");
+                    document.getElementById("boxApplicationList").style.display = "none"; // hide
+                }
+
+            });
+
+            //document.getElementById('uploadTestSheet').value = '';
+
+            $('.custom-file-input input[type="file"]').on('filebrowse', function (event) {
+                debugger;
+                console.log("File browse triggered.");
+            });
+
+            $("#btnExport").click(function (e) {
+                e.preventDefault();
+                getDownloadLink();
+            });
+
+            $("#btnComfirmImport").click(function (e) {
+                e.preventDefault();
+
+                window.swal({
+                    title: 'ยืนยันการทำรายการหรือไม่?',
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#277020',
+                    confirmButtonText: 'ตกลง',
+                    cancelButtonText: 'ยกเลิก',
+                    closeOnConfirm: false,
+                    closeOnEsc: false,
+                    closeOnCancel: true
+                }, function () {
+
+                    DoConfirmImportFile();
+                    debugger;
+                });
+            });
+
+            $('#btnImport').click(function (e) {
+                e.preventDefault();
+                DoUploadFile();
+                $('#btnImport').prop('disabled', true);
+            });
+
+            $('#btnClearImport').click(function (e) {
+                e.preventDefault();
+                window.swal({
+                    title: 'ยืนยันการทำรายการหรือไม่?',
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#277020',
+                    confirmButtonText: 'ตกลง',
+                    cancelButtonText: 'ยกเลิก',
+                    closeOnConfirm: true,
+                    closeOnEsc: true,
+                    closeOnCancel: true
+                }, function () {
+
+                    //DoDeleteCustomerDetailImport();
+                    DoClearCustomerCount();
+
+                });
+
+            });
+
+        });
+        ///////////////////////// function ////////////////////////////////
+
+        //const handleImageUpload = event => {
+        //    const files = event.target.files
+        //    const formData = new FormData()
+        //    formData.append('file', files[0])
+        //    debugger;
+        //    fetch('/saveImage', {
+        //        method: 'POST',
+        //        body: formData
+        //    })
+        //        .then(response => response.json())
+        //        .then(data => {
+        //            console.log(data)
+        //        })
+        //        .catch(error => {
+        //            console.error(error)
+        //        })
+        //}
+
+        const DoClearBrowseFile = () => {
+            debugger;
+            document.getElementById('ImportFile').value = '';
+            $("#txtFileName").val("");
+        }
+
+        const DoClearCustomerCount = () => {
+            $('#txtFileName').val('');
+            document.getElementById('ImportFile').value = '';
+
+            $('#hdfTmpCode').val('');
+            document.getElementById("boxApplicationList").style.display = "none"; // hide
+        }
+        const DoUploadFile = () => {
+            var data = new FormData();
+            data.append("file", jQuery("#ImportFile").get(0).files[0]);
+            if (data == null)
+            {
+                swal("", "ไฟล์ถูกเรียกใช้จากโปรแกรมอื่น กรุณาปิดExcelนี้ก่อน", "warning");
+                return;
+            }
+            //const formData = new FormData();
+            //formData.append('file', files[0]);
+            //debugger;
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("ImportExcelPolicyFile", "PACommunity")',
+            data: function () {
+                debugger;
+                var data = new FormData();
+                data.append("file", jQuery("#ImportFile").get(0).files[0]);
+                //data.append("file", this.files[0]);
+                return data;
+            }(),
+            contentType: false,
+            processData: false,
+            async: false,
+            //dataType: "json",
+            success: function (response) {
+                debugger;
+                if (response == false) {
+                    //alert("กรุณาตรวจสอบไฟล์");
+                    $('#dtAppList').empty();
+                    swal("", "กรุณาตรวจสอบไฟล์", "warning");
+                    //$('#btnupload').prop('disabled', false);
+                    //$('#ImportFile').prop('disabled', false);
+                    document.getElementById("boxApplicationList").style.display = "none"; // hide
+                }
+                else {
+                    if (response[0] == "True" && response[1] == "1") {
+                        $('#hdfTmpCode').val(response[3]);
+
+                        //alert(response[2]);
+                        debugger;
+                        document.getElementById("boxApplicationList").style.display = "block"; // show
+                        //Load Overview
+                        GetPolicyImportOverView();
+
+                        //Open button
+                        //$("#Notification").hide();
+                        $('#btnComfirmImport').attr("disabled", false);
+                        //$('#btnClearImport').attr("disabled", false);
+
+                    } else if (response[0] == "True" && response[1] == "0") {
+
+                        $('#hdfTmpCode').val(response[3]);
+                        debugger;
+                        //Load Error
+                        //GetPolicyImportError();
+                        document.getElementById("boxApplicationList").style.display = "block"; // show
+                        GetPolicyImportOverView();
+
+                        //Close button
+                        $('#btnComfirmImport').attr("disabled", true);
+                        //$('#btnClearImport').attr("disabled", false);
+
+                    } else {
+                        swal("", response[2], "warning");
+                        $('#dtAppList').empty();
+                        //Close button
+                        $('#btnComfirmImport').attr("disabled", true);
+                        //$('#btnClearImport').attr("disabled", false);
+                        document.getElementById("boxApplicationList").style.display = "none"; // hide
+
+                    }
+                }
+            }
+        });
+        }
+
+        const DoConfirmImportFile = () => {
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("DoConfirmImportPolicyList", "PACommunity")',
+            data: {
+                tmpCode: $('#hdfTmpCode').val()
+            },
+            async: false,
+            dataType: "json",
+            success: function (response) {
+
+                if (response[0] == "True" && response[1] == "Success") {
+                    window.swal({
+                        title: 'รายการ',
+                        type: 'success',
+                        text: response[2],
+                        showCancelButton: false,
+                        confirmButtonColor: '#26A65B',
+                        confirmButtonText: 'ตกลง',
+                        closeOnEsc: false,
+                        className: "text"
+                    }, function () {
+
+                        //DoClearDT
+                        //$('#btnupload').prop('disabled', false);
+                        //$('#ImportFile').prop('disabled', false);
+                        $('#dtAppList').empty();
+                        $('#hdfTmpCode').val('');
+
+                        //GetApplicationRoundByID();
+
+                        //Closed button
+                        $('#btnComfirmImport').attr("disabled", true);
+                        $('#btnClearImport').attr("disabled", true);
+
+                    });
+                } else {
+                    window.swal({
+                        title: 'ทำรายการไม่สำเร็จ',
+                        type: 'error',
+                        text: response[2],
+                        showCancelButton: false,
+                        confirmButtonColor: '#26A65B',
+                        confirmButtonText: 'ตกลง',
+                        closeOnEsc: false,
+                        className: "text"
+                    }, function () {
+
+                        //Closed button
+                        $('#btnComfirmImport').attr("disabled", true);
+                        $('#btnClearImport').attr("disabled", false);
+                    });
+                }
+            }
+        });
+        }
+
+        const GetPolicyImportOverView = () => {
+            $('#dtAppList').empty();
+            var t = $('#dtAppList').DataTable({
+              pageLength: 10,
+                lengthChange: false,
+                info: false,
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetTmpPolicyNumberList", "PACommunity")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.pageSize;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.tmpCode = $('#hdfTmpCode').val();
+                    }
+                },
+                columns: [
+                    { title: 'App ID', data: 'ApplicationCode' },
+                    { title: 'Ref NO.', data: '' },
+                    { title: 'Type', data: '' },
+                    { title: 'Ref NO.', data: '' },
+                    { title: 'PolicyNo.', data: 'PolicyNo' },
+                    { title: 'PolicyName', data: '' },
+                    { title: 'FileName', data: ''},
+                ],
+                bLengthChange: false,
+        });
+        }
+
+        function getDownloadLink() {
+            loadingSpinner('fadeIn', 999999);
+            $.ajax({
+                url: "@Url.Action("ExportPolicyNoQueueReport", "PACommunity")",
+                type: "POST",
+                data: {
+                    tempID: $('#hdfTmpCode').val()
+                },
+                success: function (data) {
+                    window.location = "@Url.Action("DownloadPolicyNoQueueReport")";
+                    loadingSpinner('fadeOut');
+                },
+                 error: function (jqXHR, exception) {
+                     checkXHRStatus(jqXHR.status);
+                     loadingSpinner('fadeOut');
+                 }
+            });
+        }
+
+        function checkXHRStatus(xhrStatus) {
+            var msg = '';
+            if (xhrStatus === 0) {
+                msg = 'Not connect.\n Verify Network.';
+            } else if (jqXHR.status == 404) {
+                msg = 'Requested page not found. [404]';
+            } else if (jqXHR.status == 500) {
+                msg = 'Internal Server Error [500].';
+            } else if (exception === 'parsererror') {
+                msg = 'Requested JSON parse failed.';
+            } else if (exception === 'timeout') {
+                msg = 'Time out error.';
+            } else if (exception === 'abort') {
+                msg = 'Ajax request aborted.';
+            } else {
+                msg = 'Uncaught Error.\n' + jqXHR.responseText;
+            }
+            swal("ไม่สำเร็จ", msg, "error");
+        }
+    </script>
+}
+
+

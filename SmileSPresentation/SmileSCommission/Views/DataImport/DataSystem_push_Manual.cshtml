@@ -1,0 +1,231 @@
+﻿@{
+    ViewBag.Title = "นำเข้าข้อมูลค่าตอบแทน Manual";
+
+}
+<style>
+    .table {
+        font-size: 14px
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* Search form *@
+        <div class="col-sm-12" id="Search_form">
+            <div class="box box-default">
+                <div class="box-header">
+                    <div class="box-tools pull-right">
+                        <h6>หมายเหตุ: @ViewBag.description</h6>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class=" col-sm-3">
+                            <h4>งวดค่าตอบแทนที่ : @ViewBag.payPeriod</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* Dt form *@
+        <div class="col-sm-12" id="Detail_form">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtShowDataSource" name="dtShowDataSource" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* modal *@
+    <div class="modal fade bd-notiSendModal" id="notiSendModal" tabindex="-1" role="dialog" aria-labelledby="notiSendModal" aria-hidden="true">
+        <div class="modal-dialog  modal-md " role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">แจ้งแก้ไขข้อมูล</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-3" style="text-align:right">
+                                เหตุผล :
+                            </div>
+                            <div class="col-sm-8">
+                                <select class="form-control select2" tabindex="-1" aria-hidden="True" id="ddlCause" name="ddlCause">
+                                    @foreach(var itm in ViewBag.causeList)
+                                    {
+                                        <option value="@itm.Id">@itm.Detail</option>
+                                    }
+                                </select>
+                            </div>
+                            <input type="hidden" name="hd_dtsId" id="hd_dtsId" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-3" style="text-align:right">
+                                หมายเหตุ :
+                            </div>
+                            <div class="col-sm-8">
+                                <textarea rows="5" style="width: 100%" name="txtRemark" id="txtRemark"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-sm-offset-3 col-sm-3">
+                        <button type="button" class="btn btn-block btn-success" onclick="SubmitNoti()">ตกลง</button>
+                    </div>
+                    <div class="col-sm-3">
+                        <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ยกเลิก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end modal *@
+    @* hidden *@
+    <input type="hidden" id="hd_periodId" value="@ViewBag.periodId" />
+    @* end *@
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            //select datepicker year
+            $('#yearSelect').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker("setDate", new Date());
+            $('#yearSelect').attr('readonly', true).datepicker("destroy");
+            $('#yearSelect').unbind('focus');
+
+            CallPeriodDataSource($('#hd_periodId').val());
+        });
+
+        //Data Source tab
+        const CallPeriodDataSource = (periodId) => {
+            $('#dtShowDataSource').empty();
+            var table = $('#dtShowDataSource').DataTable({
+                 lengthChange: false,
+                 info:false,
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetDatasourceImportLog","DataImport")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 99;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.periodId = periodId;
+                    }
+                },
+                columnDefs: [{
+                    searchable: false,
+                    orderable: false,
+                    targets: 0
+                }],
+                columns: [
+                    { title: 'ลำดับ', data: null, orderable: false },
+                    { title: 'Data Source', data: 'DataSourceName' },
+                    { title: 'ผู้นำเข้าข้อมูล', data: 'ImportedByName' },
+                    {
+                        title: 'วันที่ส่งข้อมูล', data: 'ImportedDateTime',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY HH:mm:ss');
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    {
+                        title: 'ตรวจสอบ',
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center col-sm-1',
+                        mRender: function (data) {
+                            if (data.Status_Id == "2") {
+                                 return '<a type="button" class="btn btn-block btn-default" id="btnDownload_' + data.Id
+                                    + '" onclick="Download(\'' + data.DataSourceName + '\')" >ตรวจสอบ <span class="fa fa-search"></span></a>';
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    { title: 'สถานะ', className: 'dt-center', data: 'Status' },
+                    {
+                        title: 'ส่งข้อมูล',
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center col-sm-1',
+                        mRender: function (data) {
+                            if (data.Status_Id == 2) {
+                                return '<a type="button" class="btn btn-block btn-warning" id="btnAlert_' + data.Id
+                                    + '" data-toggle="modal" data-target=".bd-notiSendModal" onclick="AlertNoti(' + data.Id + ')">แจ้งแก้ไขข้อมูล <i class="fa fa-edit"></i></a>';
+                            } else {
+                                return '<a type="button" class="btn btn-block btn-success" id="btnSendData_' + data.Id
+                                    + '" onclick="SendData(' + data.Id + ')">นำเข้าข้อมูล <i class="fa  fa-database"></i></a>';
+                            }
+
+                        }
+                    }
+                ]
+            });
+            table.on('draw.dt', function () {
+                var PageInfo = $('#dtShowDataSource').DataTable().page.info();
+                table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                });
+            });
+        }
+
+        const SendData = (dtsId) => {
+            //get link import data
+            $.get('@Url.Action("GetDataSourceDetail","DataImport")', { periodId: $('#hd_periodId').val(), datasourceId: dtsId }, (data) => {
+                var avoid = "D_";
+                var cutD = data.DataSourceName.replace(avoid,'');
+                window.open("http://uat.siamsmile.co.th:9128/"+cutD+"/index",'_blank');
+            });
+        }
+
+        const AlertNoti = (dtsId) => {
+            $('#hd_dtsId').val(dtsId);
+        }
+
+        const SubmitNoti = () => {
+            swal_confirm("ยืนยัน", "ต้องการส่งแจ้งเตือนใช่หรือไม่?", function () {
+
+                $.post('@Url.Action("UpdateNotify","DataImport")',
+                    {
+                        dtsId: $('#hd_dtsId').val(),
+                        editCauseId: $('#ddlCause').val(),
+                        editRemark:$('#txtRemark').val()
+                    }, function (data) {
+                    if (data.IsResult) {
+                        swal_success(setTimeout(function () {
+                            window.location = ('@Url.Action("DataSystem_push_SSS","DataImport")');
+                        },2000));
+                    } else {
+                        swal_fail("Fail:" + data.Msg);
+                    }
+                });
+
+            });
+        }
+
+        const Download = (dtsName) => {
+             window.location = ('@Html.Raw(Url.Action("DownloadDts","Compensation"))?periodId='+$('#hd_periodId').val()+'&modelName='+dtsName) ;
+        }
+    </script>
+}

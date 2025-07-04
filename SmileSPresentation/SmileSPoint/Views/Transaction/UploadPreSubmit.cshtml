@@ -1,0 +1,118 @@
+﻿@{
+    ViewBag.Title = "ยืนยันการนำเข้ารายการ";
+}
+<form class="form-horizontal" id="form1" action="@Url.Action("UploadSubmit")" method="post" enctype="multipart/form-data">
+
+    @* Hidden field to Postback ID*@
+    <input type="hidden" name="PreImportHeaderId" value="@ViewBag.PreImportHeaderId" />
+
+    @* Errors *@
+    @if (ViewBag.ErrorList != null)
+    {
+        <div class="alert alert-error alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+            <h4><i class="icon fa fa-warning"></i> ผลการทำงาน </h4>
+            พบข้อผิดพลาด !! ไม่พบ Account ในระบบ
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <table id="datatable1" class="table table-bordered table-striped" cellspacing="0" width="100%">
+                        <thead>
+                            <tr>
+                                <th>เลขที่ Account</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                        <tbody>
+                            @foreach (var item in ViewBag.ErrorList)
+                            {
+                                <tr>
+                                    <td>@item</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+        <!-- /.box-body -->
+
+        <div class="box-footer" style="display: flex; align-items: center;justify-content: center ">
+            <a href="@Url.Action("UploadAddPoint")" class="btn btn-danger"><i class="fa fa-times"></i> ยกเลิก</a>
+        </div>
+        <!-- /.box-footer -->
+
+    }
+
+    @*มี Errors*@
+    else
+    {
+
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <table id="datatable1" class="table table-bordered table-striped" cellspacing="0" width="100%">
+                        <thead>
+                            <tr>
+                                <th>แผนก</th>
+                                <th>ประเภทรายการ</th>
+                                <th>ประเภท Point Account</th>
+                                <th>จำนวนรายการ</th>
+                                <th>จำนวน Point</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th style="text-align:right;">@ViewBag.ItemCount.ToString("#,##0.00")</th>
+                                <th style="text-align:right;">@ViewBag.ItemSum.ToString("#,##0.00")</th>
+                            </tr>
+                        </tfoot>
+                        <tbody>
+                            @foreach (var item in ViewBag.List)
+                            {
+                                <tr>
+                                    <td>@item.TransactionGroupName</td>
+                                    <td>@item.TransactionTypeName</td>
+                                    <td>@item.PointAccountTypeName</td>
+                                    <td style="text-align:right;">@item.ItemCount.ToString("#,##0.00")</td>
+                                    <td style="text-align:right;">@item.ItemSum.ToString("#,##0.00")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+        <!-- /.box-body -->
+
+        <div class="box-footer" style="display: flex; align-items: center;justify-content: center ">
+            <button type="submit" class="btn btn-primary" onclick="waitingDialog.show('กำลัง Import กรุณารอสักครู่');setTimeout(function () {waitingDialog.hide();}, 1000000);"><i class="fa fa-floppy-o"></i> ยืนยัน</button>
+            &nbsp;&nbsp;&nbsp;
+            <a href="@Url.Action("UploadAddPoint")" class="btn btn-danger"><i class="fa fa-times"></i> ยกเลิก</a>
+        </div>
+        <!-- /.box-footer -->
+    }
+</form>
+@section ViewSpecificJavascript
+{
+    <script>
+
+        $(document).ready(function () {
+            $('#datatable1').DataTable();
+
+        });
+    </script>
+
+}

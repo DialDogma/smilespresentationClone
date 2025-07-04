@@ -1,0 +1,1093 @@
+﻿@{
+    ViewBag.Title = "มอบกรมธรรม์กรณีเกินกำหนด";
+    Layout = "~/Views/Shared/_LayoutForTopIndexMotor.cshtml";
+}
+
+<style>
+
+    .table {
+        font-size: 14px;
+    }
+
+    .toolbar {
+        float: left;
+    }
+
+    .dropzone .dz-preview .dz-details .dz-filename:not(:hover) {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        height: auto;
+        display: block;
+        width: 150px;
+    }
+
+    img {
+        border: 1px solid #ddd; /* Gray border */
+        border-radius: 4px; /* Rounded border */
+        padding: 5px; /* Some padding */
+        width: 150px; /* Set a small width */
+    }
+</style>
+<div class="box box-header bg-aqua">
+    <center><span style="font-size:large;">ประกันรถยนต์</span></center>
+</div>
+<div class="row" style="margin-top: 25px">
+    <div class="col-sm-12 col-md-12">
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs nav-justified">
+                <li @if (ViewBag.isActive == "1") { <text> class="active" </text> }><a style="font-size: larger" href="#tab1" data-toggle="tab" aria-expanded="True">รอมอบกรมธรรม์</a></li>
+                @*<li @if (ViewBag.isActive == "2") { <text> class="active" </text> }><a style="font-size: larger" href="#tab2" data-toggle="tab" aria-expanded="True">มอบกรมธรรม์แล้ว</a></li>*@
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane @if(ViewBag.isActive == "1") { <text> active </text> }" id="tab1">
+                    @* search form *@
+                    <div id="Search_form">
+                        <div class="box box-primary">
+                            <div class="box-header with-border text-center">
+                                <h3 class="box-title">มอบกรมธรรม์กรณีเกินกำหนด</h3>
+                                <center><h4>ค้นหาข้อมูลจาก</h4></center>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-block btn-success" onclick="downloadExcel()">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+
+                                <div class="form-group row">
+                                    <div class="col-sm-12 col-md-offset-1 col-md-3">
+                                        <label class="control-label" for="">เลข App :</label>
+                                        <input type="text" id="txtSearchAppId" name="txtSearchAppId" class="form-control input" placeholder="เลข App" />
+                                    </div>
+                                    <div class="col-sm-12  col-md-3">
+                                        <label class="control-label" for="">ชื่อ-สกุล ผู้เอาประกัน :</label>
+                                        <input type="text" id="txtSearchInsuredName" name="txtSearchInsuredName" class="form-control input" placeholder="กรอกคำค้นหา" />
+                                    </div>
+                                    <div class="col-sm-12  col-md-3">
+                                        <label class="control-label" for="">ชื่อ-สกุล ผู้ชำระเบี้ย :</label>
+                                        <input type="text" id="txtSearchPayerName" name="txtSearchPayerName" class="form-control input" placeholder="กรอกคำค้นหา" />
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-sm-12 col-md-offset-1 col-md-3">
+                                        <label class="control-label" for="">จังหวัด :</label>
+                                        <select class="form-control" id="select_province">
+                                            <option value="-1">----ทั้งหมด----</option>
+                                            @foreach (var itm in ViewBag.province)
+                                            {
+                                                <option value="@itm.Province_ID">@itm.ProvinceDetail</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-12  col-md-3">
+                                        <label class="control-label" for="">อำเภอ :</label>
+                                        <select class="form-control" id="select_district"></select>
+                                    </div>
+                                    <div class="col-sm-12  col-md-3">
+                                        <label class="control-label" for="">ชื่อหน่วยงาน :</label>
+                                        <input type="text" id="txtSearchPayerOfficeName" name="txtSearchPayerOfficeName" class="form-control input" placeholder="กรอกคำค้นหา" />
+                                    </div>
+                                    <div class="col-sm-12 col-md-2" style="margin-top: 25px">
+                                        <button class="btn btn-primary" type="button" id="btnSearch" onclick=""><i class="fa fa-search"></i> ค้นหา</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @* DT form *@
+                    <div id="dt_form">
+                        <div class="box box-default">
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <table id="dtApplicationWaitCard" name="dtApplicationWaitCard" class="table table-bordered table-striped" style="width: 100%"></table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @* end form *@
+                </div>
+                <!--<div class="tab-pane @if(ViewBag.isActive == "2") { <text> active </text> }" id="tab2">-->
+                    @* search form *@
+                    <!--<div id="SearchComplete_form">
+                        <div class="box box-primary">
+                            <div class="box-header with-border text-center">
+                                <h3 class="box-title">มอบกรมธรรม์กรณีเกินกำหนด</h3>
+                                <center><h4>ค้นหาข้อมูลจาก</h4></center>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-block btn-success" onclick="downloadExcelComplete()">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="form-group row">
+                                    <div class="col-sm-12 col-md-offset-1 col-md-3">
+                                        <label class="control-label" for="">เลข App :</label>
+                                        <input type="text" id="txtSearchCompleteAppId" name="txtSearchCompleteAppId" class="form-control input" placeholder="เลข App" />
+                                    </div>
+                                    <div class="col-sm-12  col-md-3">
+                                        <label class="control-label" for="">ชื่อ-สกุล ผู้เอาประกัน :</label>
+                                        <input type="text" id="txtSearchCompleteInsuredName" name="txtSearchCompleteInsuredName" class="form-control input" placeholder="กรอกคำค้นหา" />
+                                    </div>
+                                    <div class="col-sm-12  col-md-3">
+                                        <label class="control-label" for="">ชื่อ-สกุล ผู้ชำระเบี้ย :</label>
+                                        <input type="text" id="txtSearchCompletePayerName" name="txtSearchCompletePayerName" class="form-control input" placeholder="กรอกคำค้นหา" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <div class="col-sm-12 col-md-offset-1 col-md-3">
+                                        <label class="control-label" for="">จังหวัด :</label>
+                                        <select class="form-control" id="select_provinceComplete">
+                                            <option value="-1">----ทั้งหมด----</option>
+                                            @foreach (var itm in ViewBag.province)
+                                            {
+                                                <option value="@itm.Province_ID">@itm.ProvinceDetail</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-12  col-md-3">
+                                        <label class="control-label" for="">อำเภอ :</label>
+                                        <select class="form-control" id="select_districtComplete"></select>
+                                    </div>
+                                    <div class="col-sm-12  col-md-3">
+                                        <label class="control-label" for="">ชื่อหน่วยงาน :</label>
+                                        <input type="text" id="txtSearchCompletePayerOfficeName" name="txtSearchCompletePayerOfficeName" class="form-control input" placeholder="กรอกคำค้นหา" />
+                                    </div>
+                                    <div class="col-sm-12 col-md-2" style="margin-top: 25px">
+                                        <button class="btn btn-primary" type="button" id="btnSearchComplete" onclick="SearchQueueComplete"><i class="fa fa-search"></i> ค้นหา</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="QueueComplete_form">
+                        <div class="box box-default">
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <table id="dtApplicationComplete" name="dtApplicationComplete" class="table table-bordered table-striped" style="width: 100%"></table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>-->
+            </div>
+        </div>
+    </div>
+</div>
+@* modal give policies card UI7*@
+<div class="modal fade bd-ic-modal-lg" id="PoliciesModal" role="dialog" aria-labelledby="PoliciesModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">รายละเอียดการมอบกรมธรรม์</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group row">
+                    <div class="col-sm-12 col-md-offset-1 col-md-6">
+                        <label class="">วันที่มอบกรมธรรม์ : <span class="text-red">*</span></label>
+                        <input type="text" class="form-control pull-right" id="givePoliciesCardDate"
+                               data-date-language="th-th" data-provide="datepicker" disabled="disabled">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-sm-12 col-md-offset-1 col-md-6">
+                        <label class="">ประเภทการมอบกรมธรรม์ : <span class="text-red">*</span></label>
+                        <select id="select_GiveType" type="text" class="form-control select2_giver" tabindex="-1" style="width: 100%" disabled>
+                            @*<option value="-1">--กรุณาเลือก--</option>*@
+                       @*     @if (ViewBag.giveType != null)
+                            {
+                                foreach (var item in ViewBag.giveType)
+                                {
+                                    <option value="@item.GiveTypeId">@item.GiveType</option>
+                                }
+                            }*@
+
+                            @if (ViewBag.giveType != null)
+                            {
+                                foreach (var item in ViewBag.giveType)
+                                {
+                                    if (item.GiveTypeId == 5)
+                                    {
+                                        <option value="@item.GiveTypeId" selected>@item.GiveType</option>
+                                    }
+                                    if (item.GiveTypeId != 5)
+                                    {
+                                        <option value="@item.GiveTypeId">@item.GiveType</option>
+                                    }
+
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+           @*     <div class="form-group row">
+                    <div class="col-sm-12 col-md-offset-1 col-md-6">
+                        <label class="">ผู้มอบกรมธรรม์ : <span class="text-red">*</span></label>
+                        <select id="select_Giver" type="text" class="form-control select2_giver" tabindex="-1" style="width: 100%"></select>
+                    </div>
+                </div>*@
+                <div class="form-group row">
+                    <div class="col-sm-12 col-md-offset-1 col-md-10">
+                        <label class="">แนบรูปการมอบกรมธรรม์ : </label>
+                        <form action="@Url.Action("FileUpload")" class="dropzone dz-clickable dz-started" id="testDropzone" enctype="multipart/form-data">
+                            <div class="dz-message">
+                                Drop files here or click to upload.
+                            </div>
+                            @* hidden field *@
+                            <input type="hidden" id="hd_queueId" name="hd_queueId" value="" />
+                            <input type="hidden" id="hd_url" value="" />
+                            <input type="hidden" id="hd_physical" value="" />
+                            <input type="hidden" id="hd_fileName" value="" />
+                            <input type="hidden" id="hd_queueCreatedDate" name="hd_queueCreatedDate" value="" />
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-sm-6 col-md-offset-2 col-md-3">
+                    <button type="button" class="btn btn-block btn-success" id="btnSave">บันทึก</button>
+                </div>
+                <div class="col-sm-6 col-md-offset-1 col-md-3">
+                    <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ยกเลิก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@* end modal *@
+
+@* modal gived for edit insurance card UI9*@
+<div class="modal fade bd-icg-modal-lg" id="PoliciesGivedModal" role="dialog" aria-labelledby="PoliciesGivedModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">แก้ไขรายละเอียดการมอบกรมธรรม์</h4>
+                <input type="hidden" id="hd_queueIdGived" value="" />
+            </div>
+            <div class="modal-body">
+                <div class="form-group row">
+                    <div class="col-sm-12 col-md-offset-1 col-md-6">
+                        <label class="">วันที่มอบกรมธรรม์ : <span class="text-red">*</span></label>
+                        <input type="text" class="form-control pull-right" id="givePoliciesCardDateGived"
+                               data-date-language="th-th" data-provide="datepicker" disabled="disabled">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-sm-12 col-md-offset-1 col-md-6">
+                        <label class=" ">ประเภทการมอบกรมธรรม์ : <span class="text-red ">*</span></label>
+                        <select id="select_GiveTypeEdit" type="text" class="form-control select2_giver " disabled tabindex="-1" style="width: 100%">
+                            @* <option value="-1">--กรุณาเลือก--</option>
+                @if (ViewBag.giveType != null)
+                {
+                    foreach (var item in ViewBag.giveType)
+                    {
+                        <option value="@item.GiveTypeId">@item.GiveType</option>
+                    }
+                }*@
+                            @if (ViewBag.giveType != null)
+                            {
+                                foreach (var item in ViewBag.giveType)
+                                {
+                                    if (item.GiveTypeId == 5)
+                                    {
+                                        <option value="@item.GiveTypeId" selected>@item.GiveType</option>
+                                    }
+                                    if (item.GiveTypeId != 5)
+                                    {
+                                        <option value="@item.GiveTypeId">@item.GiveType</option>
+                                    }
+
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-offset-1 col-md-6" id="trackingEdit" style="display:@(ViewBag.TrackingNo != null ? "block" : "none")">
+                        <label class="">เลขพัสดุ : <span class="text-red">*</span></label>
+                        <input id="txtTrackingNoEdit" type="text" class="form-control" name="txtTrackingNoEdit" />
+                    </div>
+
+                    <div class="col-sm-12 col-md-offset-1 col-md-6" id="giveTypeRemark" style="display:@(ViewBag.GiveTypeRemark != null ?"block" : "none")">
+                        <label class="">
+                            หมายเหตุกรณีเลือกอื่นๆ <span style="color:red">*</span>
+                        </label>
+
+                        <input id="txtGiveTypeRemark" name="txtGiveTypeRemark" type="text" class="form-control col-md-3" />
+                    </div>
+                </div>
+             
+              
+
+
+                @*  <div class="form-group row">
+            <div class="col-sm-12 col-md-offset-1 col-md-6">
+                <label class="">ผู้มอบกรมธรรม์ : <span class="text-red">*</span></label>
+                <select id="select_GiverGived" type="text" class="form-control select2_giver" style="width: 100%">
+                    <option></option>
+                </select>
+            </div>
+        </div>*@
+                <div class="form-group row" id="showImg">
+                    <div class="col-sm-12 col-md-offset-1 col-md-6">
+                        <label class="">รูปมอบกรมธรรม์ : <span class="text-red">*</span></label>
+                        <div style="position:relative">
+                            <a href="javascript:void();" class="pop">
+                                <img src="" id="imgShow" style="width:100%;max-width:100px">
+                            </a>
+                        </div>
+                        <a href="javascript:void();" id="btnEditImg">แก้ไขรูปภาพ</a>
+                    </div>
+                </div>
+                <div class="form-group row" id="editDropzone">
+                    <div class="col-sm-12 col-md-offset-1 col-md-10">
+                        <label class="">แนบรูปการมอบกรมธรรม์ : <span class="text-red">*</span></label>
+                        <form action="@Url.Action("FileUpload")" class="dropzone dz-clickable dz-started" id="testDropzoneShow" enctype="multipart/form-data">
+                            <div class="dz-message">
+                                Drop files here or click to upload.
+                            </div>
+                            @* hidden *@
+                            <input type="hidden" id="hd_queueIdEdit" name="hd_queueId" value="" />
+                            <input type="hidden" id="hd_urlEdit" value="" />
+                            <input type="hidden" id="hd_physicalEdit" value="" />
+                            <input type="hidden" id="hd_fileNameEdit" value="" />
+                            <input type="hidden" id="hd_queueCreatedDateEdit" name="hd_queueCreatedDate" value="" />
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-sm-6 col-md-offset-2 col-md-3">
+                    <button type="button" class="btn btn-block btn-success" id="btnSaveGived">บันทึก</button>
+                </div>
+                <div class="col-sm-6 col-md-offset-1 col-md-3">
+                    <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ยกเลิก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="imagemodal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <img src="" class="imagepreview" style="width: 100%;">
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var date = new Date();
+
+                //img
+        $('.pop').on('click', function () {
+            $('.imagepreview').attr('src', $(this).find('img').attr('src'));
+            $('#imagemodal').modal('show');
+        });
+
+        //dropzone setup
+        Dropzone.options.testDropzone = {
+            paramName: "file",
+            maxFilesize: 31,
+            maxFiles: 1,
+            dictMaxFilesExceeded: "ไฟล์เกินจำนวน",
+            dictResponseError: "ไม่สามารถอัพโหลดไฟล์ได้",
+            dictFallbackMessage: "ไม่รองรับไฟล์",
+            acceptedFiles: "image/jpeg,image/png,image/gif",
+            addRemoveLinks: true,
+            init: function () {
+                //check if upload success
+                this.on("success", function (file, response) {
+                    //add id
+                    file.serverId = response.id;
+                    $(".dz-preview:last-child").attr('id', response.id);
+                });
+                this.on("addedfile", function() {
+                    if (this.files[1]!=null){
+                        this.removeFile(this.files[0]);
+                    }
+                });
+                this.on("thumbnail", function (file) {
+
+                }).on("success", function (file, response) {
+
+                    //เก็บ path ในตัวแปร เพื่อใช้ในการบันทึกมอบกรมธรรม์ต่อไป
+                    $('#hd_url').val(response.urlPath);
+                    $('#hd_physical').val(response.physicalPath);
+                    $('#hd_fileName').val(response.fileImgName);
+                });
+                this.on('error', function(file, errorMessage) {
+                    if (errorMessage.indexOf('Error 404') !== -1) {
+                        var errorDisplay = document.querySelectorAll('[data-dz-errormessage]');
+                        errorDisplay[errorDisplay.length - 1].innerHTML = 'Error 404: ไม่สามารถอัพโหลดไฟล์ได้';
+                    }
+                    if (errorMessage.indexOf('Server Error') !== -1) {
+                        var errorDisplay = document.querySelectorAll('[data-dz-errormessage]');
+                        errorDisplay[errorDisplay.length - 1].innerHTML = 'Error 404: ไม่สามารถอัพโหลดไฟล์ได้';
+                    }
+                });
+            },
+            removedfile: function (file) {
+
+                $.post('@Url.Action("File_delete")',
+                    {
+                        queueId: $('#hd_queueId').val(),
+                        queueCreatedDate:$('#hd_queueCreatedDate').val()
+                    }, (data) => {
+                    if (data.IsResult) {
+                        var _ref;
+                        return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;
+                    } else {
+                        return swal_fail("กรุณาลองอีกครั้ง");
+                    }
+                });
+            }
+        }
+        //dropzone setup
+        Dropzone.options.testDropzoneShow = {
+            paramName: "file",
+            maxFilesize: 31,
+            maxFiles: 1,
+            dictMaxFilesExceeded: "ไฟล์เกินจำนวน",
+            dictResponseError: "ไม่สามารถอัพโหลดไฟล์ได้",
+            dictFallbackMessage: "ไม่รองรับไฟล์",
+            acceptedFiles: "image/jpeg,image/png,image/gif",
+            addRemoveLinks: true,
+            init: function () {
+                //check if upload success
+                this.on("success", function (file, response) {
+                    //add id
+                    file.serverId = response.id;
+                    $(".dz-preview:last-child").attr('id', response.id);
+                });
+                this.on("addedfile", function() {
+                    if (this.files[1]!=null){
+                        this.removeFile(this.files[0]);
+                    }
+                });
+                this.on("thumbnail", function (file) {
+
+                }).on("success", function (file, response) {
+                    //เก็บ path ในตัวแปร เพื่อใช้ในการบันทึกมอบกรมธรรม์ต่อไป
+                    $('#hd_urlEdit').val(response.urlPath);
+                    $('#hd_physicalEdit').val(response.physicalPath);
+                    $('#hd_fileNameEdit').val(response.fileImgName);
+
+                });
+                this.on('error', function(file, errorMessage) {
+                    if (errorMessage.indexOf('Error 404') !== -1) {
+                        var errorDisplay = document.querySelectorAll('[data-dz-errormessage]');
+                        errorDisplay[errorDisplay.length - 1].innerHTML = 'Error 404: ไม่สามารถอัพโหลดไฟล์ได้';
+                    }
+                    if (errorMessage.indexOf('Server Error') !== -1) {
+                        var errorDisplay = document.querySelectorAll('[data-dz-errormessage]');
+                        errorDisplay[errorDisplay.length - 1].innerHTML = 'Error 404: ไม่สามารถอัพโหลดไฟล์ได้';
+                    }
+                });
+            },
+            removedfile: function (file) {
+
+                $.post('@Url.Action("File_delete")',
+                    {
+                        queueId: $('#hd_queueIdEdit').val(),
+                        queueCreatedDate:$('#hd_queueCreatedDateEdit').val()
+                    }, (data) => {
+                    if (data.IsResult) {
+                        var _ref;
+                        return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;
+                    } else {
+                        return swal_fail("กรุณาลองอีกครั้ง");
+                    }
+                });
+            }
+        }
+
+        $('a[data-toggle="tab"]').on('shown.bs.tab',
+            function (e) {
+                e.preventDefault();
+                loadingSpinner('fadeIn', 500);
+                const target = $(e.target).attr("href");
+                switch (target) {
+                    case "#tab1":
+                        GetQueuePending_dt();
+                        break;
+                    default:
+                }
+            });
+
+        $(function () {
+
+
+
+
+            $('#givePoliciesCardDate').datepicker('setDate', new Date());
+
+            GetQueuePending_dt();
+           //SearchQueueComplete();
+
+            if (`@ViewBag.createDataDT`=="t") SearchQueueComplete();
+
+            $('#PoliciesModal').on('show.bs.modal', function (e) {
+
+                if (`@ViewBag.UserId` != "") {
+
+                    $('#select_Giver').empty().append('<option value="@ViewBag.UserId" selected="selected">@ViewBag.GiverName</option>')
+                        .val(@ViewBag.UserId).trigger('change');
+               }
+
+                loadSelectGiver()
+            });
+            loadSelectGiverGived();
+
+            $('#editDropzone').hide();
+
+            $('#btnSearch').click((e) => {
+                e.preventDefault();
+                $('#dtApplicationWaitCard').DataTable().ajax.reload();
+            });
+
+            $('#btnSearchComplete').click((e) => {
+                e.preventDefault();
+                SearchQueueComplete();
+            });
+
+            $('#btnEditImg').click((e) => {
+                swal_confirm('ยืนยันการทำงาน', 'ต้องการแก้ไขรูป รูปเดิมจะถูกลบออกถาวร', () => {
+                    $('#showImg').hide();
+                    $('#editDropzone').show();
+                    swal.close();
+                    $('#hd_urlEdit').val('');
+                    $('#hd_physicalEdit').val('');
+                    $('#hd_fileNameEdit').val('');
+
+                });
+            });
+
+            $('#select_province').change((e) => {
+                e.preventDefault();
+                GetDistrict($('#select_province').val());
+            });
+
+            $('#select_provinceComplete').change((e) => {
+                e.preventDefault();
+                GetDistrictComplete($('#select_provinceComplete').val());
+            });
+            $('#PoliciesModal').on('hidden.bs.modal', function (e) {
+                Dropzone.forElement('#testDropzone').removeAllFiles(true);
+
+                setTimeout(() => {
+                    $(this).find("input,textarea").val('').end();
+                    //$(this).find("select").val('-1').end();
+                }, 200);
+
+                $('#select_Giver').empty();
+            });
+
+            //clear all input on modal
+            $('#PoliciesGivedModal').on('hidden.bs.modal', function (e) {
+                Dropzone.forElement('#testDropzoneShow').removeAllFiles(true);
+
+                setTimeout(() => {
+                    $(this).find("input,textarea").val('').end();
+                   // $(this).find("select").val('-1').end();
+                }, 200);
+
+                $('#select_GiverGived').empty();
+            });
+
+        });
+
+         $('#btnSave').click((e) => {
+                e.preventDefault();
+                    if (ValidateSave()) {
+                        SaveData();
+                    };
+
+            });
+            $('#btnSaveGived').click((e) => {
+                e.preventDefault();
+                    if (ValidateUpdate()) {
+                        UpdateData();
+                    };
+
+            });
+        //tab1
+        const SaveData = () => {
+
+            var givePoliciesCardDate = $('#givePoliciesCardDate').datepicker({ format: 'dd/MM/yyyy'}).datepicker('getDate');
+            var givePoliciesCardDateConvert = moment(givePoliciesCardDate).format('DD-MM-YYYY');
+            swal_confirm('ยืนยันการบันทึกข้อมูล', 'ต้องการบันทึกข้อมูล?', function (e) {
+                $('#btnSave').prop('disabled', true);
+                $.post('@Url.Action("InsertGivebackPolicies", "MotorPolicies")',
+                    {
+                        queueId: $('#hd_queueId').val(),
+                        giveTypeId: $('#select_GiveType').val(),
+                        giverUserId: $('#select_Giver').val(),
+                        giveDate: givePoliciesCardDateConvert,
+                        uRLPath: $('#hd_url').val(),
+                        physicalPath: $('#hd_physical').val(),
+                        fileName:$('#hd_fileName').val()
+                    }, (response) => {
+                        console.log(response)
+                        if (response.IsResult) {
+                            swal_success('บันทึกข้อมูลสำเร็จ');
+                            return setTimeout(() => { window.location = '@Url.Action("MotorPoliciesQueue", "MotorPolicies")'; }, 1500);
+
+                        } else {
+                            swal("เกิดข้อผิดพลาด !", response.Msg, "error");
+                        }
+                        $('#btnSave').prop('disabled', false);
+
+                });
+
+            });
+        }
+
+        const UpdateData = () => {
+            var givePoliciesCardDate = $('#givePoliciesCardDateGived').datepicker({ format: 'dd/MM/yyyy'}).datepicker('getDate');
+            var givePoliciesCardDateGivedConvert = moment(givePoliciesCardDate).format('DD-MM-YYYY');
+
+            swal_confirm('ยืนยันการบันทึกข้อมูล', 'ต้องการบันทึกข้อมูล?', () => {
+
+                $.post('@Url.Action("InsertGivebackPolicies", "MotorPolicies")',
+                    {
+                        queueId: $('#hd_queueIdEdit').val(),
+                        giveTypeId: $('#select_GiveTypeEdit').val(),
+                        giverUserId: $('#select_GiverGived').val(),
+                        giveDate: givePoliciesCardDateGivedConvert,
+                        uRLPath: $('#hd_urlEdit').val(),
+                        physicalPath: $('#hd_physicalEdit').val(),
+                        fileName: $('#hd_fileNameEdit').val(),
+                        giveTypeRemark: $('#txtGiveTypeRemark').val()
+
+                    }, (response) => {
+                        if (response.IsResult) {
+                            swal_success('บันทึกข้อมูลสำเร็จ');
+                            return setTimeout(() => { window.location = '@Url.Action("MotorPoliciesQueue", "MotorPolicies")?isActive=2&createDataDT=t '; }, 1500);
+                             @* SearchQueueComplete();
+                            //$('#PoliciesGivedModal').modal('hide');*@
+                        } else {
+                            swal("เกิดข้อผิดพลาด !", response.Msg, "error");
+                        }
+                        $('#btnSaveGived').prop('disabled', false);
+
+                });
+
+            });
+        }
+
+        const ValidateUpdate = () => {
+            if ($('#givePoliciesCardDateGived').val() == '') {
+                return swal_fail("กรุณาเลือกวันที่มอบกรมธรรม์");
+            }
+
+            if ($('#select_GiveTypeEdit').val() == "-1" || $('#select_GiveTypeEdit').val() == null) {
+                return swal_fail("กรุณาเลือกประเภทการมอบกรมธรรม์");
+            }
+
+        @*    if ($('#select_GiverGived').val() == null) {
+                return swal_fail("กรุณาเลือกตัวแทนผู้มอบกรมธรรม์");
+            }*@
+            //Validate file
+
+         @*   if ($('#hd_fileNameEdit').val() == '') {
+                return swal_fail("กรุณาแนบรูปการมอบกรมธรรม์");
+            }*@
+
+            return true;
+        }
+
+        const ValidateSave = () => {
+            if ($('#givePoliciesCardDate').val() == '') {
+                return swal_fail("กรุณาเลือกวันที่มอบกรมธรรม์");
+            }
+
+            if ($('#select_GiveType').val() == "-1" || $('#select_GiveType').val() == null ) {
+                return swal_fail("กรุณาเลือกประเภทการมอบกรมธรรม์");
+            }
+
+      @*      if ($('#select_Giver').val() == null) {
+                return swal_fail("กรุณาเลือกตัวแทนผู้มอบกรมธรรม์");
+            }
+*@
+            var filecount = Dropzone.forElement('#testDropzone').getAcceptedFiles().length;
+
+        @*    if (filecount == 0) {
+                return swal_fail("กรุณาแนบรูปการมอบกรมธรรม์");
+            }*@
+
+            return true;
+        }
+
+           //column tap 1
+        const GetQueuePending_dt = () => {
+
+            $('#dtApplicationWaitCard').empty();
+            var tbl = $('#dtApplicationWaitCard').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                order: [[2, "asc"]],
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetMotorPoliciesQueue_dt", "MotorPolicies")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.PayerOfficeName = $('#txtSearchPayerOfficeName').val().trim();
+                        d.insuredName = $('#txtSearchInsuredName').val().trim();
+                        d.payerName = $('#txtSearchPayerName').val().trim();
+                        d.applicationCode = $('#txtSearchAppId').val().trim();
+                        d.provinceId = $('#select_province').val();
+                        d.districtId = $('#select_district').val();
+
+                        console.log(d);
+                    }
+                },
+                columns: [
+                    { title: 'เลข App', data: 'ApplicationCode' },
+                    { title: 'ชื่อผู้เอาประกัน', data: 'InsuredName' }, 
+                    { title: 'ชื่อผู้ชำระเบี้ย', data: 'PayerName' },
+                    { title: 'ชื่อหน่วยงาน', data: 'PayerOfficeName' },
+                    { title: 'ตำบล', data: 'SubDistrictDetail' },
+                    { title: 'อำเภอ', data: 'DistrictDetail' },
+                    { title: 'จังหวัด', data: 'ProvinceDetail' },
+                    { title: 'แผน', data: 'ProductDetail' },
+                    //{
+                    //    title: 'วันที่ส่งคิวงาน', data: 'AssignDate',
+                    //    render: function (data) {
+                    //        if (data != null) {
+                    //            let startCoverDate = moment(data)._d;
+                    //            let yearBE = startCoverDate.getFullYear() + 543;
+                    //            let startCoverDateBE = moment(startCoverDate.setFullYear(yearBE)).format("DD/MM/YYYY");
+                    //            return startCoverDateBE;
+                    //        } else {
+                    //            return '';
+                    //        }
+                    //    }
+                    //},
+                    //{ title: 'จำนวนวัน', data: 'DurationDay' },
+                    //{
+                    //    title: 'รายละเอียด', data: null,
+                    //    orderable: false,
+                    //     render: function (data) {
+                    //        return '<a target="_blank" class="btn btn-block btn-info" onclick="LoadDetail('+data.QueueId+')">ดูรายละเอียด</a>';
+                    //    }
+                    //},
+                    {
+                        title: 'บันทึกมอบกรมธรรม์', data: null,
+                        orderable: false,
+                        render: function (data) {
+                            return '<a target="_blank" class="btn btn-block btn-info" onclick="LoadQueue(' + data.QueueId + ')">บันทึกมอบบัตร</a>';
+
+
+                        }
+                    }
+                ]
+            });
+
+            window.onresize = function () {
+                tbl.columns.adjust().responsive.recalc();
+            };
+        }
+
+           //column tap 2
+        const SearchQueueComplete = () => {
+
+            $('#dtApplicationComplete').empty();
+            var tbl = $('#dtApplicationComplete').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                order: [[2, "asc"]],
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetMotorPoliciesQueueComplete_dt", "MotorPolicies")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.PayerOfficeName = $('#txtSearchCompletePayerOfficeName').val().trim();
+                        d.insuredName = $('#txtSearchCompleteInsuredName').val().trim();
+                        d.payerName = $('#txtSearchCompletePayerName').val().trim();
+                        d.applicationCode = $('#txtSearchCompleteAppId').val().trim();
+                        d.provinceId = $('#select_provinceComplete').val();
+                        d.districtId = $('#select_districtComplete').val();
+                    }
+                },
+                columns: [
+                    { title: 'เลข App', data: 'ApplicationCode' },
+                    { title: 'ชื่อผู้เอาประกัน', data: 'InsuredName' },
+                    { title: 'ชื่อผู้ชำระเบี้ย', data: 'PayerName' },
+                    { title: 'ชื่อหน่วยงาน', data: 'PayerOfficeName' },
+                    { title: 'ตำบล', data: 'SubDistrictDetail' },
+                    { title: 'อำเภอ', data: 'DistrictDetail' },
+                    { title: 'จังหวัด', data: 'ProvinceDetail' },
+                    { title: 'แผน', data: 'ProductDetail' },
+                    //{
+                    //    title: 'วันที่ส่งคิวงาน', data: 'AssignDate',
+                    //    render: function (data) {
+                    //        if (data != null) {
+                    //            let startCoverDate = moment(data)._d;
+                    //            let yearBE = startCoverDate.getFullYear() + 543;
+                    //            let startCoverDateBE = moment(startCoverDate.setFullYear(yearBE)).format("DD/MM/YYYY");
+                    //            return startCoverDateBE;
+                    //        } else {
+                    //            return '';
+                    //        }
+                    //    }
+                    //},
+                    //{ title: 'จำนวนวัน', data: 'DurationDay' },
+                    {
+                        title: 'วันที่บันทึกมอบกรมธรรม์', data: null,
+                        render: function (data) {
+                            if (data != null) {
+                                let CreatedDate = moment(data.CreatedDate)._d;
+                                let yearBE = CreatedDate.getFullYear() + 543;
+                                let startCoverDateBE = moment(CreatedDate.setFullYear(yearBE)).format("DD/MM/YYYY");
+                                return startCoverDateBE;
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    { title: 'ผู้มอบกรมธรรม์', data: 'GiverName' },
+                    {
+                        title: 'แก้ไข', data: null,
+                        orderable: false,
+                        render: function (data) {
+                            return '<button data-toggle="modal" data-target=".bd-icg-modal-lg" ' +
+                                'onclick=(LoadQueueForEdit(' + data.QueuePoliciesId + ')) class="btn btn-block btn-warning">แก้ไข</a>';
+                        }
+                    }
+                    //{
+                    //    title: 'รายละเอียด', data: null,
+                    //    orderable: false,
+                    //    render: function (data) {
+                    //        return '<a target="_blank" class="btn btn-block btn-info" onclick="LoadDetail(' + data.QueueId + ')">ดูรายละเอียด</a>';
+                    //    }
+                    //}
+                ]
+            });
+
+            window.onresize = function () {
+                tbl.columns.adjust().responsive.recalc();
+            };
+        }
+
+        const GetDistrict = (provinceId) => {
+            $.get("@Url.Action("GetMotorDistrict")", { provinceId: provinceId }, function (data) {
+
+                $("#select_district").empty();
+                $("#select_district").append(`<option value="-1">----ทั้งหมด----</option>`);
+                if (data.length !== 0) {
+                    for (var i = 0; i < data.length; i++) {
+                        $("#select_district").append(`<option value="${data[i].District_ID}">${data[i].DistrictDetail}</option>`)
+                    }
+                }
+            });
+        }
+
+        const GetDistrictComplete = (provinceId) => {
+            $.get("@Url.Action("GetMotorDistrict")", { provinceId: provinceId }, function (data) {
+
+                $("#select_districtComplete").empty();
+                $("#select_districtComplete").append(`<option value="-1">----ทั้งหมด----</option>`);
+                if (data.length !== 0) {
+                    for (var i = 0; i < data.length; i++) {
+                        $("#select_districtComplete").append(`<option value="${data[i].District_ID}">${data[i].DistrictDetail}</option>`)
+                    }
+                }
+            });
+        }
+
+        const downloadExcel = () => {
+            let provinceId = null;
+            let districtId = null;
+            if ($('#select_province').val() != -1) {
+                provinceId = $('#select_province').val();
+            }
+            if ($('#select_district').val() != -1) {
+                districtId = $('#select_district').val();
+            }
+            window.location.href = `@Url.Action("DownloadQueueMotorPoliciesPendingExcelReport", "MotorPolicies")?provinceId=`
+                + provinceId + `&districtId=` + districtId + `&search=` + $('#txtSearchPayerOfficeName').val();
+        }
+
+        const downloadExcelComplete = () => {
+            let provinceId = null;
+            let districtId = null;
+            if ($('#select_provinceComplete').val() != -1) {
+                provinceId = $('#select_provinceComplete').val();
+            }
+            if ($('#select_districtComplete').val() != -1) {
+                districtId = $('#select_districtComplete').val();
+            }
+            window.location.href = `@Url.Action("DownloadQueueMotorPoliciesCompleteExcelReport", "MotorPolicies")?provinceId=`
+                + provinceId + `&districtId=` + districtId + `&search=` + $('#txtSearchCompletePayerOfficeName').val();
+        }
+
+        // const LoadQueue = (qId,qCreateDate) => {
+        //    $('#hd_queueId').val(qId);
+        //     $('#givePoliciesCardDate').datepicker('setDate', new Date());
+        //    $('#hd_queueCreatedDate').val(moment(qCreateDate).format("DD/MM/YYYY"));
+        //}
+
+
+           const LoadQueue = (qId,qCreateDate) => {
+            // $('#hd_queueId').val(qId);
+            // $('#givePoliciesCardDate').datepicker('setDate', new Date());
+            //$('#hd_queueCreatedDate').val(moment(qCreateDate).format("DD/MM/YYYY"));
+               var encoded = btoa(qId);
+            window.open(`@Url.Action("MotorUnderwriteDetail", "MotorUnderwrite")?queueId=` + encoded +`&checkId=8`,'_blank');
+        }
+
+
+
+        const LoadDetail = (qId) => {
+            var encoded = btoa(qId);
+            window.open(`@Url.Action("MotorUnderwriteViewDetail","MotorUnderwrite")?queueId=`+encoded,'_blank');
+        }
+
+        const LoadQueueForEdit = (qId) => {
+            $.get('@Url.Action("GetQueueDetail","MotorPolicies")', { queuePoliciesId: qId }, (data) => {
+                // $('#btnSaveGived').prop('disabled', false);
+
+                $('#hd_queueIdEdit').val(data.QueueId);
+                var jsonDate = data.GiveDate;
+                var giveDate = new Date(parseInt(jsonDate.replace("/Date(", "").replace(")/", ""), 10));
+                $('#givePoliciesCardDateGived').datepicker('setDate', giveDate);
+
+                $('#select_GiveTypeEdit').val((data.GiveTypeId) ? data.GiveTypeId : -1);
+                //load autocomplete select2
+                $('#select_GiverGived').empty().append('<option value="' + data.GiverUserId + '">' + data.GiverName + '</option>')
+                    .val(data.GiverUserId).trigger('change');
+
+                $('#showImg').show();
+                $('#editDropzone').hide();
+
+                $('#imgShow').attr("src", data.URLPath);
+                $('#hd_urlEdit').val(data.URLPath);
+                $('#hd_physicalEdit').val(data.PhysicalPath);
+                $('#hd_fileNameEdit').val(data.FileName);
+                $('#hd_queueCreatedDateEdit').val(moment(data.QueueCreatedDate).format("DD/MM/YYYY"));
+
+                $('#txtTrackingNoEdit').val(data.TrackingNo);
+                $('#txtGiveTypeRemark').val(data.GiveTypeRemark);
+                var typeSelect = ($('#select_GiveTypeEdit').val());
+                (typeSelect == 4 ? $('#trackingEdit').show() : $('#trackingEdit').hide());
+                (typeSelect == 7 ? $('#giveTypeRemark').show() : $('#giveTypeRemark').hide());
+            });
+        }
+
+        const loadSelectGiver = () => {
+            $('#select_Giver').select2({
+                dropdownParent: $("#PoliciesModal"),
+                ajax: {
+                    url: '@Url.Action("GetGiverUser", "MotorPolicies")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term,
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data) {
+
+                            return {
+                                results: $.map(data,
+                                    function (item) {
+                                        return {
+                                            id: item.UserId,
+                                            text: `${item.GiverName}`
+                                        }
+                                    })
+                            };
+
+                    },
+                    cache: true
+                },
+                templateResult: function (item) {
+                    if (item.loading) return item.text;
+                    return item.text;
+                },
+                escapeMarkup: function (markup) { return markup; },
+                minimumInputLength: 3,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 3 ตัวอักษร'; } }
+            });
+        }
+
+        const loadSelectGiverGived = () => {
+            $('#select_GiverGived').select2({
+                dropdownParent: $("#PoliciesGivedModal"),
+                ajax: {
+                    url: '@Url.Action("GetGiverUser","MotorPolicies")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term,
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: $.map(data,
+                                function (item) {
+                                    return {
+                                        id: item.UserId,
+                                        text: `${item.GiverName}`
+                                    }
+                                })
+                        };
+                    },
+                    cache: true
+                },
+                templateResult: function (item) {
+                    if (item.loading) return item.text;
+                    return item.text;
+                },
+                escapeMarkup: function (markup) { return markup; },
+                minimumInputLength: 3,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 3 ตัวอักษร'; } }
+            });
+        }
+    </script>
+}

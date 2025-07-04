@@ -1,0 +1,239 @@
+﻿@{
+    ViewBag.Title = "รายการแก้ไขรายชื่อผู้เอาประกัน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">ค้นหา @ViewBag.Title</h3>
+            </div>
+
+            <div class="box-body">
+                <div class="box-group">
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <label style="margin-top:0.5rem">ปีการศึกษา :</label>
+                            <select class="form-control select2" style="width: 100%" tabindex="-1" aria-hidden="true" id="educationYears">
+                                @{
+                                    var educationYears = ViewBag.educationYear as IEnumerable<SmileSPACommunity.Models.usp_PolicyYear_Select_Result>;
+                                    foreach (var educationYear in educationYears)
+                                    {
+                                        <option value="@educationYear.Code">@educationYear.Detail</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-3">
+                            <label style="margin-top:0.5rem">สาขา :</label>
+                            <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="brances">
+
+                                @{
+                                    var brances = ViewBag.Branchs as IEnumerable<SmileSPACommunity.Models.usp_Branch_Select_Result>;
+                                    if (brances.Count() > 1)
+                                    {
+                                        <option value="-1">--- เลือกทั้งหมด ---</option>
+                                        foreach (var brance in brances)
+                                        {
+                                            <option value="@brance.BranchID">@brance.Branch</option>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        foreach (var brance in brances)
+                                        {
+                                            if (brance.BranchID == ViewBag.branchId)
+                                            {
+                                                <option value="@brance.BranchID" selected>@brance.Branch</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@brance.BranchID">@brance.Branch</option>
+                                            }
+
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-3">
+                            <label style="margin-top:0.5rem">สถานะแก้ไขรายชื่อ :</label>
+                            <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="status">
+                                <option value="-1">--- เลือกทั้งหมด ---</option>
+                                @{
+                                    var status = ViewBag.status as IEnumerable<SmileSPACommunity.Models.usp_EndorsePersonnelCustomerDetailStatus_Select_Result>;
+                                    foreach (var stat in status)
+                                    {
+                                        <option value="@stat.EndorsePersonnelCustomerDetailStatusId">@stat.EndorsePersonnelCustomerDetailStatusName</option>
+                                    }
+                                }
+                            </select>
+
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label>ค้นหาจากเลข App PA ยิ้มแฉ่ง หรือชื่อสถานศึกษา :</label>
+                            <input type="text" class="form-control" id="searchText" name="searchText" maxlength="100" />
+                        </div>
+                        <div class="col-lg-3" style="padding-top:25px">
+                            <button type="button" style="text-decoration:none" class="btn btn-primary" id="btnSearch"><i class="fa fa-fw fa-search"></i> ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">รายละเอียดรายการ</h3>
+            </div>
+
+            <div class="box-body">
+
+                <div class="table-responsive">
+                    <table id="dtResponseTable" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        <input type="button" class="btn btn-warning" id="saveEditInsured" value="บันทึกแก้ไขรายชื่อผู้เอาประกัน" />
+    </div>
+</div>
+
+@*modal*@
+<div class="modal fade" id="mdReject" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div id="renderDataModal"></div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script>
+
+        $(function () {
+
+            // initail select2
+            $(".select2").select2();
+             
+            // get data
+            var $select = $("#educationYears, #brances, #status");
+            $select.change(function () {
+                GetCustomerDetailData($("#educationYears").val(), $("#brances").val(), $("#status").val(), $("#searchText").val());
+            });
+            $("#educationYears").val($("#educationYears").val()).change();
+
+            // search text
+            $("#btnSearch").click(function () {
+                GetCustomerDetailData($("#educationYears").val(), $("#brances").val(), $("#status").val(), $("#searchText").val());
+            }); 
+        });
+
+
+        const GetCustomerDetailData = (year, brances, status, searchText) => {
+            let textSearch = $("#searchText").val();
+            $("#dtResponseTable").DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                ajax: {
+                    url: '/PAPersonnelCustomerData/GetCustomerDetailData', 
+                    async: false,
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = textSearch;
+                        d.educationYears = year;
+                        d.brances = brances;
+                        d.status = status
+                    }
+                },
+                columns: [
+                    { title: 'รหัสรายการ', data: 'EndorsePersonnelCustomerDetailHeaderCode', className: 'text-center' },
+                    { title: 'App ID', data: 'PersonnelApplicationCode', className: 'text-center' },
+                    { title: 'ชื่อกรมธรรม์', data: 'PersonnelApplicationName', className: 'h-dt-center' },
+                    {
+                        title: 'วันที่เริ่มคุ้มครอง', data: 'StartCoverDate', className: 'text-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'วันที่มีผลบังคับ', data: 'EffectiveDate', className: 'text-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'สถานะการแก้ไข', data: null, className: 'text-center',
+                        mRender: (data, type, ful) => {
+                            var someNumbers = ["#367fa9", "#367fa9", "orange", "green", "red"];
+                            var setHtml = '<b style="color:' + someNumbers[data.EndorsePersonnelCustomerDetailStatusId] + '">' + data.EndorsePersonnelCustomerDetailStatusName + '</b>';
+                            return setHtml;
+                        }
+                    },
+                    {
+                        title: 'สาเหตุการไม่อนุมัติ', data: null, className: 'text-center',
+                        mRender: (data, type, ful) => {
+                            if (data.EndorsePersonnelCustomerDetailStatusId == 4) {
+                                
+                                return '<a href="javascript:void(0)" class="btn btn-warning btn-sm view-info" data-approveCause="' + data.ApproveCause + '" data-remark="' + data.ApprovedRemark + '" data-toggle="tooltip" data-placement="top" title="' + data.ApproveCause + '"><i class="fa fa-info"></i></a>';
+                            } else {
+                                return '-';
+                            }
+                        }
+                    },
+                    {
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) => {
+                            let encode_PersonnelApplicationId = window.btoa(data.PersonnelApplicationId);
+                            let encode_EndorsePersonnelCustomerDetailHeaderId = window.btoa(data.EndorsePersonnelCustomerDetailHeaderId); 
+                            return '<a href="/PAPersonnelCustomerData/InsuredNameLists?PersonnelApplicationId=' + encode_PersonnelApplicationId + '&endorsePersonnelCustomerDetailHeaderId=' + encode_EndorsePersonnelCustomerDetailHeaderId + '&isApp=' + window.btoa(data.EndorsePersonnelCustomerDetailStatusId) + '"  class="btn btn-warning btn-sm edit" data-toggle="tooltip" data-placement="top" title="ตรวจสอบ"><i class="fa fa-laptop"></i> ตรวจสอบ</a>';
+
+                        },
+                        width: '10%'
+                    },
+                ],
+                bLengthChange: false
+            });
+
+
+            $('[data-toggle="tooltip"]').tooltip();
+        }
+
+        // info สาเหตุที่ไม่อนุมัติ
+        $("#dtResponseTable").on("click", ".view-info", function () {
+            $.post("/PAPersonnelCustomerData/GetCommentInfo", { "approveCause": $(this).attr("data-approveCause"), "remark": $(this).attr("data-remark") }, function (result) {
+                $("#mdReject").modal('show');
+                $("#renderDataModal").html(result);
+            });
+        });
+
+        $("#saveEditInsured").click(function () {
+            let url = "/PAPersonnelCustomerData/SaveEditInsured";
+            window.open(url, "_blank");
+        });
+
+    </script>
+}

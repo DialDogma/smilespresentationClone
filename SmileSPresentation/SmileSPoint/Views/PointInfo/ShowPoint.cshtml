@@ -1,0 +1,216 @@
+﻿@{
+    ViewBag.Title = "ShowPoint";
+    Layout = "~/Views/Shared/_Layout_Empty.cshtml";
+}
+
+<style>
+    body, h1, h2, h3, h4, h5, h6 {
+        font-family: 'Kanit', sans-serif !important;
+    }
+
+    .font-header {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .form-group-lg-flat .form-control {
+        height: 46px;
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    .font-detail-normal-16 {
+        font-size: 16px;
+        font-weight: normal !important;
+        text-align: left !important;
+    }
+</style>
+<div class="row">
+    รหัสพนักงาน :
+    <input type="text" name="employee-code" id="employee-code" value="@ViewBag.UserId" />
+    <button onclick="showPoint()">เรียกดู</button>
+</div>
+<section class="content">
+    <div class="tab-content">
+        <div class="row">
+            <div class="box box-info">
+                <div class="box-body">
+                    <div class="col-md-12">
+                        <div class="box box-solid">
+                            <div class="box-body">
+                                <h4 class="font-header" style="background-color: #2fbbfc; text-align: center; padding: 7px 10px; margin-top: 0;"></h4>
+                                <div class="form-group-lg-flat">
+                                    <div class="col-xs-12">
+                                        <div class="col-xs-12" style="text-align: center">
+                                            <label id="lbl_accountName" class="control-label" style="font-size:20px;"></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group-lg-flat">
+                                    <div class="col-xs-12">
+                                        <div class="col-xs-6" style="text-align: right">
+                                            <label class="control-label" style="font-size: 16px;">เลขที่ Account : </label>
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <label id="lbl_accountNo" class="control-label font-detail-normal-16"></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group-lg-flat">
+                                    <div class="col-xs-12">
+                                        <div class="col-xs-6" style="text-align: right">
+                                            <label class="control-label" style="font-size: 16px;">แต้มคงเหลือ : </label>
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <label id="lbl_balance" class="control-label font-detail-normal-16"></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="box box-warning">
+                <div class="box-body">
+                    <div class="col-md-12">
+                        <div class="box box-solid">
+                            <div class="box-body">
+                                <h4 class="font-header" style="background-color: #ffc249;  text-align: center; padding: 7px 10px; margin-top: 0;">
+                                    รายละเอียดการทำรายการ
+                                </h4>
+                                <div>
+                                    <table id="table_id" class="table table-bordered table-striped" style="width: 100%"></table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/locale/th.js"></script>
+@section ViewSpecificJavascript
+{
+    <script>
+        var empCode = '';
+        $(function () {
+
+        });
+
+        function showPoint() {
+            empCode = $('#employee-code').val();
+            get_accountDetail();
+        }
+
+        const get_accountDetail = () => {
+            $.ajax({
+                beforeSend: function (request) {
+                    request.setRequestHeader("Authorization", 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiMTQifQ.rOz2N3PDuY6FmYHecKYXHCUhAuBC-mZdLPzms3JVldQ');
+                },
+                type: 'GET',
+                url: 'http://uat.siamsmile.co.th:9113/api/AccountDetail?accountTypeId=10&referenceCode=' + empCode,
+                success: function (data) {
+                    if (data != null) {
+                        $('#lbl_accountNo').text(data.pointAccountId);
+                        $('#lbl_accountName').text(data.pointAccountName);
+                        $('#lbl_balance').text(data.pointRemain.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+                        get_dataDetail(data.pointAccountId);
+                    }
+                }
+            });
+        }
+
+        const get_dataDetail = (pointAccountId) => {
+            $.ajax({
+                beforeSend: function (request) {
+                    request.setRequestHeader("Authorization", 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiMTQifQ.rOz2N3PDuY6FmYHecKYXHCUhAuBC-mZdLPzms3JVldQ');
+                },
+                type: 'GET',
+                url: 'http://uat.siamsmile.co.th:9113/api/AccountTransaction?pointAccountId=' + pointAccountId,
+                success: function (data) {
+                    if (data != null) {
+                        //LOAD DATATABLE
+                        loadDatatables('table_id', data);
+                    }
+                }
+            });
+        }
+
+        const loadDatatables = (t, data) => {
+            $('#' + t).empty();
+            $('#' + t).DataTable({
+                pageLength: 100,
+                processing: true,
+                serverSide: false,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                ordering: false,
+                searching: false,
+                info: true,
+                paging: true,
+                data: data,
+                language: {
+                    url: "http://cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Thai.json"
+                },
+                columns: [
+                    {
+                        title: 'รายละเอียด',
+                        data: 'remark',
+                        orderable: false
+                    },
+                    {
+                        title: 'รับ',
+                        data: 'amountIncrease',
+                        orderable: false,
+                        className: 'dt-right color-blue',
+                        render: function (data) {
+                            var amount = data.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                            var result;
+                            result = '<p style="color:blue">' + amount + '</p>';
+                            return result;
+                        }
+
+                    },
+                    {
+                        title: 'จ่าย',
+                        data: 'amountDecrease',
+                        orderable: false,
+                        className: 'dt-right color-red',
+                        render: function (data) {
+                            var amount = data.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                            var result;
+                            result = '<p style="color:red">' + amount + '</p>';
+                            return result;
+                        }
+                    },
+                    {
+                        title: 'คงเหลือ',
+                        data: 'amountBalance',
+                        orderable: false,
+                        className: 'dt-right',
+                        render: function (data) {
+                            var amount = data.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                            var result;
+                            result = '<p style="color:green">' + amount + '</p>';
+                            return result;
+                        }
+                    },
+                    {
+                        title: 'วันที่',
+                        data: 'createdDate',
+                        orderable: false,
+                        className: 'dt-center',
+                        render: (d) => {
+                            return moment(d).format("DD/MM/YYYY");
+                        }
+                    }
+                ]
+            });
+        }
+    </script>
+}

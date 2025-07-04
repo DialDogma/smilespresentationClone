@@ -1,0 +1,353 @@
+﻿@{
+    ViewBag.Title = "จัดการสถานะโรงพยาบาลและคลินิก";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-primary" style="margin-top:15px">
+                <div class="box-body">
+                    <div class="box-group">
+
+                        <div class="row">
+                            <div class="col-xs-2">
+                                <label>ประเภทสถานพยาบาล :</label>
+                                <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlOrganizeType_S">
+                                    <option value="-1">-----ทั้งหมด-----</option>
+                                    @{
+                                        foreach (var item in ViewBag.OrganizeType)
+                                        {
+                                            <option value="@item.OrganizeTypeId">@item.OrganizeType</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-xs-2">
+                                <label>จังหวัด :</label>
+                                <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlProvince_S">
+                                    <option value="-1">-----ทั้งหมด-----</option>
+                                    @{
+                                        foreach (var item in ViewBag.Province)
+                                        {
+                                            <option value="@item.Province_ID">@item.ProvinceDetail</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-xs-4" style="padding-top:25px">
+                                <input class="form-control" type="text" placeholder="ค้นหา " id="txtKeyWord">
+                            </div>
+                            <div class="col-xs-2" style="padding-top:25px">
+                                <button type="button" class="btn btn-block btn-primary" style="text-decoration:none" id="btnSearch">ค้นหา</button>
+                            </div>
+                            <div class="col-xs-1 col-xs-offset-1" style="padding-top:25px">
+                                <button id="btnExport" type="button" class="btn btn-block btn-success" style="float:right;"><i class="fa fa-file-excel-o" aria-hidden="true"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="row" style="padding-top:6px">
+                            <div class="col-xs-12">
+                                <table id="dtHospitalManagement" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- /.modal-dialog -->
+    <div class="modal fade in" id="modal-ActiveHospital" style="display: none; padding-right: 5px;">
+        <div class="modal-dialog" style="width:55%">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">สถานะโรงพยาบาลและคลินิก</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-8 col-xs-offset-1">
+                            <label>ประเภทสถานพยาบาล :</label>
+                            <label id="lblOrganizeType"></label>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-11 col-xs-offset-1">
+                            <label>ชื่อสถานพยาบาล :</label>
+                            <label id="lblOrganizeName"></label>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-2 col-xs-offset-1">
+                            <label>การใช้งาน:</label>
+                        </div>
+                        <div class="col-xs-6 ">
+
+                            <input type="checkbox" class="icheckbox_minimal-blue" aria-checked="false" aria-disabled="false" style="position: relative;" id="chbEditActive" name="chbEditActive" /> ใช้งาน
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-12" style="text-align:center">
+                            <button type="button" class="btn btn-success" id="btnSaveUpdateOrganize" disabled><i class="glyphicon glyphicon-ok"></i>ตกลง</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="glyphicon glyphicon-remove"></i>ยกเลิก</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <input type="hidden" id="hdfOrganizeId" />
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        let oldIsActive;
+    $(function () {
+        $('.select2').select2();
+
+        $('#chbEditActive').on('ifChanged', function () {
+
+            let val = $('#chbEditActive').is(':checked');
+            if (val == oldIsActive) {
+                $('#btnSaveUpdateOrganize').prop('disabled', true);
+            }
+            else {
+                $('#btnSaveUpdateOrganize').prop('disabled', false);
+            }
+        });
+
+        $('#btnSearch').click(function (e) {
+            e.preventDefault();
+            LoadOrganizeData();
+        });
+
+        $('#btnSaveUpdateOrganize').click(function (e) {
+            e.preventDefault();
+            swal({
+                title: "",
+                text: "ยืนยันการบันทึกรายการ",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "ตกลง",
+                cancelButtonText: "ยกเลิก",
+                closeOnConfirm: false,
+                closeOnCancel: true
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        DoUpdateActive();
+                    } else {
+                        //swal("ยกเลิกทำรายการ", "", "error");
+                    }
+                }
+            );
+        });
+
+        $('#btnExport').click(function (e) {
+            e.preventDefault();
+
+            Export();
+        });
+
+    });
+
+     ///////////// Function ////////////////////////
+
+        const LoadOrganizeData = () => {
+            $('#dtHospitalManagement').empty();
+            var t = $('#dtHospitalManagement').dataTable({
+                    pageLength: 10,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    searching: false,
+                    "order": [[6, "desc"]],
+                    destroy: true,
+                    ajax: {
+                        url: '@Url.Action("GetHospitalOrganizeManagement", "HospitalManagement")',
+                        type: 'POST',
+                        async: false,
+                           data: function (d) {
+                               d.draw = d.draw;
+                               d.pageSize = d.length;
+                               d.pageStart = d.start;
+                               d.sortField = d.columns[d.order[0].column].data;
+                               d.orderType = d.order[0].dir;
+                               d.search = d.search.value;
+                               d.organizeTypeId = $('#ddlOrganizeType_S').val();
+                               d.provinceId = $('#ddlProvince_S').val();
+                               d.keyword = $('#txtKeyWord').val();
+                           }
+                       },
+                columns: [
+                           { title: 'รหัสรายการ', data: 'Organize_ID', className: 'h-dt-center text-font-small', width: '8%' },
+                           { title: 'ประเภท', data: 'OrganizeTypeDetail', className: 'h-dt-center text-font-small',width: '8%' },
+                           { title: 'ชื่อสถานพยาบาล', data: 'OrganizeDetail', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'ตำบล', data: 'SubDistrictDetail', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'อำเภอ', data: 'DistrictDetail', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'จังหวัด', data: 'ProvinceDetail', className: 'h-dt-center text-font-small', width: '15%' },
+                           //{ title: 'วันที่ทำรายการ', data: 'BusinessPromoteTeamName', className: 'h-dt-center text-font-small', width: '15%' },
+                            {
+                                title: 'วันที่ทำรายการ', data: 'OrganizeUpdatedDate', className: 'h-dt-center', width: '10%',
+                                mRender: function (data) {
+                                    if (data != null) {
+                                        moment.locale('th');
+                                        return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                                    } else {
+                                        return '';
+                                    }
+                                }
+                            },
+                            {
+                               title: 'สถานะใช้งาน',
+                                data: 'IsActive',
+                               className: 'h-dt-center d-dt-center text-font-small',
+                               width: '10%',
+                               mRender: (data, type, full) => {
+
+                                   if (data == true) {
+                                       return 'ใช้งาน';
+                                   } else {
+                                       return 'ไม่ใช้งาน';
+                                   }
+
+                               }, width: '5%'
+                           },
+
+                           {
+                               title: 'เลือก',
+                               data: null,
+                               className: 'h-dt-center d-dt-center ',
+                               mRender: (data, type, full) =>
+                               {
+                                   return ' <a onclick="GetDateByOrganizeId(\'' + data.Organize_ID + '\');" class="btn btn-warning btn-sm"><i class="glyphicon glyphicon glyphicon-pencil ColorWhite"></i> แก้ไข</a>';
+                               }, width: '5%'
+                           },
+                       ],
+                       bLengthChange: false,
+                       //createdRow: function (row, data, index) {
+                       //    if (data.ClaimOnLineStatusId == 3) {
+                       //        $('td', row).addClass('selected');
+                       //    }
+                       //},
+
+           });
+        }
+
+        function Export() {
+            //loadingSpinner('fadeIn', 999999);
+
+            $('#btnExport').prop('disabled', true);
+            $("body").css("cursor", "progress");
+
+            $.ajax({
+                url: "@Url.Action("ExportOrganizeReport", "HospitalManagement")",
+                type: "GET",
+                data: {
+                    organizeTypeId: $('#ddlOrganizeType_S').val(),
+                    provinceId: $('#ddlProvince_S').val(),
+                    keyword: $('#txtKeyWord').val()
+                },
+                success: function (data) {
+                    window.location = "@Url.Action("DownloadExportOrganize", "HospitalManagement")";
+                    //loadingSpinner('fadeOut');
+                    $("body").css("cursor", "default");
+                    $('#btnExport').prop('disabled', false);
+                },
+                 error: function (jqXHR, exception) {
+                     checkXHRStatus(jqXHR.status);
+                     //loadingSpinner('fadeOut');
+                 }
+            });
+        }
+
+        const GetDateByOrganizeId = (id) => {
+            $('#hdfOrganizeId').val(id);
+            GetOrganizeById();
+
+        }
+
+         const GetOrganizeById = () => {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetHospitalOrganizeById", "HospitalManagement")",
+                data: {
+                    organizeId: $('#hdfOrganizeId').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    $('#lblOrganizeType').text(response.OrganizeTypeDetail);
+                    $('#lblOrganizeName').text(response.OrganizeDetail);
+
+                    oldIsActive = response.IsActive;
+
+                    if (response.IsActive == true) {
+                        // change input's state to 'checked'
+                        $("#chbEditActive").iCheck('check');
+                    }
+                    else {
+                        // remove 'checked' state
+                        $("#chbEditActive").iCheck('uncheck');
+                    }
+
+                    $('#modal-ActiveHospital').addClass("modal_itemcenter");
+                    $('#modal-ActiveHospital').modal('show');
+
+                }
+            });
+        }
+
+        const DoUpdateActive = () => {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("UpdateActiveHospital", "HospitalManagement")",
+                 data: {
+                     orgainzeId: $('#hdfOrganizeId').val(),
+                     isActive: $('#chbEditActive').is(':checked'),
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    if (response.IsResult == true) {
+
+                        //alert Msg
+                        swal("", response.Msg, "success");
+
+                        //doclear
+                        DoClear();
+
+                        //doload
+                        LoadOrganizeData();
+
+                        //hide modal
+                        $('#modal-ActiveHospital').modal('hide');
+
+                    } else {
+                        //alert Msg
+                        swal("ตรวจสอบข้อมูล", response.Msg, "warning");
+                        $('#modal-ActiveHospital').modal('show');
+
+                    }
+
+                }
+            });
+        }
+
+        const DoClear = () => {
+            $('#hdfOrganizeId').val('');
+            $("#chbEditActive").iCheck('uncheck');
+            $('#lblOrganizeName').text('');
+            $('#lblOrganizeType').text('');
+        }
+    </script>
+}

@@ -1,0 +1,262 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div id="ribbon">
+    <ol class="breadcrumb " style="background-color:#ecf0f5; font-size:25px;">
+        <li>  Monitor - อนุมัติตอบกลับบริษัทประกัน</li>
+    </ol>
+</div>
+<div class="col-sm">
+    <div class="box box-primary" style="margin-top:0.8%;border-color:#167fb8">
+        <div class="box-header with-border">
+            <h3 class="box-title"> ค้นหาข้อมูล</h3>
+        </div>
+        <div class="box-body">
+            <div class="row">
+                <div class="col-sm-3">
+                    <label> ค้นหาจาก</label>
+                    <select name="DecisionStatus" id="ddlDateType" class="DecisionStatus select2" style="width:100%">
+                        <option value="1">วันที่วางบิล</option>
+                        <option value="2" selected>วันที่ตอบกลับ</option>
+                    </select>
+                </div>
+                <div class="col-sm-3">
+                    <label> วันที่</label>
+                    <input type="text" class="form-control pull-right" id="startDate" name="startDate" data-date-language="th-th">
+                </div>
+                <div class="col-sm-3">
+                    <label> ถีงวันที่</label>
+                    <input type="text" class="form-control pull-right" id="endDate" name="endDate" data-date-language="th-th">
+                </div>
+                <div class="col-sm-3">
+                    <label> สถานะ</label>
+                    <select name="DecisionStatus" id="DecisionStatus" class="DecisionStatus select2" style="width:100%">
+                        @{
+                            foreach (var decision in ViewBag.BillingReceiveStatus)
+                            {
+                                <option value="@decision.BillingReceiveStatusId">@decision.BillingReceiveStatusName</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <label> บริษัทประกัน</label>
+                    <select name="InsuranceCompany" id="InsuranceCompany" class="InsuranceCompany select2" style="width:100%">
+                        <option value="-1"> --- ทั้งหมด ---</option>
+                        @{
+                            foreach (var item in ViewBag.InsuranceCompany)
+                            {
+                                <option value="@item.OrganizeId">@item.OrganizeDetail</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-sm-3">
+                    <label> ประเภทการเคลม</label>
+                    <select name="CliamType" id="CliamType" class="CliamType select2" style="width:100%">
+                        <option value="-1"> --- ทั้งหมด ---</option>
+                        @{
+                            foreach (var item in ViewBag.ClaimGroupType)
+                            {
+                                <option value="@item.Code">@item.Detail</option>
+                            }
+                        }
+
+                    </select>
+                </div>
+                <div class="col-sm-3">
+                    <div class="input-group">
+                        <label>คำค้นหา:</label>
+                        <input type="text" name="txtSearchDetail" class="form-control" id="txtSearchDetail" placeholder="ค้นหาจากเลขที่ BillingRequestGroups" style="width:100%" onkeypress="return /[0-9a-zA-Zก-ฮ]/i.test(event.key)" />
+                        <span class="input-group-btn" style=" padding-top : 25px;">
+                            <button class="btn btn-block bg-primary" id="btnSearch" style="color:#ffffff" type="button">
+                                <i class="glyphicon glyphicon-search"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-sm">
+    <div class="box box-primary" style="margin-top:0.8%;border-color:#167fb8">
+        <div class="box-header with-border">
+            <h3 class="box-title"> ตัดรับชำระ</h3>
+        </div>
+        <div class="box-body">
+            <div class="col-sm-12">
+                <table id="dtOut2ApproveMonitor" class="table table-bordered dataTable table-hover" style="text-align: center;"></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section ViewSpecificJavascript
+{
+    <script src="~/Content/js/jquery.numeric.js"></script>
+    <script type="text/javascript">
+
+        $(function () {
+
+            // set datetime
+            var date = new Date();
+            var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            date.setDate(date.getDate());
+            var dateDefault = {
+                format: 'dd/mm/yyyy',
+                autoclose: true,
+                endDate: today + 1
+            }
+            $('#startDate').datepicker(dateDefault);
+            $('#startDate').datepicker('setDate', today);
+            $('#endDate').datepicker(dateDefault);
+            $('#endDate').datepicker('setDate', today);
+            $(".select2").select2();
+            $('#btnSearch').click(function (e) {
+                if (isValidate()) {
+                    DoLoadMonitor();
+                }
+            });
+
+            // load monitor default
+            DoLoadMonitor();
+        });
+
+        const isValidate = () => {
+            var startDateCheck = $('#startDate').datepicker('getDate');
+            var endDateCheck = $('#endDate').datepicker('getDate');
+
+            if (endDateCheck < startDateCheck) {
+                swal("แจ้งเตือน!", "กรุณาตรวจสอบช่วงวันที่" , "warning");
+                return false;
+            }
+            return true;
+        }
+
+        formatNumber = (number) => {
+            var parts = number.toFixed(2).split(".");
+            var num = parts[0].replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,") + (parts[1] ? "." + parts[1] : "");
+            return num;
+        }
+
+        //----------------------------Data Table------------------------------//
+        const DoLoadMonitor = () => {
+            $('#dtOut2ApproveMonitor').empty();
+            var table = $('#dtOut2ApproveMonitor').dataTable({
+                pageLength: 100,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                "order": [[1, "asc"]],
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetOut2Approves", "ClaimPayBack")',
+                    type: 'POST',
+                    async: true,
+                    data: function (d) {
+                        d.dateTypeId = $('#ddlDateType').val();
+                        d.startDate = $('#startDate').val();
+                        d.endDate = $('#endDate').val();
+                        d.decisionStatus = $('#DecisionStatus').val();
+                        d.insuranceCompany = $('#InsuranceCompany').val();
+                        d.cliamType = $('#CliamType').val();
+                        d.searchDetail = $('#txtSearchDetail').val();
+                        d.draw = d.draw;
+                        d.indexStart = d.start;
+                        d.pageSize = d.length;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ', data: null, className: 'h-dt-center text-center', width: '5%', orderable: false,
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        title: 'BillingRequestGroup', data:null, className: 'h-dt-center text-center',
+                        render: function (data) {
+                            var url = "<a href='/ClaimPayBack/Out2ApproveDetail?tempCode=" + data.tempCode + "&billingRequestGroup=" + data.billingRequestGroup + "&statusId=" + data.StatusId+"'> " + data.billingRequestGroup + " </a>";
+                            return url;
+                        }
+                    },
+                    {
+                        title: 'บริษัทประกัน', data: "insuranceName", className: 'h-dt-center text-left',
+                    },
+                    {
+                        title: 'จำนวน',
+                        data: "amount",
+                        className: "h-dt-center text-center",
+                    },
+                    {
+                        title: 'จำนวนเงิน',
+                        data: "amountTotal",
+                        className: "h-dt-center text-right",
+                    },
+                    {
+                        title: 'ประเภทเคลม',
+                        data: "claimType",
+                        className: "h-dt-center text-center",
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: null,
+                        className: "h-dt-center text-center",
+                        render: function (data) {
+                            var colorCode = 'red';
+                            if (data.StatusId == 2) {
+                                colorCode = 'orange';
+                            }
+                            return '<span style="color:' + colorCode + '"><strong>' + data.statusName +'</strong></span>';
+                        }
+                    },
+                    {
+                        title: 'วันที่วางบิล', data: "billingDate", className: 'h-dt-center text-font-small', width: '15%',
+                        className: "h-dt-center text-center",
+                        mRender: function (data) {
+                            return toBuddhistYear(moment(data), 'DD/MM/YYYY');
+                        }
+                    },
+                    {
+                        title: 'วันที่ตอบกลับ', data: null, className: 'h-dt-center text-font-small', width: '15%',
+                        className: "h-dt-center text-center",
+                        mRender: function (data) {
+                            var resultdate = "-";
+                            if (data.receiveDate != null) {
+                                resultdate = toBuddhistYear(moment(data.receiveDate), 'DD/MM/YYYY');
+                            }
+                            return resultdate;
+                        }
+                    }
+                ],
+                initComplete: function () {
+                },
+                drawCallback: function () {
+                    // Reinitialize tooltips on draw
+                    $('[data-toggle="tooltip"]').tooltip();
+                },
+                bLengthChange: false,
+            });
+        }
+
+        function toBuddhistYear(moment, format) {
+            var christianYear = moment.format('YYYY')
+            var buddhishYear = (parseInt(christianYear) + 543).toString()
+            return moment
+                .format(format.replace('YYYY', buddhishYear).replace('YY', buddhishYear.substring(2, 4)))
+                .replace(christianYear, buddhishYear)
+        }
+
+    </script>
+
+}

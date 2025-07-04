@@ -1,0 +1,467 @@
+﻿
+@{
+    ViewBag.Title = "นำเข้ารายชื่อ";
+}
+
+<form class="form-horizontal" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div id="Notification" class="alert alert-danger alert-dismissible" hidden>
+                @*<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>*@
+                <h4><i class="icon fa fa-check"></i> Alert!</h4>
+                <p><strong>คำเตือน : </strong><div id="diNoti"></div></p>
+            </div>
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">นำเข้ารายชื่อ</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="box-body">
+                    <div class="box-group">
+
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <label>Application ID:</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon bg-aqua">
+                                        <i class="fa fa-fw fa-heartbeat"></i>
+                                    </div>
+                                    <input type="text" class="form-control input-sm bg-aqua" disabled id="txtApplicationID" />
+                                </div>
+                            </div>
+                            <div class="col-xs-9">
+                                <label>ชื่อกรมธรรม์</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-fw fa-desktop"></i>
+                                    </div>
+                                    <input type="text" class="form-control input-sm" disabled id="txtPolicyName" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" style="padding-top:5px;padding-top:1%">
+                            <div class="col-xs-3">
+                                <label>วันที่รับแจ้งรายชื่อ :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpNoticeDate" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy" readonly="readonly" style="background-color:white" disabled>
+                                </div>
+                            </div>
+                            <div class="col-xs-3">
+                                <label>วันที่มีผลบังคับ :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpEffectiveDate" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy" readonly="readonly" style="background-color:white" disabled>
+                                </div>
+                            </div>
+                            <div class="col-xs-4">
+                                <label>เลือกไฟล์เพื่อนำเข้ารายชื่อ</label>
+                                <input type="file" id="ImportFile" name="ImportFile" style="width:100%;" class="form-control">
+                            </div>
+                            <div class="col-xs-2" style="padding-top:25px">
+
+                                <button type="button" class="btn btn-primary" style="width:100%" id="btnupload">อัพโหลด</button>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ตรวจสอบรายชื่อ</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-xs-5">
+                                <label>จำนวน Error :</label>
+                                <label style="color:red" id="lblErrorCount">0</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <table id="dtCustomerDetail" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                            </div>
+                        </div>
+
+                        <div class="row" style="padding-top:8px" id="divButton">
+                            <div class="col-xs-12" style="text-align:center">
+                                <button type="button" class="btn btn-danger" id="btnClearImport">ล้างข้อมูล เริ่มใหม่ทั้งหมด</button>
+                                <button type="button" class="btn btn-success" id="btnComfirmImport">ยืนยันนำเข้าและขอออกกรมธรรม์</button>
+                                <button type="button" class="btn btn-warning" id="btnExportError">Export รายละเอียด</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" id="hdfTmpCode" hidden />
+        <input type="hidden" id="hdfAppId" hidden value="@ViewBag.AppID" />
+
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script>
+
+
+        $(function () {
+
+            $('#divButton').hide();
+            $("#Notification").hide();
+            //GetDetail
+            GetApplicationDetail();
+
+            $('#btnupload').click(function (e) {
+                e.preventDefault();
+
+                $("#Notification").hide();
+
+                //Validate()
+                if (IsValidateForUpLoad()) {
+                    //IsValidateFile
+
+                    IsValidateFile();
+
+                }
+
+
+            });
+
+            $('#btnClearImport').click(function (e) {
+                e.preventDefault();
+
+                //DoClearData();
+                DoClearData();
+            });
+
+            $('#btnComfirmImport').click(function (e) {
+                e.preventDefault();
+                //Validate
+                //Swal.Confirm
+                window.swal({
+                    title: `ยืนยันนำเข้าและขอออกกรมธรรม์ "${$('#txtPolicyName').val()}" หรือไม่?`,
+                    //text: $('#txtPolicyName').val(),
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#277020',
+                    confirmButtonText: 'ตกลง',
+                    cancelButtonText: 'ยกเลิก',
+                    closeOnConfirm: false,
+                    closeOnEsc: false,
+                    closeOnCancel: true
+                }, function () {
+                    //DoConfirmImport
+                    DoConfirmImportFile();
+
+                });
+
+
+            });
+
+            $('#btnExportError').click(function (e) {
+                e.preventDefault();
+
+                loadingSpinner('fadeIn', 3000)
+                //DoExport
+                DoExportExcel()
+
+            });
+
+        });
+
+        const IsValidateForUpLoad = () => {
+            debugger;
+            var file = jQuery("#ImportFile").get(0);
+            var filename = file.value;
+
+            if (filename == "") {
+                swal("คำเตือน", "กรุณาเลือกไฟล์", "warning");
+                return false;
+            }
+
+            if (/\.(xlsx|xls)$/i.test(file.files[0].name) === false) {
+                swal("คำเตือน", "กรุณาตรวจสอบไฟล์ ไฟล์ต้องเป็น Excel เท่านั้น", "warning");
+                return false;
+            }
+
+            return true;
+        }
+
+
+        const IsValidateFile = () => {
+             $.ajax({
+            type: "POST",
+            url: '@Url.Action("IsValidateforImport", "PAPersonnel")',
+            data: function () {
+                var data = new FormData();
+                data.append("file", jQuery("#ImportFile").get(0).files[0]);
+                return data;
+            }(),
+            contentType: false,
+            processData: false,
+            async: false,
+            success: function (response) {
+
+                debugger;
+                if (response.IsResult == true)
+                {
+                    //Closed button Upload
+                    $('#btnupload').prop('disabled', true);
+                    $('#ImportFile').prop('disabled', true);
+
+                    //DoUploadFile
+                    DoUploadFile();
+
+                }
+                else
+                {
+                    $('#dtCustomerDetail').empty();
+                    $("#Notification").show();
+                    $("#diNoti").text(response.Msg);
+
+                    $('#ImportFile').val('');
+                }
+            }
+        });
+        }
+
+
+        const DoUploadFile = () => {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ImportCustomerDetail", "PAPersonnel")',
+                data: function () {
+                    var data = new FormData();
+                    data.append("file", jQuery("#ImportFile").get(0).files[0]);
+                    return data;
+                }(),
+                contentType: false,
+                processData: false,
+                async: false,
+                success: function (data) {
+
+                    if (data == false) {
+                        swal("", "กรุณาตรวจสอบไฟล์", "warning");
+                        $('#btnupload').prop('disabled', false);
+                        $('#ImportFile').prop('disabled', false);
+                    } else {
+                        switch (data.IsResult) {
+                            case false:
+                                swal("ตรวจสอบข้อมูล", data.Msg, "warning");
+                                break;
+                            case true:
+
+                                //Set TmpCode
+                                $('#hdfTmpCode').val(data.TmpCode);
+
+                                if (data.Result == "1") {
+
+                                    //Open Button Confirm / Clear
+
+                                    $('#btnComfirmImport').attr("disabled", false);
+                                    $('#btnClearImport').attr("disabled", false);
+
+                                    $('#btnExportError').hide();
+
+                                    $('#divButton').show();
+
+
+                                } else if (data.Result == "0") {
+
+                                    //Count Error
+                                    DoloadCountError();
+
+                                    //Open Button Export / Clear
+                                    $('#btnClearImport').attr("disabled", false);
+                                    $('#btnExportError').attr("disabled", false);
+
+                                    $('#btnComfirmImport').hide();
+
+                                    $('#divButton').show();
+
+                                } else {
+                                    $('#divButton').hide();
+                                }
+                            default:
+                        }
+
+                        GetImportCustomerDetailPreview();
+                    }
+                }
+            });
+        }
+
+
+        const GetImportCustomerDetailPreview = () => {
+            $('#dtCustomerDetail').empty();
+            var t = $('#dtCustomerDetail').DataTable({
+                 pageLength: 10,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    destroy: true,
+                    ajax: {
+                        url: '@Url.Action("GetTempImportCustomerDetailPreview", "PAPersonnel")',
+                        type: 'POST',
+                        data: function (d) {
+                            d.draw = d.draw;
+                            d.pageSize = d.length;
+                            d.indexStart = d.start;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.search = d.search.value;
+                            d.tempCode = $('#hdfTmpCode').val();
+                        }
+                    },
+                    columns: [
+
+                        { title: 'คำนำหน้า', data: 'TitleName' },
+                        { title: 'ชื่อ', data: 'FirstName' },
+                        { title: 'นามสกุล', data: 'LastName' },
+                        { title: 'บัตรประชาชน', data: 'IdCardNumber'},
+                        { title: 'Passport', data: 'PassPortNumber' },
+                        { title: 'ตำแหน่ง', data: 'Position' },
+                        { title: 'เบอร์โทร', data: 'MobileNumber' },
+                        {
+                            title: 'หมายเหตุ', data: 'VaildateResult',
+                            mRender: (data) => {
+                                if (data != '') {
+                                    return `<span class="red">${data}</span>`;
+                                } else {
+                                    return '';
+                                }
+                            }
+                        },
+                    ],
+                bLengthChange: false
+            });
+        }
+
+        const GetApplicationDetail = () => {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("GetPAApplicationDetailByAppID", "PAPersonnel")',
+                data: {
+                    appId: $('#hdfAppId').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+
+                    $('#txtApplicationID').val(data.PersonnelApplicationCode);
+                    $('#txtPolicyName').val(data.PersonnelApplicationName);
+
+                    let effectiveDate = moment(data.EffectiveDate).add(543, 'years').format("DD/MM/YYYY");
+
+                    $('#dtpEffectiveDate').val(effectiveDate);
+                }
+            });
+        }
+
+        const DoConfirmImportFile = () => {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("InsertCustomerDetailAndSendPolicy", "PAPersonnel")',
+                data: {
+                    tmpCode: $('#hdfTmpCode').val(),
+                    appId: $('#hdfAppId').val(),
+                    effectiveDate: $('#dtpEffectiveDate').val()
+                },
+                async: false,
+                success: function (data) {
+                    debugger
+                    if (data.IsResult == true) {
+                        swal({
+                            title: data.Msg,
+                            text: "",
+                            type: "success",
+                            confirmButtonText: "ตกลง",
+                        },
+                            function () {
+                                window.close();
+                            }
+                        )
+                    } else {
+                        swal("ข้อผิดพลาด", data.Msg, 'error');
+                    }
+                }
+            });
+        }
+
+        const DoClearData = () => {
+            $('#dtCustomerDetail').empty();
+            $('#lblErrorCount').text('0');
+            $('#divButton').hide();
+            $("#Notification").hide();
+
+
+            $('#btnClearImport').show();
+            $('#btnExportError').show();
+
+            $('#btnComfirmImport').show();
+
+            $('#btnupload').prop('disabled', false);
+            $('#ImportFile').prop('disabled', false);
+            $('#ImportFile').val('');
+
+        }
+
+        const DoloadCountError = () => {
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetTempCustomerErrorCount", "PAPersonnel")',
+                data: { tempCode: $('#hdfTmpCode').val() },
+                dataType: "json",
+                success: function (response) {
+
+                    $('#lblErrorCount').text(response.CountError);
+                }
+            });
+        }
+
+         const DoExportExcel = () => {
+
+            $.ajax({
+                 type: "GET",
+                 url: "@Url.Action("ExportCustomerDetailPreviewReport", "PAPersonnel")",
+                 data: {
+                     tempCode: $('#hdfTmpCode').val()
+                 },
+                 async: false,
+                 dataType: "json",
+                 success: function (response) {
+                     window.location.href = `@Url.Action("ExportCustomerDetailPreviewReportDownload", "PAPersonnel")`;
+                     loadingSpinner('fadeOut', 3000);
+                 }
+             });
+        }
+
+    </script>
+}

@@ -1,0 +1,1140 @@
+﻿@{
+    ViewBag.Title = "บันทึกเคลม PA";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*<h2>CreateClaimForPA</h2>*@
+
+<style>
+    .selected {
+        background-color: #D9EAF6;
+    }
+</style>
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+            @* ค้นหา *@
+            <div class="box box-primary box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="box-group">
+
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <label>ปีการศึกษา :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlYear">
+                                    @{
+                                        foreach (var item in ViewBag.CodeGroupPAYear)
+                                        {
+                                            <option value="@item.Detail">@item.Detail</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-xs-4">
+                                <label>จังหวัด :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlProvince" checkNA="checkNA">
+
+                                    <option value="-1">--โปรดระบุ--</option>
+
+                                    @{
+                                        foreach (var item in ViewBag.Province)
+                                        {
+                                            <option value="@item.Code">@item.Detail</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-8">
+                                <label>สถานศึกษา :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlSchool" name="ddlSchool"></select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <label>ชื่อ :</label>
+                                <input type="text" class="form-control" width="100" id="txtFirstName" />
+                            </div>
+                            <div class="col-xs-4">
+                                <label>นามสกุล :</label>
+                                <input type="text" class="form-control" width="100" id="txtLastName" />
+                            </div>
+                            <div class="col-xs-3" style="padding-top: 25px;">
+                                <button class="btn btn-primary" type="button" id="btnSearch" style="width:50%">ค้นหา</button>
+                            </div>
+                        </div>
+
+                        <div class="box box-primary" style="margin-top:9px">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">รายการ</h3>
+                            </div>
+
+                            <div class="box-body">
+                                <div class="box-group">
+                                    <div class="row">
+                                        <div class="col-xs-12">
+                                            <table id="dtMain" class="table table-bordered table-hover dataTable" role="grid" aria-describedby="example2_info"></table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+
+            @* Create Claim  *@
+            <div class="box box-primary box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">บันทึกเคลม PA </h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body" style="">
+                    <div class="box-group">
+
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="box box-primary">
+                                    <div class="box-header with-border">
+                                        <h3 class="box-title">รายละเอียด Application</h3>
+
+                                        <!-- /.box-tools -->
+                                    </div>
+                                    <!-- /.box-header -->
+                                    <div class="box-body">
+                                        <div class="box-group">
+                                            <div class="row">
+                                                <div class="col-xs-3">
+                                                    <label>รหัสนักเรียน :</label>
+                                                    <label class="" id="lblCustomerDetailCode" style="color:blue;width:100%"></label>
+                                                </div>
+                                                <div class="col-xs-4">
+                                                    <label>ชื่อ - สกุล ผู้เอาประกัน :</label>
+                                                    <label class="" id="lblCustFullName" style="color:blue;width:100%"></label>
+                                                </div>
+                                                <div class="col-xs-3">
+                                                    <a id="lnkDetail">ดูรายละเอียด</a>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-xs-3">
+                                                    <label>สถานะผู้เอาประกัน :</label>
+                                                    <label class="" id="lblCustomerStatus" style="color:blue;width:100%"></label>
+                                                </div>
+                                                <div class="col-xs-4">
+                                                    <label>สถานศึกษา :</label>
+                                                    <label class="" id="lblSchoolName" style="color:blue;width:100%"></label>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-xs-3">
+                                                    <label>วันเริ่มคุ้มครอง :</label>
+                                                    <label class="" id="lblStartCoverDate" style="color:blue;width:100%"></label>
+                                                </div>
+                                                <div class="col-xs-3">
+                                                    <label>วันสิ้นสุดความคุ้มครอง :</label>
+                                                    <label class="" id="lblEndCoverDate" style="color:blue;width:100%"></label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- /.box-body -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <label>วันที่เกิดเหตุ :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpHappenDate" data-provide="datepicker" data-date-language="th-th">
+                                </div>
+                            </div>
+                            <div class="col-xs-3">
+                                <label>วันที่รับแจ้ง :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpNoticeDate" data-provide="datepicker" data-date-language="th-th">
+                                </div>
+                            </div>
+                            <div class="col-xs-3">
+                                <label>สาขาที่ขอเคลม :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlbranch">
+                                    <option value="-1">--โปรดระบุ--</option>
+                                    @{
+                                        foreach (var item in ViewBag.Branch)
+                                        {
+                                            <option value="@item.tempcode">@item.BranchDetail</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <label>วันที่เข้า ร.พ. :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpInDate" data-provide="datepicker" data-date-language="th-th">
+                                </div>
+                            </div>
+                            <div class="col-xs-3">
+                                <label>วันที่ออก ร.พ. :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpOutDate" data-provide="datepicker" data-date-language="th-th">
+                                </div>
+                            </div>
+                            <div class="col-xs-3">
+                                <label>หมายเลข COL :</label>
+                                <input type="text" class="form-control" id="txtClaimOnlineCode" disabled />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <label>วิธีการเคลม :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" disabled id="ddlclaimStyle">
+                                    @{
+                                        foreach (var item in ViewBag.ClaimStyle)
+                                        {
+                                            <option value="@item.Code">@item.Detail</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-xs-3">
+                                <label>ประเภทการรักษา :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlclaimType" disabled></select>
+                            </div>
+
+                            <div class="col-xs-3">
+                                <label>สถานะเคลม :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlStatusClaim">
+                                    <option value="-1">--โปรดระบุ--</option>
+                                    @{
+                                        foreach (var item in ViewBag.StatusClaim)
+                                        {
+                                            <option value="@item.Code">@item.Detail</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-xs-3" id="divCancelCause">
+                                <label>สาเหตุการปฏิเสธ :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlCancelCause" disabled></select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <label>จังหวัดสถานพยาบาล :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlProvinceHospital">
+                                    <option value="-1">--โปรดระบุ--</option>
+
+                                    @{
+                                        foreach (var item in ViewBag.Province)
+                                        {
+                                            <option value="@item.Code">@item.Detail</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-xs-6">
+                                <label>ชื่อสถานพยาบาล :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlHospitalName" name="ddlHospitalName"></select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-9">
+                                <label>สาเหตุอุบัติเหตุ :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlAccident" name="ddlAccident"></select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-9">
+                                <label>Cheif Complain :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlChiefComplain" name="ddlChiefComplain"></select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-9">
+                                <label>ลักษณะการเกิดอุบัติเหตุ :</label>
+                                <input class="form-control" type="text" placeholder="Accident Detail" id="txtAccidentDetail">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-9">
+                                <label>ผู้อนุมัติจ่ายเคลม :</label>
+                                <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlApprovePayClaim" name="ddlApprovePayClaim"></select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-12 " style="margin-top:20px">
+                                <div style="text-align:right">
+                                    <button class="btn btn-success" style="width:20%" type="button" id="btnsave">บันทึก</button>
+                                    <button class="btn btn-danger" style="width:20%" type="button" id="btncancel">ยกเลิก</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+
+        <input type="hidden" id="hdfCustomerDetail" hidden />
+        <input type="hidden" id="hdfClaimOnlineCode" hidden value="@ViewBag.ClaimOnlineCode" />
+        <input type="hidden" id="hdfProductCategory" hidden />
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+            $('.select2').select2();
+
+            $('#txtClaimOnlineCode').val($('#hdfClaimOnlineCode').val());
+
+            $('#divCancelCause').hide();
+
+            $('#dtpHappenDate').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+            $('#dtpNoticeDate').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+            $('#dtpInDate').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+            $('#dtpOutDate').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+
+            SetDisabledButton(true);
+
+            GetSchoolDetail();
+            GetHospitalNameDetail();
+            GetEmployeeApprovePayClaim();
+            GetAccidentClaim();
+            GetChiefComplainDetail();
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+
+                if (IsvalidateForSearch() == "") {
+
+                    //DoClearHilightTable();
+                    DoClearCustomerDetail();
+                    DoClearInputSaveClaim();
+                    SetDisabledButton(true);
+
+                    //GetApplicationPADetail
+                    GetApplicationPADetail();
+
+                }
+            });
+
+            $('#ddlStatusClaim').change(function (e) {
+                e.preventDefault();
+                //ถ้าเป้นปฏิเสธเคลม ให้เลือก สาเหตุการปฏิเสธ ได้ ถ้าไม่ใช่ให้ ปิด และเคลียร์
+                if ($("#ddlStatusClaim").val() == "3570") {  //3570 คือ ปฏิเสธเคลม
+                    //Get CancelCauseClaim
+                    GetCancelCauseClaim();
+
+                    $('#divCancelCause').show();
+
+                    //Enabled CancelCauseClaim
+                    $('#ddlCancelCause').prop('disabled', false);
+
+                }
+                else {
+                    $('#divCancelCause').hide();
+                    $('#ddlCancelCause').empty();
+                    $('#ddlCancelCause').prop('disabled', true);
+                }
+            });
+
+            //ถ้ามีการเปลี่ยนจังหวัดในการค้นหา ให้เคลียร์ค่าสถานศึกษา ให้เลือกใหม่
+            $('#ddlProvince').change(function (e) {
+                e.preventDefault();
+                $(this).valid();
+
+                $('#ddlSchool').empty().trigger('change');
+
+                //เคลียร์ ตาราง
+                $('#dtMain').empty();
+                DoClearDatatable();
+
+            });
+
+            //ถ้ามีการเปลี่ยนจังหวัด สถานพยาบาลให้เคลียร์ค่า ให้เลือกใหม่
+            $('#ddlProvinceHospital').change(function (e) {
+                e.preventDefault();
+                $('#ddlHospitalName').empty().trigger('change');
+
+            });
+
+            $('#btncancel').click(function (e) {
+                e.preventDefault();
+
+                DoClearHilightTable();
+                DoClearCustomerDetail();
+                DoClearInputSaveClaim();
+                SetDisabledButton(true);
+
+            });
+
+            $('#btnsave').click(function (e) {
+                e.preventDefault();
+
+                //IsValidateForSaveClaim
+                if (IsvalidateForSaveClaim() == "") {
+                     //DoSaveClaim
+                    SaveClaimPA();
+
+                }
+            });
+
+        });
+
+        ///Function
+
+        const DoClearDatatable = () => {
+            //let t = $('#dtMain').DataTable();
+
+            //$('#dtMain').clear();
+        }
+
+        const DoClearHilightTable = () => {
+
+            let t = $('#dtMain').DataTable();
+
+                t.$('tr.selected').removeClass('selected');
+
+        }
+
+        const SaveClaimPA = () => {
+            $.post("@Url.Action("SavePAClaim", "Claim")",
+            {
+                customerDetailCode: $('#hdfCustomerDetail').val(),
+                hospitalId: $('#ddlHospitalName').val(),
+                claimTypeId: $('#ddlclaimType').val(),
+                claimStypeId: $('#ddlclaimStyle').val(),
+                dateHappen: $('#dtpHappenDate').val(),
+                dateNotice: $('#dtpNoticeDate').val(),
+                dateIn: $('#dtpInDate').val(),
+                dateOut: $('#dtpOutDate').val(),
+                accidentCauseId: $('#ddlAccident').val(),
+                statusId: $('#ddlStatusClaim').val(),
+                createdByBranchId: $('#ddlbranch').val(),
+                claimPayByCode: $('#ddlApprovePayClaim').val(),
+                claimOnLineCode: $('#txtClaimOnlineCode').val(),
+                denyCauseId: $('#ddlCancelCause').val(),
+                chiefComplainId: $('#ddlChiefComplain').val(),
+                accidentDetail: $('#txtAccidentDetail').val()
+            },
+            (data, textStatus, jqXHR) => {
+
+                if (textStatus == "success") {
+
+                    //Check data[0] ถ้าเป็น True ให้รีเทีร์น เลข CL ออกมาแสดง พร้อมปิดหน้า แต่ถ้าเป็น False ให้แสดง Msg
+                    if (data[0] == "True") {
+
+                        swal({
+                            title: "ทำรายการสำเร็จ",
+                            text: `เลขเคลม : ${data[1]}`,
+                            type: "success",
+                            showCancelButton: false,
+                            closeOnConfirm: false,
+                            showLoaderOnConfirm: true
+                        }, function () {
+                            setTimeout(function () {
+                                //swal("Ajax request finished!");
+                                window.close();
+                            }, 1000);
+                        });
+
+                    }
+                    else {
+                        swal("ทำรายการไม่สำเร็จ ", data[2], "error");
+                    }
+                }
+
+            },
+            "json"
+            );
+        }
+
+        const GetSchoolDetail = () => {
+            $("#ddlSchool").select2({
+
+                ajax: {
+                    url: '@Url.Action("GetSchoolDetail", "Claim")',
+                    dataType: 'json',
+                    delay: 250,
+
+                    data:  (params) => {
+                        return {
+                            q: params.term, // search term
+                            PAYear: $('#ddlYear').val() ,
+                            provinceID: $('#ddlProvince').val(),
+                            page: params.page
+                        };
+                    },
+                    processResults: processDataSchoolData,
+                    cache: true
+                },
+                placeholder: 'ค้นหารายการ',
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 3,
+                //templateResult: formatRepo,
+                //templateSelection: formatRepoSelectionHospitalName,
+                selectOnClose: true,
+                language: {
+                    inputTooShort: function () {
+                        //if ($('#ddlProvince').val() == "-1") {
+                        //    return 'กรุณาเลือกจังหวัด';
+                        //} else {
+                        //    return 'กรอกข้อมูลอย่างน้อย 3 ตัวอักษร';
+                        //}
+
+                        return 'กรอกข้อมูลอย่างน้อย 3 ตัวอักษร';
+
+                    }
+                }
+            });
+
+        }
+
+        processDataSchoolData = (data) => {
+            var mapdata = $.map(data, function (obj) {
+                obj.id = obj.School_id;
+                obj.text = obj.Detail;
+                return obj;
+            });
+            return { results: mapdata };
+        }
+
+        //formatRepoSelectionHospitalName = (repo) => {
+        //    return repo.Detail || repo.text;
+        //}
+
+         const GetHospitalNameDetail = () => {
+
+            $("#ddlHospitalName").select2({
+
+                ajax: {
+                    url: '@Url.Action("GetHospitalNameForPHDetail", "Claim")',
+                    dataType: 'json',
+                    delay: 250,
+
+                    data: function (params) {
+                        return {
+                            q: params.term, // search term
+                            provinceId: $("#ddlProvinceHospital").val(),
+                            page: params.page
+                        };
+                    },
+                    processResults: processDataHospitalName,
+                    cache: true
+                },
+                placeholder: 'ค้นหารายการ',
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 3,
+                //templateResult: formatRepo,
+                templateSelection: formatRepoSelectionHospitalName,
+                selectOnClose: true,
+                language: {
+                    inputTooShort: function () {
+                        if ($('#ddlProvinceHospital').val() == "-1") {
+                            return 'กรุณาเลือกจังหวัดสถานพยาบาล';
+                        } else {
+                            return 'กรอกข้อมูลอย่างน้อย 3 ตัวอักษร';
+                        }
+
+                    }
+                }
+            });
+
+        }
+
+        processDataHospitalName = (data) => {
+            var mapdata = $.map(data, function (obj) {
+                obj.id = obj.Code;
+                obj.text = obj.Detail;
+                return obj;
+            });
+            return { results: mapdata };
+        }
+
+        formatRepoSelectionHospitalName = (repo) => {
+            return repo.Detail || repo.text;
+        }
+
+         const GetEmployeeApprovePayClaim = () => {
+             $("#ddlApprovePayClaim").select2({
+
+                ajax: {
+                    url: '@Url.Action("GetEmployeeDetail", "Claim")',
+                    dataType: 'json',
+                    delay: 250,
+
+                    data: function (params) {
+                        return {
+                            q: params.term, // search term
+                            page: params.page
+                        };
+                    },
+                    processResults: processDataApprovePayClaim,
+                    cache: true
+                },
+                placeholder: 'ค้นหารายการ',
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 4,
+                //templateResult: formatRepo,
+                //templateSelection: formatRepoSelectionApprovePayClaim,
+                selectOnClose: true,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 4 ตัวอักษร'; } }
+            });
+        }
+
+        processDataApprovePayClaim = (data) => {
+            var mapdata = $.map(data, function (obj) {
+                obj.id = obj.EmployeeCode;
+                obj.text = obj.EmployeeCode + ": " + obj.PersonName + "("+ obj.NickName + ") สาขา: " + obj.Branch + " ทีม: " + obj.Team;
+                return obj;
+            });
+            return { results: mapdata };
+        }
+
+        const GetAccidentClaim = () => {
+            $("#ddlAccident").select2({
+
+                ajax: {
+                    url: '@Url.Action("GetAccidentClaimDetail", "Claim")',
+                    dataType: 'json',
+                    delay: 250,
+
+                    data: function (params) {
+                        return {
+                            q: params.term, // search term
+                            page: params.page
+                        };
+                    },
+                    processResults: processDataAccidentClaim,
+                    cache: true
+                },
+                placeholder: 'ค้นหารายการ',
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 4,
+                //templateResult: formatRepo,
+                //templateSelection: formatRepoSelectionApprovePayClaim,
+                selectOnClose: true,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 4 ตัวอักษร'; } }
+            });
+        }
+
+        processDataAccidentClaim = (data) => {
+            var mapdata = $.map(data, function (obj) {
+                obj.id = obj.Code;
+                obj.text = obj.Detail;
+                return obj;
+            });
+            return { results: mapdata };
+        }
+
+        const GetChiefComplainDetail = () => {
+            $("#ddlChiefComplain").select2({
+
+                ajax: {
+                    url: '@Url.Action("GetChiefComplainDetail", "Claim")',
+                    dataType: 'json',
+                    delay: 250,
+
+                    data: function (params) {
+                        return {
+                            q: params.term, // search term
+                            page: params.page
+                        };
+                    },
+                    processResults: processDataChiefComplain,
+                    cache: true
+                },
+                placeholder: 'ค้นหารายการ',
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 2,
+                //templateResult: formatRepo,
+                templateSelection: formatRepoSelectionChiefComplain,
+                selectOnClose: true,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 2 ตัวอักษร'; } }
+            });
+        }
+
+        processDataChiefComplain = (data) => {
+            var mapdata = $.map(data, function (obj) {
+                obj.id = obj.Code;
+                obj.text = obj.Code + ": " + obj.Detail;
+                return obj;
+            });
+            return { results: mapdata };
+        }
+
+        formatRepoSelectionChiefComplain = (repo) => {
+            return repo.Detail || repo.text;
+        }
+
+        const GetCancelCauseClaim = () => {
+            $('#ddlCancelCause').empty();
+            $.get("@Url.Action("GetCancelCauseClaimDetail", "Claim")",
+                (data, textStatus, jqXHR) => {
+                    
+                    $('#ddlCancelCause').append(`<option value='-1'>--โปรดระบุ--</option>`);
+
+                    for (var i = 0; i < data.length; i++) {
+
+                        let code = data[i].Code;
+                        let detail = data[i].Detail;
+
+                        $('#ddlCancelCause').append(`<option value='${code}'>${detail}</option>`);
+                    }
+
+                },
+                "json"
+            );
+        }
+
+        const GetClaimTypeXProductCategory = () => {
+            $('#ddlclaimType').empty();
+            $.get("@Url.Action("GetClaimTypeXProductCategoryDetail", "Claim")",
+                { productCategoryID: $('#hdfProductCategory').val()},
+                (data, textStatus, jqXHR) => {
+                    
+                    $('#ddlclaimType').append(`<option value='-1'>--โปรดระบุ--</option>`);
+
+                    for (var i = 0; i < data.length; i++) {
+
+                        let code = data[i].ClaimType_id;
+                        let detail = data[i].ClaimType;
+
+                        $('#ddlclaimType').append(`<option value='${code}'>${detail}</option>`);
+                    }
+
+                },
+                "json"
+            );
+        }
+
+        const GetApplicationPADetail = () => {
+            $('#dtMain').empty();
+
+            let t = $('#dtMain').DataTable({
+             pageLength: 5,
+             processing: true,
+             serverSide: true,
+             responsive: true,
+             searching: false,
+             destroy: true,
+             ajax: {
+                 url: '@Url.Action("GetApplicationPADetail", "Claim")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.PAYear = $('#ddlYear').val();
+                        d.provinceID = $('#ddlProvince').val();
+                        d.schoolID = $('#ddlSchool').val();
+                        d.firstName = $('#txtFirstName').val();
+                        d.lastName = $('#txtLastName').val();
+                    }
+                },
+                columns: [
+                    { title: 'รหัสนักเรียน', data: 'Code' },
+                    { title: 'ApplicationID', data: 'Application_id' },
+                    { title: 'ประเภทผู้เอาประกัน', data: 'CustomerType' },
+                    { title: 'ชื่อ-สกุลผู้เอาประกัน', data: 'FullName' },
+                    { title: 'ชื่อสถานศึกษา', data: 'School' },
+                    { title: 'แผนประกัน', data: 'Product' },
+                    { title: 'ประเภทแผน', data: 'ProductCategory' },
+                    {
+                        title: 'วันที่เริ่มความคุ้มครอง', data: 'StartCoverDate', className: 'dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'วันที่สิ้นสุดความคุ้มครอง', data: 'EndCoverDate', className: 'dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                        }
+                    },
+                ],
+                bLengthChange: false,
+                //createdRow: function (row, data, index) {
+                //    if (data.ClaimOnLineStatusId == 3) {
+                //        $('td', row).addClass('selected');
+                //    }
+                //},
+
+            });
+
+            $('#dtMain tbody').on('click', 'tr', function () {
+                
+                if ($(this).hasClass('selected')) {
+                    $(this).removeClass('selected');
+                    SetDisabledButton(true);
+
+                    $('#ddlclaimType').prop('disabled', true);
+                    $('#ddlclaimType').empty();
+
+                }
+                else {
+                    t.$('tr.selected').removeClass('selected');
+                    $(this).addClass('selected');
+
+                }
+
+                DoClearCustomerDetail();
+                DoClearInputSaveClaim();
+
+                //DoClearApplicationDetail();
+                //DoClearInputSaveClaim();
+
+                t.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+
+                    var data = this.data();
+                    // ... do something with data(), or this.node(), etc
+                    let ddd = data.Code;
+
+                    $('#hdfCustomerDetail').val(ddd);
+                    GetCustomerDetail();
+
+                });
+            });
+
+        }
+
+        const GetCustomerDetail = () => {
+            $.get("@Url.Action("GetCustomerDetailPA", "Claim")", { customerDetailCode: $('#hdfCustomerDetail').val() },
+                function (data, textStatus, jqXHR) {
+                    //debuger
+                    if (textStatus == "success")
+                    {
+                        //Check App Status
+                        if (data.AppStatus_id == "3010" || data.AppStatus_id == "3020" ||
+                            data.AppStatus_id == "3030" || data.AppStatus_id == "3040") {
+
+                            //Check Customer Detail Status ถ้า สถานะผู้เอาประกัน เป็น ยกเลิก กับยกเลิกสวมสิทธิ์ ไม่ให้บันทึกเคลม
+                            if (data.Status_id != "3202" && data.Status_id != "3204") {
+
+                                $('#lblCustomerDetailCode').text(data.Code);
+                                $('#lblCustFullName').text(data.FullName);
+                                $('#lblCustomerStatus').text(data.Status);
+                                $('#lblSchoolName').text(`${data.Application_id}: ${data.School}`);
+                                let startCoverDate = moment(data.StartCoverDate).add(543, 'years').format("DD/MM/YYYY");
+                                let endCoverDate = moment(data.EndCoverDate).add(543, 'years').format("DD/MM/YYYY");
+                                $('#lblStartCoverDate').text(startCoverDate);
+                                $('#lblEndCoverDate').text(endCoverDate);
+
+                                $('#lnkDetail').attr("href", data.URLOpenlink);
+                                $('#lnkDetail').attr("target", "_blank");
+
+                                $('#hdfProductCategory').val(data.ProductCategory_id);
+                                GetClaimTypeXProductCategory();
+
+                                $('#ddlclaimType').prop('disabled', false);
+
+                                SetDisabledButton(false);
+
+                            } else
+                            {
+                                //Alert ไม่ให้บันทึกเคลม
+                                swal("แจ้งเตือน !!", `ไม่สามารถบันทึกเคลมได้ เนื่องจากสถานะผู้เอาประกันเป็น ${data.Status}`, "error");
+                                $('#ddlclaimType').prop('disabled', true);
+                                $('#ddlclaimType').empty();
+                                SetDisabledButton(true);
+                            }
+                        } else
+                        {
+                             //Alert ไม่ให้บันทึกเคลม
+                            swal("แจ้งเตือน !!", `ไม่สามารถบันทึกเคลมได้ เนื่องจากสถานะกรมธรรม์เป็น ${data.AppStatusDetail}`, "error");
+                            $('#ddlclaimType').prop('disabled', true);
+                            $('#ddlclaimType').empty();
+                            SetDisabledButton(true);
+                        }
+
+                    }
+                },
+                "json"
+            );
+        }
+
+        const DoClearCustomerDetail = () => {
+            $('#lblCustomerDetailCode').text('');
+            $('#lblCustFullName').text('');
+            $('#lblCustomerStatus').text('');
+            $('#lblSchoolName').text('');
+            $('#lblStartCoverDate').text('');
+            $('#lblEndCoverDate').text('');
+            $('#hdfProductCategory').val('');
+
+            $('#lnkDetail').removeAttr("href");
+            $('#lnkDetail').removeAttr("target");
+        }
+
+        const DoClearInputSaveClaim = () => {
+            $('#dtpHappenDate').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+            $('#dtpNoticeDate').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+            $('#dtpInDate').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+            $('#dtpOutDate').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+            $('#ddlbranch').select2().val("-1").trigger("change.select2");
+            $('#ddlStatusClaim').select2().val("-1").trigger("change.select2");
+            $('#ddlclaimType').empty().trigger("change.select2");
+            $('#ddlclaimType').prop("disabled", true);
+            $('#ddlCancelCause').empty().trigger("change.select2");
+            $('#ddlCancelCause').prop("disabled", true);
+            $('#divCancelCause').hide();
+            $('#ddlProvinceHospital').select2().val("-1").trigger("change.select2");
+
+            $("#ddlHospitalName").empty().trigger("change.select2");
+            $("#ddlAccident").empty().trigger("change.select2");
+            $("#ddlChiefComplain").empty().trigger("change.select2");
+            $("#ddlApprovePayClaim").empty().trigger("change.select2");
+            $("#hdfCustomerDetail").val('');
+        }
+
+        const SetDisabledButton = (v) => {
+            $('#btnsave').prop("disabled", v);
+            $('#btncancel').prop("disabled", v);
+        }
+
+        const IsvalidateForSaveClaim = () => {
+            let rs = "";
+
+            let d = new Date();
+
+            //วันที่เกิดเหตุ
+            if ($('#dtpHappenDate').val() == "") {
+                rs = "กรุณาเลือก วันที่เกิดเหตุ";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            } else {
+
+                let dateHappen = $('#dtpHappenDate').datepicker("getDate");
+
+                //วันที่เกิดเหตุ ต้องไม่เกินวันปัจจุบัน
+
+                if (dateHappen > d) {
+                    rs = "กรุณาตรวจสอบวันที่เกิดเหตุ ต้องไม่เกินวันที่ปัจจุบัน";
+                    swal("Warning !!", rs, "error");
+
+                    return rs;
+                }
+
+            }
+
+            //วันที่รับแจ้ง
+            if ($('#dtpNoticeDate').val() == "") {
+                rs = "กรุณาเลือก วันที่รับแจ้ง";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            } else {
+                let noticeDate = $('#dtpNoticeDate').datepicker("getDate");
+
+                //วันที่รับแจ้ง ต้องไม่เกินวันที่ปัจจุบัน
+
+                if (noticeDate > d) {
+                    rs = "กรุณาตรวจสอบ วันที่รับแจ้ง ต้องไม่เกินวันที่ปัจจุบัน";
+                    swal("Warning !!", rs, "error");
+
+                    return rs;
+                }
+            }
+
+            //วันที่เกิดเหตุ ต้องไม่เกินวันที่รับแจ้ง
+            if ($('#dtpHappenDate').datepicker('getDate') > $('#dtpNoticeDate').datepicker('getDate')) {
+                rs = "กรุณาตรวจสอบ วันที่เกิดเหตุ จะต้องไม่เกินวันที่รับแจ้ง";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            }
+
+            //สาขา
+            if ($('#ddlbranch').val() == "-1") {
+                rs = "กรุณาเลือก สาขา";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            }
+
+            //วันที่เข้า ร.พ
+            if ($("#dtpInDate").val() == "") {
+                rs = "กรุณาเลือก วันที่เข้า ร.พ.";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            } else {
+                let inDate = $('#dtpInDate').datepicker('getDate');
+                let dateHappen = $('#dtpHappenDate').datepicker('getDate');
+
+                if (inDate < dateHappen) {
+                    rs = "กรุณาตรวจสอบ วันที่เข้า ร.พ. ต้องไม่ใช่วันก่อนเกิดเหตุ";
+                    swal("Warning !!", rs, "error");
+
+                    return rs;
+                }
+
+            }
+
+            //วันที่ออก ร.พ
+            if ($('#dtpOutDate').val() == "") {
+                rs = "กรุณาเลือก วันที่ออก ร.พ.";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            } else {
+                let outDate = $('#dtpOutDate').datepicker('getDate');
+                let inDate = $('#dtpInDate').datepicker('getDate');
+
+                //วันที่ออกโรงพยาบาล ต้องไม่ออกก่อน วันที่เข้า โรงพยาบาล
+                if (outDate < inDate) {
+                    rs = "วันที่ออก ร.พ. ไม่สอดคล้องกับวันเข้า ร.พ. รบกวนตรวจสอบ";
+                    swal("Warning !!", rs, "error");
+
+                    return rs;
+                }
+
+            }
+
+            //ประเภทการรักษา
+            if ($('#ddlclaimType').val() == "-1") {
+                rs = "กรุณาเลือก ประเภทการรักษา";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            }
+
+            //สถานะเคลม
+            if ($('#ddlStatusClaim').val() == "-1") {
+                rs = "กรุณาเลือก สถานะเคลม";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            } else {
+
+                //3570 คือ ปฏิเสธเคลม ถ้าเป็น ปฏิเสธเคลมให้เลือก สาเหตุการปฏิเสธด้วย
+                if ($('#ddlStatusClaim').val() == "3570") {
+
+                    //สาเหตุการปฏิเสธ
+                    if ($('#ddlCancelCause').val()== "-1") {
+                        rs = "กรุณาเลือก สาเหตุการปฏิเสธ";
+                        swal("Warning !!", rs, "error");
+
+                        return rs;
+                    }
+
+                }
+            }
+
+            //จังหวัดสถานพยาบาล
+            if ($('#ddlProvinceHospital').val() == "-1") {
+                rs = "กรุณาเลือก จังหวัดสถานพยาบาล";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            }
+
+            //ชื่อสถานพยาบาล
+            if ($('#ddlHospitalName').val() == null) {
+                rs = "กรุณาเลือก ชื่อสถานพยาบาล";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            }
+
+            //สาเหตุอุบัติเหตุ
+            if ($('#ddlAccident').val() == null) {
+                rs = "กรุณาเลือก สาเหตุอุบัติเหตุ";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            }
+
+            //Cheif Complain
+            if ($("#ddlChiefComplain").val() == null) {
+                rs = "กรุณาเลือก Chief Complain";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            }
+            //ผู้อนุมัติจ่ายเคลม
+            if ($('#ddlApprovePayClaim').val() == null) {
+                rs = "กรุณาเลือก ผู้อนุมัติจ่ายเคลม";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            }
+
+            return rs;
+        }
+
+        const IsvalidateForSearch = () => {
+
+            $('form').valid();
+
+            let rs = "";
+          
+            //Province
+            if ($('#ddlProvince').val() === "-1") {
+                rs = "กรุณาเลือก จังหวัด";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            }
+
+            //SchoolName
+            if ($('#ddlSchool').val() === null || $('#ddlSchool').val() === "") {
+                rs = "กรุณาเลือก สถานศึกษา";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            }
+
+            if ($('#txtFirstName').val() == "" && $('#txtLastName').val() == "") {
+                rs = "กรุณากรอก ชื่อ หรือ นามสกุล อย่างใดอย่างหนึ่ง";
+                swal("Warning !!", rs, "error");
+
+                return rs;
+            }
+
+            return rs;
+        }
+    </script>
+}

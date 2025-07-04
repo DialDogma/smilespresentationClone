@@ -1,0 +1,145 @@
+﻿
+@{
+    ViewBag.Title = "TestPostData";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <button type="button" class="btn btn-block btn-info" id="btnScanFile">ScanDoc</button>
+        </div>
+        <div class="col-xs-12 col-md-12">
+            <table id="dtScanNewFile" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+        </div>
+        <div class="col-xs-12 col-md-12"></div>
+        <div class="col-xs-12 col-md-12">
+            <table id="dtPreviewFile" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('#btnScanFile').click(function (e) {
+                e.preventDefault();
+                debugger;
+                DoloadDocumentMonitor();
+                DoloadPreviewFileMonitor();
+            });
+        })
+
+
+        const DoloadDocumentMonitor = () => {
+            var url_React = "https://docstorage.uatsiamsmile.com/document/scan";
+            $('#dtScanNewFile').empty();
+            var dt = $('#dtScanNewFile').dataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                "order": [[0, "desc"]],
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetDocumentDetailList", "TestPostData")',
+
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                    }
+                },
+                columns: [
+                    { title: 'DocumentId', data: 'documentId', className: 'h-dt-center', visible: false, },
+                    { title: 'Code', data: 'code', className: 'h-dt-center' },
+                    { title: 'Detail', data: 'documentDetail', className: 'h-dt-center' },
+                    { title: 'MainIndex', data: 'mainIndex', className: 'h-dt-center', visible: false },
+                    { title: 'SubType', data: 'documentSubType', className: 'h-dt-center', visible: false },
+                    {
+                        title: 'Scan',
+                        className: 'h-dt-center',
+                        data: null,
+                        width: '10%',
+                        mRender: (data, type, full) => {
+                            return `<form name='PostForm' method='GET' action='${url_React}' target="_blank" >` +
+                                `<input name='documentId' type='hidden' value='${data.documentId}'>` +
+                                `<input name='documentCode' type='hidden' value='${data.code}'>` +
+                                `<input name='documentSubType' type='hidden' value='${data.documentSubType.toString()}'>` +
+                                `<input name='mainIndex' type='hidden' value='${data.mainIndex.toString()}'>` +
+                                `<input name='searchIndex' type='hidden' value='${data.documentDetail}'>` +
+                                `<input name='indexId' type='hidden' value=''>` +
+                                `<input name='indexValue' type='hidden' value=''>` +
+                                `<button type="submit" class="btn btn-warning btn-sm " style="width:90px">Scan</button>` +
+                                '</form >';
+                        }
+                    }
+                ],
+                bLengthChange: false,
+            });
+        }
+
+        const DoloadPreviewFileMonitor = () => {
+            $('#dtPreviewFile').empty();
+            var url = "https://docstorage.uatsiamsmile.com/document/"
+            var dt = $('#dtPreviewFile').dataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                "order": [[0, "desc"]],
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetDocumentFilePreview", "TestPostData")',
+
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                    }
+                },
+                columns: [
+                    { title: 'DocumentId', data: 'documentId', className: 'h-dt-center', visible: false, },
+                    { title: 'Code', data: 'code', className: 'h-dt-center' },
+                    {
+                        title: 'FileDetail',
+                        className: 'h-dt-center',
+                        data: null,
+                        width: '10%',
+                        mRender: (data, type, full) => {
+                            var fileCount = GetFileCount(data.documentId);
+                            return `<a type="button" style="width:100%" class="btn btn-primary" target="_blank" href=${url + data.documentId + "/preview"}><i class="glyphicon glyphicon-list-alt"></i> จำนวนเอกสาร : ${fileCount} </a>`;
+                        }
+                    }
+                ],
+                bLengthChange: false,
+            });
+        }
+
+        const GetFileCount = (documentId) => {
+            var objFilePreview = 0;
+          $.ajax({
+            type: "GET",
+            url: "@Url.Action("GetFileCountDocStorege", "TestPostData")",
+            data: {
+
+                documentId: documentId
+            },
+            async:false,
+            dataType: "json",
+            success: function (data) {
+                if (data != null) {
+                    objFilePreview = data.fileCount
+                }
+              },
+           });
+            return objFilePreview;
+        }
+    </script>
+}
+

@@ -1,0 +1,95 @@
+﻿@{
+    ViewBag.Title = "Download Preview";
+}
+<div class="row">
+    <form action="" method="post" id="Mainform">
+        <div class="col-sm-12" id="Detail_form">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtShowDataSource" name="dtShowDataSource" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                        <div class="col-sm-offset-4 col-sm-2">
+                            <button type="button" class="btn btn-block btn-success" id="btnSubmit">ยืนยันการนำเข้า</button>
+                        </div>
+                        <div class="col-sm-2">
+                            <button type="button" class="btn btn-block btn-warning" id="btnCancel">ยกเลิกการนำเข้า</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <input type="hidden" id="hd_systemName" value="@ViewBag.systemName" />
+        <input type="hidden" id="hd_headerId" value="@ViewBag.headerId" />
+    </form>
+</div>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            GetDatatable();
+
+            $('#btnSubmit').click(() => {
+                var headerId = $('#hd_headerId').val();
+                var systemName = $('#hd_systemName').val();
+                swal_confirm("ยืนยันการทำรายการ?", "ต้องการนำเข้าข้อมูล?", () => {
+                     InsertPreview(headerId, systemName);
+                });
+               
+            });
+        });
+
+        const GetDatatable = () => {
+             $('#dtShowDataSource').empty();
+            var table = $('#dtShowDataSource').DataTable({
+                lengthChange: false,
+                 info:false,
+                paging: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("IntegrateReport_Select","DataImport")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.systemName = $('#hd_systemName').val();
+                        d.headerId = $('#hd_headerId').val();
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ReportName', data: 'ReportName'
+                    },
+                    {
+                        title: 'Download',
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        mRender: function (data) {
+                            return '<a type="button" class="btn btn-block btn-default" onclick=Download("'+data.Id+'") >Download <span class="fa fa-file"></span></a>';
+                        }
+                    }
+
+                ]
+            });
+        }
+
+        const Download = (headerId) => {
+
+           window.location = ('@Html.Raw(Url.Action("DatalogReport_Select"))?id='+headerId+'&systemName='+$('#hd_systemName').val());
+        }
+
+        const InsertPreview = (headerId,systemName) => {
+            window.location = ('@Html.Raw(Url.Action("InsertPreviewData","DataImport"))?headerId='+headerId+'&systemName='+systemName);
+        }
+    </script>
+}

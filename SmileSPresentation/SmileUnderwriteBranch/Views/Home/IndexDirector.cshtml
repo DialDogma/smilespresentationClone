@@ -1,0 +1,134 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutForTop.cshtml";
+    var userDetail = SmileUnderwriteBranch.Helper.GlobalFunction.GetLoginDetail(this.HttpContext);
+}
+<div class="wrapper" style="height: auto; min-height: 100%;">
+    <div class="content-wrapper" style="min-height: 960px;">
+        <!-- Content Header (Page header) -->
+        <section>
+            <div class="col-md-12 clearfix">
+                <div class="col-xs-3 col-sm-2 col-md-2 col-lg-1" style="text-align:center">
+                    <img src="~/Content/img/logo_user1.jpg" class="profile-img" />
+                </div>
+                <div class="col-xs-9 col-sm-10 col-md-10 col-lg-11" style="padding:0">
+                    <div class="col-md-6" style="padding:0">
+                        <div class="col-md-12">
+                            <span class="font-size-h" style="display:block;margin-top:15px">
+                                <strong>ยินดีต้อนรับ</strong>
+                            </span>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="font-size-d" style="display:block;">
+                                คุณ@(userDetail.FirstName) @userDetail.LastName
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="content">
+            <div class="row">
+                <div id="boxcontent"></div>
+            </div>
+        </section>
+    </div>
+</div>
+<!--END-->
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+            getArea();
+        });
+
+        /*go to new page*/
+        const goto_link = (T_ID, T_NAME) => {
+            window.open(`@Url.Action("TaskMain", "Task")?Id=${T_ID}&AreaName=${T_NAME}`, '_self');
+        }
+
+        /*get area */
+        const getArea = () => {
+            $.get('@Url.Action("Get_StudyAreaUser")',
+                (data) => {
+
+                    for (let i = 0; i < data.length; i++) {
+                        const StudyAreaId = data[i].StudyAreaId;
+                        const StudyArea = data[i].StudyAreaName;
+                        const Div_Id = 'div_branch_' + StudyAreaId;
+                        const div = document.createElement('div');
+                        const PercentOnProcess = (data[i].PHQueueOnProcess / data[i].PHQueueAll) * 100;
+                        const PercentResultPass = (data[i].PHQueueResultPass / data[i].PHQueueAll) * 100;
+                        const PercentResultNotPass = (data[i].PHQueueResultNotPass / data[i].PHQueueAll) * 100;
+
+                        div.innerHTML = `<div class="col-md-4" style="padding: 0px 5px 0px 5px">` +
+                        `<div class="box" id="box_${StudyAreaId}">` +
+                        `<div class="box-header with-border">` +
+                        `<h3 class="box-title"><strong>${StudyArea}</strong></h3>` +
+                        `</div>` +
+                        `<!-- /.box-header -->` +
+                        `<div class="box-body div_hover" onclick="goto_link(${StudyAreaId},'${StudyArea}')">` +
+                            `<div class="row">` +
+                                `<!-- /.col -->` +
+                                `<div class="col-md-12">` +
+                                    `<div class="col-md-6">` +
+                                        `<div class="progress-group">` +
+                                            `<span class="progress-text">App ทั้งหมด</span>` +
+                                            `<span class="progress-number"><b>${data[i].PHQueueAll}</b></span>` +
+
+                                            //`<div class="progress sm progess-mb-0">` +
+                                            //    `<div class="progress-bar progress-bar-aqua" style="width: ${100}%"></div>` +
+                                            //`</div>` +
+                                        `</div>` +
+                                        `<!-- /.progress-group -->` +
+                                    `</div>` +
+                                    `<div class="col-md-6">` +
+                                        `<div class="progress-group">` +
+                                            `<span class="progress-text">ยังไม่ได้คัดกรอง</span>` +
+                                            `<span class="progress-number label label-warning"><b>${data[i].PHQueueOnProcess}</b></span>` +
+
+                                            //`<div class="progress sm progess-mb-0">` +
+                                            //    `<div class="progress-bar progress-bar-yellow" style="width: ${PercentOnProcess}%"></div>` +
+                                            //`</div>` +
+                                        `</div>` +
+                                        `<!-- /.progress-group -->` +
+                                   ` </div>` +
+
+                                    `<div class="col-md-6" style="padding-right:0px">` +
+                                        `<div class="col-md-12">` +
+                                            `<div class="progress-group">` +
+                                                `<span class="progress-text">ผ่านคัดกรอง</span>` +
+                                                `<span class="progress-number"><b>${data[i].PHQueueResultPass}</b></span>` +
+
+                                                //`<div class="progress sm progess-mb-0">` +
+                                                //    `<div class="progress-bar progress-bar-green" style="width: ${PercentResultPass}%"></div>` +
+                                                //`</div>` +
+                                            `</div>` +
+                                            `<!-- /.progress-group -->` +
+                                        `</div>` +
+                                        `<div class="col-md-12">` +
+                                            `<div class="progress-group">` +
+                                                `<span class="progress-text">ไม่ผ่านคัดกรอง</span>` +
+                                                `<span class="progress-number"><b>${data[i].PHQueueResultNotPass}</b></span>` +
+
+                                                //`<div class="progress sm progess-mb-0">` +
+                                                //    `<div class="progress-bar progress-bar-red" style="width: ${PercentResultNotPass}%"></div>` +
+                                                //`</div>` +
+                                            `</div>` +
+                                           `<!-- /.progress-group -->` +
+                                        `</div>` +
+                                    `</div>` +
+                                `</div>` +
+                                `<!-- /.row -->` +
+                            `</div>` +
+                            `<!-- ./box-body -->` +
+                          `</div>` +
+                        `</div>` +
+                    `</div>` +
+                `</div>`;
+
+                        document.getElementById('boxcontent').appendChild(div);
+                    }
+                });
+        }
+    </script>
+}

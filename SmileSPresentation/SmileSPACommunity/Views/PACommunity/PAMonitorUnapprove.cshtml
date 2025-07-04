@@ -1,0 +1,313 @@
+﻿@{
+    ViewBag.Title = "รายการ PAชุมชน ไม่อนุมัติ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12 ">
+
+            @* Search *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="col-xs-4">
+                            <label>สาขา :</label>
+                            <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlbranch">
+
+                                @{
+
+                                    var rolelist = ViewBag.Role;
+
+                                    foreach (var item in rolelist)
+                                    {
+                                        if (item == "Developer" || item == "PACommunity_PAUnderwrite")
+                                        {
+                                            <option value="-1">--โปรดระบุ--</option>
+                                        }
+                                    }
+                                }
+
+                                @{foreach (var item in ViewBag.Branchs)
+                                    {
+                                        <option value="@item.BranchID">@item.Branch</option>
+                                    } }
+                            </select>
+                        </div>
+
+                        <div class="col-xs-4" style="padding-top:25px">
+                            <button type="button" style="text-decoration:none" class="btn btn-primary" id="btnSearch"><i class="fa fa-fw fa-search"></i> ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Detail *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียดรายการ</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="box-group">
+
+                        <table id="dtMonitor" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- /.modal-dialog -->
+    <div class="modal fade in" id="modal-RemarkDetail" style="display: none;">
+        <div class="modal-dialog">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">เหตุผลที่ไม่อนุมัติกรมธรรม์</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <input type="text" id="txtCause" class="form-control" disabled>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-12">
+                            @*<input type="text" id="txtRemark" class="form-control" disabled>*@
+                            <textarea id="txtRemark" class="form-control" rows="10" disabled></textarea>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+
+    <script>
+
+     $(document).ready(function () {
+          var chat = $.connection.myHub;
+
+          //Start Connection
+         $.connection.hub.start().done(function () {
+
+              debugger;
+            chat.server.joinGroup(@ViewBag.userID);
+          });
+
+         //Show addNewNotice to client
+         chat.client.sendNoticeResult = function (Str1, Str2) {
+             debugger;
+
+             GetMonitorUnApprove();
+             //window.location.reload();
+
+         };
+
+     });
+
+     $(document).ready(function () {
+
+         $('.select2').select2();
+
+         var d1 = new Date();
+         //$('#dtpDateFrom').datepicker("setDate", new Date(d1.getFullYear(), 0, 1));
+         //$('#dtpdatefrom').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date(d1.getFullYear(), d1.getMonth(), 1));
+
+         // $('#dtMonitor').DataTable();
+
+         //GetMonitor();
+
+         $('#btnSearch').click(function (e) {
+             e.preventDefault();
+
+             if ($('#ddlbranch').val() == "-1") {
+                 swal("ตรวจสอบข้อมูล", "กรุณาเลือกสาขา", "warning");
+                 $('#dtMonitor').empty();
+             }
+             else {
+                 GetMonitorUnApprove();
+             }
+
+             debugger;
+            // chat.server.sendNotice("", "");
+         });
+
+     });
+
+     const IsvalidateForSearch = () => {
+
+     }
+
+        const GetMonitorUnApprove = () => {
+
+         $('#dtMonitor').empty();
+
+            let t = $('#dtMonitor').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetApplicationRoundDetailFixUnApprove", "PACommunity")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.applicationID = null;
+                        d.branchId = $('#ddlbranch').val();
+                    }
+                },
+                columns: [
+                    { title: 'ApplicationCode', data: 'ApplicationCode' },
+                    { title: 'ชื่อกรมธรรม์', data: 'ApplicationName' },
+                    { title: 'รอบที่', data: 'Round' },
+                    {
+                        title: 'วันที่มีผล', data: 'EffectiveDate', className: 'dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                    { title: 'สถานะรอบ', data: 'ApplicationRoundStatus' },
+                    {
+                        data: null,
+                        mRender: (data, type, full) =>
+                        {
+                            let str = data.ApplicationRoundUnApproveRemark;
+
+                            str = str.replaceAll('.', /\r/  ).replaceAll('/','');
+                            return '<a onclick="ShowRemarkDetail(\'' + data.ApplicationRoundUnApproveCause + '\',\'' + str + '\');" class="btn btn-danger btn-sm" target="_blank"> <i class="fa fa-fw fa-exclamation"></i> </a>';
+                        }, width: '3%'
+                    },
+                    { title: 'สถานะการชำระเงิน', data: 'ApplicationRoundPaymentStatus' },
+
+                    {
+                        data: null,
+                        mRender: (data, type, full) =>
+                        {
+                            if (IsvalidateForCheckDCR(moment(data.EffectiveDate)._d)) {
+                                debugger;
+                                let en_code = window.btoa(data.ApplicationId);
+                                    return '<a href="@Url.Action("AddPACoumunityNewApp", "PACommunity")?appID=' + en_code + '" class="btn btn-warning btn-sm" target="_blank"><i class="fa fa-fw fa-edit"></i> แก้ไข </a>';
+
+                            } else {
+                                let rs = CheckApplicationByPass(data.ApplicationId);
+
+                                if (rs == true) {
+                                    let en_code = window.btoa(data.ApplicationId);
+                                    return '<a href="@Url.Action("AddPACoumunityNewApp", "PACommunity")?appID=' + en_code + '" class="btn btn-warning btn-sm" target="_blank"><i class="fa fa-fw fa-edit"></i> แก้ไข </a>';
+                                } else {
+                                    return '';
+                                }
+                            }
+
+                        }, width: '5%'
+                    },
+
+             ],
+                //$('#modal-RemarkDetail').modal('show');
+                bLengthChange: false,
+                //createdRow: function (row, data, index) {
+                //    if (data.ClaimOnLineStatusId == 3) {
+                //        $('td', row).addClass('selected');
+                //    }
+                //},
+
+            });
+
+        }
+
+        const CheckApplicationByPass = (appId) => {
+            let rs;
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("CheckApplicationBypass", "PACommunity")",
+                data: { appId: appId},
+                dataType: "json",
+                async: false,
+                success: function (d) {
+                    debugger;
+                    rs = d.IsResult;
+
+                }
+            });
+
+            return rs;
+        }
+
+        const IsvalidateForCheckDCR = (startCoverDate) => {
+            //let checkDCR = CheckStartCoverDate(new Date());
+            //Get range DCR
+            let MinDCR;
+            let MaxDCR;
+            //Get Next DCR ปัจจุบัน
+            let lastDCR;
+            //วันปัจจุบัน
+            let CurrDate = new Date();
+            let CurDT = CurrDate.getDate();
+            debugger;
+            if (CurDT >= 1 && CurDT <= 10)//ไม่เกินวันที่ 10
+            {//เป็นรอบตรวจ DCR 1
+                //คิดDCRปัจจุบันหรือDCR-1
+                //ตั้งDCR ที่ต้องเปิดแก้ไข ต้องไม่น้อยกว่า MinDCR และไม่เกิน
+                MinDCR = new Date(CurrDate.getFullYear(), CurrDate.getMonth(), 1);
+                MaxDCR = new Date(CurrDate.getFullYear(), CurrDate.getMonth(), 16);
+            }
+            else if (CurDT >= 11 && CurDT <= 25)
+            {//เป็นรอบตรวจ DCR 16
+                //คิดDCRปัจจุบันหรือDCR-1
+                //ตั้งDCR ที่ต้องเปิดแก้ไข ต้องไม่น้อยกว่า MinDCR และไม่เกิน
+                let setDate1 = new Date();
+                let NextDCR1 = new Date(setDate1.setMonth(CurrDate.getMonth()+1));
+                MinDCR = new Date(CurrDate.getFullYear(), CurrDate.getMonth(), 16);
+                MaxDCR = new Date(NextDCR1.getFullYear(), NextDCR1.getMonth(), 1);
+            }
+            else if (CurDT >= 26)
+            {//เป็นรอบตรวจ DCR 1
+                //คิดDCRปัจจุบันหรือDCR+1
+                let setDate2 = new Date();
+                let NextDCR2 = new Date(setDate2.setMonth(CurrDate.getMonth()+1));
+                MinDCR = new Date(NextDCR2.getFullYear(), NextDCR2.getMonth(), 1);
+                MaxDCR = new Date(NextDCR2.getFullYear(), NextDCR2.getMonth(), 16);
+            }
+
+            debugger;
+
+            if (startCoverDate < MinDCR) {
+                return false;
+            }
+            //else if (startCoverDate > MaxDCR)
+            //{
+            //    return false;
+            //}
+
+            return true;
+        }
+
+        const ShowRemarkDetail = (ApplicationRoundUnApproveCause, ApplicationRoundUnApproveRemark) => {
+            debugger;
+            if (ApplicationRoundUnApproveCause == "null") { ApplicationRoundUnApproveCause = "" };
+            if (ApplicationRoundUnApproveRemark == "null") { ApplicationRoundUnApproveRemark = "" };
+            $('#modal-RemarkDetail').addClass("modal_itemcenter");
+            $('#modal-RemarkDetail').modal('show');
+            $('#txtCause').val(ApplicationRoundUnApproveCause);
+            $('#txtRemark').val(ApplicationRoundUnApproveRemark);
+        }
+    </script>
+}

@@ -1,0 +1,215 @@
+﻿
+@{
+    ViewBag.Title = "ผลการส่ง SMS";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+                    <div class="box-tools pull-right">
+                    </div>
+                    <!-- /.box-tools -->
+                    <div class="box-body" style="">
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <label class="control-label"> ช่วงวันที่ส่ง SMS :</label>
+                                    <input type="text" class="form-control pull-right" name="dtpSMSFromDate" id="dtpSMSFromDate" required="required"
+                                           data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy">
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="control-label"> ถึงวันที่ :</label>
+                                    <input type="text" class="form-control pull-right" name="dtpDate" id="dtpDate" required="required"
+                                           data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy">
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <label class="control-label"> สถานะการส่ง SMS :</label>
+                                    <select type="text" class="form-control select2" id="ddlSentSMSStatus">
+                                        <option value="-1">ทั้งหมด</option>
+
+                                        <option value="1">ส่งสำเร็จ</option>
+                                        <option value="2">ส่งไม่สำเร็จ</option>
+                                        @*<option value="3">บล็อค</option>
+                                        <option value="4">หมดอายุ</option>*@
+                                        <option value="5">กำลังดำเนินการ</option>
+                                        @*<option value="6">ไม่รู้จัก</option>*@
+
+                                    </select>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="control-label"> สาขา :</label>
+                                    <select type="text" class="form-control select2" id="ddlBranch">
+                                        <option value="-1">ทั้งหมด</option>
+                                        @foreach (var item in ViewBag.Branch)
+                                        {
+                                            <option value="@item.BranchID">@item.Branch</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                 <div class="col-xs-2" style="padding-top: 25px">
+                                    <button id="btnSearch" name="btnSearch" class="btn btn-primary"><i class="glyphicon glyphicon-search"></i> ค้นหา </button>
+                                </div>
+                            </div>
+                           @*<br />*@
+                            <!--<div class="row">-->
+                                @*<div class="col-sm-3">
+                                    <label>เลือกประเภทคำค้นหา :</label>
+
+                                    <select type="text" class="form-control select2" id="ddlsearchType">
+
+                                        <option value="1">App ID</option>
+                                        <option value="2">สถานศึกษา</option>
+                                        <option value="3">ชื่อ-นามสกุล</option>
+                                        <option value="4">เบอร์โทรศัพท์</option>
+                                        
+                                    </select>
+
+
+                                </div>*@
+                                @*<div class="col-sm-3" style="padding-top: 25px">
+                                    <input type="text" class="form-control" id="txtSearch" placeholder="ระบุคำค้นหา">
+
+                                </div>*@
+                               
+
+
+                            <!--</div>-->
+
+
+                        </div>
+                    </div>
+                    <!-- /.box-body -->
+                </div>
+            </div>
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียดรายการ</h3>
+                    <div class="box-tools pull-right">
+                    </div>
+                </div>
+                    <!-- /.box-tools -->
+                    <div class="box-body">
+                        <div class="box-group">
+                            @*<div class="col-sm-2" style="float:right">
+                                <button id="btnExport" type="button" class="btn btn-success btn-block"><i class="fa fa-file-excel"></i> Export</button>
+                            </div>*@
+                            <table id="dtResultSMSMonitor" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                        </div>
+                    </div>
+                    <!-- /.box-body -->
+            </div>            
+        </div>
+
+     </div>
+               
+           
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+           //-----------------------------------------------------------------Main Function-----------------------------------------------------------------
+
+        $(function () {
+            debugger;
+            $('.select2').select2();
+
+            $('#dtpSMSFromDate').datepicker({
+                    format: "dd/mm/yyyy",
+                    autoclose: true
+                }).datepicker("setDate", new Date());
+
+            $('#dtpDate').datepicker({
+                    format: "dd/mm/yyyy",
+                    autoclose: true,
+                }).datepicker("setDate", new Date());
+
+            //Button Events
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                GetDataTable1();
+            });
+
+       
+
+        });
+
+
+         //-----------------------------------------------------------------Funtions-----------------------------------------------------------------
+
+        const GetDataTable1 = () => {
+            $('#dtResultSMSMonitor').empty();
+
+            $('#dtResultSMSMonitor').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                "searching": false,
+                "autoWidth": false,
+                order: [[0, 'desc']],
+                ajax: {
+                    url: '@Url.Action("GetResultSendSMSMonitor", "PAPersonnelReport")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+
+                        d.DateFrom = $('#dtpSMSFromDate').val();
+                        d.DateTo = $('#dtpDate').val();
+                        d.branchId = $('#ddlBranch').val() == -1 ? null : $('#ddlBranch').val();
+                        d.SmsStatus = $('#ddlSentSMSStatus').val() == -1 ? null : $('#ddlSentSMSStatus').val();
+                    }
+                },
+                /*async: false,*/
+                columns: [
+                    {
+                        title: 'วันที่ส่ง SMS', data: 'SendDate', className: 'h-dt-center d-dt-center', width: '17%', orderable: true,
+                        mRender: function (data) {
+                            if (data != null) {
+                                moment.locale('th');
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                            }
+
+                            return null;
+                        }
+                    },
+                    { title: 'App ID', data: 'PersonnelApplicationCode', className: 'h-dt-center d-dt-center', orderable: false },
+                    { title: 'สถานศึกษา', data: 'PersonnelApplicationName', className: 'h-dt-center ', orderable: false },
+                    { title: 'ชื่อ-นามสกุล', data: 'CustomerName', className: 'h-dt-center ', orderable: false },
+                    { title: 'เบอร์โทร', data: 'PhoneNo', className: 'h-dt-center ', orderable: false},
+                    { title: 'ข้อความ', data: 'Message', className: 'h-dt-center ', orderable: false },
+                    {
+                        title: 'สถานะการส่งSMS',
+                        data: 'SMSStatusName',
+                        className: 'h-dt-center ',
+                        orderable: false
+                    },
+
+                ],
+                bLengthChange: false,
+                'columnDefs': [
+                    {
+                        "targets": [3], // your case first column
+                        "className": "text-center",
+                    }],
+            })
+        }
+
+    </script>
+}

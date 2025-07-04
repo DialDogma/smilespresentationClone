@@ -1,0 +1,171 @@
+﻿@{
+    ViewBag.Title = "Feedback";
+    Layout = "~/Views/Shared/_EmptyLayout.cshtml";
+}
+
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Title Page</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-star-rating/4.0.3/css/star-rating.min.css" rel="stylesheet">
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.3/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+</head>
+
+<body>
+    <form action="" method="POST" role="form">
+        <h2>ClaimFeedBack</h2>
+        <div class="container">
+
+            <div class="form-group">
+                <fieldset disabled="disabled">
+                    <legend>Claim Information.</legend>
+                    <div class="row">
+                        <label class="col-md-2 control-label" for="txtDateNotice">วันที่รับแจ้ง</label>
+                        <div class="col-md-2">
+                            <input id="txtDateNotice" name="txtDateNotice" type="text" placeholder="วันที่รับแจ้ง" class="form-control input-md">
+                        </div>
+
+                        @*<div class="clearfix visible-md-block visible-lg-block"></div>*@
+                        <label class="col-md-2 control-label" for="txtDateApprove">วันที่อนุมัติ</label>
+                        <div class="col-md-2">
+                            <input id="txtDateApprove" name="txtDateApprove" type="text" placeholder="วันที่อนุมัติ" class="form-control input-md">
+                        </div>
+
+                        <div class="clearfix visible-md-block visible-lg-block"></div>
+                        <label class="col-md-2 control-label" for="txtClaimType">ประเภทเคลม</label>
+                        <div class="col-md-2">
+                            <input id="txtClaimType" name="txtClaimType" type="text" placeholder="ประเภทเคลม" class="form-control input-md">
+                        </div>
+                        @*<div class="clearfix visible-md-block visible-lg-block"></div>*@
+                        <label class="col-md-2 control-label" for="txtAmountNet">ยอดเคลม</label>
+                        <div class="col-md-2">
+                            <input id="txtAmountNet" name="txtAmountNet" type="text" placeholder="ยอดเคลม" class="form-control input-md">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div class="row">
+                    <legend>Claim Rating.</legend>
+                    <label class="col-md-2 control-label" for="txtAgentScore">คะแนนตัวแทน</label>
+                    <div class="col-md-6">
+                        <input id="txtAgentScore" type="number" class="rating-star">
+                    </div>
+
+                    <div class="clearfix visible-md-block visible-lg-block"></div>
+                    <label class="col-md-2 control-label" for="txtServiceScore">คะแนนบริการ</label>
+                    <div class="col-md-6">
+                        <input id="txtServiceScore" type="number" class="rating-star">
+                    </div>
+
+                    <div class="clearfix visible-md-block visible-lg-block"></div>
+                    <label class="col-md-2 control-label" for="txtSystemScore">คะแนนระบบ</label>
+                    <div class="col-md-6">
+                        <input id="txtSystemScore" type="number" class="rating-star">
+                    </div>
+
+                    <div class="clearfix visible-md-block visible-lg-block"></div>
+                    <label class="col-md-2 control-label" for="txtSuggestion">คำแนะนำเพิ่มเติม</label>
+                    <div class="col-md-6">
+                        <textarea class="form-control" id="txtSuggestion" name="txtSuggestion"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <button id="btnSubmit" type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </form>
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Bootstrap JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-star-rating/4.0.3/js/star-rating.min.js"></script>
+    <script>
+        var claimid;
+
+        $(document).ready(function () {
+
+            claimid = getQueryStringValue('claimcode');
+
+            $(".rating-star").rating(
+                {
+                    min: 0,
+                    max: 5,
+                    size: 'xs',
+                    step: 1,
+                    showClear: false,
+                    showCaption: false
+                }
+            );
+
+            $('#btnSubmit').click(function (e) {
+                e.preventDefault();
+                UpdateClaimFeedback(2);
+            });
+
+            GetClaimDetail(claimid);
+        });
+
+        function getQueryStringValue(key) {
+            return decodeURIComponent(window.location.search.replace(new RegExp("^(?:.*[&\\?]" + encodeURIComponent(key)
+                .replace(/[\.\+\*]/g, "\\$&") + "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
+        }
+
+        function GetClaimDetail(id) {
+            $.ajax({
+                type: "GET",
+                beforeSend: function (request) {
+                    request.setRequestHeader("Authorization", '@ViewBag.MBKey');
+                },
+                url: "http://49.231.178.249:9683/mobileapi/Claims/ClaimDetail?claimCode=" + id,
+                success: function (claim) {
+                    $('#txtDateNotice').val(claim.dateHappen);
+                    $('#txtDateApprove').val(claim.dateHappen);
+                    $('#txtClaimType').val(claim.claimAdmitTypeID);
+                    $('#txtAmountNet').val(claim.approveNetClaim);
+                    $('#txtAgentScore').rating('update', claim.agentScore);
+                    $('#txtServiceScore').rating('update', claim.serviceScore);
+                    $('#txtSystemScore').rating('update', claim.systemScore);
+                    $('#txtSuggestion').val(claim.suggestion);
+                }
+            });
+        }
+
+        function UpdateClaimFeedback(id) {
+            $.ajax({
+                type: "PUT",
+                beforeSend: function (request) {
+                    request.setRequestHeader("Authorization", '@ViewBag.MBKey');
+                },
+                url: "http://49.231.178.249:9683/mobileapi/Claims/Feedback/" + id,
+                data: {
+                    "claimCode": claimid,
+                    "agentScore": $('#txtAgentScore').val(),
+                    "serviceScore": $('#txtServiceScore').val(),
+                    "systemScore": $('#txtSystemScore').val(),
+                    "suggestion": $('#txtSuggestion').val()
+                },
+                success: function () {
+                    alert('Update Completed');
+                    //self.location = ("/DisplayProduct.htm");
+                },
+                error: function (xhr, error) {
+                    alert(xhr.responseText);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

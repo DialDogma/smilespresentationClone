@@ -1,0 +1,328 @@
+﻿@{
+    ViewBag.Title = "Application ID:" + @ViewBag.AppId;
+    ViewBag.Description = "แผน:" + @ViewBag.Plan + " สถานะกรมธรรม์:" + @ViewBag.Status;
+    Layout = "~/Views/Shared/_Layout_Empty.cshtml";
+
+}
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* on left *@
+        <div class="col-md-5">
+            @* Customer Detail *@
+            <div id="Customer_form" class="form-horizontal">
+                <div class="box box-warning">
+                    <div class="box-header with-border">
+                        <h4 class="box-title">ข้อมูลผู้เอาประกัน </h4> &emsp; เบอร์โทร: @ViewBag.PhoneNum
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group row">
+                            <label for="txtFname" class="control-label col-sm-4">ชื่อ:</label>
+                            <div class="col-sm-7">
+                                <input class="form-control" type="text" id="txtFname" name="txtFname" value="@ViewBag.Fname" required="required" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* payer Detail *@
+            <div id="Payer_form" class="form-horizontal">
+                <div class="box box-warning">
+                    <div class="box-header with-border">
+                        <h4 class="box-title">ข้อมูลชำระเบี้ย </h4> &emsp; เบอร์โทร: @ViewBag.PhoneNum
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group row">
+                            <label for="txtPayerFname" class="control-label col-sm-4">ชื่อ:</label>
+                            <div class="col-sm-7">
+                                <input class="form-control" type="text" id="txtPayerFname" name="txtPayerFname" value="@ViewBag.PayerFname" required="" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* ktb detail *@
+            <div id="KTBDetail_form" class="form-horizontal">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h4 class="box-title">หนังสือยินยอมหักบัญชีธนาคาร</h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group row">
+                            <label for="" class="control-label col-sm-4"><font color="red">*</font>ผลการดำเนินการ</label>
+                            <div class="col-sm-7">
+                                <select class="form-control select2" id="select_KtbResult" name="select_KtbResult">
+                                    @foreach(var itm in ViewBag.TrackStatus)
+                                    {
+                                        if(ViewBag.CusTrackStatus == itm.TrackAccountStatusId)
+                                        {
+                                            <option value="@itm.TrackAccountStatusId" selected="selected">@itm.TrackAccountStatus</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@itm.TrackAccountStatusId">@itm.TrackAccountStatus</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        @*<div class="form-group row">
+                                <label for="" class="control-label col-sm-offset-3 col-sm-4" id="lblNotFallow" style="color: green">*ไม่ต้องติดตาม*</label>
+                            </div>*@
+                    </div>
+                </div>
+            </div>
+
+            @* company reveal *@
+            <div id="Company_form" class="form-horizontal">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h4 class="box-title">หนังสือยินยอมเปิดเผยข้อมูล</h4>
+                    </div>
+                    <div class="box-body">
+
+                        @if(ViewBag.Disclosure != null)
+                        {
+                            foreach(var itm in ViewBag.Disclosure)
+                            {
+                                <div class="form-group row">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" class="chk_Company" value="@itm.CustomerDisclosureId" @if(itm.IsDisclosure == true) { <text> checked="checked" </text> }>
+                                            @itm.InsuranceCompany
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* remark *@
+            <div id="Result_Form" class="form-horizontal">
+                <div class="box box-primary">
+                    <div class="box-body">
+
+                        <div class="form-group row">
+                            <label for="txtRemark" class="control-label col-sm-4">หมายเหตุ:</label>
+                            <div class="col-sm-7">
+                                <textarea id="txtRemark" name="txtRemark" class="form-control" rows="6" placeholder="Enter ...">@ViewBag.Remark</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* on right *@
+        <div class="col-md-7">
+            @* document *@
+            <div id="Document_form" class="form-horizontal">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h4 class="box-title">ข้อมูลกรมธรรม์ </h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group row">
+                            <div class="col-sm-offset-10 col-sm-2">
+                                <button class="btn btn-block btn-warning" type="button" onclick="Refresh()">Refresh</button>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-12">
+                                @if(ViewBag.FirstDoc == null)
+                                {
+                                    <div id="form1_msg" class="alert alert-warning alert-dismissible">
+                                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                        <h4><i class="icon fa fa-ban"></i> เตือน!</h4>
+                                        ไม่มีรายการเอกสารดังกล่าว
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="form-group row">
+
+                            @if(ViewBag.DocLink != null)
+                            {
+                                foreach(var itm in ViewBag.DocLink)
+                                {
+                                    <div class="col-sm-6">
+                                        <button type="button" class="btn btn-block btn-info" id="btn_@itm.DocumentFileId" onclick="SeeDoc('@itm.PathFullDoc')"><i class="fa fa-fw fa-search"></i>@itm.DocumentTypeName:@itm.DocumentId</button>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <div class="form-group row" id="DocDetail_form">
+                            <div class="col-sm-12" style="height: 950px">
+                                <iframe class="SeeDoc" style="width: 100%; height: 100%;" src="@ViewBag.FirstDoc"></iframe>
+                                @*<iframe style="width: 100%;height: 100%;" src="https://pbs.twimg.com/media/DOrH-4pUMAAHEGv.jpg"></iframe>*@
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-sm-12">
+                                <div class="col-sm-6 col-sm-offset-6">
+
+                                    <div class="col-sm-6 " style="text-align: right">
+                                        <div>
+                                            @if(ViewBag.PlanId == "Home1" || ViewBag.PlanId == "Home2" || ViewBag.PlanId == "Home3" || ViewBag.PlanId == "Home4" || ViewBag.PlanId == "Home5" || ViewBag.PlanId == "Home6")
+                                            {
+                                                <a href="@ViewBag.SSSDoc" id="btnsssDoc" name="btnsssDoc" class="btn btn-primary" target="_blank">Scan SSSDoc</a>
+                                            }
+                                            else
+                                            {
+                                                <a href="http://49.231.178.252:81/smiledoc/document/submit.aspx" class="btn btn-primary" target="_blank">Scan SmileDoc</a>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                @* submit *@
+                <div id="Submit_form" class="form-horizontal">
+                    <div class="box box-default">
+                        <div class="box-body">
+                            <div class="form-group row">
+                                <div class="col-sm-offset-2 col-sm-3">
+                                    <button class="btn btn-block btn-success" type="button" id="btnSubmit">บันทึก</button>
+                                </div>
+                                <div class="col-sm-offset-1 col-sm-3">
+                                    <button class="btn btn-block btn-warning" type="button" id="btnCancel" onclick="ReturnToMainPage()">ยกเลิก</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* hidden field old *@
+    <input type="hidden" id="hd_queueId" name="hd_queueId" value="@ViewBag.QueueId" />
+    <input type="hidden" id="hd_CleanCustomerId" name="hd_CleanCustomerId" value="@ViewBag.CleanCustomerId" />
+    <input type="hidden" id="hd_SSSDocLink" name="hd_SSSDocLink" value="@ViewBag.SSSDoc" />
+    <input id="hd_planId" name="hd_planId" type="hidden" value="@ViewBag.PlanId" />
+    <input id="hd_IsShowTrackAccount" type="hidden" value="@ViewBag.IsShowTrackAccount" />
+    <input type="hidden" id="hd_cusNation" name="hd_cusNation" value="@ViewBag.CusNationId" />
+    <input type="hidden" id="hd_PayerNation" name="hd_PayerNation" value="@ViewBag.PayerNationId" />
+    <input type="hidden" id="hd_IsClean" name="hd_IsClean" value="@ViewBag.IsClean" />
+    <input type="hidden" id="hd_ArrCompany" name="hd_ArrCompany" value="" />
+    <input type="hidden" id="hd_UnChkArrCompany" name="hd_UnChkArrCompany" value="" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('.select2').select2();
+
+            $('#txtPayerFname').prop('disabled','disabled');
+            $('#txtFname').prop('disabled','disabled');
+
+            if ($('#hd_IsShowTrackAccount').val() == 0) {
+                $('#KTBDetail_form').hide();
+            }
+
+             // Reference the auto-generated proxy for the hub.
+            var chat = $.connection.myHub;
+
+            var ArrComp = new Array();
+            var unCheck = new Array();
+
+            $('#btnSubmit').on('click', function () {
+                ArrComp = [];
+                unCheck = [];
+                 $("input:checkbox[class='chk_Company']:checked").each(function () {
+                    debugger;
+                    ArrComp.push($(this).val());
+                });
+                 $("input:checkbox[class='chk_Company']:not(:checked)").each(function () {
+                    debugger;
+                    unCheck.push($(this).val());
+                });
+                debugger;
+                    if ($('#Mainform').valid()) {
+                        debugger;
+                        window.swal({
+                            title: 'ยืนยันรายการ?',
+                            type: 'info',
+                            showCancelButton: true,
+                            confirmButtonColor: '#277020',
+                            confirmButtonText: 'ตกลง',
+                            cancelButtonText: 'ยกเลิก',
+                            closeOnConfirm: false,
+                            closeOnEsc: false,
+                            closeOnCancel: true
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                $('#hd_ArrCompany').val(ArrComp);
+                                $('#hd_UnChkArrCompany').val(unCheck);
+                                $('#Mainform').submit();
+                            }
+                        });
+                    }
+            });
+        });
+
+         function Enablebutton() {
+            debugger;
+            if ($('#hd_SSSDocLink').val() == "") {
+                $('#btnsssDoc').prop('visible', true);
+                //$('#btnsssDoc').unbind();
+            } else {
+                $('#btnsssDoc').prop('visible', false);
+                //$('#btnsssDoc').unbind('click');
+            }
+        }
+        //back to main page
+        function ReturnToMainPage() {
+            window.swal({
+                title: 'ต้องการละทิ้งข้อมูลใช่หรือไม่?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#277020',
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                closeOnConfirm: false,
+                closeOnEsc: false,
+                closeOnCancel: true
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    $('#Customer_form').find('input:text').val('');
+                    $('#Payer_form').find('input:text').val('');
+                    //window.location = '@*@Url.Action("QueueManager","CustomerBase")*@';
+                    window.close();
+                }
+            });
+
+        }
+        //click to show document
+        function SeeDoc(path) {
+            debugger;
+            $('#DocDetail_form').children().show();
+            var extension = path.substr(path.length - 4);
+            switch (extension) {
+                case '.pdf':
+                    $('.SeeDoc').attr('src', 'http://49.231.178.252:81/sssdocfiles/pdfviewer/web/viewer.html?file=' + encodeURIComponent(path));
+                    break;
+                case '.jpg':
+                    $('.SeeDoc').attr('src', path);
+                    break;
+                default:
+            }
+        }
+
+        function Refresh() {
+            window.location.reload(true);
+        }
+    </script>
+}

@@ -1,0 +1,131 @@
+﻿
+<div class="row" style="padding-top:1%">
+    <div class="col-lg-3">
+        <label>สถานศึกษา :</label>
+        <span class="text-blue" id="lblOrganize"> </span>
+    </div>
+    <div class="col-lg-3">
+        <label>แผนประกัน PA ยิ้มแฉ่ง :</label>
+        <span class="text-blue" id="lblPlan"></span>
+    </div>
+    <div class="col-lg-3">
+        <label>จังหวัด :</label>
+        <span class="text-blue" id="lblProvince"></span>
+    </div>
+    <div class="col-lg-3">
+        <label>สาขา :</label>
+        <span class="text-blue" id="lblBranch"></span>
+    </div>
+</div>
+
+<div class="row" style="padding-top:1%">
+    <div class="col-lg-3">
+        <label>วันเริ่มคุ้มครอง :</label>
+        <span class="text-blue" id="lblStartCoverDate"></span>
+    </div>
+    <div class="col-lg-3">
+        <label>วันที่มีผลบังคับ :</label>
+        <span class="text-blue" id="lblEffectiveDate"></span>
+    </div>
+    <div class="col-lg-3">
+        <label>วันสิ้นสุดคุ้มครอง :</label>
+        <span class="text-blue" id="lblEndCoverDate"></span>
+    </div>
+    <div class="col-lg-3">
+        <label>ปีการศึกษา :</label>
+        <span class="text-blue" id="lblYear"></span>
+    </div>
+</div>
+
+
+<div class="row" style="padding-top:1%">
+    <div class="col-lg-3">
+        <label>เลข App PA นักเรียน :</label>
+        <span class="text-blue" id="lblPAAppId"></span>
+        <a id="aReferenceCode" href="" target="_blank" class="text-blue"></a>
+    </div>
+    <div class="col-lg-3">
+        <label>แผนประกัน PA นักเรียน :</label>
+        <span class="text-blue" id="lblPAPlan"></span>
+    </div>
+    <div class="col-lg-3">
+        <label>ทุนประกัน PA นักเรียน :</label>
+        <span class="text-blue" id="lblPAPremium"></span>
+    </div>
+</div>
+
+<input type="hidden" id="hdfAppId" />
+<input type="hidden" id="hdfReferenceCode" />
+
+
+<script type="text/javascript">
+
+
+
+    const DoloadApplicationDetail = (appId) => {
+
+        $('#hdfAppId').val(appId);
+
+        GetApplicationData();
+
+        GetPAApplicationData();
+
+    }
+
+
+    //GetAppplicationData
+    const GetApplicationData = () => {
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("GetPAApplicationDetailByAppID", "PAPersonnel")",
+            data: {
+                appId: $('#hdfAppId').val()
+            },
+            dataType: "json",
+            async: false,
+            success: function (data) {
+                $('#lblOrganize').text(data.PersonnelApplicationName)
+                $('#lblPlan').text(data.ProductName)
+                $('#lblBranch').text(data.BranchName)
+                $('#hdfReferenceCode').val(data.RefApplicationCode)
+
+                let startCoverDate = moment(data.StartCoverDate).add(543, 'years').format("DD/MM/YYYY");
+                let effectiveDate = moment(data.EffectiveDate).add(543, 'years').format("DD/MM/YYYY");
+                let endCoverDate = moment(data.EndCoverDate).add(543, 'years').format("DD/MM/YYYY");
+
+
+                $('#lblStartCoverDate').text(startCoverDate);
+                $('#lblEffectiveDate').text(effectiveDate);
+                $('#lblEndCoverDate').text(endCoverDate);
+
+                $('#lblYear').text(data.PAYear);
+
+                $('#aReferenceCode').text(data.RefApplicationCode);
+            }
+        });
+    }
+
+    //GetPAApplicationDeta
+    const GetPAApplicationData = () => {
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("GetSchoolDetail", "PAPersonnel")",
+            data: {
+                appCode: $('#hdfReferenceCode').val()
+            },
+            dataType: "json",
+            async: false,
+            success: function (data) {
+                $('#lblProvince').text(data.Province);
+                $('#lblPAPlan').text(data.ProductName);
+                $('#lblPAPremium').text(commaSeparateNumber(data.StandardCoverage));
+
+
+
+                $('#aReferenceCode').prop('href', data.UrlPA);
+            }
+        });
+    }
+
+
+</script>

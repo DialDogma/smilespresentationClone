@@ -1,0 +1,770 @@
+﻿
+@{
+    ViewBag.Title = "คิวงานติดเงื่อนไข";
+    Layout = "~/Views/Shared/_LayoutForTopCancer.cshtml";
+}
+
+<style>
+    .table {
+        font-size: 14px;
+    }
+    .toolbar {
+        float: left;
+    }
+    .dropzone .dz-preview .dz-details .dz-filename:not(:hover) {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        height: auto;
+        display: block;
+        width: 150px;
+    }
+
+    .material-icons.md-62 {
+        font-size: 62px;
+    }
+
+    .legend {
+        text-align: center;
+        background: #0a5769;
+        color: white;
+        font-size: 18px;
+        margin-left: 15px
+    }
+    img {
+        border: 1px solid #ddd; /* Gray border */
+        border-radius: 4px; /* Rounded border */
+        padding: 5px; /* Some padding */
+        width: 150px; /* Set a small width */
+    }
+    /* สีพื้นหลังปกติ */
+    .wrimagecard-topimage_header {
+        background-color: #00C0EF;
+        transition: background-color 0.3s ease;
+    }
+
+    /* สีพื้นหลังเมื่อถูกเลือก */
+    .wrimagecard-topimage.selected .wrimagecard-topimage_header {
+        background-color: orchid !important;
+    }
+</style>
+
+<form class="form-horizontal" id="fmQueueConsideringUnderwrite">
+        <div class="container">
+            @foreach (var itm in ViewBag.AuditInsureCount)
+            {
+                <div class="col-md-3 col-sm-4">
+                    <div class="wrimagecard wrimagecard-topimage @(itm.Period.ToString("MM") == ViewBag.Today ? "selected" : "")" onclick="SelectDCR('@itm.Period')">
+                        <div class="wrimagecard-topimage_header">
+                            <center>
+                                <span class="material-icons md-62" style="color: #ffffff">
+                                    calendar_month
+                                </span>
+                            </center>
+                        </div>
+                        <div class="wrimagecard-topimage_title">
+                            <center>
+                                <h5>@itm.Period.ToString("MMM yy")</h5>
+                                <div id="getQueueInsuerDCRCount_@itm.Period.ToString("d/M")">
+
+                                    <span class="pull-right badge bg-red" id="WrControls" style="position:absolute;right:5px;bottom:5px">@itm.TotalCount</span>
+                                </div>
+                            </center>
+                        </div>
+                    </div>
+                </div>
+                if (itm.Period.ToString("MM") == ViewBag.Today)
+                {
+                    <input type="hidden" id="hiddenSelectDCR" value="@itm.Period" />
+                }
+            }
+        </div>
+    <legend class="legend">คิวงานติดเงื่อนไข</legend>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12 col-md-12">
+                <div class="nav-tabs-custom">
+                    <ul class="nav nav-tabs nav-justified">
+                        <li class="active"><a style="font-size: larger" href="#tab1" data-toggle="tab" aria-expanded="True">รอดำเนินการ</a></li>
+                        <li><a style="font-size: larger" href="#tab2" data-toggle="tab" aria-expanded="True">ดำเนินการแล้ว</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        @* Tab รอตรวจสอบ *@
+                        <div class="tab-pane active" id="tab1">
+                            <div id="Search_form">
+                                <div class="box box-warning">
+                                    <div class="box-body">
+                                        <div class="form-group row">
+                                            <div class="row" style="padding-top:6px">
+                                                <div class="col-lg-2 col-xs-12" style="padding-left:50px">
+                                                    <label>ค้นหาข้อมูลจาก :</label>
+                                                </div>
+                                                <div class="col-lg-3 col-lg--2 col-xs-12">
+                                                    <label>ชื่อผู้เอาประกัน</label>
+                                                    <input type="text" class="form-control" id="txtCustName_Wait" />
+                                                </div>
+                                                <div class="col-lg-3 col-xs-12">
+                                                    <label>ชื่อผู้ชำระเบี้ย</label>
+                                                    <input type="text" class="form-control" id="txtPayerName_Wait" />
+                                                </div>
+                                                <div class="col-lg-2 col-xs-12">
+                                                    <label>เลข App</label>
+                                                    <input type="text" class="form-control" id="txtApp_Wait" />
+                                                </div>
+                                                <div class="col-lg-2 col-xs-12" style="padding-top:25px">
+                                                    <button type="button" class="btn btn-info" id="btnSearch_Wait">ค้นหา</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="box-group">
+                                <div class="row" style="padding-top:7px">
+                                    <div class="col-lg-6  col-xs-12">
+                                        <label id="countSelect"></label>
+
+                                        <a id="textSelectAll" style="display:none;cursor:pointer" onclick="GetCloseQueueAllDt();"></a>
+                                    </div>
+                                    <div class="col-lg-12  col-xs-12" style="text-align:right">
+                                        <a id="textSelectAllClear" style="display:none;cursor:pointer" onclick="ClearCheckboxAll();">ล้างข้อมูลที่เลือก</a>
+                                    </div>
+                                    <div class="col-lg-12  col-xs-12">
+                                        <table id="dtWaitQueue_Wait" class="table table-bordered table-hover dataTable" style="width:100%;"></table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @* Tab คิวงานที่ถูกปิดแล้ว *@
+                        <div class="tab-pane" id="tab2">
+                            <div id="SearchComplete_form">
+                                <div class="box box-success">
+                                    <div class="box-body">
+                                        <div class="form-group row">
+                                            <div class="box-body">
+                                                <div class="form-group row">
+                                                    <div class="row" style="padding-top:6px">
+                                                        <div class="col-lg-2 col-xs-12" style="padding-left:50px">
+                                                            <label>ค้นหาข้อมูลจาก :</label>
+                                                        </div>
+                                                        <div class="col-lg-3 col-lg--2 col-xs-12">
+                                                            <label>ชื่อผู้เอาประกัน</label>
+                                                            <input type="text" class="form-control" id="txtCustName_Complete" />
+                                                        </div>
+                                                        <div class="col-lg-3 col-xs-12">
+                                                            <label>ชื่อผู้ชำระเบี้ย</label>
+                                                            <input type="text" class="form-control" id="txtPayerName_Complete" />
+                                                        </div>
+                                                        <div class="col-lg-2 col-xs-12">
+                                                            <label>เลข App</label>
+                                                            <input type="text" class="form-control" id="txtApp_Complete" />
+                                                        </div>
+                                                        <div class="col-lg-2 col-xs-12" style="padding-top:25px">
+                                                            <button type="button" class="btn btn-info" id="btnSearch_Complete">ค้นหา</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="box-group">
+                                <div class="row" style="padding-top:7px">
+                                    <div class="col-lg-12 col-xs-12">
+                                        <table id="dtClosedQueue_Complete" class="table table-bordered table-hover dataTable" style="width:100%;"></table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>     
+
+
+@section ViewSpecificJavascript{
+    <script type="text/javascript">
+        var inited = false;
+        var count = 0;
+        var rowDT = 0;
+        var totalDT = 0;
+        var ListCheckBox = [];
+            var ListCheckBoxAll = [];
+        var dateDCR = new Date();
+            $(function () {
+                var formattedDate = $("#hiddenSelectDCR").val();
+                 dateDCR = moment(formattedDate, "DD-MM-YYYY").format("DD/MM/YYYY");
+
+            /*start signalR*/
+            // Reference the auto-generated proxy for the hub.
+            var chat = $.connection.chatHub;
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                //join group
+                chat.server.joinGroup('@ViewBag.UserId');
+            });
+            //Show public message to client
+            chat.client.receiveGroupNotice = function (message) {
+                /*full msg*/
+                const fullMessage = message;
+                /*new date*/
+                const date = new Date();
+                /*set str*/
+                const str = date.getFullYear() +
+                    "-" +
+                    (date.getMonth() + 1) +
+                    "-" +
+                    date.getDate() +
+                    " " +
+                    date.getHours() +
+                    ":" +
+                    date.getMinutes() +
+                    ":" +
+                    date.getSeconds();
+                /*alert toastr*/
+                window.toastr["success"](`อัพเดตครั้งล่าสุด : ${str}`, fullMessage);
+                /*Load Datatables*/
+                getQueueInsuerDCRCount();
+                getData_Queuewait(dateDCR);
+                getData_QueueComplete(dateDCR);
+            };
+
+            window.toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+
+                getQueueInsuerDCRCount();
+                getData_Queuewait(dateDCR);
+                getData_QueueComplete(dateDCR);
+
+            $('#btnSearch_Wait').click(function (e) {
+                e.preventDefault();
+                getData_Queuewait(dateDCR);
+            });
+            $('#btnClosedQueueAll').click(function (e) {
+                e.preventDefault();
+                if (ListCheckBoxAll.length > 0) {
+                    DoCloseQueueAll();
+                } else {
+                    swal("คำเตือน", "กรุณาเลือกคิวงานที่ต้องการปิด", "warning");
+                }
+
+            });
+
+            $('#btnSearch_Complete').click(function (e) {
+                e.preventDefault();
+                getData_QueueComplete(dateDCR);
+            });
+
+            //event tableQueueAssignDetail paging
+            $('#dtWaitQueue_Wait').on('page.dt', function () {
+                if (ListCheckBoxAll.length === totalDT) {
+                    $('table[name="dtWaitQueue_Wait"]').find(".chk-row-select").prop('checked', true);
+                    $('table[name="dtWaitQueue_Wait"]').find(".chk-row-select-all").prop('checked', true);
+                } else {
+                    $('table[name="dtWaitQueue_Wait"]').find(".chk-row-select-all").prop('checked', false);
+                    $('#countSelect').text('');
+                    $('#textSelectAll').hide();
+                    $('#textSelectAllClear').hide();
+                    for (var i = 0; i < ListCheckBox.length; i++) {
+                        if (!(ListCheckBoxAll.includes(ListCheckBox[i]))) {
+                            ListCheckBoxAll.push(ListCheckBox[i]);
+                        }
+                    }
+                    count = 0;
+                    ListCheckBox = [];
+                }
+            });
+
+            /*checkbox in datatables change*/
+            $('#dtWaitQueue_Wait').on('change', 'input[type="checkbox"]', function (e) {
+                let table = $('#dtWaitQueue_Wait').DataTable();
+                let rows = table.rows().nodes();
+                switch (this.className) {
+                    case 'chk-row-select-all':
+                        if (this.checked) {
+                            $('input[class="chk-row-select"]', rows).prop('checked', true).change();
+                        } else {
+                            $('input[class="chk-row-select"]', rows).prop('checked', false).change();
+                        }
+                        break;
+                    case 'chk-row-select':
+                        if (this.checked) {
+                            let count = 0;
+                            const value = this.value;
+                            //adds one or more elements to the end of an array and returns the new length of the array.
+                            if (!ListCheckBox.includes(value)) ListCheckBox.push(this.value);
+                            if (!ListCheckBoxAll.includes(value)) ListCheckBoxAll.push(this.value);
+                            //check count data equal rows.length then checkbox-all is checked
+                            if (!(ListCheckBox.length === rows.length)) {
+                                $('table[name="dtWaitQueue_Wait"]').find(".chk-row-select-all").prop('checked', false);
+                                $('#countSelect').text(`เลือกแล้ว ${ListCheckBox.length} รายการ`)
+                                $('#textSelectAll').text(`จาก ${totalDT} รายการ`).show();
+                            } else {
+                                $('table[name="dtWaitQueue_Wait"]').find(".chk-row-select-all").prop('checked', true);
+                                $('#countSelect').text(`เลือกแล้ว ${ListCheckBox.length} รายการ`)
+                                $('#textSelectAll').text(`เลือกทั้งหมด ${totalDT}`).show();
+                            }
+                        } else {
+                            const value = this.value;
+                            //replaces 1 element at indexOd() returnValue index
+                            ListCheckBox.splice(ListCheckBox.indexOf(value), 1);
+                            ListCheckBoxAll.splice(ListCheckBoxAll.indexOf(value), 1);
+
+                            //check count data equal rows.length then checkbox-all is checked
+                            if (!(ListCheckBox.length === rows.length)) {
+                                $('table[name="dtWaitQueue_Wait"]').find(".chk-row-select-all").prop('checked', false);
+                                $('#countSelect').text(`เลือกแล้ว ${ListCheckBox.length} รายการ`)
+                                $('#textSelectAll').text(`จาก ${totalDT} รายการ`).show();
+                                $('#textSelectAllClear').hide();
+                            } else {
+                                $('table[name="dtWaitQueue_Wait"]').find(".chk-row-select-all").prop('checked', true);
+                            }
+                        }
+                        break;
+                    default:
+                }
+            });
+        });
+
+
+        //รอดำเนินการ
+        const getData_Queuewait = (dcr) => {
+            $('#dtWaitQueue_Wait').empty();
+            var table = $('#dtWaitQueue_Wait').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                order: [[1, "asc"]],
+                ajax: {
+                    url: '@Url.Action("GetQueueCIAuditInsureConditional_Wait")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.applicationCode = $("#txtApp_Wait").val().trim();
+                        d.insuredName = $("#txtCustName_Wait").val().trim();
+                        d.payerName = $("#txtPayerName_Wait").val().trim();
+                        d.c_period = dateDCR;
+                        d.auditInsureStatusId = 3;
+                        d.auditInsureConsiderStatusIdList = "3";
+                        d.auditInsureClose = false;
+
+                    },
+                    dataSrc: function (json) {
+                        rowDT = json.data.length;
+                        totalDT = json.recordsTotal;
+                        return json.data;
+
+                    },
+                },
+                columns: [
+                    {
+                        title: 'เลข App',
+                        data: 'ApplicationCode',
+                        orderable: true,
+                    },
+                    {
+                        title: 'ชื่อผู้เอาประกัน',
+                        data: 'InsuredName',
+                        orderable: true,
+                        className: 'h-dt-center'
+                    },
+
+                    {
+                        title: 'ชื่อผู้ชำระเบี้ย',
+                        data: 'PayerName',
+                        orderable: true,
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'บัตรประชาชนผู้ชำระเบี้ย',
+                        data: 'CardId',
+                        orderable: true,
+                    },
+                    {
+                        title: 'DCR',
+                        data: 'Period',
+                        orderable: true,
+                        render: function (data) {
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'ข้อมูลเฝ้าระวัง',
+                        data: 'IsBeware',
+                        orderable: true,
+                        render: function (data) {
+                            switch (data) {
+                                case true:
+                                    return '<label class="label" style="color:red; font-size: 15px;align-items: center;" >มี</label>';
+                                    break;
+                                case false:
+                                    return '<label class="label" style="color:green; font-size: 15px;align-items: center;" >ไม่มี</label>';
+                                    break;
+                                default:
+                                    return '<span class="label label-default">รอข้อมูล</span>';
+                                    break;
+                            }
+                        }
+                    },
+                    {
+                        title: 'หมายเหตุการโทร',
+                        data: "AuditInsureCloseRemark",
+                        className: 'h-dt-center',
+                        orderable: true,
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        orderable: false,
+                        render: function (data) {
+                            return `<button type="button" class="btn btn-info" onclick="selectDetail_QueueWait(${data.QueueAuditId})">ดูรายละเอียด</button>`;
+                        }
+                    },
+                ],
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+
+            if (table.rows().length > 0) {
+                EnabledButtonCloseQueueAll(false);
+            }
+            }
+
+        //ดำเนินการแล้ว
+        const getData_QueueComplete = (dcr) => {
+            $('#dtClosedQueue_Complete').empty();
+            var tableA = $('#dtClosedQueue_Complete').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                order: [[0, "asc"]],
+                ajax: {
+                    url: '@Url.Action("GetQueueCIAuditInsureConditional_Complete")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.applicationCode = $("#txtApp_Complete").val().trim();
+                        d.insuredName = $("#txtCustName_Complete").val().trim();
+                        d.payerName = $("#txtPayerName_Complete").val().trim();
+                        d.c_period = dcr;
+                        d.auditInsureStatusId = 3;
+                        d.auditInsureConsiderStatusIdList = "3"
+                        d.auditInsureClose = true;
+                    },
+                },
+                columns: [
+                    {
+                        title: 'เลข App',
+                        data: 'ApplicationCode',
+                        orderable: true,
+                    },
+
+                    {
+                        title: 'ชื่อผู้เอาประกัน',
+                        data: 'InsuredName',
+                        orderable: true,
+                        className: 'h-dt-center'
+                    },
+
+                    {
+                        title: 'ชื่อผู้ชำระเบี้ย',
+                        data: 'PayerName',
+                        orderable: true,
+                        className: 'h-dt-center'
+                    },
+                    {
+                        title: 'บัตรประชาชนผู้ชำระเบี้ย',
+                        data: 'CardId',
+                        orderable: true,
+                    },
+                    {
+                        title: 'DCR',
+                        data: 'Period',
+                        orderable: true,
+                        render: function (data) {
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'ข้อมูลเฝ้าระวัง',
+                        data: 'IsBeware',
+                        orderable: true,
+                        render: function (data) {
+                            switch (data) {
+                                case true:
+                                    return '<label class="label" style="color:red; font-size: 15px;align-items: center;" >มี</label>';
+                                    break;
+                                case false:
+                                    return '<label class="label" style="color:green; font-size: 15px;align-items: center;" >ไม่มี</label>';
+                                    break;
+                                default:
+                                    return '<span class="label label-default">รอข้อมูล</span>';
+                                    break;
+                            }
+
+                        }
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        orderable: false,
+                        render: function (data) {
+                            return `<button type="button" class="btn btn-info" onclick="selectDetail_QueueComplete(${data.QueueAuditId})">ดูรายละเอียด</button>`;
+                        }
+                    },
+                ],
+            });
+            window.onresize = function () {
+                tableA.columns.adjust().responsive.recalc();
+            };
+
+            if (tableA.rows().length > 0) {
+                EnabledButtonCloseQueueAll(false);
+            }
+        }
+
+        const EnabledButtonCloseQueueAll = (v) => {
+            $('#btnClosedQueueAll').prop('disabled', v);
+        }
+
+        const DoCloseQueueAll = () => {
+            swal({
+                text: "ยืนยันปิดคิวงานที่เลือก",
+                title: "",
+                //text: "You will not be able to recover this imaginary file!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "ตกลง",
+                cancelButtonText: "ยกเลิก",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        closeQueueAll();
+                    } else {
+                        swal({
+                            text: "",
+                            title: "ยกเลิก",
+                            type: "error",
+                            confirmButtonClass: "btn-danger",
+                            confirmButtonText: "ตกลง",
+                        })
+                    }
+                });
+        }
+
+        const closeQueueAll = () => {
+            $.post("@Url.Action("QueueCIAuditInsureCloseALL", "Queue")", {
+                queueAuditArray: ListCheckBoxAll,
+                },
+                function (data, textStatus, jqXHR) {
+                    if (data[0].IsResult) {
+                        swal_success("สำเร็จ");
+                        $('#dtWaitQueue_Wait').DataTable().ajax.reload();
+                    }
+                    ClearCheckboxAll();
+                    $('#countSelect').text('');
+                    $('#textSelectAll').hide();
+                    $('#textSelectAllClear').hide();
+                },
+            );
+
+        }
+
+        const GetCloseQueueAllDt = () => {
+            $.post("@Url.Action("GetCloseQueueAllDt", "Queue")", {
+
+                applicationCode: $("#txtApp_Wait").val(),
+                insuredName: $("#txtCustName_Wait").val(),
+                payerName: $("#txtPayerName_Wait").val(),
+                c_period: $("#dtc_period").val(),
+                insureClose: false,
+                auditInsureStatusId: 3,
+                auditInsureConsiderStatusIdList : $('#AuditInsureConsiderStatus_Wait').val()
+
+            }, function (data) {
+
+                ListCheckBoxAll = []
+
+                for (var i = 0; i < data.length; i++) {
+                    if (!ListCheckBoxAll.includes(data[i].QueueAuditId.toString())) ListCheckBoxAll.push(data[i].QueueAuditId.toString())
+
+                }
+                    $('#countSelect').text(`ทั้ง ${totalDT} รายการถูกเลือกอยู่`)
+                    $('#textSelectAllClear').show();
+                $('#textSelectAll').hide();
+            });
+        }
+
+        const ClearCheckboxAll = () => {
+
+            ListCheckBoxAll = [];
+            ListCheckBox = [];
+            $('#countSelect').text('');
+            $('#textSelectAll').hide();
+            $('#textSelectAllClear').hide();
+            $('input[class="chk-row-select"]').prop('checked', false);
+            $('input[class="chk-row-select-all"]').prop('checked', false);
+        }
+        const selectDetail_QueueWait = (QueueAuditId) => {
+            let c_queueAutditID = window.btoa(QueueAuditId);
+            window.open(`@Url.Action("CancerAuditIndexV2", "CancerAudit")?CancerQueueAuditId=${c_queueAutditID}&insuredCheck=1`, '_blank');
+        }
+
+        const selectDetail_QueueComplete = (QueueAuditId) => {
+            let c_queueAutditID = window.btoa(QueueAuditId);
+            window.open(`@Url.Action("CancerAuditViewV2", "CancerAudit")?CancerQueueAuditId=${c_queueAutditID}&insuredCheck=1`, '_blank');
+        }
+
+        const selectCloseQueue = (QueueAuditId) => {
+            swal({
+                text: "ยืนยันปิดคิวงาน",
+                title: "",
+                //text: "You will not be able to recover this imaginary file!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "ตกลง",
+                cancelButtonText: "ยกเลิก",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        closeQueue(QueueAuditId);
+                    } else {
+                        swal({
+                            text: "",
+                            title: "ยกเลิก",
+                            type: "error",
+                            confirmButtonClass: "btn-danger",
+                            confirmButtonText: "ตกลง",
+                        })
+                    }
+                });
+        }
+        const closeQueue = (queueAuditId) => {
+            $.post("@Url.Action("QueueCIAuditInsureCloseByQueueAuditId")", { queueAuditId: queueAuditId },
+                function (data) {
+                    if (data.IsResult == true) {
+                        swal_success("", "สำเร็จ", "success");
+                        $('#dtWaitQueue_Wait').DataTable().ajax.reload();
+                    } else {
+                        swal("ผิดพลาด", data.Msg, "error");
+                    }
+                },
+            );
+            }
+
+     
+
+         const getQueueInsuerDCRCount = () => {
+    $.ajax({
+        type: "GET",
+        url: "@Url.Action("GetQueueInsuerDCRCount")",
+        data: {
+            auditInsureStatusId: 3,
+            auditInsureConsiderStatusIdList: "3"
+        },
+        dataType: "json",
+        async: false,
+        success: function (data) {
+
+            if (data.length !== 0) {
+                for (var i = 0; i < data.length; i++) {
+                    let periodFormatted = moment(data[i].Period).format("D/M");
+
+                    let safeSelector = `[id='getQueueInsuerDCRCount_${periodFormatted}']`; // Safe selector
+                    console.log(safeSelector)
+                    $(safeSelector).html(`
+
+
+                            <span class="pull-right badge bg-red" id="WrControls">${data[i].TotalCount}</span>
+
+                    `);
+                }
+            }
+        }
+    });
+};
+
+                const SelectDCR = (dcr) => {
+                debugger
+                    $("#txtApp_Complete").val('');
+                    $("#txtCustName_Complete").val('');
+                    $("#txtPayerName_Complete").val('');
+                    $("#txtApp_Wait").val('');
+                    $("#txtCustName_Wait").val('');
+                    $("#txtPayerName_Wait").val('');
+                    dateDCR = moment(dcr, "DD-MM-YYYY").format("DD/MM/YYYY");
+                    getData_Queuewait(dateDCR);
+                    getData_QueueComplete(dateDCR);
+
+                // อัปเดตค่า hidden input
+                document.getElementById("hiddenSelectDCR").value = dcr;
+
+                // เอาคลาส 'selected' ออกจากปุ่มอื่นๆ
+                document.querySelectorAll(".wrimagecard-topimage").forEach(function (el) {
+                    el.classList.remove("selected");
+                });
+
+                // ใส่คลาส 'selected' ให้ปุ่มที่ถูกเลือก
+                event.currentTarget.classList.add("selected");
+
+            }
+
+    </script>
+}
+
+

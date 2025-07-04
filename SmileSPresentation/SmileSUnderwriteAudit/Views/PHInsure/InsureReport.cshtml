@@ -1,0 +1,241 @@
+﻿
+@{
+    ViewBag.Title = "รายงาน";
+    Layout = "~/Views/Shared/_LayoutForTopPHIndex.cshtml";
+}
+
+<div class="container" >
+    <div class="row">
+        <div class="col-sm-12 col-md-12">
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs nav-justified">
+                    <li class="active"><a style="font-size: larger" href="#tab1" data-toggle="tab" aria-expanded="True">รายงาน</a></li>
+                </ul>
+                <div class="tab-content" style="padding:15px">
+                    @* Tab รอตรวจสอบ *@
+                    <div class="tab-pane active" id="tab1">
+                        <div id="Search_form">
+                            <div class="box box-info">
+                                <div class="box-body">
+                                    <div class="form-group row">
+                                        <div class="col-md-offset-3 pull-left">
+                                            <label class="control-label">งวดความคุ้มครอง: </label>
+                                        </div>
+                                        <div class=" col-lg-5">
+                                            <select class="form-control" id="select_period">
+                                                <option value="-1">----กรุณาเลือก----</option>
+                                                @foreach (var itm in ViewBag.PeriodList)
+                                                {
+                                                    <option value="@itm.Value.ToString("dd/MM/yyyy")"> @itm.Display</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class=" col-md-offset-3 pull-left" style="margin-right:13px">
+                                            <label class="control-label ">ประเภทรายงาน: </label>
+                                        </div>
+                                        <div class=" col-lg-5">
+                                            <select class="form-control " id="select_report">
+                                                <option value="-1">----กรุณาเลือก----</option>
+                                                <option value="1">รายงานพิจารณาคัดกรอง </option>
+                                                <option value="4">รายงานไม่ผ่านการพิจารณา  </option>
+                                                <option value="2">รายงานผ่าน </option>
+                                                <option value="3">รายงานผ่านแบบติดเงื่อนไข </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="box-group" id="Download_form" style="display:none;margin:15px">
+                            <div class="row" style="padding-top:7px">
+                                <div class="form-group row">
+                                    <div class="col-sm-12 col-md-offset-5 col-md-3">
+                                        <button type="button" id="btnDownload1" class="btn btn-block btn-success" onclick="getDownloadLink()">Export to Excel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        $(function () {
+
+            $('#select_period').change((e) => {
+                
+                $('#Download_form').hide();
+                e.preventDefault();
+                if ($('#select_period').val() != -1) {
+                   // $('#Download_form').show();
+                    DownloadForm();
+                }
+            });
+            $('#select_report').change((e) => {
+                
+                $('#Download_form').hide();
+                e.preventDefault();
+                if ($('#select_report').val() != -1) {
+                   // $('#Download_form').show();
+                    DownloadForm();
+                }
+            });
+            
+        });
+
+
+        const DownloadForm = () => {
+            if ($('#select_period').val() != -1 && $('#select_report').val() != -1) {
+
+                $('#Download_form').show();
+            }
+        }
+        function getDownloadLink(report) {
+            loadingSpinner('fadeIn', 999999);
+            
+            switch ($('#select_report').val()) {
+                case "1":
+                     $.ajax({
+                    url: "@Url.Action("underwriteExportQueueReportAuditInsure", "ReportsV2")",
+                    type: "POST",
+                    data: {
+                        period: $('#select_period').val()
+                    },
+                    success: function (data) {
+                        if (data.IsResult == false) {
+                            loadingSpinner('fadeOut');
+                            swal("ผลการค้นหา", data.Msg, "warning", function (e) {
+                                swal.close();
+                                return false;
+                            });
+                        } else {
+                            let reportName = "รายงานพิจารณาคัดกรอง_PH_";
+                            window.location = `@Url.Action("underwriteDownloadQueueReport", "ReportsV2")?reportName=${reportName}`;
+                            loadingSpinner('fadeOut');
+                        }
+                    },
+                    error: function (jqXHR, exception) {
+                        checkXHRStatus(jqXHR.status);
+                        loadingSpinner('fadeOut');
+                    }
+                });
+                    break;
+                case "2":
+                       $.ajax({
+                    url: "@Url.Action("underwriteExportQueueReportAuditInsureConsiderStatus", "ReportsV2")",
+                    type: "POST",
+                    data: {
+                        period: $('#select_period').val(),
+                        auditInsureConsiderStatusId : "2"
+                    },
+                    success: function (data) {
+
+                        if (data.IsResult == false) {
+                            loadingSpinner('fadeOut');
+                            swal("ผลการค้นหา", data.Msg, "warning", function (e) {
+                                swal.close();
+                                return false;
+                            });
+                        } else {
+
+                            let reportName = "รายงานผ่าน_PH_";
+                            window.location = `@Url.Action("underwriteDownloadQueueReport", "ReportsV2")?reportName=${reportName}`;
+                            loadingSpinner('fadeOut');
+                        }
+                    },
+                    error: function (jqXHR, exception) {
+                        checkXHRStatus(jqXHR.status);
+                        loadingSpinner('fadeOut');
+                    }
+                });
+                    break;
+                case "3":
+                        $.ajax({
+                    url: "@Url.Action("underwriteExportQueueReportAuditInsureConsiderStatus", "ReportsV2")",
+                    type: "POST",
+                    data: {
+                        period: $('#select_period').val(),
+                        auditInsureConsiderStatusId : "3"
+                    },
+                    success: function (data) {
+
+                        if (data.IsResult == false) {
+                            loadingSpinner('fadeOut');
+                            swal("ผลการค้นหา", data.Msg, "warning", function (e) {
+                                swal.close();
+                                return false;
+                            });
+                        } else {
+
+                            let reportName = "รายงานผ่านแบบติดเงื่อนไข_PH_";
+                            window.location = `@Url.Action("underwriteDownloadQueueReport", "ReportsV2")?reportName=${reportName}`;
+                            loadingSpinner('fadeOut');
+                        }
+                    },
+                    error: function (jqXHR, exception) {
+                        checkXHRStatus(jqXHR.status);
+                        loadingSpinner('fadeOut');
+                    }
+                });
+                    break
+                case "4":
+                      $.ajax({
+                    url: "@Url.Action("underwriteExportQueueReportAuditInsureConsiderStatus", "ReportsV2")",
+                    type: "POST",
+                    data: {
+                        period: $('#select_period').val(),
+                        auditInsureConsiderStatusId: "4"
+                    },
+                    success: function (data) {
+
+                        if (data.IsResult == false) {
+                            loadingSpinner('fadeOut');
+                            swal("ผลการค้นหา", data.Msg, "warning", function (e) {
+                                swal.close();
+                                return false;
+                            });
+                        } else {
+                            let reportName = "รายงานไม่ผ่านการพิจารณา_PH_";
+                            window.location = `@Url.Action("underwriteDownloadQueueReport", "ReportsV2")?reportName=${reportName}`;
+                            loadingSpinner('fadeOut');
+                        }
+                    },
+                    error: function (jqXHR, exception) {
+                        checkXHRStatus(jqXHR.status);
+                        loadingSpinner('fadeOut');
+                    }
+                });
+                    break;
+                default:
+                    swal("ทำรายการไม่สำเร็จ", "กรุณาเลือกประเภทรายงาน", "error");
+                    break;
+            }
+        }
+        function checkXHRStatus(xhrStatus) {
+           var msg = '';
+              if (xhrStatus === 0) {
+                  msg = 'Not connect.\n Verify Network.';
+              } else if (jqXHR.status == 404) {
+                  msg = 'Requested page not found. [404]';
+              } else if (jqXHR.status == 500) {
+                  msg = 'Internal Server Error [500].';
+              } else if (exception === 'parsererror') {
+                  msg = 'Requested JSON parse failed.';
+              } else if (exception === 'timeout') {
+                  msg = 'Time out error.';
+              } else if (exception === 'abort') {
+                  msg = 'Ajax request aborted.';
+              } else {
+                  msg = 'Uncaught Error.\n' + jqXHR.responseText;
+            }
+            swal("ไม่สำเร็จ", msg, "error");
+        }
+    </script>
+}

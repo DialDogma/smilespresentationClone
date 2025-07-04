@@ -1,0 +1,259 @@
+
+@{
+    ViewBag.Title = "รายงานส่งการเงิน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title"><strong> ค้นหาจากวันที่ส่งการเงิน</strong></h3>
+            </div>
+            <div class="box-body">
+                <div class="box-group">
+                    <div class="row">
+                        <div class="col-xs-12 col-md-9" style="margin-top: 2.5rem; margin-bottom: 2.5rem;">
+                            <div class="row">
+                                <div class="col-xs-12 col-md-4">
+                                    <label>วันที่ :</label>
+                                    <div class="input-group date">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
+                                        <input type="text" class="form-control pull-right" id="dateFrom" data-date-language="th-th">
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 col-md-4">
+                                    <label> ถึงวันที่ :</label>
+                                    <div class="input-group date">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
+                                        <input type="text" class="form-control pull-right" id="dateTo" data-date-language="th-th">
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 col-md-4">
+                                    <label>ประเภทผลิตภัณฑ์ :</label>
+                                    <select class="form-control select2" id="ddlProductType">
+                                        <option value="-1">---ทั้งหมด---</option>
+                                        @{
+                                            foreach (var item in ViewBag.ProductGroupId)
+                                            {
+                                                <option value="@item.ProductGroup_ID">@item.ProductGroupDetail</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-12 col-sm-4">
+                                    <label>บริษัทประกันภัย :</label>
+                                    <select class="form-control select2" id="ddlInsuranceCompany">
+                                        <option value="-1">---ทั้งหมด---</option>
+                                        @{
+                                            foreach (var item in ViewBag.InsuranceCompany)
+                                            {
+                                                <option value="@item.OrganizeId">@item.OrganizeDetail</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-xs-12 col-md-4">
+                                    <label> ประเภทเคลม :</label>
+                                    <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" id="claimGroupTypeId" name="claimGroupTypeId">
+                                        <option value="-1">---โปรดระบุ---</option>
+                                        @{
+                                            foreach (var item in ViewBag.ClaimGroupType)
+                                            {
+                                                <option value="@item.ClaimGroupTypeId">@item.ClaimGroupType</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="col-xs-12 col-sm-12 col-md-4" style="margin-top:25px">
+                                    <input type="button" class="btn btn-block btn-success" id="btnExportExcel" name="btnExportExcel" value="Export To Excel" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var date = new Date();
+        var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+        $(function () {
+
+
+            $('.select2').select2();
+
+            //Date picker
+            $('#dateFrom').datepicker({
+                format: 'dd/mm/yyyy',
+                autoclose: true,
+                endDate: today + 1
+            }).datepicker('setDate', today)
+
+            $('#dateTo').datepicker({
+                format: 'dd/mm/yyyy',
+                autoclose: true,
+                endDate: today + 1
+            }).datepicker('setDate', today)
+
+            //Button Export
+            $('#btnExportExcel').click(function (e) {
+                e.preventDefault();
+                //Validate
+                if (Isvalidate()) {
+                    //Export
+                    ExportToExcel()
+                }
+            });
+
+            $("#dateFrom").on("change", function () {
+                var dateEndString = $('#dateTo').val();
+                var [day, month, year] = dateEndString.split("/");
+                var dateEnd = new Date(`${year}-${month}-${day}`);
+
+                var dateStartString = $('#dateFrom').val();
+                var [day, month, year] = dateStartString.split("/");
+                var dateStart = new Date(`${year}-${month}-${day}`);
+
+                if (dateEnd < dateStart) {
+                    $('#dateTo').val($('#dateFrom').val());
+                }
+            });
+
+        });
+
+        // validate datepicker
+        $("#dateFrom").on("change", function () {
+            var dateEndString = $('#dateTo').val();
+            var [day, month, year] = dateEndString.split("/");
+            var dateEnd = new Date(`${year}-${month}-${day}`);
+
+            var dateStartString = $('#dateFrom').val();
+            var [day, month, year] = dateStartString.split("/");
+            var dateStart = new Date(`${year}-${month}-${day}`);
+
+            if (dateEnd < dateStart) {
+                swal('เกิดข้อผิดพลาด!', "วันที่ไม่ถูกต้อง", 'error');
+                $('#dateTo').val($('#dateFrom').val());
+            }
+        });
+
+        $("#dateTo").on("change", function () {
+            var dateEndString = $('#dateFrom').val();
+            var [day, month, year] = dateEndString.split("/");
+            var dateEnd = new Date(`${year}-${month}-${day}`);
+
+            var dateStartString = $('#dateTo').val();
+            var [day, month, year] = dateStartString.split("/");
+            var dateStart = new Date(`${year}-${month}-${day}`);
+
+            if (dateEnd > dateStart) {
+                swal('เกิดข้อผิดพลาด!', "วันที่ไม่ถูกต้อง", 'error');
+                $('#dateFrom').val($('#dateTo').val());
+            }
+        });
+
+        const Isvalidate = () => {
+
+            if ($('#ddlSearchType').val() == '-1') {
+                swal_info("กรุณาเลือก การค้นหา");
+                return false;
+            }
+
+            if ($('#claimGroupTypeId').val() == '-1') {
+                swal_info("กรุณาเลือก ประเภทเคลม");
+                return false;
+            }
+
+            //Chk Datefrom & DateTo Is Null
+            if ($('#dateFrom').val() == "" || $('#dateTo').val() == "") {
+                swal_info("กรุณาเลือก ช่วงวันที่");
+                return false;
+            }
+
+            var d_datefrom = moment($('#dateFrom').val())._i;
+            let nowDateStr = toBuddhistYear(moment(new Date()), 'DD/MM/YYYY');
+
+            let d_dateto = moment($('#dateTo').val())._i;
+
+
+            let arrDateToDate = d_dateto.split(" ");
+            let arrDateToDate2 = arrDateToDate[0].split("/");
+
+
+            let arrNowDate = nowDateStr.split(" ");
+            let arrNowDate2 = arrNowDate[0].split("/");
+
+            let arrDatefromDate = d_datefrom.split(" ");
+            let arrDatefromDate2 = arrDatefromDate[0].split("/");
+
+            let nowDate = new Date(parseInt(arrNowDate2[2]) - 543, parseInt(arrNowDate2[1]) - 1, parseInt(arrNowDate2[0]));
+            let datefromDate = new Date(parseInt(arrDatefromDate2[2]) - 543, parseInt(arrDatefromDate2[1]) - 1, parseInt(arrDatefromDate2[0]));
+
+            let dateToDate = new Date(parseInt(arrDateToDate2[2]) - 543, parseInt(arrDateToDate2[1]) - 1, parseInt(arrDateToDate2[0]));
+
+
+            //Chk Datefrom > DateTime Now
+            if (datefromDate > nowDate) {
+                swal_info("กรุณาตรวจสอบ ช่วงวันที่");
+                return false;
+            }
+
+
+            if (datefromDate > dateToDate) {
+                swal_info("กรุณาตรวจสอบ ช่วงวันที่ ");
+                return false;
+            }
+
+
+            return true;
+        }
+
+        const ExportToExcel = () => {
+            loadingSpinner('fadeIn');
+            $.ajax({
+                url: "@Url.Action("ExportFinancialTransaction", "ClaimPayBack")",
+                type: "POST",
+                data: {
+                    dateFrom: $('#dateFrom').val(),
+                    dateTo: $('#dateTo').val(),
+                    productGroupId: $('#ddlProductType').val(),
+                    insuranceCompanyId: $('#ddlInsuranceCompany').val(),
+                    claimGroupTypeId: $('#claimGroupTypeId').val(),
+                },
+                success: function (response) {
+                    if (!response.isError) {
+                        window.location = "@Url.Action("ExportFinancialTransactionDownload", "ClaimPayBack")";
+                        loadingSpinner('fadeOut');
+                    }
+                    else {
+                        swal('แจ้งเตือน !', response.Msg, 'warning');
+                        loadingSpinner('fadeOut');
+                    }
+                }
+            });
+
+        }
+            function toBuddhistYear(moment, format) {
+                var christianYear = moment.format('YYYY')
+                var buddhishYear = (parseInt(christianYear) + 543).toString()
+                return moment
+                    .format(format.replace('YYYY', buddhishYear).replace('YY', buddhishYear.substring(2, 4)))
+                    .replace(christianYear, buddhishYear)
+            }
+
+    </script>
+}

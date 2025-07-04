@@ -1,0 +1,2771 @@
+﻿@{
+    ViewBag.Title = "รายละเอียดกรมธรรม์";
+    Layout = "~/Views/Shared/_LayoutForTopIndexMotor.cshtml";
+}
+<style>
+    .marker {
+        list-style-type: circle;
+        color: #005484
+    }
+
+    .page-content img {
+        max-width: 20%;
+        height: auto !important;
+    }
+
+    #overlay {
+        position: fixed; /* Sit on top of the page content */
+        display: none; /* Hidden by default */
+        width: 100%; /* Full width (cover the whole page) */
+        height: 100%; /* Full height (cover the whole page) */
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,0,0,0.5); /* Black background with opacity */
+        z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+        cursor: not-allowed; /* Add a pointer on hover */
+    }
+</style>
+<div class="row">
+    <div class="col-md-12" style="text-align:center;">
+        <h2 style="color: #005484">รายละเอียดกรมธรรม์</h2>
+    </div>
+    <div class="col-md-12">
+        <!-- Custom Tabs -->
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#tab_1" data-toggle="tab" aria-expanded="true" style="color: #005484">บันทึกผลการทำงาน</a></li>
+                <li class="">
+                    <a href="#tab_2" class="dropdown-toggle" data-toggle="tab" style="color: #005484">เอกสาร</a>
+                </li>
+                <li class=""><a href="#tab_3" data-toggle="tab" aria-expanded="false" style="color: #005484">ประวัติคิวงาน</a></li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane active" id="tab_1">
+                    @* start ข้อมูลพื้นฐาน *@
+                    <div class="box box-info">
+                        <div class="box-header with-border" style="text-align: center; background: #00C0EF;color:white">
+                            <h3 class="box-title">ข้อมูลพื้นฐาน</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                    <i class="fa fa-minus" style="color:white"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- /.box-header -->
+                        <div class="box-body">
+                            <form class="form-horizontal">
+                                <fieldset>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">เลข App :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label" id="txtAppID">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.ApplicationCode) ? "-" : ViewBag.QueueMotorFullDetail.ApplicationCode)</label>
+                                            </div>
+
+                                            <label class="col-md-3 control-label" style="color: #005484;">เบี้ยประกันภัย :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label" id="txtPremium">@(String.IsNullOrEmpty(ViewBag.Premium) ? "-" : ViewBag.Premium)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">บริษัทประกันภัย :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label" id="txtCompanyInsurance">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuranceCompanyDetail) ? "-" : ViewBag.QueueMotorFullDetail.InsuranceCompanyDetail)</label>
+                                            </div>
+                                            <label class="col-md-3 control-label" style="color: #005484;">ระยะเวลาประกันภัย :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label" id="txtAppStartCoverDate">@(String.Format("{0} - {1}",(ViewBag.StartCoverDate != null ? ViewBag.StartCoverDate : ""),(ViewBag.EndCoverDate != null ? ViewBag.EndCoverDate : ""))) </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">สินค้าและแผน :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label" id="txtProduct">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.ProductDetail) ? "-" : ViewBag.QueueMotorFullDetail.ProductDetail)</label>
+                                            </div>
+                                            <label class="col-md-3 control-label" style="color: #005484;">ออกเมื่อ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label" id="txtIssuesPolicyDate">@(String.IsNullOrEmpty(ViewBag.IssuesPolicyDate) ? "-" : ViewBag.IssuesPolicyDate)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">ประเภทการซ่อม :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label" id="txtServiceType">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.ClaimTypeDetail) ? "-" : ViewBag.QueueMotorFullDetail.ClaimTypeDetail)</label>
+                                            </div>
+                                            <label class="col-md-3 control-label" style="color: #005484;">ตัวแทน :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label" id="txtRepresen">@(String.Format("{0} {1}", String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.SaleEmployeeCode) ? "-" : ViewBag.QueueMotorFullDetail.SaleEmployeeCode, String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.SaleEmployeeName) ? "-" : ViewBag.QueueMotorFullDetail.SaleEmployeeName))</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">ส่งมอบกรมธรรม์ไปที่ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label" id="txtDeliverPolicyTo">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.DeliverPolicyTo) ? "-" : ViewBag.QueueMotorFullDetail.DeliverPolicyTo)</label>
+                                            </div>
+                                            <label class="col-md-3 control-label" style="color: #005484;">รหัสเจ้าของรถ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label" id="txtZebraCarOwnerEmployeeCode">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.ZebraCarOwnerEmployeeCode) ? "-" : ViewBag.QueueMotorFullDetail.ZebraCarOwnerEmployeeCode)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </form>
+                        </div>
+                        <!-- /.box-body -->
+                    </div>
+                    @* end ข้อมูลพื้นฐาน *@
+
+                    @* start รายละเอียดความคุ้มครอง *@
+                    <div class="box box-info collapsed-box">
+                        <div class="box-header with-border" style="text-align: center; background: #00C0EF;color:white">
+                            <h3 class="box-title">รายละเอียดความคุ้มครอง</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                    <i class="fa fa-plus" style="color:white"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- /.box-header -->
+                        <div class="box-body">
+                            <form class="form-horizontal">
+                                <fieldset>
+                                    <div class="col-md-12" style="text-align: center; color: #005484">
+                                        <h4>ความรับผิดชอบต่อบุคคลภายนอก</h4>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-4 control-label" style="color: #005484;">ชีวิต ร่างกายและอนามัย ต่อคน :</label>
+                                            <div class="col-md-8">
+                                                <label class="control-label col-md-offset-10">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.Coverage1) ? "-" : ViewBag.QueueMotorFullDetail.Coverage1)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-4 control-label" style="color: #005484;">ชีวิต ร่างกายและอนามัย ต่อครั้ง :</label>
+                                            <div class="col-md-8">
+                                                <label class="control-label col-md-offset-10">
+                                                    @(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.Coverage2) ? "-" : ViewBag.QueueMotorFullDetail.Coverage2)
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-4 control-label" style="color: #005484;">ทรัพย์สินของบุคคลภายนอก :</label>
+                                            <div class="col-md-8">
+                                                <label class="control-label col-md-offset-10">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.Coverage3) ? "-" : ViewBag.QueueMotorFullDetail.Coverage3)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr width=100% size=3>
+                                    <div class="col-md-12" style="text-align: center; color: #005484">
+                                        <h4>ความเสียหายต่อรถยนต์ที่ทำประกัน</h4>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-6 control-label" style="color: #005484;">ภัยจากการชนกับยานพาหนะทางบกและสามารถระบุคู่กรณีได้ :</label>
+                                            <div class="col-md-5" style="margin-left:80px">
+                                                <label class="control-label col-md-offset-9">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.Coverage4) ? "-" : ViewBag.QueueMotorFullDetail.Coverage4)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-6 control-label" style="color: #005484;">กรณีเสียหายโดยสิ้นเชิงเนื่องจากการสูญหาย ไฟไหม้โดยสิ้นเชิง :</label>
+                                            <div class="col-md-5" style="margin-left:80px">
+                                                <label class="control-label col-md-offset-9">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.Coverage5) ? "-" : ViewBag.QueueMotorFullDetail.Coverage5)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </form>
+                        </div>
+                        <!-- /.box-body -->
+                    </div>
+                    @* end รายละเอียดความคุ้มครอง *@
+
+                    @* start รายละเอียดรถยนต์ *@
+                    <div class="box box-info">
+                        <div class="box-header with-border" style="text-align: center; background: #00C0EF;color:white">
+                            <h3 class="box-title">รายละเอียดรถยนต์</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                    <i class="fa fa-minus" style="color:white"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- /.box-header -->
+                        <div class="box-body">
+                            <form class="form-horizontal">
+                                <fieldset>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">ยี่ห้อ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">
+                                                    @(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.VehicleBrandDetail) ? "-" : ViewBag.QueueMotorFullDetail.VehicleBrandDetail)
+                                                </label>
+                                            </div>
+
+                                            <label class="col-md-3 control-label" style="color: #005484;">ปีที่จดทะเบียน :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label ">@ViewBag.VehicleRegistrationYear</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">รุ่น :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.VehicleModelDetail) ? "-" : ViewBag.QueueMotorFullDetail.VehicleModelDetail)</label>
+                                            </div>
+
+                                            <label class="col-md-3 control-label" style="color: #005484;">เลขทะเบียน :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.VehicleRegistrationNumber) ? "-" : ViewBag.QueueMotorFullDetail.VehicleRegistrationNumber)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">ประเภทยานพาหนะ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.VehicleTypeDetail) ? "-" : ViewBag.QueueMotorFullDetail.VehicleTypeDetail)</label>
+                                            </div>
+
+                                            <label class="col-md-3 control-label" style="color: #005484;">หมายเลขตัวถัง :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label " onclick="">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.VehicleChassisNumber) ? "-" : ViewBag.QueueMotorFullDetail.VehicleChassisNumber)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">ประเภทการใช้งาน :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.VehicleUseTypeDetail) ? "-" : ViewBag.QueueMotorFullDetail.VehicleUseTypeDetail)</label>
+                                            </div>
+
+                                            <label class="col-md-3 control-label" style="color: #005484;">สินเชื่อรถยนต์ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.VehicleIsFinacial) ? "-" : ViewBag.QueueMotorFullDetail.VehicleIsFinacial)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">ทุนประกันรถยนต์ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">@(ViewBag.QueueMotorFullDetail.SumInsured == null ? "-" : ViewBag.QueueMotorFullDetail.SumInsured)</label>
+                                            </div>
+
+                                            <label class="col-md-3 control-label" style="color: #005484;">มีกล้องติดรถยนต์ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.VehicleIsCamera) ? "-" : ViewBag.QueueMotorFullDetail.VehicleIsCamera)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">ขนาดเครื่องยนต์ (L) :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.VehicleEngineSize) ? "-" : ViewBag.QueueMotorFullDetail.VehicleEngineSize)</label>
+                                            </div>
+
+                                            <label class="col-md-3 control-label" style="color: #005484;">ลักษณะการใช้งาน :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.DriveDetail) ? "-" : ViewBag.QueueMotorFullDetail.DriveDetail)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">สถานที่การใช้งาน :</label>
+                                            <div class="col-md-3">
+                                                <label class="control-label " style="text-align:left">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.DriveLocation) ? "-" : ViewBag.QueueMotorFullDetail.DriveLocation)</label>
+                                            </div>
+
+                                            <label class="col-md-3 control-label" style="color: #005484;">หมายเหตุ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.VehicleRemark) ? "-" : ViewBag.QueueMotorFullDetail.VehicleRemark)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @if (ViewBag.CountChassisNumber > 0)
+                                    {
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <div class="col-md-3 col-md-offset-9">
+                                                    <button id="modalCountChassisNumber" type="button" class="btn btn-block" style="background-color: #00e676; color: white" data-toggle="modal" data-target="#modal-CountChassisNumber">หมายเลขตัวถังมีประวัติคัดกรอง</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </fieldset>
+                            </form>
+                        </div>
+                        <!-- /.box-body -->
+                    </div>
+                    @* end รายละเอียดรถยนต์ *@
+
+                    @*start ผู้เอาประกัน *@
+                    @if (ViewBag.QueueMotorFullDetail.InsuredTypeDetail == "รายบุคคล" || ViewBag.QueueMotorFullDetail.InsuredTypeDetail == "บุคคลธรรมดา")
+                    {
+                        <div class="box box-info">
+                            <div class="box-header with-border" style="text-align: center; background: #00C0EF;color:white">
+                                <h3 class="box-title">ผู้เอาประกัน</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus" style="color:white"></i></button>
+                                </div>
+                            </div>
+                            <!-- /.box-header -->
+                            <div class="box-body" id="collap4" aria-labelledby="heading4" data-parent="#header">
+                                <form class="form-horizontal">
+                                    <fieldset>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="col-md-3 control-label" style="color: #005484;">ประเภทของผู้เอาประกัน :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredTypeDetail) ? "-" : ViewBag.QueueMotorFullDetail.InsuredTypeDetail)</label>
+                                                </div>
+
+                                                <label class="col-md-3 control-label" style="color: #005484;">ประเภทบัตร / หมายเลขบัตร :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredIdentityCard) ? "-" : ViewBag.QueueMotorFullDetail.InsuredIdentityCard)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="col-md-3 control-label" style="color: #005484;">ชื่อ :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label">@(String.Format("{0} {1}", String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredTitle) ? "-" : ViewBag.QueueMotorFullDetail.InsuredTitle, String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredFirstName) ? "-" : ViewBag.QueueMotorFullDetail.InsuredFirstName))</label>
+                                                </div>
+
+                                                <label class="col-md-3 control-label" style="color: #005484;">นามสกุล :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredLastName) ? "-" : ViewBag.QueueMotorFullDetail.InsuredLastName)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="col-md-3 control-label" style="color: #005484;">วันเดือนปีเกิด :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label">@(ViewBag.InsuredBirthDate != null ? String.Format("{0} : {1} ปี", ViewBag.InsuredBirthDate, ViewBag.QueueMotorFullDetail.InsuredAges) : "-")</label>
+                                                </div>
+
+                                                <label class="col-md-3 control-label" style="color: #005484;">อีเมล :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredEmail) ? "-" : ViewBag.QueueMotorFullDetail.InsuredEmail)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="col-md-3 control-label" style="color: #005484;">กลุ่มอาชีพ :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredOccupation) ? "-" : ViewBag.QueueMotorFullDetail.InsuredOccupation)</label>
+                                                </div>
+
+                                                <label class="col-md-3 control-label" style="color: #005484;">โทรศัพท์มือถือ :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredPhone) ? "-" : ViewBag.QueueMotorFullDetail.InsuredPhone)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="col-md-3 control-label" style="color: #005484;">อาชีพ :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredOccupationLevel) ? "-" : ViewBag.QueueMotorFullDetail.InsuredOccupationLevel)</label>
+                                                </div>
+
+                                                <label class="col-md-3 control-label" style="color: #005484;">ชื่อหน่วยงาน :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredOfficeName) ? "-" : ViewBag.QueueMotorFullDetail.InsuredOfficeName)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="col-md-3 control-label" style="color: #005484;">ลักษณะงาน :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredOccupationDetail) ? "-" : ViewBag.QueueMotorFullDetail.InsuredOccupationDetail)</label>
+                                                </div>
+
+                                                <label class="col-md-3 control-label" style="color: #005484;">ที่อยู่ :</label>
+                                                <div class="col-md-3">
+                                                    <label class="control-label " style="text-align:left">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredAddress) ? "-" : ViewBag.QueueMotorFullDetail.InsuredAddress)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </form>
+                            </div>
+                            <!-- /.box-body -->
+                        </div>
+                    }
+                    else if (ViewBag.QueueMotorFullDetail.InsuredTypeDetail == "บริษัท")
+                    {
+                        <div class="box box-info">
+                            <div class="box-header with-border" style="text-align: center; background: #00C0EF;color:white">
+                                <h3 class="box-title">ผู้เอาประกัน</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus" style="color:white"></i></button>
+                                </div>
+                            </div>
+                            <!-- /.box-header -->
+                            <div class="box-body" id="collap4" aria-labelledby="heading4" data-parent="#header">
+                                <form class="form-horizontal">
+                                    <fieldset>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="col-md-3 control-label" style="color: #005484;">ประเภทของผู้เอาประกัน :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredTypeDetail) ? "-" : ViewBag.QueueMotorFullDetail.InsuredTypeDetail)</label>
+                                                </div>
+
+                                                <label class="col-md-3 control-label" style="color: #005484;">เลขที่นิติบุคคล :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredIdentityCard) ? "-" : ViewBag.QueueMotorFullDetail.InsuredIdentityCard)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="col-md-3 control-label" style="color: #005484;">นิติบุคคล :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredFirstName) ? "-" : ViewBag.QueueMotorFullDetail.InsuredFirstName)</label>
+                                                </div>
+
+                                                <label class="col-md-3 control-label" style="color: #005484;">ประเภทนิติบุคคล :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredCoperateTypeDetail) ? "-" : ViewBag.QueueMotorFullDetail.InsuredCoperateTypeDetail)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="col-md-3 control-label" style="color: #005484;">รหัสบริษัท :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredCoperateCode) ? "-" : ViewBag.QueueMotorFullDetail.InsuredCoperateCode)</label>
+                                                </div>
+
+                                                <label class="col-md-3 control-label" style="color: #005484;">ที่อยู่ :</label>
+                                                <div class="col-md-3 ">
+                                                    <label class="control-label" style="text-align:left">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.InsuredAddress) ? "-" : ViewBag.QueueMotorFullDetail.InsuredAddress)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </form>
+                            </div>
+                            <!-- /.box-body -->
+                        </div>
+                    }
+                    @*end ผู้เอาประกัน *@
+
+                    @* start ผู้ชำระเบี้ย *@
+                    <div class="box box-info">
+                        <div class="box-header with-border" style="text-align: center; background: #00C0EF;color:white">
+                            <h3 class="box-title">ผู้ชำระเบี้ย</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus" style="color:white"></i></button>
+                            </div>
+                        </div>
+                        <!-- /.box-header -->
+                        <div class="box-body" id="collap4" aria-labelledby="heading4" data-parent="#header">
+                            <form class="form-horizontal">
+                                <fieldset>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">ประเภทบัตร/หมายเลขบัตร :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.PayerIdentityCard) ? "-" : ViewBag.QueueMotorFullDetail.PayerIdentityCard)</label>
+                                            </div>
+
+                                            <label class="col-md-3 control-label" style="color: #005484;"></label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label "></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">ชื่อ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">@(String.Format("{0} {1}",String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.PayerTitle) ? "-" : ViewBag.QueueMotorFullDetail.PayerTitle,String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.PayerFirstName) ? "-" : ViewBag.QueueMotorFullDetail.PayerFirstName))</label>
+                                            </div>
+
+                                            <label class="col-md-3 control-label" style="color: #005484;">นามสกุล :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.PayerLastName) ? "-" : ViewBag.QueueMotorFullDetail.PayerLastName)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">วันเดือนปีเกิด :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">@(ViewBag.PayerBirthDate != null ? String.Format("{0} : {1} ปี", ViewBag.PayerBirthDate, ViewBag.QueueMotorFullDetail.PayerAges) : "-")</label>
+                                            </div>
+
+                                            <label class="col-md-3 control-label" style="color: #005484;">อีเมล :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.PayerEmail) ? "-" : ViewBag.QueueMotorFullDetail.PayerEmail)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">กลุ่มอาชีพ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.PayerOccupation) ? "-" : ViewBag.QueueMotorFullDetail.PayerOccupation)</label>
+                                            </div>
+
+                                            <label class="col-md-3 control-label" style="color: #005484;">โทรศัพท์มือถือ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.PayerPhone) ? "-" : ViewBag.QueueMotorFullDetail.PayerPhone)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">อาชีพ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.PayerOccupationLevel) ? "-" : ViewBag.QueueMotorFullDetail.PayerOccupationLevel)</label>
+                                            </div>
+
+                                            <label class="col-md-3 control-label" style="color: #005484;">ชื่อหน่วยงาน :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.PayerOfficeName) ? "-" : ViewBag.QueueMotorFullDetail.PayerOfficeName)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">ลักษณะงาน :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.PayerOccupationDetail) ? "-" : ViewBag.QueueMotorFullDetail.PayerOccupationDetail)</label>
+                                            </div>
+
+                                            <label class="col-md-3 control-label" style="color: #005484;">ที่อยู่ :</label>
+                                            <div class="col-md-3">
+                                                <label class="control-label " style="text-align:left">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.PayerAddress) ? "-" : ViewBag.QueueMotorFullDetail.PayerAddress)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @if (ViewBag.CountPayment > 0)
+                                    {
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <div class="col-md-2 col-md-offset-9">
+                                                    <button type="button" class="btn btn-block" style="background-color: #FAE333;color:white" data-toggle="modal" data-target="#modal-CountPaymentHistory">ชำระเบี้ยให้อีก 2 คน</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </fieldset>
+                            </form>
+                        </div>
+                        <!-- /.box-body -->
+                    </div>
+                    @* end ผู้ชำระเบี้ย *@
+
+                    @* start ข้อมูลผู้ใช้รถ (ผู้ที่ใช้รถประจำ/ผู้ใช้รถบ่อยที่สุด) *@
+                    <div class="box box-info">
+                        <div class="box-header with-border" style="text-align: center; background: #00C0EF;color:white">
+                            <h3 class="box-title">ข้อมูลผู้ใช้รถ (ผู้ที่ใช้รถประจำ/ผู้ใช้รถบ่อยที่สุด)</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus" style="color:white"></i></button>
+                            </div>
+                        </div>
+                        <!-- /.box-header -->
+                        <div class="box-body" id="collap4" aria-labelledby="heading4" data-parent="#header">
+                            <form class="form-horizontal">
+                                <fieldset>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-7 control-label" style="color: #005484;">ผู้ที่ใช้รถประจำ/ผู้ใช้รถบ่อยที่สุด :</label>
+                                            <div class="col-md-5" style="text-align:left">
+                                                <label class="control-label" style="color: #FF0000">@ViewBag.Driver</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">ชื่อ-สกุล :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">@(String.Format("{0} {1} {2}",String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.DriverTitle) ? "-" : ViewBag.QueueMotorFullDetail.DriverTitle,String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.DriverFirstName) ? "-" : ViewBag.QueueMotorFullDetail.DriverFirstName,String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.DriverLastName) ? "-" : ViewBag.QueueMotorFullDetail.DriverLastName))</label>
+                                            </div>
+                                            <label class="col-md-3 control-label" style="color: #005484;">วันเดือนปีเกิด :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label ">@(ViewBag.DriverBirthDate != null ? String.Format("{0} : {1} ปี", ViewBag.DriverBirthDate, ViewBag.QueueMotorFullDetail.DriverAges) : "-")</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">โทรศัพท์มือถือ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.DriverPhone) ? "-" : ViewBag.QueueMotorFullDetail.DriverPhone)</label>
+                                            </div>
+                                            <label class="col-md-3 control-label" style="color: #005484;">กลุ่มอาชีพ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label ">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.DriverOccupation) ? "" : ViewBag.QueueMotorFullDetail.DriverOccupation)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label" style="color: #005484;">อาชีพ :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.DriverOccupationLevel) ? "" : ViewBag.QueueMotorFullDetail.DriverOccupationLevel)</label>
+                                            </div>
+                                            <label class="col-md-3 control-label" style="color: #005484;">ลักษณะงาน :</label>
+                                            <div class="col-md-3 ">
+                                                <label class="control-label">@(String.IsNullOrEmpty(ViewBag.QueueMotorFullDetail.DriverOccupationDetail) ? "" : ViewBag.QueueMotorFullDetail.DriverOccupationDetail)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </form>
+                        </div>
+                        <!-- /.box-body -->
+                    </div>
+                    @* end ข้อมูลผู้ใช้รถ (ผู้ที่ใช้รถประจำ/ผู้ใช้รถบ่อยที่สุด) *@
+
+                    @* start ผลการคัดกรอง *@
+                    <div class="box box-info">
+                        <div class="box-header with-border" style="text-align:center; background: #00C0EF; color: white">
+                            <h3 class="box-title">ผลการคัดกรอง</h3>
+                        </div><!-- /.box-header -->
+                        <div class="box-body">
+                            <form id="motorFormQuestionUpdate" action="@Url.Action("MotorQuestionUpdate")" method="post" enctype="multipart/form-data">
+                                @if (ViewBag.QueueMotorFullDetail.IsUnderwrite == true)
+                                {
+                                    <div id="box-ask-1" class="box-body" style="height: auto;width: auto;">
+                                        <label>สถานะการคัดกรอง</label>
+                                        <ul class="answerList">
+                                            <li>
+                                                <label>
+                                                    <input type="radio" name="motorUnderwriteStatus1" value="1" id="motorUnderwriteStatus_1" @(ViewBag.QueueMotorFullDetail.IsUnderwrite == true ? "checked" : "")> คัดกรองแล้ว
+                                                </label>
+                                            </li>
+                                            <li>
+                                                <label>
+                                                    <input type="radio" name="motorUnderwriteStatus1" value="0" id="motorUnderwriteStatus_0" @(ViewBag.QueueMotorFullDetail.IsUnderwrite == false ? "checked" : "")> ยังไม่คัดกรอง
+                                                </label>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                }
+                                @if (ViewBag.QueueMotorFullDetail.IsUnderwrite == true)
+                                {
+                                    <div id="box-ask-1" class="box-body" style="height: auto;width: auto;" hidden>
+                                        <label>สถานะการคัดกรอง</label>
+                                        <ul class="answerList">
+                                            <li>
+                                                <label>
+                                                    <input type="radio" name="motorUnderwriteStatus" value="1" id="motorUnderwriteStatus_1" @(ViewBag.QueueMotorFullDetail.IsUnderwrite == true ? "checked" : "")> คัดกรองแล้ว
+                                                </label>
+                                            </li>
+                                            <li>
+                                                <label>
+                                                    <input type="radio" name="motorUnderwriteStatus" value="0" id="motorUnderwriteStatus_0" @(ViewBag.QueueMotorFullDetail.IsUnderwrite == false ? "checked" : "")> ยังไม่คัดกรอง
+                                                </label>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                }
+                                <div id="box-ask-2" class="box-body ask-y" style="height: auto; width: auto; display:@(ViewBag.QueueMotorFullDetail.IsUnderwrite == true ? "block" : "none")">
+                                    @* ช่องทางการคัดกรอง *@
+                                    <label>ช่องทางการคัดกรอง</label>
+                                    <ul class="answerList">
+                                        @if (ViewBag.UnderwriteTypeMotor != null)
+                                        {
+                                            foreach (var item in ViewBag.UnderwriteTypeMotor)
+                                            {
+                                                switch (item.UnderwriteTypeId)
+                                                {
+                                                    //เข้าพบลูกค้า
+                                                    case 2:
+                                                        <li>
+                                                            @if (ViewBag.QueueMotorFullDetail.UnderwriteTypeId == item.UnderwriteTypeId)
+                                                            {
+                                                                <label>
+                                                                    <input type="radio" name="typeSelect1" value="@item.UnderwriteTypeId" id="typeSelect_@item.UnderwriteTypeId" checked> เข้าพบเพื่อมอบกรมธรรม์ @*@item.UnderwriteType*@
+                                                                </label>
+                                                                <div class="box-typeselect-@item.UnderwriteTypeId" style="padding-left: 30px;">
+                                                                    <label>
+                                                                        <input type="checkbox" name="typeSelectChild1" id="typeSelect-chlid-customer-@item.UnderwriteTypeId)" value="customer" @(ViewBag.QueueMotorFullDetail.IsUnderwriteInsured == true ? "checked" : "")> ผู้เอาประกัน
+                                                                    </label>
+                                                                    <label>
+                                                                        <input type="checkbox" name="typeSelectChild1" id="typeSelect-chlid-payer-@item.UnderwriteTypeId)" value="payer" @(ViewBag.QueueMotorFullDetail.IsUnderwritePayer == true ? "checked" : "")> ผู้ชำระเบี้ย
+                                                                    </label>
+                                                                </div>
+                                                            }
+                                                            else
+                                                            {
+                                                                <label>
+                                                                    <input type="radio" name="typeSelect1" value="@item.UnderwriteTypeId" id="typeSelect_@item.UnderwriteTypeId"> @item.UnderwriteType
+                                                                </label>
+                                                            }
+                                                        </li>
+                                                        break;
+                                                    //โทรคัดกรองลูกค้า
+                                                    @* case 3:
+                                            <li>
+                                                @if (ViewBag.QueueMotorFullDetail.UnderwriteTypeId == item.UnderwriteTypeId)
+                                                {
+                                                    <label>
+                                                        <input type="radio" name="typeSelect1" value="@item.UnderwriteTypeId" id="typeSelect_@item.UnderwriteTypeId" checked> @item.UnderwriteType
+                                                    </label>
+                                                    <div class="box-typeselect-@item.UnderwriteTypeId" style="padding-left: 30px;">
+                                                        <label>
+                                                            <input type="checkbox" name="typeSelectChild1" id="typeSelect-chlid-customer-@item.UnderwriteTypeId" value="customer" @(ViewBag.QueueMotorFullDetail.IsUnderwriteInsured == true ? "checked" : "")> ผู้เอาประกัน
+                                                        </label>
+                                                        <label>
+                                                            <input type="checkbox" name="typeSelectChild1" id="typeSelect-chlid-payer-@item.UnderwriteTypeId" value="payer" @(ViewBag.QueueMotorFullDetail.IsUnderwritePayer == true ? "checked" : "")> ผู้ชำระเบี้ย
+                                                        </label>
+                                                        <label>
+                                                            <span style="color:red">*</span>สาเหตุการโทรคัดกรองลูกค้า
+                                                            <textarea name="txtCause" id="txtCause1" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px;resize: none;" disabled>@ViewBag.QueueMotorFullDetail.CallCauseRemark</textarea>
+                                                        </label>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <label>
+                                                        <input type="radio" name="typeSelect1" value="@item.UnderwriteTypeId" id="typeSelect_@item.UnderwriteTypeId"> @item.UnderwriteType
+                                                    </label>
+                                                }
+                                            </li>
+                                            break;*@
+                                                    default:
+                                                        break;
+                                                }
+
+                                            }
+
+                                        }
+                                    </ul>
+                                </div>
+                                <ul class="answerList" hidden>
+                                    @if (ViewBag.UnderwriteTypeMotor != null)
+                                    {
+                                        foreach (var item in ViewBag.UnderwriteTypeMotor)
+                                        {
+                                            switch (item.UnderwriteTypeId)
+                                            {
+                                                //เข้าพบลูกค้า
+                                                case 2:
+                                                    <li>
+                                                        @if (ViewBag.QueueMotorFullDetail.UnderwriteTypeId == item.UnderwriteTypeId)
+                                                        {
+                                                            <label>
+                                                                <input type="radio" name="typeSelect" value="@item.UnderwriteTypeId" id="typeSelect_@item.UnderwriteTypeId" checked> เข้าพบเพื่อมอบกรมธรรม์ @*@item.UnderwriteType*@
+                                                            </label>
+                                                            <div class="box-typeselect-@item.UnderwriteTypeId" style="padding-left: 30px;">
+                                                                <label>
+                                                                    <input type="checkbox" name="typeSelectChild" id="typeSelect-chlid-customer-@item.UnderwriteTypeId)" value="customer" @(ViewBag.QueueMotorFullDetail.IsUnderwriteInsured == true ? "checked" : "")> ผู้เอาประกัน
+                                                                </label>
+                                                                <label>
+                                                                    <input type="checkbox" name="typeSelectChild" id="typeSelect-chlid-payer-@item.UnderwriteTypeId)" value="payer" @(ViewBag.QueueMotorFullDetail.IsUnderwritePayer == true ? "checked" : "")> ผู้ชำระเบี้ย
+                                                                </label>
+                                                            </div>
+                                                        }
+                                                        else
+                                                        {
+                                                            <label>
+                                                                <input type="radio" name="typeSelect" value="@item.UnderwriteTypeId" id="typeSelect_@item.UnderwriteTypeId"> @item.UnderwriteType
+                                                            </label>
+                                                        }
+                                                    </li>
+                                                    break;
+                                                //โทรคัดกรองลูกค้า
+                                                @*   case 3:
+                                        <li>
+                                            @if (ViewBag.QueueMotorFullDetail.UnderwriteTypeId == item.UnderwriteTypeId)
+                                            {
+                                                <label>
+                                                    <input type="radio" name="typeSelect" value="@item.UnderwriteTypeId" id="typeSelect_@item.UnderwriteTypeId" checked> @item.UnderwriteType
+                                                </label>
+                                                <div class="box-typeselect-@item.UnderwriteTypeId" style="padding-left: 30px;">
+                                                    <label>
+                                                        <input type="checkbox" name="typeSelectChild" id="typeSelect-chlid-customer-@item.UnderwriteTypeId" value="customer" @(ViewBag.QueueMotorFullDetail.IsUnderwriteInsured == true ? "checked" : "")> ผู้เอาประกัน
+                                                    </label>
+                                                    <label>
+                                                        <input type="checkbox" name="typeSelectChild" id="typeSelect-chlid-payer-@item.UnderwriteTypeId" value="payer" @(ViewBag.QueueMotorFullDetail.IsUnderwritePayer == true ? "checked" : "")> ผู้ชำระเบี้ย
+                                                    </label>
+                                                    <label>
+                                                        <span style="color:red">*</span>สาเหตุการโทรคัดกรองลูกค้า
+                                                        <textarea name="txtCause" id="txtCause" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px;resize: none;" disabled>@ViewBag.QueueMotorFullDetail.CallCauseRemark</textarea>
+                                                    </label>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <label>
+                                                    <input type="radio" name="typeSelect" value="@item.UnderwriteTypeId" id="typeSelect_@item.UnderwriteTypeId"> @item.UnderwriteType
+                                                </label>
+                                            }
+                                        </li>
+                                        break;*@
+                                                default:
+                                                    break;
+                                            }
+
+                                        }
+
+                                    }
+                                </ul>
+                                <div id="box-ask-3" class="box-body ask-y" style="height: auto; width: auto; display:@(ViewBag.QueueMotorFullDetail.IsUnderwrite == true ? "block" : "none")">
+                                    @* การชำระเบี้ย *@
+                                    <label>การชำระเบี้ย</label>
+                                    <ul class="answerList">
+                                        @if (ViewBag.UnderwritePaymentTypeMotor != null)
+                                        {
+                                            foreach (var item in ViewBag.UnderwritePaymentTypeMotor)
+                                            {
+                                                switch (@item.UnderwritePaymentTypeId)
+                                                {
+                                                    case 2:
+                                                        <li>
+                                                            @if (ViewBag.QueueMotorFullDetail.UnderwritePaymentTypeId == item.UnderwritePaymentTypeId)
+                                                            {
+                                                                <label>
+                                                                    <input type="radio" name="paymentTypeMotor" value="@item.UnderwritePaymentTypeId" id="underwriteStatus_@item.UnderwritePaymentTypeId" checked> @item.UnderwritePaymentTypeDetail
+                                                                </label>
+                                                            }
+                                                            else
+                                                            {
+                                                                <label>
+                                                                    <input type="radio" name="paymentTypeMotor" value="@item.UnderwritePaymentTypeId" id="underwriteStatus_@item.UnderwritePaymentTypeId"> @item.UnderwritePaymentTypeDetail
+                                                                </label>
+                                                            }
+                                                        </li>
+                                                        break;
+                                                    case 4:
+                                                        <li>
+                                                            @if (ViewBag.QueueMotorFullDetail.UnderwritePaymentTypeId == item.UnderwritePaymentTypeId)
+                                                            {
+                                                                <label>
+                                                                    <input type="radio" name="paymentTypeMotor" value="@item.UnderwritePaymentTypeId" id="underwriteStatus_@item.UnderwritePaymentTypeId" checked> @item.UnderwritePaymentTypeDetail
+                                                                </label>
+                                                            }
+                                                            else
+                                                            {
+                                                                <label>
+                                                                    <input type="radio" name="paymentTypeMotor" value="@item.UnderwritePaymentTypeId" id="underwriteStatus_@item.UnderwritePaymentTypeId"> @item.UnderwritePaymentTypeDetail
+                                                                </label>
+                                                            }
+                                                        </li>
+                                                        break;
+                                                    default:
+                                                        break;
+                                                }
+                                            }
+
+                                        }
+                                    </ul>
+                                </div>
+
+                                <div id="box-ask-4" class="box-body ask-y" style="height: auto; width: auto; display:@(ViewBag.QueueMotorFullDetail.IsUnderwrite == true ? "block" : "none")">
+                                    @* การคัดกรอง *@
+                                    <label>การคัดกรอง</label>
+                                    <ul class="answerList">
+                                        @if (ViewBag.QueueMotorFullDetail.IsUnderwritePass == true)
+                                        {
+                                            <li>
+                                                <label>
+                                                    <input type="radio" name="motor" value="1" id="motor_pass" @(ViewBag.QueueMotorFullDetail.IsUnderwritePass == true ? "checked" : "")> ข้อมูลถูกต้อง
+                                                </label>
+                                                <div class="box-motor-pass" style="padding-left:30px;">
+                                                    <label>
+                                                        <input type="radio" name="motorChildPass" value="1" id="motor-child-pass-std" @(ViewBag.QueueMotorFullDetail.IsUnderwritePassStandard == true ? "checked" : "")> ตามข้อมูลการสมัครทุกประการ
+                                                    </label>
+                                                    <label>
+                                                        <input type="radio" name="motorChildPass" value="0" id="motor-child-pass-condition" @(ViewBag.QueueMotorFullDetail.IsUnderwritePassCondition == true ? "checked" : "")> ติดเงื่อนไข (เฉพาะประกันชั้น 1)
+                                                    </label>
+                                                </div>
+                                                @if (ViewBag.QueueMotorFullDetail.IsUnderwritePassCondition == true)
+                                                {
+                                                    <div class="sub-box-motor-pass" style="padding-left: 60px;">
+                                                        @*  <label>
+                                                    <input type="radio" name="IsSpecify" value="1" id="IsSpecify_1" @(ViewBag.QueueMotorFullDetail.IsUnderwritePassIsSpecify == true ? "checked" : "")> ระบุในใบสมัคร
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="IsSpecify" value="0" id="IsSpecify_0" @(ViewBag.QueueMotorFullDetail.IsUnderwritePassCondition == true ? "checked" : "")> ไม่ระบุในใบสมัคร
+                                                </label>*@
+                                                        <label>
+                                                            <input type="radio" name="IsSpecify" value="1" id="IsSpecify_1" @((ViewBag.QueueMotorFullDetail.IsUnderwritePassIsSpecify == true && ViewBag.QueueMotorFullDetail.IsUnderwritePassIsSpecifyNotComplete == null) ? "checked" : "")> ระบุในใบสมัครครบถ้วน
+                                                        </label>
+                                                        <label>
+                                                            <input type="radio" name="IsSpecify" value="2" id="IsSpecify_2" @((ViewBag.QueueMotorFullDetail.IsUnderwritePassIsSpecify == true && ViewBag.QueueMotorFullDetail.IsUnderwritePassIsSpecifyNotComplete == true) ? "checked" : "")> ระบุในใบสมัครไม่ครบถ้วน
+                                                        </label>
+                                                        <label>
+                                                            <input type="radio" name="IsSpecify" value="0" id="IsSpecify_0" @((ViewBag.QueueMotorFullDetail.IsUnderwritePassIsSpecify == false && ViewBag.QueueMotorFullDetail.IsUnderwritePassIsSpecifyNotComplete == null) ? "checked" : "")> ไม่ระบุในใบสมัคร
+                                                        </label>
+                                                        <label>
+                                                            <span style="color:red">*</span>*ระบุข้อมูลติดเงื่อนไข
+                                                            <textarea name="motorChildPassOtherRemark" id="motorChildPassOtherRemark" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px;resize: none;">@ViewBag.QueueMotorFullDetail.UnderwritePassSpecifyRemark</textarea>
+                                                        </label>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="sub-box-motor-pass" style="padding-left:60px;display:none">
+                                                        <label>
+                                                            <input type="radio" name="IsSpecify" value="1" id="IsSpecify_1"> ระบุในใบสมัครครบถ้วน
+                                                        </label>
+                                                        <label>
+                                                            <input type="radio" name="IsSpecify" value="2" id="IsSpecify_2"> ระบุในใบสมัครไม่ครบถ้วน
+                                                        </label>
+                                                        <label>
+                                                            <input type="radio" name="IsSpecify" value="0" id="IsSpecify_0"> ไม่ระบุในใบสมัคร
+                                                        </label>
+                                                        <label>
+                                                            <span style="color:red">*</span>ระบุข้อมูลข้อยกเว้น..
+                                                            <textarea name="motorChildPassOtherRemark" id="motorChildPassOtherRemark" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px"></textarea>
+                                                        </label>
+                                                    </div>
+                                                }
+                                            </li>
+                                            <li>
+                                                <label>
+                                                    <input type="radio" name="motor" value="0" id="motor_notpass" @(ViewBag.QueueMotorFullDetail.IsUnderwritePass == false ? "checked" : "")> ข้อมูลไม่ถูกต้อง
+                                                </label>
+                                                @* <div class="box-motor-notpass" style="padding-left: 30px; display: none">
+                                            <label>
+                                                <input type="checkbox" name="motorChildNotPass" value="denymotor" id="motor-child-notpass-motor" @(ViewBag.QueueMotorFullDetail.IsUnderwriteUnPassVehicleSpec == true ? "checked" : "")> สภาพรถยนต์ไม่ตรงตามใบสมัคร
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" name="motorChildNotPass" value="denyOccupation" id="motor-child-notpass-occupation" @(ViewBag.QueueMotorFullDetail.IsUnderwriteUnPassVehicleUseType == true ? "checked" : "")> ประเภทการใช้งานผิดประเภท
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" name="motorChildNotPass" value="denyCantPay" id="motor-child-notpass-cantpay" @(ViewBag.QueueMotorFullDetail.IsUnderwriteUnPassCantPay == true ? "checked" : "")> ไม่สามารถชำระเบี้ยตามเงื่อนไขได้
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" name="motorChildNotPass" value="denyCantContact" id="motor-child-notpass-cantcontact" @(ViewBag.QueueMotorFullDetail.IsUnderwriteUnPassCantContact == true ? "checked" : "")> ติดต่อไม่ได้/ไม่รับสาย/ไม่สะดวกคุย
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" name="motorChildNotPass" value="denyOther" id="motor-child-notpass-other" @(ViewBag.QueueMotorFullDetail.IsUnderwriteUnPassOther == true ? "checked" : "")> อื่นๆ
+                                            </label>
+                                            <label>
+                                                <span style="color:red">*</span>หมายเหตุ/บันทึกเพิ่มเติม
+                                                <textarea name="motorChildNotPassOtherRemark" id="motorChildNotPassOtherRemark" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px;resize: none;" disabled>@ViewBag.QueueMotorFullDetail.UnderwriteUnPassOtherRemark</textarea>
+                                            </label>
+                                        </div>*@
+                                                <div class="box-motor-notpass answerList-Child" style="padding-left: 30px; display: none">
+                                                    <label>
+                                                        <input type="checkbox" class="answerList-Child" name="motorChildNotPass" value="denymotor" id="motor-child-notpass-motor" @(ViewBag.QueueMotorFullDetail.IsUnderwriteUnPassVehicleSpec == true ? "checked" : "")> สภาพรถยนต์ไม่ตรงตามใบสมัคร
+                                                    </label>
+                                                    <label>
+                                                        <input type="checkbox" class="answerList-Child" name="motorChildNotPass" value="denyOccupation" id="motor-child-notpass-occupation" @(ViewBag.QueueMotorFullDetail.IsUnderwriteUnPassVehicleUseType == true ? "checked" : "")> ประเภทการใช้งานผิดประเภท
+                                                    </label>
+                                                    <label>
+                                                        <input type="checkbox" class="answerList-Child" name="motorChildNotPass" value="denyCantPay" id="motor-child-notpass-cantpay" @(ViewBag.QueueMotorFullDetail.IsUnderwriteUnPassCantPay == true ? "checked" : "")> ไม่สามารถชำระเบี้ยตามเงื่อนไขได้
+                                                    </label>
+                                                    <label>
+                                                        <input type="checkbox" class="answerList-Child" name="motorChildNotPass" value="denyCantContact" id="motor-child-notpass-cantcontact" @(ViewBag.QueueMotorFullDetail.IsUnderwriteUnPassCantContact == true ? "checked" : "")> ติดต่อไม่ได้/ไม่รับสาย/ไม่สะดวกคุย
+                                                    </label>
+                                                    <label>
+                                                        <input type="checkbox" class="answerList-Child" name="motorChildNotPass" value="denyOther" id="motor-child-notpass-other" @(ViewBag.QueueMotorFullDetail.IsUnderwriteUnPassOther == true ? "checked" : "")> อื่นๆ
+                                                    </label>
+                                                    <label>
+                                                        <span style="color:red">*</span>หมายเหตุ/บันทึกเพิ่มเติม
+                                                        <textarea name="motorChildNotPassOtherRemark" id="motorChildNotPassOtherRemark" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px;resize: none;" disabled> @ViewBag.QueueMotorFullDetail.UnderwriteUnPassOtherRemark</textarea>
+                                                    </label>
+                                                </div>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li>
+                                                <label>
+                                                    <input type="radio" name="motor" value="1" id="motor_pass" @(ViewBag.QueueMotorFullDetail.IsUnderwritePass == true ? "checked" : "")> ข้อมูลถูกต้อง
+                                                </label>
+                                                <div class="box-motor-pass" style="padding-left: 30px; display: none">
+                                                    <label>
+                                                        <input type="radio" name="motorChildPass" value="1" id="motor-child-pass-std" @(ViewBag.QueueMotorFullDetail.IsUnderwritePassStandard == true ? "checked" : "")> ตามข้อมูลการสมัครทุกประการ
+                                                    </label>
+                                                    <label>
+                                                        <input type="radio" name="motorChildPass" value="0" id="motor-child-pass-condition" @(ViewBag.QueueMotorFullDetail.IsUnderwritePassStandard == false ? "checked" : "")> ติดเงื่อนไข (เฉพาะประกันชั้น 1)
+                                                    </label>
+
+                                                </div>
+                                                @if (ViewBag.QueueMotorFullDetail.IsUnderwritePassCondition == true)
+                                                {
+                                                    <div class="sub-box-motor-pass" style="padding-left: 60px;">
+                                                        @* <label>
+                                                    <input type="radio" name="IsSpecify" value="1" id="IsSpecify_1" @(ViewBag.QueueMotorFullDetail.IsUnderwritePassIsSpecify == true ? "checked" : "")> ระบุในใบสมัคร
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="IsSpecify" value="0" id="IsSpecify_0" @(ViewBag.QueueMotorFullDetail.IsUnderwritePassIsSpecify == false ? "checked" : "")> ไม่ระบุในใบสมัคร
+                                                </label>*@
+                                                        <label>
+                                                            <input type="radio" name="IsSpecify" value="1" id="IsSpecify_1" @((ViewBag.QueueMotorFullDetail.IsUnderwritePassIsSpecify == true && ViewBag.QueueMotorFullDetail.IsUnderwritePassIsSpecifyNotComplete == null) ? "checked" : "")> ระบุในใบสมัครครบถ้วน
+                                                        </label>
+                                                        <label>
+                                                            <input type="radio" name="IsSpecify" value="2" id="IsSpecify_2" @((ViewBag.QueueMotorFullDetail.IsUnderwritePassIsSpecify == true && ViewBag.QueueMotorFullDetail.IsUnderwritePassIsSpecifyNotComplete == true) ? "checked" : "")> ระบุในใบสมัครไม่ครบถ้วน
+                                                        </label>
+                                                        <label>
+                                                            <input type="radio" name="IsSpecify" value="0" id="IsSpecify_0" @((ViewBag.QueueMotorFullDetail.IsUnderwritePassIsSpecify == false && ViewBag.QueueMotorFullDetail.IsUnderwritePassIsSpecifyNotComplete == null) ? "checked" : "")> ไม่ระบุในใบสมัคร
+                                                        </label>
+                                                        <label>
+                                                            <span style="color:red">*</span>*ระบุข้อมูลติดเงื่อนไข
+                                                            <textarea name="motorChildPassOtherRemark" id="motorChildPassOtherRemark" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px;resize: none;">@ViewBag.QueueMotorFullDetail.UnderwritePassSpecifyRemark</textarea>
+                                                        </label>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="sub-box-motor-pass" style="padding-left:60px;display:none">
+                                                        <label>
+                                                            <input type="radio" name="IsSpecify" value="1" id="IsSpecify_1"> ระบุในใบสมัครครบถ้วน
+                                                        </label>
+                                                        <label>
+                                                            <input type="radio" name="IsSpecify" value="2" id="IsSpecify_2"> ระบุในใบสมัครไม่ครบถ้วน
+                                                        </label>
+                                                        <label>
+                                                            <input type="radio" name="IsSpecify" value="0" id="IsSpecify_0"> ไม่ระบุในใบสมัคร
+                                                        </label>
+                                                        <label>
+                                                            <span style="color:red">*</span>ระบุข้อมูลข้อยกเว้น..
+                                                            <textarea name="motorChildPassOtherRemark" id="motorChildPassOtherRemark" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px"></textarea>
+                                                        </label>
+                                                    </div>
+                                                }
+                                            </li>
+                                            <li>
+                                                <label>
+                                                    <input type="radio" name="motor" value="0" id="motor_notpass" @(ViewBag.QueueMotorFullDetail.IsUnderwritePass == false ? "checked" : "")> ข้อมูลไม่ถูกต้อง
+                                                </label>
+                                                <div class="box-motor-notpass" style="padding-left:30px;">
+                                                    <label>
+                                                        <input type="checkbox" name="motorChildNotPass" value="denymotor" id="motor-child-notpass-motor" @(ViewBag.QueueMotorFullDetail.IsUnderwriteUnPassVehicleSpec == true ? "checked" : "")> สภาพรถยนต์ไม่ตรงตามใบสมัคร
+                                                    </label>
+                                                    <label>
+                                                        <input type="checkbox" name="motorChildNotPass" value="denyOccupation" id="motor-child-notpass-occupation" @(ViewBag.QueueMotorFullDetail.IsUnderwriteUnPassVehicleUseType == true ? "checked" : "")> ประเภทการใช้งานผิดประเภท
+                                                    </label>
+                                                    <label>
+                                                        <input type="checkbox" name="motorChildNotPass" value="denyCantPay" id="motor-child-notpass-cantpay" @(ViewBag.QueueMotorFullDetail.IsUnderwriteUnPassCantPay == true ? "checked" : "")> ไม่สามารถชำระเบี้ยตามเงื่อนไขได้
+                                                    </label>
+                                                    <label>
+                                                        <input type="checkbox" name="motorChildNotPass" value="denyCantContact" id="motor-child-notpass-cantcontact" @(ViewBag.QueueMotorFullDetail.IsUnderwriteUnPassCantContact == true ? "checked" : "")> ติดต่อไม่ได้/ไม่รับสาย/ไม่สะดวกคุย
+                                                    </label>
+                                                    <label>
+                                                        <input type="checkbox" name="motorChildNotPass" value="denyOther" id="motor-child-notpass-other" @(ViewBag.QueueMotorFullDetail.IsUnderwriteUnPassOther == true ? "checked" : "")> อื่นๆ
+                                                    </label>
+                                                    <label>
+                                                        <span style="color:red">*</span>หมายเหตุ/บันทึกเพิ่มเติม
+                                                        <textarea name="motorChildNotPassOtherRemark" id="motorChildNotPassOtherRemark2" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px;resize: none;" disabled>@ViewBag.QueueMotorFullDetail.UnderwriteUnPassOtherRemark</textarea>
+                                                    </label>
+                                                </div>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                                <div id="box-ask-5" class="box-body ask-y" style="height: auto; width: auto; display:@(ViewBag.QueueMotorFullDetail.IsUnderwrite == true ? "block" : "none")">
+                                    @* หมายเหตุ/บันทึกเพิ่มเติม *@
+                                    <label>หมายเหตุ/บันทึกเพิ่มเติม</label>
+                                    <ul class="answerList">
+                                        <li>
+                                            <textarea name="remark" id="remark" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px;resize: none;">@ViewBag.QueueMotorFullDetail.QueueResultRemark</textarea>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <input type="hidden" name="hiddenQueueId" id="hiddenQueueId" value="@ViewBag.QueueMotorFullDetail.QueueId" />
+                                <input type="hidden" name="hiddenQueueCreatedDate" id="hiddenQueueCreatedDate" value="@ViewBag.QueueMotorFullDetail.CreatedDate" />
+                            </form>
+
+                            @if (ViewBag.QueueMotorFullDetail.GiveTypeId != null)
+                            {
+                                <div class="col-sm-12" id="sectionGivecard">
+                                    <div class="box box-info">
+                                        <div class="box-header" style="background-color: #b3eeff;text-align:center">
+                                            <h4 class="box-title">บันทึกการมอบกรมธรรม์ประกันรถยนต์ </h4>
+                                        </div>
+                                        <div class="box-body" style="height: auto;width: auto;">
+                                            <div class="form-group col-md-12">
+                                                <label class="col-md-3 control-label"> วันที่บันทึกมอบกรมธรรม์<span style="color:red">*</span></label>
+                                                <div class="col-md-6 ">
+                                                    <input class="form-control" id="txtGiveDate" name="txtGiveDate" type="text" value="@(ViewBag.GiveDate != null ? ViewBag.GiveDate:"-")" disabled />
+                                                </div>
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <label class="col-md-3 control-label">  ประเภทการมอบกรมธรรม์<span style="color:red">*</span></label>
+                                                <div class="col-md-6 ">
+                                                    <input class="form-control" id="txtGiveType" name="txtGiveType" type="text" value="@ViewBag.QueueMotorFullDetail.GiveType" disabled />
+                                                </div>
+                                            </div>
+                                            @if (ViewBag.QueueMotorFullDetail.GiveTypeId == 4)
+                                            {
+                                                <div class="form-group col-md-12">
+                                                    <label class="col-md-2 control-label">  เลขพัสดุ<span style="color:red">*</span></label>
+                                                    <div class="col-md-6 ">
+                                                        <input class="form-control" id="txtTrackingNo" name="txtTrackingNo" type="text" value="@ViewBag.QueueMotorFullDetail.TrackingNo" disabled />
+                                                    </div>
+                                                </div>
+                                            }
+                                            @if (ViewBag.QueueMotorFullDetail.GiveTypeId == 7)
+                                            {
+                                                @**@ <div class="form-group col-md-12">
+                                                    <label class="col-md-3 control-label">
+                                                        หมายเหตุกรณีเลือกอื่นๆ
+                                                        <span style="color:red">*</span>
+                                                    </label>
+                                                    <div class="col-md-6 ">
+                                                        <input class="form-control" id="txtGiveTypeRemark" name="txtGiveTypeRemark" type="text" value="@ViewBag.QueueMotorFullDetail.GiveTypeRemark" disabled />
+                                                    </div>
+                                                </div>
+                                            }
+                                            <div class="form-group col-md-12">
+                                                <label class="col-md-3 control-label">  ผู้มอบกรมธรรม์<span style="color:red">*</span></label>
+                                                <div class="col-md-6 ">
+                                                    <input class="form-control" id="txtGiver" name="txtGiver" type="text" value="@ViewBag.QueueMotorFullDetail.GiverEmployeeName" disabled />
+                                                </div>
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <label class="col-md-3 control-label">แนบรูปภาพมอบกรมธรรม์</label>
+                                                <div class="col-md-6 ">
+                                                    <a href="javascript:void();" class="pop">
+                                                        <img id="myImg" src="@ViewBag.QueueMotorFullDetail.URLPath" alt="@ViewBag.QueueMotorFullDetail.FileName" style="width:100%;max-width:100px">
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="box box-info child-pass" style="display: none">
+                                    <div class="box-header with-border" style="text-align:center; background: #00C0EF; color: white">
+                                        <h3 class="box-title">บันทึกการมอบกรมธรรม์ประกันรถยนต์</h3>
+                                    </div><!-- /.box-header -->
+                                    <div class="box-body" style="text-align: center;">
+                                        <div class="form-group col-md-12">
+                                            <h4 class="box-title">วันที่มอบกรมธรรม์<span style="color:red">*</span></h4>
+                                            <div class="col-md-4 col-md-offset-4">
+                                                <input class="form-control" style="text-align: center;" id="txtCoBrandDate" name="txtCoBrandDate" type="text" disabled="disabled" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12" style="text-align:center">
+                                            <label class="control-label">ประเภทการมอบกรมธรรม์<span style="color:red">*</span></label>
+                                        </div>
+                                        <div class="col-md-4 col-md-offset-4" style="text-align:center;">
+                                            <select id="select_GiveType" name="select_GiveType" type="text" class="form-control select2_giver">
+                                                <option value="-1" selected>---โปรดระบุ---</option>
+                                                @if (ViewBag.giveType != null)
+                                                {
+                                                    foreach (var item in ViewBag.giveType)
+                                                    {
+                                                        if (item.GiveTypeId == 6 || item.GiveTypeId == 7)
+                                                        {
+                                                            <option value="@item.GiveTypeId">@item.GiveType</option>
+                                                        }
+
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-12" style="text-align:center; display:none" id="giveTypeRemarklabel">
+                                            <label class="control-label">หมายเหตุกรณีเลือกอื่นๆ<span style="color:red">*</span></label>
+                                        </div>
+                                        <div class="col-md-4 col-md-offset-4" style="text-align: center; display: none" id="giveTypeRemark">
+                                            <input class="form-control" id="txtGiveTypeRemark" name="txtGiveTypeRemark" type="text" style="text-align:center" />
+                                        </div>
+                                        <div class="form-group col-md-12">
+                                            <h4 class="box-title">แนบรูปภาพมอบกรมธรรม์</h4>
+                                            <div class="col-md-4 col-md-offset-4">
+                                                <form action="@Url.Action("FileUpload")" class="dropzone" id="myDropzone" enctype="multipart/form-data">
+                                                    <div class="fallback">
+                                                        <input name="file" type="file" multiple />
+                                                    </div>
+                                                    <input type="hidden" name="queueId" value="@ViewBag.QueueMotorFullDetail.QueueId" />
+                                                    <input type="hidden" name="createdDate" value="@ViewBag.QueueMotorFullDetail.CreatedDate" />
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <div style="text-align:center;">
+                                <div class="col-md-12">
+                                    <input type="button" style=" background-color: #FFC70A; color: white;" class="btn btn-lg col-md-2 col-md-offset-5" name="btnSubmit" id="btnSubmit" value="บันทึกการแก้ไข" />
+                                </div>
+                            </div>
+                        </div><!-- /.box-body -->
+                    </div><!-- /.box -->
+                </div>
+                @* end ผลการคัดกรอง *@
+                <!-- /.tab-pane -->
+                <div class="tab-pane" id="tab_2">
+                    <div id="overlay"></div>
+                    <div id="Document_form" class="form-horizontal" style="padding:10px 15px 10px 15px">
+                        <!-- #region เอกสารแนบผู้เอาประกัน -->
+                        <div class="box box-header box-solid">
+                            <ul class="list-unstyled ">
+                                <li>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5 class="card-title">เอกสารแนบผู้เอาประกัน</h5>
+                                                    <br />
+                                                </div>
+
+                                                <div class="card-body table-responsive p-0">
+                                                    <table class="table table-hover text-nowrap">
+                                                        <thead style="margin: 5px; text-align:center; background: #D1F1FF; color: black ">
+                                                            <tr>
+                                                                @*<th>รหัสเอกสาร</th>*@
+                                                                <th>ประเภทเอกสาร</th>
+                                                                <th>จำนวน</th>
+                                                                <th>รายละเอียด</th>
+
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @{
+                                                                var allFiles = ViewBag.docFile as IEnumerable<SmileUnderwriteBranchV2.Controllers.MotorUnderwriteController.subDataResponse>;
+                                                                if (ViewBag.documentResult != null && allFiles.Count() > 0)
+                                                                {
+                                                                    foreach (var item in ViewBag.documentResult)
+                                                                    {
+                                                                        if (item.DocumentSubTypeId == 194)
+                                                                        {
+                                                                            foreach (var file in allFiles.Where(w => w.documentCode == item.DocumentCode))
+                                                                            {
+                                                                                <tr>
+                                                                                    @*<td>@file.documentCode</td>*@
+                                                                                    <td>รายการจดทะเบียนรถ</td>
+                                                                                    <td>@file.fileCount</td>
+                                                                                    <td>
+                                                                                        <button type="button" class="btn btn-primary" style="width:100px" data-toggle="dropdown" onclick="OpenDocstorage(`@file.documentId`)">
+                                                                                            เปิด
+                                                                                        </button>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            }
+                                                                        }
+                                                                        if (item.DocumentSubTypeId == 195)
+                                                                        {
+                                                                            foreach (var file in allFiles.Where(w => w.documentCode == item.DocumentCode))
+                                                                            {
+                                                                                <tr>
+                                                                                    @*<td>@file.documentCode</td>*@
+                                                                                    <td>ใบคำขอเอาประกัน</td>
+                                                                                    <td>@file.fileCount</td>
+                                                                                    <td>
+                                                                                        <button type="button" class="btn btn-primary" style="width:100px" data-toggle="dropdown" onclick="OpenDocstorage(`@file.documentId`)">
+                                                                                            เปิด
+                                                                                        </button>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <!-- #endregion -->
+                        <!-- #region เอกสารแนบผู้ชำระเบี้ย -->
+                        <div class="box box-header box-solid">
+                            <ul class="list-unstyled ">
+                                <li>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5 class="card-title">เอกสารแนบผู้ชำระเบี้ย</h5>
+                                                    <br />
+                                                </div>
+
+                                                <div class="card-body table-responsive p-0">
+                                                    <table class="table table-hover text-nowrap">
+                                                        <thead style="margin: 5px; text-align:center; background: #D1F1FF; color: black ">
+                                                            <tr>
+                                                                @*<th>รหัสเอกสาร</th>*@
+                                                                <th>ประเภทเอกสาร</th>
+                                                                <th>จำนวน</th>
+                                                                <th>รายละเอียด</th>
+
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @if (ViewBag.documentResult != null && ViewBag.docFile != null)
+                                                            {
+                                                                foreach (var item1 in ViewBag.documentResult)
+                                                                {
+                                                                    foreach (var item2 in ViewBag.docFile)
+                                                                    {
+                                                                        if (item2.documentCode == item1.DocumentCode && item1.DocumentSubTypeId == 196)
+                                                                        {
+                                                                            <tr>
+                                                                                @*<td>@item2.documentCode</td>*@
+                                                                                <td>สำเนาบัตรประชาชนผู้ชำระเบี้ย</td>
+                                                                                <td>@item2.fileCount</td>
+                                                                                <td>
+                                                                                    <button type="button" class="btn btn-primary" style="width:100px" data-toggle="dropdown" onclick="OpenDocstorage(`@item1.DocumentId`)">
+                                                                                        เปิด
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        }
+
+                                                                        if (item2.documentCode == item1.DocumentCode && item1.DocumentSubTypeId == 197)
+                                                                        {
+                                                                            <tr>
+                                                                                @*<td>@item2.documentCode</td>*@
+                                                                                <td>หนังสือยินยอมให้หักบัญชีเงินฝาก</td>
+                                                                                <td>@item2.fileCount</td>
+                                                                                <td>
+                                                                                    <button type="button" class="btn btn-primary" style="width:100px" data-toggle="dropdown" onclick="OpenDocstorage(`@item1.DocumentId`)">
+                                                                                        เปิด
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        }
+
+                                                                        if (item2.documentCode == item1.DocumentCode && item1.DocumentSubTypeId == 198)
+                                                                        {
+                                                                            <tr>
+                                                                                @*<td>@item2.documentCode</td>*@
+                                                                                <td>หน้าบัญชีธนาคาร</td>
+                                                                                <td>@item2.fileCount</td>
+                                                                                <td>
+                                                                                    <button type="button" class="btn btn-primary" style="width:100px" data-toggle="dropdown" onclick="OpenDocstorage(`@item1.DocumentId`)">
+                                                                                        เปิด
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <!-- #endregion -->
+                        <!-- #region เอกสารการให้การยินยอม การเก็บ รวบรวม ใช้ เปิดเผยข้อมูลส่วนบุคคล -->
+                        <div class="box box-header box-solid">
+                            <ul class="list-unstyled ">
+                                <li>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5 class="card-title">เอกสารการให้การยินยอม การเก็บ รวบรวม ใช้ เปิดเผยข้อมูลส่วนบุคคล</h5>
+                                                    <br />
+                                                </div>
+
+                                                <div class="card-body table-responsive p-0">
+                                                    <table class="table table-hover text-nowrap">
+                                                        <thead style="margin: 5px; text-align: center; background: #D1F1FF; color: black ">
+                                                            <tr>
+                                                                @*<th>รหัสเอกสาร</th>*@
+                                                                <th>ประเภทเอกสาร</th>
+                                                                <th>จำนวน</th>
+                                                                <th>รายละเอียด</th>
+
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @if (ViewBag.documentResult != null && ViewBag.docFile != null)
+                                                            {
+                                                                foreach (var item1 in ViewBag.documentResult)
+                                                                {
+                                                                    foreach (var item2 in ViewBag.docFile)
+                                                                    {
+                                                                        if (item2.documentCode == item1.DocumentCode && item1.DocumentSubTypeId == 199)
+                                                                        {
+                                                                            <tr>
+                                                                                @*<td>@item2.documentCode</td>*@
+                                                                                <td>เอกสาร PDPA</td>
+                                                                                <td>@item2.fileCount</td>
+                                                                                <td>
+                                                                                    <button type="button" class="btn btn-primary" style="width:100px" data-toggle="dropdown" onclick="OpenDocstorage(`@item1.DocumentId`)">
+                                                                                        เปิด
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        }
+
+
+                                                                    }
+                                                                }
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <!-- #endregion -->
+                        <!-- #region รูปถ่ายรถยนต์ -->
+                        <div class="box box-header box-solid">
+                            <ul class="list-unstyled ">
+                                <li>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5 class="card-title">รูปถ่ายรถยนต์</h5>
+                                                    <br />
+                                                </div>
+
+                                                <div class="card-body table-responsive p-0">
+                                                    <table class="table table-hover text-nowrap">
+                                                        <thead style="margin: 5px; text-align: center; background: #D1F1FF; color: black ">
+                                                            <tr>
+                                                                @*<th>รหัสเอกสาร</th>*@
+                                                                <th>ประเภทเอกสาร</th>
+                                                                <th>จำนวน</th>
+                                                                <th>รายละเอียด</th>
+
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @if (ViewBag.documentResult != null && ViewBag.docFile != null)
+                                                            {
+                                                                foreach (var item1 in ViewBag.documentResult)
+                                                                {
+                                                                    foreach (var item2 in ViewBag.docFile)
+                                                                    {
+                                                                        if (item2.documentCode == item1.DocumentCode && item1.DocumentSubTypeId == 200)
+                                                                        {
+                                                                            <tr>
+                                                                                @*<td>@item2.documentCode</td>*@
+                                                                                <td>รูปรถด้านหน้า</td>
+                                                                                <td>@item2.fileCount</td>
+                                                                                <td>
+                                                                                    <button type="button" class="btn btn-primary" style="width:100px" data-toggle="dropdown" onclick="OpenDocstorage(`@item1.DocumentId`)">
+                                                                                        เปิด
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        }
+
+                                                                        if (item2.documentCode == item1.DocumentCode && item1.DocumentSubTypeId == 201)
+                                                                        {
+                                                                            <tr>
+                                                                                @*<td>@item2.documentCode</td>*@
+                                                                                <td> รูปรถด้านซ้าย</td>
+                                                                                <td>@item2.fileCount</td>
+                                                                                <td>
+                                                                                    <button type="button" class="btn btn-primary" style="width:100px" data-toggle="dropdown" onclick="OpenDocstorage(`@item1.DocumentId`)">
+                                                                                        เปิด
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        }
+
+                                                                        if (item2.documentCode == item1.DocumentCode && item1.DocumentSubTypeId == 202)
+                                                                        {
+                                                                            <tr>
+                                                                                @*<td>@item2.documentCode</td>*@
+                                                                                <td>รูปรถด้านขวา</td>
+                                                                                <td>@item2.fileCount</td>
+                                                                                <td>
+                                                                                    <button type="button" class="btn btn-primary" style="width:100px" data-toggle="dropdown" onclick="OpenDocstorage(`@item1.DocumentId`)">
+                                                                                        เปิด
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        }
+                                                                        if (item2.documentCode == item1.DocumentCode && item1.DocumentSubTypeId == 202)
+                                                                        {
+                                                                            <tr>
+                                                                                @*<td>@item2.documentCode</td>*@
+                                                                                <td>รูปรถด้านหลัง</td>
+                                                                                <td>@item2.fileCount</td>
+                                                                                <td>
+                                                                                    <button type="button" class="btn btn-primary" style="width:100px" data-toggle="dropdown" onclick="OpenDocstorage(`@item1.DocumentId`)">
+                                                                                        เปิด
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <!-- #endregion -->
+
+                    </div>
+                </div>
+                <!-- /.tab-pane -->
+                <div id="tab_3" class="tab-pane">
+                    <div class="form-horizontal">
+                        <table id="tableLog" name="tableLog" class="table table-bordered table-striped display responsive" style="width: 100%">
+                            <tbody>
+                                <tr style="text-align:center"><td>ไม่พบข้อมูล</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- /.tab-pane -->
+            </div>
+            <!-- /.tab-content -->
+        </div>
+        <!-- nav-tabs-custom -->
+    </div>
+</div>
+<div class="modal fade" id="modal-CountChassisNumber">
+    <!--.modal-dialog -->
+    <div class="modal-dialog modal-lg">
+        <!--.modal-content -->
+        <div class="modal-content">
+            <div class="modal-header" style="background-color:#00e676; border-color:#00e676; ">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true" style="color:red">×</span>
+                </button>
+                <h4 class="modal-title">หมายเลขตัวถังมีประวัติคัดกรอง</h4>
+            </div>
+            <div class="modal-body">
+                <table id="UnderwriteHistory" name="UnderwriteHistory" class="table table-bordered table-striped display responsive" style="width: 100%">
+                    <tbody>
+                        <tr style="text-align:center"><td>ไม่พบข้อมูล</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+
+<div class="modal fade" id="modal-CountPaymentHistory">
+    <!--.modal-dialog -->
+    <div class="modal-dialog modal-lg">
+        <!--.modal-content -->
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #FAE333; border-color: #FAE333; ">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true" style="color:red">×</span>
+                </button>
+                <h4 class="modal-title">รายละเอียด</h4>
+            </div>
+            <div class="modal-body">
+                <table id="UnderwritePaymentHistory" name="UnderwritePaymentHistory" class="table table-bordered table-striped display responsive" style="width: 100%">
+                    <tbody>
+                        <tr style="text-align:center"><td>ไม่พบข้อมูล</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        var chat;
+        var motorVal;
+        var typeSelectVal = `@ViewBag.QueueMotorFullDetail.UnderwriteTypeId`;
+        var countFile = 0;
+        var imgUrlPath;
+        var imgPhysicalPath;
+        $(function () {
+
+            //disabled element input
+            $("#box-ask-1 :input").prop("disabled", true);
+            $("#box-ask-2 :input").prop("disabled", true);
+            if ($("#motor-child-notpass-other").is(':checked')) {
+                $('#motorChildNotPassOtherRemark2').prop('disabled', false);
+                $('#motorChildNotPassOtherRemark').prop('disabled', false);
+            } else {
+                $('#motorChildNotPassOtherRemark2').prop('disabled', true);
+                $('#motorChildNotPassOtherRemark').prop('disabled', true);
+            }
+
+            //view img
+            var group = {
+                headerToolbar: [
+                    'maximize',
+                    'close'
+                ],
+                footerToolbar: [
+                    'zoomIn',
+                    'zoomOut',
+                    'prev',
+                    'fullscreen',
+                    'next',
+                    'actualSize',
+                    //'rotateLeft',
+                    'rotateRight',
+                    //'myCustomButton'
+                ],
+                customButtons: {
+                    myCustomButton: {
+                        text: '',
+                        title: '',
+                        click: function (context, e) {
+                            //todo
+                        }
+                    }
+                },
+                modalWidth: 400,
+                modalHeight: 400,
+                callbacks: {
+                    beforeChange: function (context, index) {
+                        //todo
+                    },
+                    changed: function (context, index) {
+                        //todo
+                    },
+                    opened: function (context) {
+                        $('#overlay').css("display", "block");
+
+                    },
+                    closed: function (context) {
+                        $('#overlay').css("display", "none");
+                    },
+                }
+            }
+
+            $('[data-magnify="IDcard"]').magnify(group);
+            $('[data-magnify="img"]').magnify(group);
+            $('[data-magnify="register"]').magnify(group);
+            $('[data-magnify="receipt"]').magnify(group);
+            $('[data-magnify="consent"]').magnify(group);
+            $('[data-magnify="bank"]').magnify(group);
+            $('[data-magnify="other"]').magnify(group);
+
+            $('#aaa').collapse({
+                expanded: false
+            })
+
+            /*start signalR*/
+            // Reference the auto-generated proxy for the hub.
+            chat = $.connection.chatHub;
+            //Start Connection
+            $.connection.hub.start().done();
+
+            //Date
+            var date = new Date();
+            $('#txtCoBrandDate').val(`${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear() + 543}`);
+            $('#btnSubmit').click(function () {
+                if ($('#motorFormQuestionUpdate').valid()) {
+                    debugger
+                    if ($("input[name=motorUnderwriteStatus]:checked").val() === "1") {
+                        if (motorVal === '1' && typeSelectVal === '2') {
+                            if (`@ViewBag.QueueMotorFullDetail.GiveTypeId` != null && `@ViewBag.QueueMotorFullDetail.GiveTypeId` != '') {
+                                //บันทึกแบบสอบถาม
+                                swal({
+                                    title: "ยืนยันบันทึกข้อมูล",
+                                    text: "",
+                                    type: 'info',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#277020',
+                                    confirmButtonText: 'ยืนยัน',
+                                    cancelButtonText: 'ยกเลิก',
+                                    closeOnConfirm: false,
+                                    closeOnEsc: false,
+                                    closeOnCancel: true
+                                }, function () {
+                                    $(".confirm").attr('disabled', 'disabled');
+                                    SubmitMotorFormQuestionUpdate();
+                                });
+                            } else {
+                                if (countFile > 0) {
+                                    if (ValidateSave()) {
+                                        swal_confirm("ยืนยันบันทึกข้อมูล", "", function (e) {
+                                            //บันทึกมอบบัตร && แบบสอบถาม
+                                            InsertQueueMotorPolicies();
+                                        });
+                                    }
+
+                                } else {
+                                    if (countFile === 0) {
+                                        imgUrlPath = null;
+                                        imgPhysicalPath = null;
+                                        fileImgName = null;
+                                        if (ValidateSave()) {
+                                            swal_confirm("ยืนยันบันทึกข้อมูล", "", function (e) {
+                                                //บันทึกมอบบัตร && แบบสอบถาม
+                                                InsertQueueMotorPolicies();
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+
+                        } else {
+                            //บันทึกแบบสอบถาม
+                            swal({
+                                title: "ยืนยันบันทึกข้อมูล",
+                                text: "",
+                                type: 'info',
+                                showCancelButton: true,
+                                confirmButtonColor: '#277020',
+                                confirmButtonText: 'ยืนยัน',
+                                cancelButtonText: 'ยกเลิก',
+                                closeOnConfirm: false,
+                                closeOnEsc: false,
+                                closeOnCancel: true
+                            }, function () {
+                                $(".confirm").attr('disabled', 'disabled');
+                                SubmitMotorFormQuestionUpdate();
+                            });
+                        }
+                    } else {
+                        //บันทึกแบบสอบถาม
+                        swal({
+                            title: "ยืนยันบันทึกข้อมูล",
+                            text: "",
+                            type: 'info',
+                            showCancelButton: true,
+                            confirmButtonColor: '#277020',
+                            confirmButtonText: 'ยืนยัน',
+                            cancelButtonText: 'ยกเลิก',
+                            closeOnConfirm: false,
+                            closeOnEsc: false,
+                            closeOnCancel: true
+                        }, function () {
+                            $(".confirm").attr('disabled', 'disabled');
+                            SubmitMotorFormQuestionUpdate();
+                        });
+                    }
+                }
+            })
+            const ValidateSave = () => {
+                if ($('#select_GiveType').val() == 7 && $('#txtGiveTypeRemark').val() == '') {
+                    return swal({
+                        title: "กรุณาระบุหมายเหตุ",
+                        text: "",
+                        type: "error",
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonColor: '#ed2b09',
+                        confirmButtonText: 'ตกลง',
+                        allowEscapeKey: false,
+                        allowOutsideClick: false,
+                        html: false
+                    }, function (e) { });
+                }
+
+                if ($('#select_GiveType').val() == "-1" || $('#select_GiveType').val() == null) {
+                    return swal({
+                        title: "กรุณาเลือกประเภทการมอบบัตร",
+                        text: "",
+                        type: "error",
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonColor: '#ed2b09',
+                        confirmButtonText: 'ตกลง',
+                        allowEscapeKey: false,
+                        allowOutsideClick: false,
+                        html: false
+                    }, function (e) { });
+                }
+
+                return true;
+            }
+            //Dropzone Options
+            Dropzone.options.myDropzone = {
+                paramName: "file", // ชื่อไฟล์ปลายทางเมื่อ upload แบบ mutiple จะเป็น array
+                autoProcessQueue: true,// ใส่เพื่อไม่ให้อัพโหลดทันที หลังจากเลือกไฟล์
+                uploadMultiple: false, // อัพโหลดไฟล์หลายไฟล์ - true จะส่งเป็น array
+                parallelUploads: 10, // ให้ทำงานพร้อมกัน 10 ไฟล์
+                maxFiles: 1, // ไฟล์สูงสุด 1 ไฟล์
+                addRemoveLinks: true, // อนุญาตให้ลบไฟล์ก่อนการอัพโหลด
+                maxFilesize: 10, // MB
+                dictRemoveFile: "ลบ", // ชื่อ ปุ่ม remove
+                dictCancelUpload: "ยกเลิก", // ชื่อ ปุ่ม ยกเลิก
+                dictDefaultMessage: "เลือกรูปภาพ", // ข้อความบนพื้นที่แสดงรูปจะแสดงหลังจากโหลดเพจเสร็จ
+                dictFileTooBig: "ไม่อนุญาตให้อัพโหลดไฟล์เกิน 2 MB", //ข้อความแสดงเมื่อเลือกไฟล์ขนาดเกินที่กำหนด
+                acceptedFiles: ".jpeg,.jpg,.png", // อนุญาตให้เลือกไฟล์ประเภทรูปภาพได้
+                dictMaxFilesExceeded: "ไฟล์เกินจำนวน",
+                dictResponseError: "ไม่สามารถอัพโหลดไฟล์ได้",
+                dictFallbackMessage: "ไม่รองรับไฟล์",
+                // The setting up of the dropzone
+                init: function () {
+
+                    this.on("addedfile", function (file) {
+                        if (this.files[1] != null) {
+                            this.removeFile(this.files[0]);
+                        }
+                        countFile++
+                    }).on("removedfile", function (file) {
+                        countFile--
+                        $.post('@Url.Action("File_delete")',
+                            {
+                                queueId: $('#hiddenQueueId').val(),
+                                queueCreatedDate: $('#hiddenQueueCreatedDate').val()
+                            }, (data) => {
+
+                                if (data.IsResult) {
+                                    var _ref;
+                                    return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;
+                                } else {
+                                    return swal("เกิดข้อผิดพลาด !", data.Msg, "error");
+                                }
+                            });
+                        //ลบไฟล์ -เคลียร์ path
+                        imgUrlPath = null;
+                        imgPhysicalPath = null;
+                        fileImgName = null;
+                    }).on("thumbnail", function (file) {
+
+                    }).on("success", function (file, response) {
+                        //เก็บ path ในตัวแปร เพื่อใช้ในการบันทึกมอบบัตรต่อไป
+                        imgUrlPath = response.urlPath;
+                        imgPhysicalPath = response.physicalPath;
+                        fileImgName = response.fileImgName;
+                    }).on("error", function (file) {
+
+                    }).on("processing", function(file) {
+
+                    }).on("uploadprogress", function(file) {
+
+                    });
+                }
+            }
+
+
+            $('#select_GiveType').on('change', function () {
+
+                if ($('#select_GiveType').val() == 7) {
+                    $('#giveTypeRemark').show();
+                    $('#giveTypeRemarklabel').show();
+                } else {
+                    $('#giveTypeRemark').hide();
+                    $('#giveTypeRemarklabel').hide();
+                }
+            });
+            /*Event if checked*/
+            //สถานะการคัดกรอง
+            $('input[name=motorUnderwriteStatus]').on("ifChecked",
+                function (e) {
+                    if ($(this).valid()) {
+                        switch ($(this).val()) {
+                            case '1':
+                                console.log($(this).val());
+                                $(".ask-y").show();
+                                $(".ask-n").hide();
+                                $('.ask-n').find("input").iCheck('uncheck');
+                                $('.box-typeselect-2').hide();
+                                $('.box-typeselect-3').hide();
+                                $('.box-motor-pass').hide();
+                                $('.box-motor-notpass').hide();
+                                $('textarea[name=motorChildPassOtherRemark]').val('');
+                                $('textarea[name=motorChildNotPassOtherRemark]').val('');
+                                $('textarea[name=remark]').val('');
+                                $('#sectionGivemotord').hide();
+                                break;
+                            case '0':
+                                console.log($(this).val());
+                                $(".ask-y").hide();
+                                $(".ask-n").show();
+                                $('.ask-y').find("input").iCheck('uncheck');
+                                $('.box-typeselect-2').hide();
+                                $('.box-typeselect-3').hide();
+                                $('.box-motor-pass').hide();
+                                $('.box-motor-notpass').hide();
+                                $('textarea[name=motorChildPassOtherRemark]').val('');
+                                $('textarea[name=motorChildNotPassOtherRemark]').val('');
+                                $('textarea[name=remark]').val('');
+                                $('#sectionGivemotord').hide();
+                                break;
+                            default:
+                        }
+                    }
+
+                });
+
+            //การคัดกรอง
+            $('input[name=motor]').on('ifChecked', function (e) {
+                motorVal = $(this).val();
+                if ($(this).valid()) {
+                    debugger
+                    switch ($(this).val()) {
+                        case '1': //ข้อมูลถูกต้อง
+                            console.log($(this).val());
+                            $('.box-motor-pass').show();
+
+                            //ช่องทางการคัดกรองเป็นเข้าพบ
+                            if (typeSelectVal == '2') {
+                                $('.child-pass').show();
+                            }
+                            $('.box-motor-notpass').hide();
+                            $('input[name=motorChildPass]').iCheck('uncheck');
+                            $('input[name=IsSpecify]').iCheck('uncheck');
+                            $('input[name=motorChildNotPass]').iCheck('uncheck');
+                            break
+                        case '0': //ข้อมูลไม่ถูกต้อง
+                            console.log($(this).val());
+                            $('.box-motor-pass').hide();
+                            $('.child-pass').hide();
+                            $('.sub-box-motor-pass').hide();
+                            $('.box-motor-notpass').show();
+                            $('input[name=motorChildPass]').iCheck('uncheck');
+                            $('input[name=IsSpecify]').iCheck('uncheck');
+                            $('input[name=motorChildNotPass]').iCheck('uncheck');
+                            $('textarea[name=motorChildPassOtherRemark]').val('');
+                            break
+                        default:
+                    }
+                }
+                 showSectionGivecard();
+            });
+
+            //ผ่านคัดกรอก ติดเงื่อไข
+            $('input[name=motorChildPass]').on('ifChecked',
+                function (e) {
+                    if ($(this).valid()) {
+                        switch ($(this).val()) {
+                            case '1': //ผ่านตามมาตรฐาน
+                                $('textarea[name=motorChildPassOtherRemark]').val('');
+                                $('.sub-box-motor-pass').hide();
+                                $('input[name=IsSpecify]').iCheck('uncheck');
+                                break;
+                            case '0'://ติดข้อยกเว้น
+                                $('.sub-box-motor-pass').show();
+                                break;
+                            default:
+                        }
+                    }
+                });
+
+            //checkbox healthChildNotPass
+            $('input[name=motorChildNotPass]').on('ifChanged', function () {
+                if ($(this).is(':checked')) {
+                    switch ($(this).val()) {
+                        case "denyOther":
+                            $('textarea[name=motorChildNotPassOtherRemark]').prop('disabled', false);
+                            break;
+                        default:
+                    }
+                } else {
+                    switch ($(this).val()) {
+                        case "denyOther":
+                            $('textarea[name=motorChildNotPassOtherRemark]').val('');
+                            $('textarea[name=motorChildNotPassOtherRemark]').prop('disabled', true);
+                            break
+                        default:
+                    }
+                }
+            });
+
+            //ช่องทางการคัดกรอง
+            $('input[name=typeSelect]').on('ifChecked',
+                function (e) {
+                    if ($(this).valid()) {
+                        typeSelectVal = $(this).val();
+                        switch ($(this).val()) {
+                            case '2': //เข้าพบ
+                                console.log($(this).val());
+
+                                //ช่องทางการคัดกรองเข้าพบ
+                                if (motorVal == '1') {
+                                    $('.child-pass').show();
+                                }
+
+                                $('.box-typeselect-2').show();
+                                $('.box-typeselect-3').hide();
+                                $('input[name=typeSelectChild]').iCheck('uncheck');
+                                break;
+                            case '3': //โทรคัดกรอง
+                                console.log($(this).val());
+                                $('.child-pass').hide();
+                                $('.box-typeselect-2').hide();
+                                $('.box-typeselect-3').show();
+                                $('input[name=typeSelectChild]').iCheck('uncheck');
+                                break;
+                            default:
+                        }
+                    }
+                });
+
+            const showSectionGivecard = () => {
+                //ผ่านคัดกรอง และ เข้าพบลูกค้า
+                if (motorVal == '1' && typeSelectVal == '2') {
+                    $('#sectionGivecard').show();
+                } else {
+                    $('#sectionGivecard').hide();
+                }
+            }
+
+            //ช่องทางการคัดกรอง - child
+            $('input[name=typeSelectChild').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                });
+
+            //สถานะการเข้าพบ
+            $('input[name=foundCustomer').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                });
+
+            //สถาณการโทร
+            $('input[name=callStatus').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                });
+
+            $('input[name=typeSelectChildCall').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                });
+
+            //ติดเงื่อนไข (เฉพาะประกันชั้น 1) - child
+            $('input[name=IsSpecify').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                });
+
+            //ข้อมูลไม่ถูกต้อง - child
+            $('input[name=motorChildNotPass').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                });
+
+            //การชำระเบี้ย
+            $('input[name=paymentTypeMotor').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                });
+
+            /*modal show PaymentHistory*/
+            $('#modal-CountPaymentHistory').on('show.bs.modal', function (e) {
+                GetUnderwritePaymentHistory_DT();
+            })
+
+            /*modal show*/
+            $('#modal-CountChassisNumber').on('show.bs.modal', function (e) {
+                GetUnderwriteHistory_DT();
+            });
+
+        });//end load
+            /*tab change*/
+            $('a[data-toggle="tab"]').on('shown.bs.tab',
+                function (e) {
+                    e.preventDefault();
+                    const target = $(e.target).attr("href");
+                    switch (target) {
+                        case "#tab_3":
+                            //Log
+                            loadingSpinner('fadeIn', 500);
+                            GetQueueLog_DT();
+                            break;
+                        case "#tab_2":
+                            loadingSpinner('fadeIn');
+                            //dowload documents
+                            GetDocuments();
+                            break;
+                        default:
+                    }
+                });
+
+        //Dowload Document
+        const GetDocuments = () => {
+            $.post('@Url.Action("DowloadDocuments")',
+                {
+                    queueId: "@ViewBag.QueueId"
+                },
+                function (data) {
+
+                    if (data.IsResult === true) {
+                        loadingSpinner('fadeOut', 500);
+
+                        //บัตรประจำตัวประชาชน
+                        if (Array.isArray(data.idCardAttachedFile)) {
+                            if (data.idCardAttachedFile.length > 0) {
+                                for (var i = 0; i < data.idCardAttachedFile.length; i++) {
+                                    if (data.idCardAttachedFile[i] == null) {
+
+                                        $('.IdCardAttachedFile_NotFound').show();
+                                    } else {
+                                        switch (data.idCardAttachedFileType) {
+                                            case "JPG":
+                                                $('#IdCardAttachedFile_JPG').show();
+                                                $(`.IDcard_a_${i}`).attr('href', data.idCardAttachedFile[i]);
+                                                $(`.IDcard_img_${i}`).attr('src', data.idCardAttachedFile[i]);
+                                                $(`.IDcard_img_${i}`).attr('data-src', data.idCardAttachedFile[i]);
+                                                break
+                                            case "PDF":
+                                                $('#IdCardAttachedFile_PDF').show();
+                                                $('#IdCardAttachedFile_PDF').append(`<object class="IDcard_PDF" data="${data.idCardAttachedFile[i]}" type="application/pdf" style="width:100%; height: 900px;overflow:auto !important">
+                                                <p>
+                                                    Alternative text - include a link<a href="${data.idCardAttachedFile[i]}">
+                                                        to the PDF!
+                                                    </a>
+                                                </p>
+                                            </object>`);
+
+                                                break
+                                            default:
+                                                $('#IdCardAttachedFile_Type_NotFound').show();
+                                                break
+                                        }
+                                    }
+                                }
+                            } else {
+                                $('.IdCardAttachedFile_NoDocument').show();
+                            }
+                        } else {
+                            $('.IdCardAttachedFile_NoDocument').show();
+                        }
+                        //end บัตรประจำตัวประชาชน
+
+                        //รูปภาพ
+                        if (Array.isArray(data.photoAttachedFile)) {
+                            if (data.photoAttachedFile.length > 0) {
+                                for (var i = 0; i < data.photoAttachedFile.length; i++) {
+                                    if (data.photoAttachedFile[i] == null) {
+                                        $('.photoAttachedFile_NotFound').show();
+                                    } else {
+                                        switch (data.photoAttachedFileType) {
+                                            case "JPG":
+                                                $('#photoAttachedFile_JPG').show();
+                                                $(`.picture_a_${i}`).attr('href', data.photoAttachedFile[i]);
+                                                $(`.picture_img_${i}`).attr('src', data.photoAttachedFile[i]);
+                                                $(`.picture_img_${i}`).attr('data-src', data.photoAttachedFile[i]);
+                                                break
+                                            case "PDF":
+                                                $('#photoAttachedFile_PDF').show();
+                                                $('#photoAttachedFile_PDF').append(`<object class="picture_PDF" data="${data.photoAttachedFile[i]}" type="application/pdf" style="width:100%; height: 700px;overflow:auto !important">
+                                                    <p>
+                                                        Alternative text - include a link<a href="${data.photoAttachedFile[i]}">
+                                                            to the PDF!
+                                                        </a>
+                                                    </p>
+                                                </object>`);
+                                                break
+                                            default:
+                                                $('#photoAttachedFile_Type_NotFound').show();
+                                                break
+                                        }
+                                    }
+                                }
+                            } else {
+                                $('.photoAttachedFile_NoDocument').show();
+                            }
+                        } else {
+                            $('.photoAttachedFile_NoDocument').show();
+                        }
+                        //end รูปภาพ
+
+                        //รายการจดทะเบียน
+                        if (Array.isArray(data.regisBookAttachedFile)) {
+                            if (data.regisBookAttachedFile.length > 0) {
+                                for (var i = 0; i < data.regisBookAttachedFile.length; i++) {
+                                    if (data.regisBookAttachedFile[i] == null) {
+                                        $('.regisBookAttachedFile_NotFound').show();
+                                    } else {
+                                        switch (data.regisBookAttachedFileType) {
+                                            case "JPG":
+                                                $('#regisBookAttachedFile_JPG').show();
+                                                $(`.register_a_${i}`).attr('href', data.regisBookAttachedFile[i]);
+                                                $(`.register_img_${i}`).attr('src', data.regisBookAttachedFile[i]);
+                                                $(`.register_img_${i}`).attr('data-src', data.regisBookAttachedFile[i]);
+                                                break
+                                            case "PDF":
+                                                $('#regisBookAttachedFile_PDF').show();
+                                                $('#regisBookAttachedFile_PDF').append(`<object class="register_PDF" data="${data.regisBookAttachedFile[i]}" type="application/pdf" style="width:100%; height: 700px;overflow:auto !important">
+                                                    <p>
+                                                        Alternative text - include a link<a href="${data.regisBookAttachedFile[i]}">
+                                                            to the PDF!
+                                                        </a>
+                                                    </p>
+                                                </object>`);
+                                                break
+                                            default:
+                                                $('#regisBookAttachedFile_Type_NotFound').show();
+                                                break
+                                        }
+                                    }
+                                }
+                            } else {
+                                $('.regisBookAttachedFile_NoDocument').show();
+                            }
+                        } else {
+                            $('.regisBookAttachedFile_NoDocument').show();
+                        }
+                        //end รายการจดทะเบียน
+
+                        //ใบเสร็จ
+                        if (Array.isArray(data.paymentSlipAttachedFile)) {
+                            if (data.paymentSlipAttachedFile.length > 0) {
+                                for (var i = 0; i < data.paymentSlipAttachedFile.length; i++) {
+                                    if (data.paymentSlipAttachedFile[i] == null) {
+                                        $('.paymentSlipAttachedFile_NotFound').show();
+                                    } else {
+                                        switch (data.paymentSlipAttachedFileType) {
+                                            case "JPG":
+                                                $('#paymentSlipAttachedFile_JPG').show();
+                                                $(`.receipt_a_${i}`).attr('href', data.paymentSlipAttachedFile[i]);
+                                                $(`.receipt_img_${i}`).attr('src', data.paymentSlipAttachedFile[i]);
+                                                $(`.receipt_img_${i}`).attr('data-src', data.paymentSlipAttachedFile[i]);
+                                                break
+                                            case "PDF":
+                                                $('#paymentSlipAttachedFile_PDF').show();
+                                                $('#paymentSlipAttachedFile_PDF').append(`<object class="receipt_PDF" data="${data.paymentSlipAttachedFile[i]}" type="application/pdf" style="width:100%; height: 700px;overflow:auto !important">
+                                                    <p>
+                                                        Alternative text - include a link<a href="${data.paymentSlipAttachedFile[i]}">
+                                                            to the PDF!
+                                                        </a>
+                                                    </p>
+                                                </object>`);
+                                                break
+                                            default:
+                                                $('#paymentSlipAttachedFile_Type_NotFound').show();
+                                                break
+                                        }
+                                    }
+                                }
+                            } else {
+                                $('.paymentSlipAttachedFile_NoDocument').show();
+                            }
+                        } else {
+                            $('.paymentSlipAttachedFile_NoDocument').show();
+                        }
+                        //end ใบเสร็จ
+
+                        //หนังสือยินยอม
+                        if (Array.isArray(data.debitAuthorizeAttachedFile)) {
+                            if (data.debitAuthorizeAttachedFile.length > 0) {
+                                for (var i = 0; i < data.debitAuthorizeAttachedFile.length; i++) {
+                                    if (data.debitAuthorizeAttachedFile[i] == null) {
+                                        $('.debitAuthorizeAttachedFile_NotFound').show();
+                                    } else {
+                                        switch (data.debitAuthorizeAttachedFileType) {
+                                            case "JPG":
+                                                $('#debitAuthorizeAttachedFile_JPG').show();
+                                                $(`.consent_a_${i}`).attr('href', data.debitAuthorizeAttachedFile[i]);
+                                                $(`.consent_img_${i}`).attr('src', data.debitAuthorizeAttachedFile[i]);
+                                                $(`.consent_img_${i}`).attr('data-src', data.debitAuthorizeAttachedFile[i]);
+                                                break
+                                            case "PDF":
+                                                $('#debitAuthorizeAttachedFile_PDF').show();
+                                                $('#debitAuthorizeAttachedFile_PDF').append(`<object class="consent_PDF" data="${data.debitAuthorizeAttachedFile[i]}" type="application/pdf" style="width:100%; height: 700px;overflow:auto !important">
+                                                    <p>
+                                                        Alternative text - include a link<a href="${data.debitAuthorizeAttachedFile[i]}">
+                                                            to the PDF!
+                                                        </a>
+                                                    </p>
+                                                </object>`);
+                                                break
+                                            default:
+                                                $('#debitAuthorizeAttachedFile_Type_NotFound').show();
+                                                break
+                                        }
+                                    }
+                                }
+                            } else {
+                                $('.debitAuthorizeAttachedFile_NoDocument').show();
+                            }
+                        } else {
+                            $('.debitAuthorizeAttachedFile_NoDocument').show();
+                        }
+                        //end หนังสือยินยอม
+
+                        //บัญชีธนาคาร
+                        if (Array.isArray(data.bankBookAttachedFile)) {
+                            if (data.bankBookAttachedFile.length > 0) {
+                            for (var i = 0; i < data.bankBookAttachedFile.length; i++) {
+                                if (data.bankBookAttachedFile[i] == null) {
+                                    $('.bankBookAttachedFile_NotFound').show();
+                                } else {
+                                    switch (data.bankBookAttachedFileType) {
+                                        case "JPG":
+                                            $('#bankBookAttachedFile_JPG').show();
+                                            $(`.bank_a_${i}`).attr('href', data.bankBookAttachedFile[i]);
+                                            $(`.bank_img_${i}`).attr('src', data.bankBookAttachedFile[i]);
+                                            $(`.bank_img_${i}`).attr('data-src', data.bankBookAttachedFile[i]);
+                                            break
+                                        case "PDF":
+                                            $('#bankBookAttachedFile_PDF').show();
+                                            $('#bankBookAttachedFile_PDF').append(`<object class="bank_PDF" data="${data.bankBookAttachedFile[i]}" type="application/pdf" style="width:100%; height: 700px;overflow:auto !important">
+                                                    <p>
+                                                        Alternative text - include a link<a href="${data.bankBookAttachedFile[i]}">
+                                                            to the PDF!
+                                                        </a>
+                                                    </p>
+                                                </object>`);
+                                            break
+                                        default:
+                                            $('#bankBookAttachedFile_Type_NotFound').show();
+                                            break
+                                    }
+                                }
+                            }
+                        } else {
+                                $('.bankBookAttachedFile_NoDocument').show();
+                            };
+                        } else {
+                            $('.bankBookAttachedFile_NoDocument').show();
+                        }
+                        //end บัญชีธนาคาร
+
+                        //อื่นๆ
+                        if (Array.isArray(data.otherAttachedFile)) {
+                            if (data.otherAttachedFile.length > 0) {
+                                for (var i = 0; i < data.otherAttachedFile.length; i++) {
+                                    if (data.otherAttachedFile[i] == null) {
+                                        $('.otherAttachedFile_NotFound').show();
+                                    } else {
+                                        switch (data.otherAttachedFileType) {
+                                            case "JPG":
+                                                $('#otherAttachedFile_JPG').show();
+                                                $(`.other_a_${i}`).attr('href', data.otherAttachedFile[i]);
+                                                $(`.other_img_${i}`).attr('src', data.otherAttachedFile[i]);
+                                                $(`.other_img_${i}`).attr('data-src', data.otherAttachedFile[i]);
+                                                break
+                                            case "PDF":
+                                                $('#otherAttachedFile_PDF').show();
+                                                $('#otherAttachedFile_PDF').append(`<object class="other_PDF" data="${data.otherAttachedFile[i]}" type="application/pdf" style="width:100%; height: 700px;overflow:auto !important">
+                                                    <p>
+                                                        Alternative text - include a link<a href="${data.otherAttachedFile[i]}">
+                                                            to the PDF!
+                                                        </a>
+                                                    </p>
+                                                </object>`);
+                                                break
+                                            default:
+                                                $('.otherAttachedFile_Type_NotFound').show();
+                                                break
+                                        }
+                                    }
+                                }
+                            } else {
+                                $('.otherAttachedFile_NoDocument').show();
+                            }
+                        } else {
+                            $('.otherAttachedFile_NoDocument').show();
+                        }
+                        //end อื่นๆ
+
+                    } else {
+                        //todo
+                        //IsResult false
+                    }
+                });
+        }
+
+        const GetUnderwriteHistory_DT = () => {
+            $('#UnderwriteHistory').empty();
+            var table = $('#UnderwriteHistory').DataTable({
+                pageLength: 10,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("UnderwriteHistory")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.queueId = "@ViewBag.QueueMotorFullDetail.QueueId";
+                    }
+                },
+                columns: [
+                    {
+                        title: 'เลข App',
+                        data: 'ApplicationCode'
+                    },
+                    {
+                        title: 'ชื่อ-สกุล ผู้เอาประกัน',
+                        data: 'InsuredName'
+                    },
+                    {
+                        title: 'วันที่เริ่มคุ้มครอง',
+                        data: 'StartCoverDate',
+                        render: function (data) {
+                            if (data != null) {
+                                let date = moment(data);
+                                date.add(543, 'years');
+                                return moment(date).format('DD/MM/YYYY')
+                            } else {
+                                return '-';
+                            }
+                        }
+
+                    },
+                    {
+                        title: 'ผลการพิจารณา',
+                        data: 'ApproveStatus'
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        orderable: false,
+                        render: function (data) {
+                            return `<button onclick="OpenNewPage(${data.QueueId});" class="btn btn-info" style="width:100%">ดูรายละเอียด</button>`;
+                        }
+                    },
+                ]
+            });
+        }
+
+        const GetUnderwritePaymentHistory_DT = () => {
+            $('#UnderwritePaymentHistory').empty();
+            var table = $('#UnderwritePaymentHistory').DataTable({
+                pageLength: 10,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("UnderwritePaymentHistory")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.queueId = "@ViewBag.QueueMotorFullDetail.QueueId";
+                    }
+                },
+                columns: [
+                    {
+                        title: 'เลข App',
+                        data: 'ApplicationCode'
+                    },
+                    {
+                        title: 'ชื่อ-สกุล',
+                        data: 'InsuredName'
+                    },
+                    {
+                        title: 'วันที่เริ่มคุ้มครอง',
+                        data: 'StartCoverDate',
+                        render: function (data) {
+                            if (data != null) {
+                                let date = moment(data);
+                                date.add(543, 'years');
+                                return moment(date).format('DD/MM/YYYY')
+                            } else {
+                                return '-';
+                            }
+                        }
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: 'ApplicationStatus'
+                    },
+                ]
+            });
+        }
+
+        const SubmitMotorFormQuestionUpdate = () => {
+            $.ajax({
+                url: $('#motorFormQuestionUpdate').attr('action'),
+                type: 'POST',
+                data: $('#motorFormQuestionUpdate').serialize(),
+                success: function (response) {
+                    if (response != null && response.IsResult === true) {
+                        switch (typeSelectVal) {
+                    //ช่องทางโทรคัดกรอง
+                            case "3":
+                                if (motorVal === "1") {
+                                    swal({
+                                    title: "บันทึกข้อมูลเรียบร้อย",
+                                        text: "<h3>กรณีโทรคัดกรอง <br>ท่านต้องจัดการมอบกรมธรรม์และปิดคิวงานที่</h3><br><a href='@Url.Action("MotorPoliciesQueue", "MotorPolicies")'><img src='/Content/img/menu04.jpg' style='width: 180px;border: 1px solid;' /></a>",
+                                    type: "success",
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    allowEscapeKey: false,
+                                    allowOutsideClick: false,
+                                    html: true
+                                }, function (e) {
+                                    window.close();
+                             });
+                             break;
+                         } else {
+                             swal({
+                                 title: "บันทึกข้อมูลเรียบร้อย",
+                                 text: "",
+                                 type: "success",
+                                 showCancelButton: false,
+                                 showConfirmButton: true,
+                                 allowEscapeKey: false,
+                                 allowOutsideClick: false,
+                                 html: false
+                             }, function (e) {
+                                 window.close();
+                             });
+                             break;
+                         }
+                            default:
+                                swal({
+                                    title: "บันทึกข้อมูลเรียบร้อย",
+                                    text: "",
+                                    type: "success",
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    allowEscapeKey: false,
+                                    allowOutsideClick: false,
+                                    html: false
+                                }, function (e) {
+                                    window.close();
+                                });
+                                break;
+                        }
+                    } else {
+                        swal("บันทึกรายการไม่สำเร็จ กรุณาตรวจสอบข้อมูล", response.Msg, "error");
+                    }
+                }
+            });
+        }
+
+   @*     const InsertQueueMotorPolicies = () => {
+            $.post("@Url.Action("QueueMotorPoliciesInsert")", {
+                queueId: @ViewBag.QueueMotorFullDetail.QueueId,
+                giverDate: $('#txtCoBrandDate').val(),
+                uRLPath: imgUrlPath,
+                physicalPath: imgPhysicalPath,
+                fileName: fileImgName,
+            }, function (data) {
+                if (data.IsResult) {
+                    //บันทึกมอบบัตรเรียบร้อยแล้ว
+                    //บันทึกแบบสอบถาม
+                    SubmitMotorFormQuestionUpdate();
+                } else {
+                    swal("เกิดข้อผิดพลาด !", data.Msg, "error");
+                }
+            });
+        }*@
+         const InsertQueueMotorPolicies = () => {
+            debugger
+            $.post("@Url.Action("QueueMotorPoliciesInsert")", {
+                queueId: @ViewBag.QueueMotorFullDetail.QueueId,
+                giverDate: $('#txtCoBrandDate').val(),
+                uRLPath: imgUrlPath,
+                physicalPath: imgPhysicalPath,
+                fileName: fileImgName,
+                giveTypeId: $('#select_GiveType').val(),
+                giveTypeRemark: $('#txtGiveTypeRemark').val()
+            }, function (data) {
+                if (data.IsResult) {
+                    //บันทึกมอบบัตรเรียบร้อยแล้ว
+                    //บันทึกแบบสอบถาม
+                    SubmitMotorFormQuestionUpdate();
+                } else {
+                    swal("เกิดข้อผิดพลาด !", data.Msg, "error");
+                }
+            });
+        }
+
+        const GetQueueLog_DT = () => {
+                $('#tableLog').empty();
+                var table = $('#tableLog').DataTable({
+                    pageLength: 10,
+                    lengthChange: false,
+                    processing: true,
+                    serverSide: true,
+                    destroy: true,
+                    searching: true,
+                    ordering: true,
+                    info: true,
+                    paging: true,
+                    autoWidth: false,
+                    responsive: true,
+                    language: {
+                        url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                    },
+                    ajax: {
+                        url: '@Url.Action("QueueLog")',
+                        method: 'GET',
+                        data: function (d) {
+                            d.draw = d.draw;
+                            d.pageSize = d.length;
+                            d.indexStart = d.start;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.search = d.search;
+                            d.queueId = "@ViewBag.QueueMotorFullDetail.QueueId";
+                        }
+                    },
+                    columns: [
+                        {
+                            title: 'วันที่ทำรายการ',
+                            data: 'CreatedDate',
+                            render: function (data) {
+                                let date = moment(data);
+                                date.add(543, 'years');
+                                return moment(date).format("DD/MM/YYYY HH:mm:ss");
+                        }
+
+                        },
+                        {
+                            title: 'ผู้มอบหมายคิวงาน',
+                            data: 'FromEmployeeName'
+                        },
+                        {
+                            title: 'ผู้รับคิวงาน',
+                            data: 'ToEmployeeName'
+                        },
+                        {
+                            title: 'รายละเอียด',
+                            data: 'TransactionTypeDetail'
+                        },
+                    ]
+                });
+
+                window.onresize = function () {
+                    table.columns.adjust().responsive.recalc();
+                };
+            }
+
+        /***Document**/
+        //ยังไม่ได้ใช้
+        const SeeDoc = (path) => {
+            $('#DocDetail_form').children().show();
+            //const extension = path.substr(path.length - 4);
+            let extension = path;
+            switch (extension) {
+                case 'IdCardAttachedFile'://บัตรประจำตัวประชาชน
+                    $('#Document_form_IdCardAttachedFile').show();
+                    $('#Document_form_PhotoAttachedFile').hide();
+                    $('#Document_form_RegisBookAttachedFile').hide();
+                    $('#Document_form_PaymentSlipAttachedFile').hide();
+                    $('#Document_form_DebitAuthorizeAttachedFile').hide();
+                    $('#Document_form_BankBookAttachedFile').hide();
+                    $('#Document_form_OtherAttachedFile').hide();
+                    break;
+                case 'PhotoAttachedFile'://รูปภาพ
+                    $('#Document_form_IdCardAttachedFile').hide();
+                    $('#Document_form_PhotoAttachedFile').show();
+                    $('#Document_form_RegisBookAttachedFile').hide();
+                    $('#Document_form_PaymentSlipAttachedFile').hide();
+                    $('#Document_form_DebitAuthorizeAttachedFile').hide();
+                    $('#Document_form_BankBookAttachedFile').hide();
+                    $('#Document_form_OtherAttachedFile').hide();
+                    break;
+                case 'RegisBookAttachedFile'://รายการจดทะเบียน
+                    $('#Document_form_IdCardAttachedFile').hide();
+                    $('#Document_form_PhotoAttachedFile').hide();
+                    $('#Document_form_RegisBookAttachedFile').show();
+                    $('#Document_form_PaymentSlipAttachedFile').hide();
+                    $('#Document_form_DebitAuthorizeAttachedFile').hide();
+                    $('#Document_form_BankBookAttachedFile').hide();
+                    $('#Document_form_OtherAttachedFile').hide();
+                    break;
+                case 'PaymentSlipAttachedFile'://ใบเสร็จ
+                    $('#Document_form_IdCardAttachedFile').hide();
+                    $('#Document_form_PhotoAttachedFile').hide();
+                    $('#Document_form_RegisBookAttachedFile').hide();
+                    $('#Document_form_PaymentSlipAttachedFile').show();
+                    $('#Document_form_DebitAuthorizeAttachedFile').hide();
+                    $('#Document_form_BankBookAttachedFile').hide();
+                    $('#Document_form_OtherAttachedFile').hide();
+                    break;
+                case 'DebitAuthorizeAttachedFile'://หนังสือยินยอม
+                    $('#Document_form_IdCardAttachedFile').hide();
+                    $('#Document_form_PhotoAttachedFile').hide();
+                    $('#Document_form_RegisBookAttachedFile').hide();
+                    $('#Document_form_PaymentSlipAttachedFile').hide();
+                    $('#Document_form_DebitAuthorizeAttachedFile').show();
+                    $('#Document_form_BankBookAttachedFile').hide();
+                    $('#Document_form_OtherAttachedFile').hide();
+                    break;
+                case 'BankBookAttachedFile'://บัญชีธนาคาร
+                    $('#Document_form_IdCardAttachedFile').hide();
+                    $('#Document_form_PhotoAttachedFile').hide();
+                    $('#Document_form_RegisBookAttachedFile').hide();
+                    $('#Document_form_PaymentSlipAttachedFile').hide();
+                    $('#Document_form_DebitAuthorizeAttachedFile').hide();
+                    $('#Document_form_BankBookAttachedFile').show();
+                    $('#Document_form_OtherAttachedFile').hide();
+                    break;
+                case 'OtherAttachedFile'://อื่นๆ
+                    $('#Document_form_IdCardAttachedFile').hide();
+                    $('#Document_form_PhotoAttachedFile').hide();
+                    $('#Document_form_RegisBookAttachedFile').hide();
+                    $('#Document_form_PaymentSlipAttachedFile').hide();
+                    $('#Document_form_DebitAuthorizeAttachedFile').hide();
+                    $('#Document_form_BankBookAttachedFile').hide();
+                    $('#Document_form_OtherAttachedFile').show();
+                    break;
+                default:
+            }
+        }
+
+          const OpenDocstorage = (app) => {
+            var url = `@ViewBag.docstorage`+`/document=` + app + `/preview`
+             window.open(`@ViewBag.docstorage`+`/document/` + app + `/preview`,'_blank');
+        }
+        const OpenNewPage = (queueId) => {
+            let encodeId = btoa(queueId);
+            window.open(`@Url.Action("MotorUnderwriteViewDetail", "MotorUnderwrite")?queueId=${encodeId}&hiddenButton=Y`, '_blank');
+        }
+    </script>
+}

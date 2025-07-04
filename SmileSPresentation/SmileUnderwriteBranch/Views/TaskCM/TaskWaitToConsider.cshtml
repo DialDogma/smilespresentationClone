@@ -1,0 +1,420 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutForTop.cshtml";
+}
+
+<div class="wrapper" style="height:auto;min-height:100%">
+    <div class="content-wrapper" style="min-height: 960px;">
+        <section class="content">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="box box-info" style="margin-top: 15px;">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">รายการรอพิจารณา : @ViewBag.Name</h3>
+                        </div>
+                        <div class="box-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <!-- Custom Tabs -->
+                                    <div class="nav-tabs-custom">
+                                        <ul class="nav nav-tabs">
+                                            <li class="active"><a href="#tab_1" data-toggle="tab" aria-expanded="true" style="background-color: #fcef79;">รอพิจารณา</a></li>
+                                            <li class=""><a href="#tab_2" data-toggle="tab" aria-expanded="false" style="background-color:#71eb95">พิจารณาแล้ว</a></li>
+                                        </ul>
+                                        <div class="tab-content">
+                                            <div class="tab-pane active" id="tab_1">
+                                                <table id="table_onprocess" class="table table-bordered table-striped table-hover display responsive nowrap" style="width: 100%"></table>
+                                            </div>
+                                            <!-- /.tab-pane -->
+                                            <div class="tab-pane" id="tab_2">
+                                                <table id="table_considered" class="table table-bordered table-striped table-hover display responsive nowrap" style="width: 100%"></table>
+                                            </div>
+                                            <!-- /.tab-pane -->
+                                        </div>
+                                        <!-- /.tab-content -->
+                                    </div>
+                                    <!-- nav-tabs-custom -->
+                                </div>
+                                <!-- /.col -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+    {
+    <script>
+        $(function () {
+            /*start signalR*/
+            // Reference the auto-generated proxy for the hub.
+            var chat = $.connection.chatHub;
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                //join group
+                chat.server.joinGroup('@ViewBag.CurrentUser');
+            });
+            //Show public message to client
+            chat.client.receiveGroupToUpdateQueue = function (message) {
+                /*full msg*/
+                const fullMessage = message;
+                /*new date*/
+                const date = new Date();
+                /*set str*/
+                const str = date.getFullYear() +
+                    "-" +
+                    (date.getMonth() + 1) +
+                    "-" +
+                    date.getDate() +
+                    " " +
+                    date.getHours() +
+                    ":" +
+                    date.getMinutes() +
+                    ":" +
+                    date.getSeconds();
+                /*alert toastr*/
+                window.toastr["success"](`อัพเดตครั้งล่าสุด : ${str}`, fullMessage);
+                /*Load Datatables*/
+                switch ($('div.tab-pane.active').attr('id')) {
+                    case "tab_1":
+                        loadDatatable_tab1();
+                        break;
+                    case "tab_2":
+                        loadDatatable_tab2();
+                        break;
+                    default:
+                }
+            };
+
+            window.toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+            /*end signalR*/
+
+            loadDatatable_tab1();
+
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                var target = $(e.target).attr("href") // activated tab
+                switch (target) {
+                    case "#tab_1":
+                        loadDatatable_tab1();
+                        //Event on click row
+                        $('#table_onprocess tbody').on('click', 'td', function (e) {
+                            e.preventDefault();
+                            //don't trigger when click row index 0 // index 5 = cell button
+                            //หลังวันที่ 20 คลิกไม่ได้
+                            const day = new Date().getDate();
+                            if ($(this).index() == 0 || $(this).index() == 5 || day > parseInt(@ViewBag.CMDueDate)) {
+                                return;
+                            } else {
+                                var table = $('#table_onprocess').DataTable();
+                                var data = table.row(this).data();
+                                gotoCallIndexCM(`${data.ApplicationCode}`);
+                            }
+                        });
+                        break;
+                    case "#tab_2":
+                        loadDatatable_tab2();
+                        //Event on click row
+                        $('#table_considered tbody').on('click', 'td', function (e) {
+                            e.preventDefault();
+                            //don't trigger when click row index 0 //index 6 = cell button
+                            //หลังวันที่ 20 คลิกไม่ได้
+                            const day = new Date().getDate();
+                            if ($(this).index() == 0 || $(this).index() == 6 || day > parseInt(@ViewBag.CMDueDate)) {
+                                return;
+                            } else {
+                                var table = $('#table_considered').DataTable();
+                                var data = table.row(this).data();
+                                gotoCallIndexCM(`${data.ApplicationCode}`);
+                            }
+                        });
+                        break;
+                    default:
+                }
+            });
+
+            //Event on click row
+            $('#table_onprocess tbody').on('click', 'td', function (e) {
+                e.preventDefault();
+                //don't trigger when click row index 0
+                //หลังวันที่ 20 คลิกไม่ได้
+                const day = new Date().getDate();
+                if ($(this).index() == 0 || $(this).index() == 5|| day > parseInt(@ViewBag.CMDueDate)) {
+                    return;
+                } else {
+                    var table = $('#table_onprocess').DataTable();
+                    var data = table.row(this).data();
+                    gotoCallIndexCM(`${data.ApplicationCode}`);
+                }
+            });
+        });
+
+        const gotoCallIndexCM = (app) => {
+            const queryStr = btoa(app);
+            //twtc = task wait to consider
+            window.open(`@Url.Action("CallIndexCM","Call")?appCode=${queryStr}&p=twtc`,'_blank');
+        }
+
+        const loadDatatable_tab1 = () => {
+            $('#table_onprocess').empty();
+            var table = $('#table_onprocess').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetDatatablesTaskCM")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.period =  @ViewBag.Period;
+                        d.userId = @ViewBag.UserID;
+                        d.schoolAreaId = @ViewBag.AreaID;
+                        d.isConsider = false;
+                    },
+                    //dataSrc: function (data) {
+
+                    //    let returnedData = $.grep(data.data, function (element, index) {
+                    //        return element.CMIsApprove != null ;
+                    //    });
+
+                    //    data.recordsFiltered = returnedData.length;
+                    //    data.recordsTotal = returnedData.length;
+                    //    data.data = returnedData;
+
+                    //    return data.data;
+                    //}
+                },
+                columns: [
+                     {
+                         title: 'ลำดับ',
+                         data: null,
+                         orderable: false,
+                         className:"h-dt-center"
+                     },
+                     {
+                         title: 'Application',
+                         data: 'ApplicationCode',
+                         orderable: false,
+                         className:"h-dt-center"
+                     },
+                     {
+                         title: 'ชื่อลูกค้า',
+                         data: 'CustomerFullName',
+                         orderable: false,
+                         className:"h-dt-center"
+                     },
+                     {
+                         title: 'ผู้ชำระเบี้ย',
+                         data: 'PayerFullName',
+                         orderable: false,
+                         className:"h-dt-center"
+                     },
+                     {
+                         title: 'ผลการคัดกรองผอ.พท',
+                         data: 'IsResultPass',
+                         orderable: false,
+                         className:"h-dt-center d-dt-center",
+                         render:function(data){
+                             switch (data) {
+                                 case true:
+                                     return '<span class="label label-success">ผ่าน</span>';
+                                     break;
+                                 case false:
+                                     return '<span class="label label-danger">ไม่ผ่าน</span>'
+                                     break;
+                                 default:
+                                     return '<span class="label label-default">รอข้อมูล</span>'
+                                     break;
+                             }
+                         }
+                     },
+                     {
+                         title: 'จัดการ',
+                         data: null,
+                         orderable: false,
+                         className:"h-dt-center d-dt-center",
+                         render:function(data){
+                             return `<button class="form-control btn btn-primary" style="width:80%" onclick="gotoCallIndexCM('${data.ApplicationCode}');"><i class="fa fa-search"></i> เปิด</button>`
+                         }
+                     },
+                ]
+            });
+            table.on('draw.dt', function () {
+                var PageInfo = table.page.info();
+                table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                })
+            })
+
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        const loadDatatable_tab2 = () => {
+            $('#table_considered').empty();
+            var table = $('#table_considered').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetDatatablesTaskCM")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.period =  @ViewBag.Period;
+                        d.userId = @ViewBag.UserID;
+                        d.schoolAreaId = @ViewBag.AreaID;
+                        d.isConsider = true;
+                    },
+                    //dataSrc: function (data) {
+
+                    //    let returnedData = $.grep(data.data, function (element, index) {
+                    //        return element.CMIsApprove == null ;
+                    //    });
+
+                    //    data.recordsFiltered = returnedData.length;
+                    //    data.recordsTotal = returnedData.length;
+                    //    data.data = returnedData;
+
+                    //    return data.data;
+                    //}
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ',
+                        data: null,
+                        orderable: false,
+                        className:"h-dt-center"
+                    },
+                    {
+                        title: 'Application',
+                        data: 'ApplicationCode',
+                        orderable: false,
+                        className:"h-dt-center"
+                    },
+                    {
+                        title: 'ชื่อลูกค้า',
+                        data: 'CustomerFullName',
+                        orderable: false,
+                        className:"h-dt-center"
+                    },
+                    {
+                        title: 'ผู้ชำระเบี้ย',
+                        data: 'PayerFullName',
+                        orderable: false,
+                        className:"h-dt-center"
+                    },
+                    {
+                        title: 'ผลการคัดกรองผอ.พท',
+                        data: 'IsResultPass',
+                        orderable: false,
+                        className:"h-dt-center d-dt-center",
+                        render:function(data){
+                            switch (data) {
+                                case true:
+                                    return '<span class="label label-success">ผ่าน</span>';
+                                    break;
+                                case false:
+                                    return '<span class="label label-danger">ไม่ผ่าน</span>'
+                                    break;
+                                default:
+                                    return '<span class="label label-default">รอข้อมูล</span>'
+                                    break;
+                            }
+                        }
+                    },
+                    {
+                        title: 'ผลการคัดกรองประธานสาขา',
+                        data: 'CMIsApprove',
+                        orderable: false,
+                        className:"h-dt-center d-dt-center",
+                        render:function(data){
+                            switch (data) {
+                                case true:
+                                    return '<span class="label label-success">อนุมัติให้ผ่านคัดกรอง</span>';
+                                    break;
+                                case false:
+                                    return '<span class="label label-danger">อนุมัติไม่ให้ผ่านคัดกรอง</span>'
+                                    break;
+                                default:
+                                    return '<span class="label label-default">รอข้อมูล</span>'
+                                    break;
+                            }
+                        }
+                    },
+                    {
+                        title: 'จัดการ',
+                        data: null,
+                        orderable: false,
+                        className:"h-dt-center d-dt-center",
+                        render:function(data){
+                            return `<button class="form-control btn btn-primary" style="width:80%" onclick="gotoCallIndexCM('${data.ApplicationCode}');"><i class="fa fa-search"></i> เปิด</button>`
+                        }
+                    },
+                ]
+
+            });
+
+            table.on('draw.dt', function () {
+                var PageInfo = table.page.info();
+                table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                })
+            })
+
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+    </script>
+}

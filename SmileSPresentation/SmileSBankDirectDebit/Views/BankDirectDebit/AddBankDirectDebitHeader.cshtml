@@ -1,0 +1,601 @@
+﻿@{
+    ViewBag.Title = "นำส่งเอกสารหนังสือยินยอม";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form>
+    <div class="row">
+        <div class="col-sm-12">
+
+            @* Gen and Search Account *@
+            <div class="box box-primary">
+                @*<div class="box-header" style="">
+                        <h3 class="box-title">เลขที่ใบคุมเอกสาร</h3>
+                    </div>*@
+
+                <div class="box-body">
+                    <div class="form-group">
+
+                        <div class="col-sm-6">
+
+                            <div class="form-group">
+                                <div class="col-sm-9">
+                                    <label>เลขที่บัญชีธนาคาร</label>
+                                    <div class="input-group ">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-bank (alias)"></i>
+                                        </div>
+                                        <input type="text" id="txtAccountNo" name="txtAccountNo" class="form-control" data-inputmask="'mask': ['999-9-99999-9', '999-9-99999-9']" data-mask="" placeholder="999-9-99999-9">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-9">
+                                    <label>ชื่อบัญชีธนาคาร</label>
+                                    <input type="text" class="form-control" id="txtAccountName">
+                                </div>
+
+                                <div class="col-sm-3" style="padding-top:25px">
+                                    <button type="button" class="btn btn-success" style="width:100%" id="btnAdd">Add</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4" style="padding-top: 26px">
+                            <input type="text" class="form-control" id="txtBankDirectHeaderCode" value="@ViewBag.ddrNum">
+                            <input id="hdfBankDirectHeaderId" type="hidden" value="@ViewBag.bankDirectDebitHeaderId" />
+                        </div>
+                        <div class="col-sm-2" style="padding-top: 26px">
+                            <button type="button" class="btn btn-success" style="width:100%" id="btnGen">Generate</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* รายละเอียด *@
+            <div class="row">
+                <div class="col-sm-12">
+
+                    <div class="box box-primary">
+                        <div class="box-header" style="">
+                            <h3 class="box-title">รายละเอียด</h3>
+                        </div>
+
+                        <div class="box-body">
+                            <table id="dtDetail" class="table table-bordered table-hover dataTable" role="grid" aria-describedby="example2_info" style="width:100%"></table>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 col-sm-offset-6">
+                                    <button type="button" class="btn btn-success" style="width:100%" id="btnSave">ยืนยัน</button>
+                                </div>
+                                <div class="col-sm-3">
+                                    <button type="button" class="btn btn-primary" style="width:100%" id="btnPrint">พิมพ์</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+
+            if ($('#txtBankDirectHeaderCode').val() != "") {
+                debugger;
+                DoClear();
+                $('#txtBankDirectHeaderCode').prop("disabled", true);
+                $('#btnGen').prop("disabled", true);
+                 $('#btnPrint').prop("disabled", true);
+
+                $('#txtAccountNo').prop("disabled", false);
+                $('#txtAccountName').prop("disabled", false);
+                $('#btnAdd').prop("disabled", false);
+
+                GetDTDirectDebitDetail();
+            } else {
+                DoClear();
+                $('#btnSave').prop("disabled", true);
+                $('#btnPrint').prop("disabled", true);
+
+                $('#txtAccountNo').prop("disabled", true);
+                $('#txtAccountName').prop("disabled", true);
+                $('#btnAdd').prop("disabled", true);
+            }
+
+            //GetDTDirectDebitDetail();
+
+            $('#btnGen').click(function (e) {
+                if ($('#hdfBankDirectHeaderId').val() != "") {
+                    alert('มีการ Gen รายการแล้ว');
+                    return false;
+                } else {
+                    window.swal({
+                        title: 'ยืนยันการทำรายการหรือไม่?',
+                        type: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#277020',
+                        confirmButtonText: 'ตกลง',
+                        cancelButtonText: 'ยกเลิก',
+                        closeOnConfirm: false,
+                        closeOnEsc: false,
+                        closeOnCancel: true
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+
+                            GenBankDirectDebitHeader();
+                            $('#txtBankDirectHeaderCode').prop("disabled", true);
+                            $('#btnGen').prop("disabled", true);
+
+                            $('#txtAccountNo').prop("disabled", false);
+                            $('#txtAccountName').prop("disabled", false);
+                            $('#btnAdd').prop("disabled", false);
+                        }
+                    });
+                }
+
+            });
+
+            $('#txtAccountNo').on('keypress', function () {
+
+                if ($(this).val().replace(/_/gi, '').length == 13) {
+                    //debugger;
+
+                    //GetAccountName
+                    GetAccountName();
+
+                    //GetDTDirectDebitDetail();
+
+                } else {
+                    $("#txtAccountName").val("");
+                };
+
+            });
+
+            $('#btnAdd').click(function (e) {
+                if (validateForAdd() != "") {
+                    alert(validateForAdd());
+                    return false;
+                } else {
+                    //Insert DirectDebitDetail
+                    debugger;
+                    InsertDirectDebitDetail();
+                }
+            });
+
+            $("#btnPrint").click(function (e) {
+                var win = window.open("/BankDirectDebit/DeliveryNote?delivernoteID=" + $('#hdfBankDirectHeaderId').val(), '_blank');
+                win.focus();
+            });
+
+            $("#btnSave").click(function (e) {
+
+                if (IsValidateForConfirm() != "") {
+                    alert(IsValidateForConfirm());
+                    return false;
+
+                    //window.location.href = "/BankDirectDebit/DeliveryNote?delivernoteID=" + $('#hdfBankDirectHeaderId').val();
+
+                } else {
+                    window.swal({
+                        title: 'ยืนยันการทำรายการหรือไม่?',
+                        type: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#277020',
+                        confirmButtonText: 'ตกลง',
+                        cancelButtonText: 'ยกเลิก',
+                        closeOnConfirm: false,
+                        closeOnEsc: false,
+                        closeOnCancel: true
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+
+                            //GenBankDirectDebitHeader();
+                            //$('#txtBankDirectHeaderCode').prop("disabled", true);
+                            //$('#btnGen').prop("disabled", true);
+                            ////GetDTDirectDebitDetail();
+
+                            ConfirmDirectDebitHeader();
+
+                        }
+                    });
+                }
+
+            });
+
+        });
+
+        function DoClear()
+        {
+            //$('#hdfBankDirectHeaderId').val("");
+            $("#txtAccountName").val("");
+            //$("#txtBankDirectHeaderCode").val("");
+            $("#txtAccountNo").val("");
+        }
+
+        function validateForAdd()
+        {
+            var result = "";
+            //ถ้ายังไม่ได้ Gen ไม่ให้ เพิ่ม
+            if ($('#hdfBankDirectHeaderId').val() == "") {
+                result = "ไม่สามารถเพิ่่มได้ เนื่องจากยังไม่ได้ Gen";
+                return result;
+            }
+
+            if (GetBankDirectDebitConfirm() == true) {
+                result = "รายการนี้มีการยืนยันแล้วค่ะ";
+                return result;
+            }
+
+            if ($("#txtAccountName").val() == "") {
+                result = "กรุณากรอก ชื่อบัญชีธนาคาร";
+                return result;
+            }
+            if ($("#txtAccountNo").val() == "") {
+                result = "กรุณากรอก เลขบัญชีธนาคาร";
+                return result;
+            }
+
+            return result;
+
+        }
+
+        function InsertDirectDebitDetail()
+        {
+            debugger;
+            $.ajax({
+                 type: 'POST',
+                 async: false,
+                url: '@Url.Action("InsertBankDirectDebitDetail")',
+                data: {
+                    accountNo: $('#txtAccountNo').val(),
+                    bankDirectDebitHeaderId: $('#hdfBankDirectHeaderId').val(),
+                    accountName: $("#txtAccountName").val()
+
+                },
+                success: function (response) {
+                    debugger;
+                    if (response == true) {
+                        window.swal({
+                            title: 'ทำรายการสำเร็จ',
+                            type: 'success',
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+
+                            GetDTDirectDebitDetail();
+                            $("#txtAccountName").val("");
+                            $('#txtAccountNo').val("");
+
+                        });
+                    } else {
+                        window.swal({
+                            title: 'เกิดข้อผิดพลาด!',
+                            type: 'error',
+                            text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+
+                        });
+                    }
+                }
+            });
+        }
+
+        function GetAccountName()
+        {
+             $.ajax({
+                 type: 'POST',
+                 async: false,
+                url: '@Url.Action("GetAccountName")',
+                data: {
+                    AccountNo: $('#txtAccountNo').val()
+                },
+                 success: function (response) {
+                     debugger;
+                    $("#txtAccountName").val(response);
+                }
+            });
+        }
+
+        function IsValidateForConfirm()
+        {
+            var result = "";
+
+            if (GetBankDirectDebitConfirm() == true) {
+                result = "รายการนี้มีการยืนยันแล้วค่ะ";
+                return result;
+            }
+
+            return result;
+
+        }
+
+        function IsValidateForDelete()
+        {
+            var result = "";
+
+            if (GetBankDirectDebitConfirm() == true) {
+                result = "รายการนี้มีการยืนยันแล้วค่ะ";
+                return result;
+            }
+
+            return result;
+        }
+
+        function GetBankDirectDebitConfirm()
+        {
+            var result;
+            $.ajax({
+                 type: 'POST',
+                 async: false,
+                url: '@Url.Action("GetIsConfirmBankDirectDebitHeader")',
+                data: {
+                    bankDirectDebitHeaderId: $('#hdfBankDirectHeaderId').val()
+                },
+                success: function (response) {
+                    result = response;
+                }
+            });
+
+            return result;
+
+        }
+
+        function ConfirmDirectDebitHeader()
+        {
+              debugger;
+            $.ajax({
+                 type: 'POST',
+                 async: false,
+                url: '@Url.Action("ConfirmDirectDebitHeader")',
+                data: {
+                    bankDirectDebitHeaderId: $('#hdfBankDirectHeaderId').val()
+
+                },
+                success: function (response) {
+                    debugger;
+                    if (response == true) {
+                        window.swal({
+                            title: 'ยืนยันรายการสำเร็จ',
+                            type: 'success',
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+
+                            //window.location.href = "/BankDirectDebit/DeliveryNote?delivernoteID=" + $('#hdfBankDirectHeaderId').val();
+                            GetDTDirectDebitDetail();
+                            $('#btnPrint').prop("disabled", false);
+                            $('#btnSave').prop("disabled", true);
+
+                            $('#txtAccountNo').prop("disabled", true);
+                            $('#txtAccountName').prop("disabled", true);
+                            $('#btnAdd').prop("disabled", true);
+
+                        });
+                    } else {
+                        window.swal({
+                            title: 'เกิดข้อผิดพลาด!',
+                            type: 'error',
+                            text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+
+                        });
+                    }
+                }
+            });
+        }
+
+        //GetDT
+        function GetDTDirectDebitDetail()
+        {
+            $('#dtDetail').empty();
+            var table = $('#dtDetail').DataTable({
+                 pageLength: 10,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                 destroy: true,
+                 info: true,
+                 searching: false,
+                paging: false,
+                async: false,
+                ajax: {
+                    method: 'POST',
+                    async: false,
+                    url: '@Url.Action("GetDirectDebitDetail")',
+                    data: function (d) {
+                        debugger;
+                        d.bankDirectDebitHeaderId = $('#hdfBankDirectHeaderId').val();
+                        //d.bankDirectDebitHeaderId = 92;
+                    }
+                },
+                columns: [
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-left',
+                        data: 'BankDirectDebitDetailId',
+
+                       // data: null,
+                        title: 'Action',
+
+                        render: function (data) {
+                            //debugger;
+                            if (GetBankDirectDebitConfirm() == true) {
+                                return '';
+                            } else {
+                                return '<div class="col-sm-10" ><a onclick="ConfirmDeleteDirectDebitDetail(' + data + ')"  class="btn btn-block btn-danger" ><i class="fa fa-fw fa-minus-circle"></i></a></div>';
+                            }
+
+                        },width: "10%"
+                    },
+                    { title: 'เลขที่บัญชีธนาคาร', data: 'AccountNo' ,width: "20%"},
+                    { title: 'ชื่อบัญชีธนาคาร', data: 'AccountName' },
+                    {
+                        title: 'สถานะ',
+                        data: 'Status',
+                         className: 'dt-center'
+                    },
+                    { title: 'หมายเหตุ', data: 'Remark' },
+
+                ],
+                    //select: {
+                    //    style:    'os',
+                    //    selector: 'td:first-child'
+                    //},
+                    //order: [[1, 'asc']],
+
+                initComplete: function (settings, json) {
+                    var info = this.api().page.info();
+
+                    if (info.recordsTotal > 0) {
+                        $('#btnSave').prop("disabled", false);
+                    } else {
+                        $('#btnSave').prop("disabled", true);
+                    }
+                }
+            });
+
+        }
+
+        function ConfirmDeleteDirectDebitDetail(bankDirectDebitDetail)
+        {
+            if (IsValidateForDelete() != "") {
+                alert(IsValidateForDelete());
+                return false;
+            } else {
+                window.swal({
+                    title: 'ยืนยันการทำรายการหรือไม่?',
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#277020',
+                    confirmButtonText: 'ตกลง',
+                    cancelButtonText: 'ยกเลิก',
+                    closeOnConfirm: false,
+                    closeOnEsc: false,
+                    closeOnCancel: true
+                }, function (isConfirm) {
+                    if (isConfirm) {
+
+                        DeleteDirectDebitDetail(bankDirectDebitDetail);
+
+                    }
+                });
+            }
+
+        }
+
+        //Delete
+        function DeleteDirectDebitDetail(bankDirectDebitDetail)
+        {
+            $.ajax({
+                 type: 'POST',
+                 async: false,
+                url: '@Url.Action("DeleteBankDirectDebitDetail")',
+                 data: {
+                     //BankId: $('#cBank').val(),
+                     //AccountNoList: AccountNo
+                     bankDirectDebitDetail: bankDirectDebitDetail
+                 },
+                 success: function (response) {
+                     if (response != null) {
+                         window.swal({
+                             title: 'ลบรายการสำเร็จ',
+                             type: 'success',
+                             showCancelButton: false,
+                             confirmButtonColor: '#26A65B',
+                             confirmButtonText: 'ตกลง',
+                             closeOnEsc: false
+                         }, function () {
+                             //var win = window.open("/BankDirectDebit/AccountDetailGroup?BankDirectDebitID=" + response[1], '_blank');
+                             //win.focus();
+                             //GetReport($('#cBank').val());
+                             //$('#hdfBankDirectHeaderId').val(response.BankDirectDebitHeaderId);
+                             //$('#txtBankDirectHeaderCode').val(response.BankDirectDebitHeaderCode);
+
+                             GetDTDirectDebitDetail();
+
+                         });
+                     } else {
+                         window.swal({
+                             title: 'เกิดข้อผิดพลาด!',
+                             type: 'error',
+                             text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                             showCancelButton: false,
+                             confirmButtonColor: '#ed2b09',
+                             confirmButtonText: 'ตกลง',
+                             closeOnEsc: false
+                         }, function () {
+
+                         });
+                     }
+                 }
+            });
+        }
+
+        //Gen BankDirectDebitHeader
+        function GenBankDirectDebitHeader()
+        {
+             $.ajax({
+                 type: 'POST',
+                 async: false,
+                url: '@Url.Action("GenBankDirectDebitHeader")',
+                 data: {
+                     //BankId: $('#cBank').val(),
+                     //AccountNoList: AccountNo
+                 },
+                 success: function (response) {
+                     if (response != null) {
+                         window.swal({
+                             title: 'ทำรายการสำเร็จ',
+                             type: 'success',
+                             showCancelButton: false,
+                             confirmButtonColor: '#26A65B',
+                             confirmButtonText: 'ตกลง',
+                             closeOnEsc: false
+                         }, function () {
+                             //var win = window.open("/BankDirectDebit/AccountDetailGroup?BankDirectDebitID=" + response[1], '_blank');
+                             //win.focus();
+                             //GetReport($('#cBank').val());
+                             $('#hdfBankDirectHeaderId').val(response.BankDirectDebitHeaderId);
+                             $('#txtBankDirectHeaderCode').val(response.BankDirectDebitHeaderCode);
+
+                             GetDTDirectDebitDetail();
+
+                         });
+                     } else {
+                         window.swal({
+                             title: 'เกิดข้อผิดพลาด!',
+                             type: 'error',
+                             text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                             showCancelButton: false,
+                             confirmButtonColor: '#ed2b09',
+                             confirmButtonText: 'ตกลง',
+                             closeOnEsc: false
+                         }, function () {
+
+                         });
+                     }
+                 }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,151 @@
+﻿@{
+    ViewBag.Title = "บันทึกการใช้ Point";
+}
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+            <div class="box-header with-border">
+                <h3 class="box-title">รายละเอียด Account</h3>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <span class="tab-default col-md-3 col-xs-12">เลขบัญชี : @ViewBag.AccountDetail.PointAccountId</span>
+                <span class="tab-default col-md-3 col-xs-12">ประเภท : @ViewBag.AccountTypeName</span>
+                <span class="tab-default col-md-6 col-xs-12">ชื่อบัญชี :  @ViewBag.AccountDetail.PointAccountName</span>
+                <span class="tab-default col-md-3 col-xs-12">รหัสอ้างอิง :  @ViewBag.AccountDetail.ReferenceCode</span>
+                <span class="tab-default col-md-3 col-xs-12">ชื่ออ้างอิง :  @ViewBag.AccountDetail.ReferenceDetail</span>
+                <span class="tab-default col-md-3 col-xs-12">Point คงเหลือ : <span class="badge bg-yellow"> @ViewBag.AccountDetail.PointRemain</span> </span>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+    <!-- /.box -->
+</div>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+            <div class="box-header with-border">
+                <h3 class="box-title">รายละเอียดการใช้ Point</h3>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div id="form1_msg" class="alert alert-danger alert-dismissible" style="display: none;">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                    <h4><i class="icon fa fa-ban"></i> เตือน!</h4>
+                    กรุณากรอกข้อมูลให้ถูกต้องและครบถ้วน
+                </div>
+                @if (!String.IsNullOrEmpty(HttpContext.Current.Request.QueryString["errorText"]))
+                {
+                    <div id="form1_alert" class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h4><i class="icon fa fa-ban"></i> เตือน!</h4>
+                        @HttpContext.Current.Request.QueryString["errorText"]
+                    </div>
+                }
+                <!-- form start -->
+                <form class="form-horizontal" id="form1" action="@Url.Action("UsePoint")" method="post" enctype="multipart/form-data">
+                    <div class="box-body">
+                        @* Hidden field to Postback ID*@
+                        <input type="hidden" name="PointAccountId" value="@ViewBag.AccountDetail.PointAccountId" />
+
+                        @* กลุ่ม Transaction *@
+                        <div class="form-group">
+                            <label for="PointAccountTypeId" class="col-sm-2 control-label">แผนก</label>
+                            <div class="col-sm-4">
+                                <select class="form-control select2" name="TransactionGroupId" id="TransactionGroupId" style="width: 100%;">
+                                    @foreach (var item in ViewBag.TransactionGroups)
+                                    {
+                                        <option value="@item.TransactionGroupId">@item.TransactionGroupName</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        @* ประเภท Transaction *@
+                        <div class="form-group">
+                            <label for="PointAccountTypeId" class="col-sm-2 control-label">ประเภท</label>
+                            <div class="col-sm-4">
+                                <select class="form-control select2" name="TransactionTypeId" id="TransactionTypeId" style="width: 100%;"></select>
+                            </div>
+                        </div>
+
+                        @*จำนวน Point*@
+                        <div class="form-group">
+                            <label for="PointAccountName" class="col-sm-2 control-label">จำนวน Point *</label>
+                            <div class="col-sm-4">
+                                <input type="number" class="form-control" placeholder="จำนวน Point" name="Amount" id="Amount">
+                            </div>
+                        </div>
+
+                        @*หมายเหตุ*@
+                        <div class="form-group">
+                            <label for="ReferenceDetail" class="col-sm-2 control-label">หมายเหตุ</label>
+                            <div class="col-sm-4">
+                                <textarea class="form-control" rows="3" placeholder="หมายเหตุ" name="Remark" id="Remark"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.box-body -->
+                    <div class="box-footer">
+                        <button type="submit" class="col-sm-offset-2 btn btn-primary"><i class="fa fa-floppy-o"></i> บันทึกข้อมูล </button>
+                        <a href="@Url.Action("List")" class="btn btn-danger"><i class="fa fa-times"></i> Cancel</a>
+                    </div>
+                    <!-- /.box-footer -->
+                </form>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+    <!-- /.box -->
+</div>
+
+@section ViewSpecificJavascript{
+    <script>
+        $(function () {
+            //Initialize Select2 Elements
+            $('.select2').select2();
+
+            GetTransactionType($('#TransactionGroupId').val());
+
+            $('#TransactionGroupId').change(function (e) {
+                e.preventDefault();
+                var transactionGroupId = $('#TransactionGroupId').val();
+                debugger;
+                GetTransactionType(transactionGroupId);
+            });
+
+            $(".datepicker").datepicker();
+
+            $("#form1").validate({
+                rules: {
+                    Name: { required: true },
+                    TransactionTypeId: { required: true },
+                    Amount: { required: true }
+                },
+                invalidHandler: function (e, r) {
+                    $("#form1_msg").css('display', 'block');
+                },
+                submitHandler: function (e) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        //Get Transaction Type
+         function GetTransactionType(TransactionGroupId) {
+                    $.ajax({
+                        type: "GET",
+                        url: "@Url.Action("GetTransactionType","Transaction")?transactionGroupId=" + TransactionGroupId,
+                        //async: false, //ทำฟังก์ชั่นนี้ให้เสร็จก่อน
+                        success: function(response) {
+                            $('#TransactionTypeId').empty();
+                            for (var i = 0; i < response.length; i++) {
+                                 $('#TransactionTypeId').append('<option value="' +  response[i].TransactionTypeId +  '">' + response[i].TransactionTypeName + '</option>');
+                            }
+                        }
+                    });
+                }
+    </script>
+}

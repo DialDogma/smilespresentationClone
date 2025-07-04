@@ -1,0 +1,258 @@
+﻿@{
+    ViewBag.Title = "Feedback";
+    Layout = "~/Views/Shared/_LayoutForFeedback.cshtml";
+}
+
+<div class="container custom-container">
+    <div class="col-xs-12" style="text-align: center ;padding: 0; ">
+        <img src="~/Content/img/logo.png" style="max-width: 60%; height: auto;">
+    </div>
+    <div class="text-center">
+        <p style="font-size: 3rem; color: #337ab7;">ทุกความคิดเห็นของคุณมีความหมาย</p>
+    </div>
+
+    <div class="text-center">
+        <form id="ratingForm" method="post" action="@Url.Action("SubmitFeedback")">
+            @{
+                int counter = 1;
+                var qt0 = ViewBag.QuestionAnswerViewModel[0];
+            }
+            <div style="margin-top: 20px; margin-bottom: 10px;">
+                <p class="text-center" style="font-size: 2rem;">
+                    ให้คะแนนผู้ให้บริการของ<br />
+
+                    @ViewBag.Criteria ในวันที่ @ViewBag.CheckinDate
+                </p>
+            </div>
+
+            <p class="stars">
+                <span>
+                    @foreach (var answer0 in qt0.Answers)
+                    {
+
+                        {
+                            <a class="star-@counter" href="javascript:void(0);" data-id="@answer0.SurveyAnswerId">@counter</a>
+                            counter++;
+                        }
+                    }
+                </span>
+                <input type="hidden" name="SurveyQuestion1" value="@qt0.SurveyQuestionId" />
+                <input type="hidden" name="SurveyAnswers1" data-star="0" value="" />
+            </p>
+
+            @{
+                var qt1 = ViewBag.QuestionAnswerViewModel[1];
+            }
+
+            <div id="feedbackSuggestions" class="container text-left" style="display: none;">
+                <b style="color: #337ab7;">โปรดระบุข้อเสนอแนะที่ควรปรับปรุง <span id="textRequest1" class="text-red" style="display:none;">*กรุณาระบุ</span></b><br>
+                @foreach (var answer1 in qt1.Answers)
+                {
+                    var isOtherOption = answer1.AnswerDetail == "อื่นๆ";
+                    <input type="checkbox"
+                           class="icheck"
+                           id="@answer1.SurveyAnswerId"
+                           name="Answers"
+                           @(isOtherOption ? "data-other=true" : "")>
+                    <label style="font-weight: 400" for="@answer1.SurveyAnswerId">@answer1.AnswerDetail</label><br>
+                }
+                <input type="hidden" name="SurveyQuestion2" value="@qt1.SurveyQuestionId" />
+                <input type="hidden" name="SurveyAnswers2" value="" />
+            </div>
+
+            @{
+                var qt2 = ViewBag.QuestionAnswerViewModel[2];
+            }
+            <div class="form-group text-left" style="margin-top: 10px;">
+                <label>@qt2.QuestionDetail  <span id="textRequest2" class="text-red" style="display: none;">*กรุณาระบุ</span></label>
+                <textarea name="SurveyAnswers3" class="form-control" rows="3"></textarea>
+                <input type="hidden" name="SurveyQuestion3" value="@qt2.SurveyQuestionId" />
+            </div>
+
+            <input type="hidden" name="SurveyId" value="@ViewBag.SurveyId" />
+            <input type="hidden" name="ViewLogId" value="@ViewBag.ViewLogId" />
+
+            <div style="margin-top: 30px; margin-bottom: 50px;">
+                <button type="button" onclick="handleSubmit()" class="btn btn-info btn-block" style="padding: 10px">ส่งแบบประเมิน</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .stars a {
+        display: inline-block;
+        padding-right: 4px;
+        text-decoration: none;
+        margin: 4px;
+    }
+
+        .stars a:after {
+            position: relative;
+            font-size: 40px;
+            font-family: 'FontAwesome', serif;
+            display: block;
+            content: "\f005";
+            color: white; /* เปลี่ยนสีดาวเป็นสีขาว */
+            text-shadow: 0 0 4px #ffcc00, 0 0 8px #ffcc00; /* เพิ่มขอบสีเหลือง */
+        }
+
+    .stars > span {
+        font-size: 0;
+        /* trick to remove inline-element's margin */
+    }
+
+    .stars a:hover ~ a:after {
+        color: white !important; /* คงสีดาวเป็นสีขาว */
+        text-shadow: 0 0 4px #ffcc00, 0 0 8px #ffcc00; /* คงขอบสีเหลือง */
+    }
+
+    span.active a.active ~ a:after {
+        color: white;
+        text-shadow: 0 0 4px #ffcc00, 0 0 8px #ffcc00;
+    }
+
+    span:hover a:after {
+        color: #ffcc00 !important; /* เปลี่ยนเป็นสีเหลืองเมื่อ hover */
+        text-shadow: none;
+    }
+
+    span.active a:after,
+    .stars a.active:after {
+        color: #ffcc00; /* เมื่อเลือกแล้วให้เปลี่ยนเป็นสีเหลือง */
+        text-shadow: none;
+    }
+</style>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            window.handleSubmit = function () {
+                var isValid = true;  // เริ่มต้น isValid ที่ true
+                var starValue = "";
+                $(".stars a.active").each(function () {
+                    starValue = $(this).text();
+                });
+
+                const checkboxes = feedbackSuggestions.querySelectorAll("input[type='checkbox']");
+                const isChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+                const isCheckedOther = $("input[data-other=true]").is(":checked");
+                const isComment = $('textarea[name="SurveySurveyAnswers3"]').val() == "";
+
+                if (!starValue) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'คุณยังไม่ได้ประเมินความพึงพอใจ',
+                        text: 'โปรดให้คะแนนความพึงพอใจสำหรับการบริการ',
+                        confirmButtonText: 'ตกลง',
+                        confirmButtonColor: '#3085d6',
+                    });
+                } else if (starValue < 3) {
+                    if (!isChecked) {
+                        $("#textRequest1").show();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'คุณยังไม่ได้ประเมินความพึงพอใจ',
+                            text: 'โปรดให้คะแนนความพึงพอใจสำหรับการบริการ',
+                            confirmButtonText: 'ตกลง',
+                            confirmButtonColor: '#3085d6',
+                        });
+                    } else if (isCheckedOther && isComment) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'คุณยังไม่ได้ประเมินความพึงพอใจ',
+                            text: 'โปรดให้คะแนนความพึงพอใจสำหรับการบริการ',
+                            confirmButtonText: 'ตกลง',
+                            confirmButtonColor: '#3085d6',
+                        });
+                    } else {
+                        $('form').submit();
+
+                    }
+                } else { $('form').submit(); }
+            };
+
+            $('.stars a').on('click', function () {
+                const feedbackSuggestions = document.getElementById("feedbackSuggestions");
+
+                // ตรวจสอบว่ามี feedbackSuggestions หรือไม่ก่อนดำเนินการ
+                if (!feedbackSuggestions) return;
+                feedbackSuggestions.style.display = "none";
+                $('#textRequest2').hide();  // ซ่อนข้อความ
+                $('textarea[name="SurveyAnswers3"]').removeAttr('required');  // ยกเลิกการบังคับกรอก
+                $('#SurveyAnswers3-error').hide();
+                $('#textRequest1').hide();
+
+                const ratingInput = $(this).text()
+                const ratingInputId = $(this).data("id");
+                $('.stars span, .stars a').removeClass('active');
+
+                $(this).addClass('active');
+                $('.stars span').addClass('active');
+
+                // อัปเดตค่า Answers- ในฟอร์ม
+                $(`input[name="SurveyAnswers1"]`).val(ratingInputId);
+                $(`input[name="SurveyAnswers1"]`).attr("data-star", ratingInput);
+
+
+                const checkboxes = feedbackSuggestions.querySelectorAll("input[type='checkbox']");
+
+                // ฟังก์ชันสำหรับจัดการการแสดง/ซ่อน feedbackSuggestions
+                function updateFeedbackVisibility(rating) {
+                    if (rating < 3) {
+                        feedbackSuggestions.style.display = "block"; // เปลี่ยนจาก display เป็น visibility
+                        // รีเซ็ตค่า checkbox
+                        checkboxes.forEach((checkbox) => {
+                            $(checkbox).iCheck('uncheck'); // ยกเลิกการเลือก
+                            $(checkbox).val(""); // ตั้งค่า value เป็นค่าว่าง
+                            $(checkbox).iCheck('update'); // อัปเดตสถานะ
+                        });
+                    } else {
+                        feedbackSuggestions.style.display = "none"; // ใช้ visibility แทน
+                    }
+                }
+
+                // อัปเดตการแสดงผลตามค่าของ ratingInput
+                updateFeedbackVisibility(ratingInput);
+            });
+
+            $("input[data-other=true]").on('ifChanged', function () {
+                // หาก checkbox data-other ถูกติ๊ก ให้แสดงข้อความ "*กรุณาระบุ" และทำให้ textarea เป็นบังคับกรอก
+                if ($(this).is(':checked')) {
+                    $('#textRequest2').show();  // แสดงข้อความ
+                    $('textarea[name="SurveyAnswers3"]').attr('required', true);  // ทำให้ textarea เป็นบังคับกรอก
+                } else {
+                    $('#SurveyAnswers3-error').hide();
+                    $('#textRequest2').hide();  // ซ่อนข้อความ
+                    $('textarea[name="SurveyAnswers3"]').removeAttr('required');  // ยกเลิกการบังคับกรอก
+                }
+            });
+
+            $('input.icheck').on('ifChanged', function () {
+                const form = $('#ratingForm');
+
+                var starValue = "";
+                $(".stars a.active").each(function () {
+                    starValue = $(this).text();
+                });
+
+                const checkboxes = feedbackSuggestions.querySelectorAll("input[type='checkbox']");
+                const isChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+
+                const selectedAnswers = form.find('input.icheck:checked').map(function () {
+                    return $(this).attr('id');
+                }).get();
+
+                if (starValue < 3 && isChecked) {
+                    $("#textRequest1").hide();
+                }
+
+                $(`input[name="SurveyAnswers2"]`).val(JSON.stringify(selectedAnswers));
+            });
+
+        });
+    </script>
+}

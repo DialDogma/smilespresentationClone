@@ -1,0 +1,195 @@
+﻿@{
+    ViewBag.Title = "รายงานสถิติการแจ้งใช้สิทธิ์";
+}
+
+<style>
+    .dt-center {
+        text-align: center;
+    }
+
+    .dt-left {
+        text-align: left;
+    }
+
+    td.highlight {
+        font-weight: bold;
+        color: #3c8dbc;
+    }
+
+    .red {
+        color: red;
+    }
+
+    .orange {
+        color: orange;
+    }
+
+    .green {
+        color: green;
+    }
+</style>
+
+<form id="myForm" action="@Url.Action("ReportStatic")" method="post" enctype="multipart/form-data">
+    <div class="row" id="divcontent">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">เงื่อนไขการค้นหา</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="col-md-6">
+                        <div class="col-md-6">
+                            <div class="form-group" style="margin-bottom: 0">
+                                <label class="title1">วันที่ :</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input class="form-control datepicker" id="date_start" name="date_start" data-provide="datepicker" data-date-language="th-th" required="required" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group" style="margin-bottom: 0">
+                                <label class="title1">ถึงวันที่ :</label>
+                                <div class="input-group pull-right">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input class="form-control datepicker" id="date_end" name="date_end" data-provide="datepicker" data-date-language="th-th" required="required" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @*<div class="col-md-6">
+                            <div class="col-md-12">
+                                <div class="col-md-4 pull-right" style="margin-top: 25px;">
+                                    <div class="form-group">
+                                        <div class="input-group">
+                                            <span class="input-group-btn">
+                                                <button id="button_excel" name="button_excel" type="submit" class="btn btn-success btn-flat"><i class="fa fa-file"></i> ดาวน์โหลด Excel</button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>*@
+                    <div class="col-md-12">
+                        <table id="datatable1" class="table table-bordered table-striped" style="width: 100%"></table>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script>
+        $(document).ready(function () {
+            var d = new Date();
+            $('#date_start').datepicker("setDate", new Date(d.getFullYear(), d.getMonth(), 1)).change(function () {
+                if ($("form").valid() == true) {
+                    drawTable();
+                }
+            });
+
+            $('#date_end').datepicker("setDate", d).change(function () {
+                if ($("form").valid() == true) {
+                    drawTable();
+                }
+            });
+            drawTable();
+        });
+
+        function drawTable() {
+
+            $('#datatable1').empty();
+
+            $('#datatable1').DataTable({
+                pageLength: 100000,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                dom: '<"pull-right"B>rt<"pull-left"i><"pull-right"p>',
+                buttons: [{
+                    extend: 'copy',
+                    text: 'คัดลอก'
+                },
+                {
+                    extend: 'excel', // ปุ่มสร้าง excel ไฟล์
+                    text: 'ดาวน์โหลด Excel', // ข้อความที่แสดง
+                    className: 'green', //class name
+                    messageTop: 'ตั้งแต่ช่วงวันที่ ' + $('#date_start').val().toString() + ' - ' + $('#date_end').val().toString() //Shown between the title and the table in the exported document
+                },
+                 { // กำหนดพิเศษเฉพาะปุ่ม pdf
+                     extend: 'pdf', // ปุ่มสร้าง pdf ไฟล์
+                     text: 'ดาวน์โหลด PDF', // ข้อความที่แสดง
+                     className: 'orange', //class name
+                     messageTop: 'ตั้งแต่ช่วงวันที่ ' + $('#date_start').val().toString() + ' - ' + $('#date_end').val().toString(), //Shown between the title and the table in the exported document
+                     pageSize: 'A4',  // ขนาดหน้ากระดาษเป็น A4
+                     customize: function (doc) { // ส่วนกำหนดเพิ่มเติม ส่วนนี้จะใช้จัดการกับ pdfmake
+                         // กำหนดความกว้างของ header แต่ละคอลัมน์หัวข้อ
+                         //ถ้ามี messageTop content จะเท่ากับ array[2] ถ้าไม่มี array[1] ,array[0]=Title
+                         doc.content[2].table.widths = ['*', '*', '*', '*']; //'*','auto','fixตัวเลข เช่น 50,100'
+                         doc.styles.tableHeader.fontSize = 16; // กำหนดขนาด font ของ header
+                         var rowCount = doc.content[2].table.body.length; // หาจำนวนแถวทั้งหมดในตาราง
+                         // วนลูปเพื่อกำหนดค่าแต่ละคอลัมน์ เช่นการจัดตำแหน่ง
+                         for (var i = 1; i < rowCount; i++) { // i เริ่มที่ 1 เพราะ i แรกเป็นแถวของหัวข้อ
+                             doc.content[2].table.body[i][0].alignment = 'left'; // คอลัมน์แรกเริ่มที่ 0
+                             doc.content[2].table.body[i][1].alignment = 'right';
+                             doc.content[2].table.body[i][2].alignment = 'right';
+                             doc.content[2].table.body[i][3].alignment = 'right';
+                         };
+                         console.log(doc); // เอาไว้ debug ดู doc object proptery เพื่ออ้างอิงเพิ่มเติม
+                     }// สิ้นสุดกำหนดพิเศษปุ่ม pdf
+                 }
+                ],
+                ajax: {
+                    url: '@Url.Action("GetStaticDatatable")',
+                    method: "POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 100000;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.dateStart = $('#date_start').val();
+                        d.dateEnd = $('#date_end').val();
+                        d.search = d.search;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'โรงพยาบาล',
+                        data: 'Hospital',
+                        className: 'dt-left'
+
+                    },
+                    {
+                        title: 'เช็คสิทธิ์เคลม',
+                        data: 'เช็คสิทธิ์เคลม',
+                        className: 'dt-right highlight'
+                    },
+                    {
+                        title: 'ยกเลิกเคลม',
+                        data: 'ยกเลิกเคลม',
+                        className: 'dt-right highlight'
+                    },
+                    {
+                        title: 'ทั้งหมด',
+                        data: 'ALL',
+                        className: 'dt-right highlight'
+                    }
+                ]
+            });
+        }
+    </script>
+}

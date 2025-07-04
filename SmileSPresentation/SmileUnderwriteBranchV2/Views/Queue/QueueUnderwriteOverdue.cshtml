@@ -1,0 +1,233 @@
+﻿@{
+    ViewBag.Title = "คิวงานคัดกรองเกินกำหนด";
+    Layout = "~/Views/Shared/_LayoutForTopIndexPH.cshtml";
+}
+<style>
+    .table {
+        font-size: 14px;
+    }
+
+    .header {
+        margin: 15px;
+    }
+
+    .select2-container .select2-selection--single {
+        box-sizing: border-box;
+        cursor: pointer;
+        display: block;
+        height: 34px !important;
+        border-radius: 0px !important;
+        -webkit-user-select: none;
+    }
+
+    .select2 {
+        width: 100% !important;
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row" style="margin-top: 25px">
+        <div class="col-sm-12 col-md-12">
+            @* search form *@
+            <div id="Search_form">
+                <div class="box box-warning">
+                    <div class="header">
+                        <legend style="text-align: center; background: rgb(255, 0, 0); color: white">คิวงานคัดกรองเกินกำหนด</legend>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group row">
+                            <div class="col-sm-6 col-md-offset-1 col-md-3">
+                                <label class="control-label" for="">เลข Application:</label>
+                                <input type="text" class="form-control" id="txtSearchApp" placeholder="เลข Application" />
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <label class="control-label" for="">ชื่อผู้เอาประกัน:</label>
+                                <input type="text" class="form-control" id="txtSearchCus" placeholder="ชื่อ-สกุล ผู้เอาประกัน" />
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <label class="control-label" for="">ชื่อผู้ชำระเบี้ย:</label>
+                                <input type="text" class="form-control" id="txtSearchPayer" placeholder="ชื่อ-สกุล ผู้ชำระเบี้ย" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-6 col-md-offset-1 col-md-3">
+                                <label class="control-label" for="">ชื่อ ผอ.บล.:</label>
+                                <input type="text" class="form-control" id="txtSearchDirector" placeholder="รหัสพนักงาน ชื่อ-สกุล ผอ.บล." />
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <label class="control-label" for="">สาขา:</label>
+                                <select id="selectBranch" class="form-control select2">
+                                    @if (ViewBag.branchList != null)
+                                    {
+                                        <option value="-1">ทั้งหมด</option>
+                                        foreach (var i in ViewBag.branchList)
+                                        {
+                                            <option value="@i.Branch_ID"> @i.BranchDetail</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <button type="button" class="btn btn-block btn-info" id="btnSearch" onclick="GetQueueOverdue_Dt()" style="margin-top: 25px">ค้นหา</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* end form *@
+        </div>
+        <div class="col-sm-12 col-md-12">
+            @* DT form *@
+            <div id="dt_form">
+                <div class="box box-warning">
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <table id="dtQueueOverdue" name="dtQueueOverdue" class="table table-bordered table-striped display responsive" style="width: 100%">
+                                    <tbody>
+                                        <tr style="text-align: center"><td>ไม่พบข้อมูล</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* end form *@
+        </div>
+    </div>
+    <input type="hidden" id="userId" value="@ViewBag.UserId" />
+    @* hidden *@
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+            $('.select2').select2();
+            /*start signalR*/
+            // Reference the auto-generated proxy for the hub.
+            var chat = $.connection.chatHub;
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                //join group
+                chat.server.joinGroup($('#userId').val());
+            });
+            //Show public message to client
+            chat.client.receiveGroupNotice = function (message) {
+                /*full msg*/
+                const fullMessage = message;
+                /*new date*/
+                const date = new Date();
+                /*set str*/
+                const str = date.getFullYear() +
+                    "-" +
+                    (date.getMonth() + 1) +
+                    "-" +
+                    date.getDate() +
+                    " " +
+                    date.getHours() +
+                    ":" +
+                    date.getMinutes() +
+                    ":" +
+                    date.getSeconds();
+                /*alert toastr*/
+                window.toastr["success"](`อัพเดตครั้งล่าสุด : ${str}`, fullMessage);
+                /*Load Datatables*/
+                $('#dtQueueOverdue').DataTable().ajax.reload();
+            };
+
+            window.toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+            /*end signalR*/
+
+            //load dt
+            GetQueueOverdue_Dt();
+        });
+
+        const GetQueueOverdue_Dt = () => {
+            $('#dtQueueOverdue').empty();
+            var tbl = $('#dtQueueOverdue').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("QueueUnderwriteOverdue_dt","Queue")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchDetail1 = $('#txtSearchCus').val();
+                        d.searchDetail2 = $('#txtSearchPayer').val();
+                        d.searchDetail3 = $('#txtSearchApp').val();
+                        d.searchDetail4 = $('#txtSearchDirector').val();
+                        d.payerBranchId = $('#selectBranch').val();
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ',
+                        data: null,
+                        orderable: false,
+                        className:"h-dt-center"
+                    },
+                    { title: 'เลขApp', data: 'ApplicationCode' },
+                    { title: 'ชื่อผู้เอาประกัน', data: 'CustomerName' },
+                    { title: 'ชื่อผู้ชำระเบี้ย', data: 'PayerName' },
+                    { title: 'ชื่อ ผอ.บล.', data: 'DirectorName' },
+                    { title: 'สาขา', data: 'DirectorBranch' },
+                    {
+                        title: 'จัดการ',
+                        data: null,
+                        orderable: false,
+                        render: function (data) {
+                            return '<a target="_blank" onclick="LoadDetail(' + data.QueueId + ')" class="btn btn-block btn-info">เปิด</a>';
+                        }
+                    }
+                ]
+            });
+            tbl.on('draw.dt', function () {
+                var PageInfo = tbl.page.info();
+                tbl.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                });
+            });
+            window.onresize = function () {
+                tbl.columns.adjust().responsive.recalc();
+            };
+        }
+
+           const LoadDetail = (qId) => {
+            var encoded = btoa(qId);
+            window.open(`@Url.Action("UnderwriteIndexForUnderwriteOverdue", "Underwrite")?queueId=`+encoded,'_blank');
+        }
+    </script>
+}

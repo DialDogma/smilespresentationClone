@@ -1,0 +1,177 @@
+﻿@{
+    ViewBag.Title = "รายงานผลนำส่งเอกสารหนังสือยินยอมหักบัญชีธนาคาร";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@*BankDirectDebitReport*@</h2>
+
+<form class="form-horizontal">
+
+    <div class="row">
+
+        <div class="col-sm-12">
+
+            @* Search *@
+
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">ค้นหา</h3>
+                </div>
+
+                <div class="box-body">
+
+                    <div class="form-group">
+
+                        <div class="col-sm-3">
+                            <label for="" class="control-label">ช่วงวันที่ทำรายการ : </label>
+                            <input type="text" class="form-control pull-right" name="dateForm" id="dateForm" required="required"
+                                   data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy">
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="" class="control-label">ถึง : </label>
+                            <input type="text" class="form-control pull-right" name="dateTo" id="dateTo" required="required"
+                                   data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <label>สาขา </label>
+                            <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlBranch" name="ddlBranch">
+                                @*@foreach (var item in @ViewBag.BankId)
+                                    {
+                                        <option value=@item.TempCode>  @item.OrganizeDetail </option>
+                                    }*@
+                            </select>
+                        </div>
+                        <div class="col-sm-3">
+                            <label>ธนาคาร</label>
+                            <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlBank" name="ddlBank">
+                                @*@foreach (var item in @ViewBag.BankId)
+                                    {
+                                        <option value=@item.TempCode>  @item.OrganizeDetail </option>
+                                    }*@
+                            </select>
+                        </div>
+                        <div class="col-sm-3">
+                            <label>สถานะการส่งเอกสาร</label>
+                            <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlStatus" name="ddlStatus">
+                                @*@foreach (var item in @ViewBag.BankId)
+                                    {
+                                        <option value=@item.TempCode>  @item.OrganizeDetail </option>
+                                    }*@
+                            </select>
+                        </div>
+                        <div class="col-sm-3" style="padding-top:27px">
+                            <button type="button" class="btn btn-block btn-info" id="btnSearch">แสดงรายการ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Detail *@
+
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">รายการ</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="form-group" style="width:100%">
+                        <table id="dtReport" class="table table-bordered table-striped" style="width:100%"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+
+            //GetDTDetail
+
+            $('#btnSearch').on('click', function (e) {
+                e.preventDefault();
+                //GetReport($('#cBank').val());
+            });
+
+        })
+
+        function GetDTDetail()
+        {
+            $('#dtReport').empty();
+            var table = $('#dtReport').DataTable({
+                 pageLength: 10,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                 destroy: true,
+                 searching: false,
+                lengthChange: false,
+
+                ajax: {
+                    method: 'POST',
+                    url: '@Url.Action("GetDatatableDetail")',
+                    data: function (d) {
+
+                        d.BankId = $('#cBank').val();
+                        d.AccountNo = id;
+                        d.draw = d.draw;
+                        d.IndexStart = d.start;
+                        d.pageSize = d.length;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = "";
+
+                    }
+                },
+                columns: [
+                    { title: 'เลขสติ๊กเกอร์', data: 'App_id' },
+                    { title: 'ผลิตภัณฑ์', data: 'Product' },
+                    { title: 'ชื่อ-สกุล ผู้เอาประกัน', data: 'CustName' },
+                    {
+                        title: 'DCR',
+                        data: 'StartCoverDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            return moment(data).format('DD/MM/YYYY');
+                        }
+                    },
+
+                    {
+                        title: 'วันที่สมัคร App',
+                        data: 'CreatedDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            return moment(data).format('DD/MM/YYYY');
+                        }
+                    },
+
+                    //{ title: 'สถานะ App', data: 'AppStatus' },
+
+                    {
+                        title: 'สถานะ App', data: null,
+                        className: 'dt-center',
+                        mRender: function (d) {
+                            debugger;
+                            if (d.AppCode === "3090" || d.AppCode === "3030"|| d.AppCode === "3050"|| d.AppCode === "3090" || d.AppCode === "3091") {
+                                return '<span class="label label-danger" style="font-size: 15px;">' + d.AppStatus + '</span>';
+                            }
+                            //else if (d.Status_ID == 9) {
+                            //    return '<span class="label label-danger">' + d.Status + '</span>';
+                            //}
+                            else {
+                                return '<span class="label label-success" style="font-size: 15px;">' + d.AppStatus + '</span>';
+                            }
+                        }
+                    },
+
+                ]
+           });
+        }
+    </script>
+}

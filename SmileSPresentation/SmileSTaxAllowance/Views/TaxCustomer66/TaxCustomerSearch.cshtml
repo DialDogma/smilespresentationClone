@@ -1,0 +1,145 @@
+﻿
+@{
+    ViewBag.Title = "TaxCustomerSearch";
+}
+
+<form class="form-horizontal" action="" name="myform">
+    <div class="row">
+
+        <div class="col-xs-12">
+
+            <div class="panel panel-default display-block" id="pnlinputDetailCustomer">
+
+                <div class="row text-padding" style="font-size:22px; font-weight:200;margin: 0 auto 0 auto;">
+                    <span class="text-font-color-black">กรุณากรอกข้อมูล</span>
+                </div>
+
+                <div class="row  text-padding" style="font-size: small; margin: -6px auto 0 auto; color: #FF0000; " id="lblDescription">
+                    <span>บุคคลที่ท่านสามารถนำไปลดหย่อนภาษีได้ ในกรณีที่ท่านชำระเบี้ยประกันให้ มีดังนี้ ตนเอง, บิดา, มารดา, บิดาคู่สมรส, มารดาคู่สมรส</span>
+                </div>
+
+                <div class="row text-padding " style=" margin: 0 auto 10px auto;">
+                    <span style="font-size:16px;" class="text-font-color-black ">เลขบัตรประชาชนผู้เอาประกันภัย<b class="text-red">*</b></span>
+
+                    <input id="txtZCardCustomer" name="txtZCardCustomer" type="text" class="form-control " width="100" required>
+                </div>
+
+                <div class="row text-padding text-wordwrap" style=" margin: 0 auto 10px auto;">
+                    <span style="font-size:16px;" class="text-font-color-black ">วันเดือนปีเกิด (พ.ศ.)<b class="text-red">*</b></span>
+
+                    <input id="txtBirthDateCustomer" name="txtBirthDateCustomer" type="text" class="form-control " width="100" required data-inputmask="'mask': '99/99/9999', 'placeholder': 'วว/ดด/ปปปป'" placeholder="วว/ดด/ปปปป" checkDate="checkDate">
+
+                    <span style="font-size:14px;color:gray">วว : วันเกิด ดด : เดือนเกิด ปปปป : ปีเกิด (พ.ศ.)</span>
+                    <span style="font-size:14px;color:gray">ตัวอย่าง เกิดวันที่ 2 มกราคม พ.ศ.2530 ให้กรอก 02/01/2530</span>
+                </div>
+
+                <div class="row text-padding text-center" style="margin-top:6%;margin-bottom:6%">
+                    <button class="btn btn-lg btn-next bg-aqua" type="button" id="btnCustomerSearch"> ยืนยัน </button>
+                </div>
+            </div>
+
+            <div class="display-none panel panel-default " id="pnlWarningDetail">
+
+                <div class="row text-center text-padding">
+                    <div style="">
+                        <span class="warning-icon" style=""><span class="fa fa-exclamation-circle"></span></span>
+                    </div>
+
+                    <div style="font-size:18px; color:#717171" class="text-padding text-center">
+                        <span>ข้อมูลไม่ถูกต้องหรือบุคคลที่ท่านชำระ</span><br />
+                        <span>เบี้ยประกันไม่เข้าเกณฑ์ที่สามารถนำไป</span><br />
+                        <span>ลดหย่อนภาษีได้</span><br />
+                        <span>กรุณาติดต่อ Call Center 1434</span><br />
+                        <span>หรือ Add Line : @@siamsmile</span><br />
+                    </div>
+
+                    <button id="btnLine" class="btn btn-line" style="color:white;background-color:#24c421">
+                        <img src="~/Content/img/line.png" width="25" height="25" /> เพิ่มเพื่อน
+                    </button>
+
+                </div>
+
+                <div class="row text-center text-padding">
+                    <div style="padding-top: 35px;">
+                        <button type="button" class="btn  btn-danger" id="btnbackMain"> กลับหน้าหลัก</button>
+                    </div>
+                    <br />
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            $('#txtZCardCustomer').inputmask("9-9999-99999-99-9");
+            $('#txtBirthDateCustomer').inputmask("99/99/9999");
+
+            $('#btnCustomerSearch').click(function (e) {
+                e.preventDefault();
+
+                if ($('form').valid())
+                {
+
+                    GetCustomerDetail();
+
+                }
+
+            });
+
+            $('#btnbackMain').click(function (e) {
+                e.preventDefault();
+                window.location.href = "@Url.Action("TaxCustomerSearch", "TaxCustomer66")";
+            });
+
+            $('#btnLine').click(function (e) {
+                e.preventDefault();
+
+                window.location.href = "http://line.me/R/ti/p/%40siamsmile";
+
+            });
+
+        });
+
+        function GetCustomerDetail() {
+
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetCustomerDetailByZcardId", "TaxCustomer66")",
+                data:  {
+                    zcardId : $('#txtZCardCustomer').val(),
+                    birthDate: $('#txtBirthDateCustomer').val()
+
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    if (response == false) {
+                        //window.location.reload();
+
+                        $('#pnlinputDetailCustomer').removeClass("display-block");
+                        $('#pnlinputDetailCustomer').addClass("display-none");
+
+                         $('#pnlWarningDetail').removeClass("display-none");
+                        $('#pnlWarningDetail').addClass("display-block");
+                        $('#lblDescription').addClass("display-none");
+
+                    } else {
+                        let encodeZcard = window.btoa(response.CustIDCard);
+                        let encode_CustFirstName = window.btoa(encodeURIComponent(response.CustFirstName));
+                        let encode_CustLastName = window.btoa(encodeURIComponent(response.CustLastName));
+                        window.location.href = `@Url.Action("TaxCustomerPreview", "TaxCustomer66")?custIDCard=${encodeZcard}&custFirstname=${encode_CustFirstName}&custLastname=${encode_CustLastName}`;
+                    }
+                }
+            });
+        }
+    </script>
+}
+

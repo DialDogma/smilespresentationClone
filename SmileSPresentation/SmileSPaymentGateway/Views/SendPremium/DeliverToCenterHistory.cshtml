@@ -1,0 +1,122 @@
+﻿@{
+    ViewBag.Title = "ประวัติการนำส่งเบี้ย MO";
+}
+<div class="row">
+    <div class="col-md-12">
+        <div class="box">
+            @*<div class="box-header with-border">
+                    <h3 class="box-title">ประวัติการนำส่งเบี้ย MO</h3>
+                </div>*@
+            <div class="box-body">
+                <div class="col-md-2">
+                    <button id="btn_back" type="button" class="btn btn-warning btn-flat" style="width: 100%"><i class="fa fa-arrow-circle-left"></i> ย้อนกลับ</button>
+                </div>
+                <div class="col-md-12">
+                    <div class="table-responsive">
+                        <table id="datatable_history" class="table table-bordered display responsive nowrap" style="width: 100%"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section ViewSpecificJavascript
+{
+    <script>
+        $(document).ready(function () {
+            DrawTable();
+            $('#btn_back').click(function () {
+                window.open('@Url.Action("Index", "SendPremium")', '_self');
+            });
+        });
+
+        function DrawTable() {
+            $('#datatable_history').empty();
+            var t = $('#datatable_history').DataTable({
+                processing: true,
+                serverSide: false,
+                searching: false,
+                lengthChange: false,
+                responsive: true,
+                paging: false,
+                ordering: false,
+                info: false,
+                destroy: true,
+                ajax: {
+                    beforeSend: function (request) {
+                        request.setRequestHeader("Authorization", '@ViewBag.Token');
+                    },
+                    type: "POST",
+                    url: '@ViewBag.URL_API/mobileapi/Premiums/PremiumDeliverToCenterHistory?DeliverMethod=9010&EmpCode=@ViewBag.EmpCode'
+                },
+                columns: [
+                    {
+                        title: 'ลำดับที่',
+                        data: null,
+                        className: "dt-center"
+                    }, {
+                        title: 'Ref1',
+                        data: 'ref1'
+                    }, {
+                        title: 'วันเวลาที่ตัวแทนนำส่ง',
+                        className: 'dt-center',
+                        data: 'deliverDate'
+                    }, {
+                        title: 'ชื่อตัวแทนนำส่ง',
+                        data: 'deliverName'
+                    }, {
+                        title: 'วันเวลาที่รับยอดจากตัวแทน',
+                        data: 'receiverDate',
+                        className: 'dt-center',
+                        render: function (o) {
+                            if (o == null) {
+                                return "-";
+                            }
+                            return o;
+                        }
+                    }, {
+                        title: 'ชื่อผู้รับยอด',
+                        data: 'receiverName',
+                        className: 'dt-center',
+                        render: function (o) {
+                            if (o == null) {
+                                return "-";
+                            }
+                            return o;
+                        }
+                    }, {
+                        title: 'วันที่นำส่ง HO',
+                        data: 'deliverHODate',
+                        className: 'dt-center',
+                        render: function (o) {
+                            if (o == null) {
+                                return "-";
+                            }
+                            return o;
+                        }
+                    }, {
+                        title: 'ยอด',
+                        data: 'netDeliver'
+                    }, {
+                        title: 'วันที่ยืนยันยอด',
+                        data: 'hoMatchDate',
+                        className: 'dt-center',
+                        render: function (o) {
+                            if (o == null) {
+                                return "-";
+                            }
+                            return o;
+                        }
+                    }
+                ]
+            });
+            t.on('draw.dt',
+                function () {
+                    var PageInfo = $('#datatable_history').DataTable().page.info();
+                    t.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                        cell.innerHTML = i + 1 + PageInfo.start;
+                    });
+                });
+        }
+    </script>
+}

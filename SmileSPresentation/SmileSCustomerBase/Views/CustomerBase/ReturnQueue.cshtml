@@ -1,0 +1,218 @@
+﻿@{
+    ViewBag.Title = "title";
+}
+<form id="Mainform" action="" method="post" enctype="multipart/form-data">
+    <div class="row">
+        @if(TempData["Success"] != null)
+        {
+            <div id="Notification" class="alert alert-success alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                <h4><i class="icon fa fa-check"></i> Alert!</h4>
+                <p><strong>Success:</strong> @TempData["Success"].ToString()</p>
+            </div>
+        }
+        @* return queue search *@
+        <div class="col-sm-12" id="Search_form">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">คืนคิว</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group">
+                        <div class="col-sm-5">
+                            <label for="" class="control-label">เลข AppId :</label>
+                            <input type="text" class="form-control" name="txtAppId" id="txtAppId" />
+                        </div>
+                        <div class="col-sm-2" style="padding-top: 26px">
+                            <button type="button" id="btnSearch" onclick="" class="btn btn-block btn-info">ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* detail return queue *@
+        <div class="col-sm-12" id="Detail_form">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ข้อมูลคิว</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group">
+                        <div class="col-sm-5">
+                            <label for="" class="control-label">ชื่อผู้เอาประกัน :</label>
+                            <label class="form-control" id="lblCusName"></label>
+                        </div>
+                        <div class="col-sm-offset-1 col-sm-5">
+                            <label for="" class="control-label">ชื่อผู้ชำระเบี้ย :</label>
+                            <label class="form-control" id="lblPayerName"></label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-5">
+                            <div class="checkbox">
+                                <input type="checkbox" name="chk_cusCheck" id="chk_cusCheck" value="true" />
+                                ปรับสถานะข้อมูลผู้เอาประกัน
+                            </div>
+                        </div>
+                        <div class="col-sm-offset-1 col-sm-5">
+                            <div class="checkbox">
+                                <input type="checkbox" name="chk_payerCheck" id="chk_payerCheck" value="true" />
+                                ปรับสถานะข้อมูลผู้ชำระเบี้ย
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-5">
+                            <select class="form-control" name="select_CusCheckStatus" id="select_CusCheckStatus">
+
+                                @foreach(var itm in ViewBag.StatusType)
+                                {
+                                    <option value="@itm.CheckStatusId">@itm.CheckStatus</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-offset-1 col-sm-5">
+                            <select class="form-control" name="select_PayerCheckStatus" id="select_PayerCheckStatus">
+
+                                @foreach(var itm in ViewBag.StatusTypePayerList)
+                                {
+                                    <option value="@itm.CheckStatusId">@itm.CheckStatus</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* confirm *@
+        <div id="Submit_form" class="col-sm-12">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-offset-2 col-sm-3">
+                            <button class="btn btn-block btn-success" type="button" id="btnSubmit">บันทึก</button>
+                        </div>
+                        <div class="col-sm-offset-1 col-sm-3">
+                            <button class="btn btn-block btn-warning" type="button" id="btnCancel" onclick="ReturnToMainPage()">ยกเลิกรายการ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* hidden *@
+        <input type="hidden" name="hd_AppId" id="hd_AppId" />
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('#Notification').fadeOut(3000);
+            $('#Detail_form').hide();
+            $('#Submit_form').hide();
+            $('#select_CusCheckStatus').prop('disabled', true);
+            $('#select_PayerCheckStatus').prop('disabled', true);
+            //get detail
+            $('#btnSearch').click(function () {
+                GetDetail();
+            });
+            //disable cus check when uncheck and uncheck
+             $('#chk_cusCheck').on('ifChecked', function (e) {
+                $('#select_CusCheckStatus').prop('disabled', false);
+            });
+            $('#chk_cusCheck').on('ifUnchecked', function (e) {
+                $('#select_CusCheckStatus').prop('disabled', true);
+            });
+             //disable payer check when uncheck and uncheck
+             $('#chk_payerCheck').on('ifChecked', function (e) {
+                $('#select_PayerCheckStatus').prop('disabled', false);
+            });
+            $('#chk_payerCheck').on('ifUnchecked', function (e) {
+                $('#select_PayerCheckStatus').prop('disabled', true);
+            });
+            //save button event
+            $('#btnSubmit').click(function () {
+                Submit();
+            });
+        });
+
+        //get detail app
+        function GetDetail() {
+            $('#hd_AppId').val($('#txtAppId').val());
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("GetAppDetail", "CustomerBase")',
+                data: {
+                    appId: $('#txtAppId').val()
+                },
+                success: function (response) {
+                    debugger;
+                    if (response != false) {
+                        $('#lblCusName').text(response.cusName);
+                        $('#lblPayerName').text(response.payName);
+                        $('#select_CusCheckStatus').val(response.cusCheck);
+                        $('#select_PayerCheckStatus').val(response.paycheck);
+                        $('#Detail_form').show();
+                        $('#Submit_form').show();
+                    } else {
+                        window.swal({
+                            title: 'เกิดข้อผิดพลาด!',
+                            type: 'error',
+                            text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            $('#lblCusName').text(null);
+                            $('#lblPayerName').text(null);
+                            $('#Detail_form').hide();
+                            $('#Submit_form').hide();
+                        });
+                    }
+                }
+            });
+        };
+        //save change
+        function Submit() {
+             window.swal({
+                 title: 'ยืนยันการแก้ไข?',
+                 type: 'info',
+                 showCancelButton: true,
+                 confirmButtonColor: '#277020',
+                 confirmButtonText: 'ตกลง',
+                 cancelButtonText: 'ยกเลิก',
+                 closeOnConfirm: false,
+                 closeOnEsc: false,
+                 closeOnCancel: true
+             }, function (isConfirm) {
+                 if (isConfirm) {
+                     debugger;
+                    $('#Mainform').submit();
+                 }
+             });
+        }
+        //back to main page
+        function ReturnToMainPage() {
+            window.swal({
+                title: 'ต้องการละทิ้งข้อมูลใช่หรือไม่?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#277020',
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                closeOnConfirm: false,
+                closeOnEsc: false,
+                closeOnCancel: true
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    window.location = '@Url.Action("QueueManager","CustomerBase")';
+                    //window.close();
+                }
+            });
+
+        }
+    </script>
+}

@@ -1,0 +1,430 @@
+﻿@{
+    ViewBag.Title = "MotorDashboardCM";
+    Layout = "~/Views/Shared/_LayoutForTopIndexMotor.cshtml";
+}
+
+<style>
+    a.badgeDetail:hover, li.badgeDetail:hover {
+        background-color: #2196f3 !important;
+        box-shadow: 10px 2px 10px #bbdefb;
+    }
+</style>
+<div class="row">
+    <div class="box box-solid box-header bg-aqua">
+        <center><span style="font-size:large;">ประกันรถยนต์</span></center>
+    </div>
+    <div class="col-md-9">
+        <div class="box-body">
+            <ul class="products-list">
+                <li class="item" style="padding-right:10px !important">
+                    <div style="margin-left: 15px">
+                        <div class="col-md-6">
+                            <span style="font-weight:600;font-size:20px;">สาขา</span>
+                            <select id="selectBranch" class="form-control">
+                                @if (ViewBag.BranchList.Count > 0 && ViewBag.BranchList != null)
+                                {
+                                    foreach (var i in ViewBag.BranchList)
+                                    {
+                                        <option value="@i.Branch_ID"> @i.BranchDetail</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option value="-1">ไม่ระบุ</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <span style="font-weight:600;font-size:20px;">งวดความคุ้มครอง</span>
+                            <select id="selectStartCoverDate" class="form-control">
+                                @if (ViewBag.PeriodList != null)
+                                {
+                                    var now = DateTime.Now.Date;
+                                    //var now = new DateTime(2021, 1, 1);
+                                    var from = new DateTime(now.Year, now.Month, 5);
+                                    var to = new DateTime(now.Year, now.Month, 4).AddMonths(1);
+                                    var currentMonthDCR = (from < now && now <= to) ? now.AddMonths(1).Month : now.Month;
+                                    foreach (var i in ViewBag.PeriodList)
+                                    {
+                                        <option value="@i.Value.ToString("yyyy-MM-dd")" @((i.Value.Month == currentMonthDCR) ? "selected" : "" )> @i.Display</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="box-body">
+            <ul class="products-list">
+                <li class="item">
+                    <div style="margin-left: 15px;position: relative;">
+                        <i class="fa fa-bars" style="color:#808080;margin-right: 15px;font-size: 20px;"></i>
+                        <span style="font-weight:600">App ทั้งหมด</span>
+                        <div id="txtQueueAll" class="pull-right badge bg-gray" style="position:absolute;right:5px;bottom:2px"></div>
+                    </div>
+                </li>
+                <li class="item">
+                    <div style="margin-left: 15px;position: relative;">
+                        <i class="fa fa-check-circle " style="color:#0026ff;margin-right: 15px;font-size: 20px;"></i>
+                        <span style="font-weight:600">คัดกรองแล้ว</span>
+                        <div id="txtQueueComplete" class="pull-right badge bg-blue" style="position:absolute;right:5px;bottom:2px"></div>
+                    </div>
+                </li>
+                <li class="item">
+                    <div style="margin-left: 15px;position: relative;">
+                        <i class="fa fa-exclamation-circle" style="color:#ff6a00;margin-right: 15px;font-size: 20px;"></i>
+                        <span style="font-weight:600">ยังไม่ได้คัดกรอง</span>
+                        <div id="txtQueuePending" class="pull-right badge bg-yellow" style="position:absolute;right:5px;bottom:2px"></div>
+                    </div>
+                </li>
+                <li class="item">
+                    <div style="margin-left: 15px;position: relative;">
+                        <i class="material-icons" style="color: #dd4b39; margin-right: 13px; font-size: 20px; ">
+                            not_interested
+                        </i>
+                        <span style="font-weight:600">ยังไม่ได้ดำเนินการ</span>
+                        <div id="txtQueueUnderwriteNotActionYet" class="pull-right badge bg-red" style="position:absolute;right:5px;bottom:2px"></div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="box-body">
+            <ul class="products-list">
+                <li class="item" style="background-color: #fabc69;">
+                    <div style="text-align:center;position: relative;">
+                        <span style="font-weight:600;color:white">ยังไม่ได้คัดกรอง</span>
+                    </div>
+                </li>
+            </ul>
+            <ul id="pendingList" class="products-list"></ul>
+            <ul id="pendingOutsiderList" class="products-list"></ul>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="box-body">
+            <ul class="products-list">
+                <li class="item">
+                    <div style="float:left;margin:15px 0px 50px 15px">
+                        <span class="material-icons" style="color:green;font-size: 77px">
+                            check_circle_outline
+                        </span>
+                        @*<i class="fa fa-check-circle" style="color:green;font-size: 77px"></i>*@
+                    </div>
+                    <div class="product-info" style="position: relative;">
+                        <div style="margin: 30px 15px 0px 0px;position: relative;">
+                            <span style="color:green;font-weight:600;font-size:20px;margin:15px 15px 15px 0px">พิจารณาแล้ว</span>
+                            <div id="txtQueueApproveComplete" class="pull-right badge bg-green" style="font-size:20px; position:absolute;right:5px;bottom:2px"></div>
+                        </div>
+                        <div style="margin: 5px 15px 0px 0px;text-indent: 5px;position: relative;">
+                            <span style="font-weight:200;font-size:13px;margin:15px 15px 15px 0px">อนุมัติให้ผ่านคัดกรอง</span>
+                            <div id="txtQueueApproveStandardPass" class="pull-right " style="font-size:14px; position:absolute;right:10px;bottom:2px"></div>
+                        </div>
+                        <div style="margin: 5px 15px 0px 0px;text-indent: 5px;position: relative;">
+                            <span style="font-weight:200;font-size:13px;margin:15px 15px 15px 0px">อนุมัติให้ผ่านคัดกรองแบบติดเงื่อนไข</span>
+                            <div id="txtQueueApproveConditionPass" class="pull-right " style="font-size:14px; position:absolute;right:10px;bottom:2px"></div>
+                        </div>
+                        <div style="margin: 5px 15px 50px 0px;text-indent: 5px;position: relative;">
+                            <span style="font-weight:200;font-size:13px;margin:15px 15px 15px 0px">อนุมัติไม่ให้ผ่านคัดกรอง</span>
+                            <div id="txtQueueApproveNotPass" class="pull-right " style="font-size:14px; position:absolute;right:10px;bottom:2px"></div>
+                        </div>
+                        <div style="position:absolute;text-align:center;display: block;right: 30%; bottom: -40px;">
+                            <button onclick="openNewPage('queueConsidered')" class="btn btn-success badge bg-green badgeDetail" style="font-size:20px;">รายละเอียด</button>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="box-body">
+            <ul class="products-list">
+                <li class="item">
+                    <div style="float:left;margin:15px">
+                        <span class="material-icons" style="color: #F28A37; font-size: 77px">
+                            access_time
+                        </span>
+                        @*<i class="fa fa-hourglass-half" style="color: #F28A37; font-size: 77px"></i>*@
+                    </div>
+                    <div class="product-info" style="position: relative;">
+                        <div style="margin: 30px 15px 15px 0px;position: relative;">
+                            <span style="color: #F28A37; font-weight: 600; font-size: 20px; margin: 15px 15px 15px 0px">รอพิจารณา</span>
+                            <div id="txtQueueApprovePending" class="pull-right badge bg-orange" style="font-size:20px; position:absolute;right:5px;bottom:2px"></div>
+                        </div>
+                        <div style="position:absolute;text-align:center;display: block;right: 30%; bottom: -50px;">
+                            <button onclick="openNewPage('queueWaitConsidered')" class="btn btn-warning badge bg-orange badgeDetail" style="font-size:20px;">รายละเอียด</button>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="box-body">
+            <ul class="products-list">
+                <li class="item">
+                    <div style="float:left;margin:15px">
+                        @*<i class="fa fa-times-circle" style="color:orangered;font-size: 77px"></i>*@
+                        <span class="material-icons" style="color: orangered; font-size: 77px">
+                            highlight_off
+                        </span>
+                    </div>
+                    <div class="product-info" style="position: relative;">
+                        <div style="margin: 30px 15px 15px 0px;position: relative;">
+                            <span style="color:orangered;font-weight:600;font-size:20px;margin:15px 15px 15px 0px">ยกเลิกก่อน DCR</span>
+                            <div id="txtQueueUnderwriteCancelBeforeDCR" class="pull-right badge bg-red" style="font-size:20px; position:absolute;right:5px;bottom:2px"></div>
+                        </div>
+                        <div style="position:absolute;text-align:center;display: block;right: 30%; bottom: -50px;">
+                            <button onclick="openNewPage2()" class="btn btn-warning badge bg-red badgeDetail" style="font-size:20px;">รายละเอียด</button>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<form>
+    <!--.modal cm -->
+    <div class="modal fade" id="myModal">
+        <!--.modal-dialog -->
+        <div class="modal-dialog">
+            <!--.modal-content -->
+            <div class="modal-content">
+                <div class="modal-header" style="background-color:  #fabc69;border-color: #fabc69;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title" style="color:white"><span id="txtName">ทดสอบ พงษ์พันธ์ ท้าวยศ</span></h4>
+                </div>
+                <div class="modal-body">
+                    <ul class="products-list">
+                        <li class="item">
+                            <div style="margin-left: 15px;position: relative;">
+                                <span style="font-weight:600">App ทั้งหมดที่ต้องคัดกรองและมอบกรมธรรม์</span>
+                                <div id="txtAll" class="pull-right badge" style="position:absolute;right:5px;bottom:2px">0</div>
+                            </div>
+                        </li>
+                        <li class="item">
+                            <div style="margin-left: 15px;position: relative;">
+                                <span style="font-weight:600">เข้าพบคัดกรองและมอบกรมธรรม์</span>
+                                <div id="txtStatus5" class="pull-right badge" style="position:absolute;right:5px;bottom:2px">0</div>
+                            </div>
+                        </li>
+                        <li class="item">
+                            <div style="margin-left: 15px;position: relative;">
+                                <span style="font-weight:600">โทรคัดกรองและมอบกรมธรรม์แล้ว</span>
+                                <div id="txtStatus4" class="pull-right badge" style="position:absolute;right:5px;bottom:2px">0</div>
+                            </div>
+                        </li>
+                        <li class="item">
+                            <div style="margin-left: 15px;position: relative;">
+                                <span style="font-weight:600">โทรคัดกรองและมอบกรมธรรม์ภายหลัง</span>
+                                <div id="txtStatus3" class="pull-right badge" style="position:absolute;right:5px;bottom:2px">0</div>
+                            </div>
+                        </li>
+                        <li class="item">
+                            <div style="margin-left: 15px;position: relative;">
+                                <span style="font-weight:600;">ไม่ผ่านคัดกรอง</span>
+                                <div id="txtStatus6" class="pull-right badge" style="position:absolute;right:5px;bottom:2px">0</div>
+                            </div>
+                        </li>
+                        <li class="item">
+                            <div style="margin-left: 15px;position: relative;">
+                                <span style="font-weight:600">ยกเลิก</span>
+                                <div id="txtStatus7" class="pull-right badge" style="position:absolute;right:5px;bottom:2px">0</div>
+                            </div>
+                        </li>
+                        <li class="item">
+                            <div style="margin-left: 15px;position: relative;">
+                                <span style="font-weight:600">ยังไม่ได้คัดกรอง</span>
+                                <div id="txtStatus2" class="pull-right badge bg-yellow" style="position:absolute;right:5px;bottom:2px">0</div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div style="text-align:center;">
+                        <input type="button" style="width:100px;margin:10px" class="btn btn-lg btn-warning" data-dismiss="modal" value="OK" />
+                    </div>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!--/.modal -->
+</form>
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+            $(window).load(function () {
+                GetQueueStatus($('#selectStartCoverDate').val(), @ViewBag.CurrentBranchID);
+                GetQueueApprove($('#selectStartCoverDate').val(),@ViewBag.CurrentBranchID);
+                GetQueueUnderwritePending($('#selectStartCoverDate').val(),@ViewBag.CurrentBranchID);
+                LoadQueueUnderwritePendingOutsider();
+            });
+
+            $("#selectStartCoverDate").on('change', function (e) {
+                e.preventDefault();
+                GetQueueStatus($(this).val(), $('#selectBranch').val());
+                GetQueueApprove($(this).val(), $('#selectBranch').val());
+                GetQueueUnderwritePending($(this).val(), $('#selectBranch').val());
+                LoadQueueUnderwritePendingOutsider();
+            });
+
+            $("#selectBranch").on('change', function (e) {
+                e.preventDefault();
+                GetQueueStatus($('#selectStartCoverDate').val(), $(this).val());
+                GetQueueApprove($('#selectStartCoverDate').val(), $(this).val());
+                GetQueueUnderwritePending($('#selectStartCoverDate').val(), $(this).val());
+                LoadQueueUnderwritePendingOutsider();
+            });
+        });
+
+        const LoadQueueUnderwritePendingOutsider = () => {
+            if (inited) {
+                GetQueueUnderwritePendingOutsider($("#selectStartCoverDate").val(), $('#selectBranch').val());
+                inited = false;
+            } else {
+                setTimeout(LoadQueueUnderwritePendingOutsider, 250);
+            }
+        }
+
+        const GetQueueStatus = (dcr, branchId) => {
+            $.get("@Url.Action("GetQueueStatus")", { dcr: dcr, branchId: branchId }, function (data) {
+                if (data != 0) {
+                    $("#txtQueueAll").text(data.QueueALL);
+                    $("#txtQueueComplete").text(data.QueueUnderwriteComplete);
+                    $("#txtQueuePending").text(data.QueueUnderwritePending);
+                    $("#txtQueueUnderwriteNotActionYet").text(data.QueueUnderwriteNoAction);
+
+                    //set ยกเลิกก่อน dcr
+                    $("#txtQueueUnderwriteCancelBeforeDCR").text(data.QueueUnderwriteCancelBeforeDCR);
+                } else {
+                    $("#txtQueueAll").text("0");
+                    $("#txtQueueComplete").text("0");
+                    $("#txtQueuePending").text("0");
+                    $("#txtQueueUnderwriteNotActionYet").text("0");
+
+                    //set ยกเลิกก่อน dcr
+                    $("#txtQueueUnderwriteCancelBeforeDCR").text("0");
+                }
+            })
+        }
+
+        const GetQueueApprove = (dcr,branchId) => {
+            $.get("@Url.Action("GetQueueApprove")", { dcr: dcr, branchId: branchId }, function (data) {
+                if (data != 0) {
+                    $("#txtQueueApprovePending").text(data.QueueApprovePending);
+                    $("#txtQueueApproveComplete").text(data.QueueApproveComplete);
+                    $("#txtQueueApproveStandardPass").text(data.QueueApproveStandardPass);
+                    $("#txtQueueApproveConditionPass").text(data.QueueApproveConditionPass);
+                    $("#txtQueueApproveNotPass").text(data.QueueApproveNotPass);
+                } else {
+                    $("#txtQueueApprovePending").text("0");
+                    $("#txtQueueApproveComplete").text("0");
+                    $("#txtQueueApproveStandardPass").text("0");
+                    $("#txtQueueApproveConditionPass").text("0");
+                    $("#txtQueueApproveNotPass").text("0");
+                }
+            })
+        }
+
+         const GetQueueStatusAssignToUser = (dcr, assignToUser, empName) => {
+            $.get("@Url.Action("GetQueueStatusAssignToUser")", { dcr: dcr, assignToUser: assignToUser}, function (data) {
+                if (data != 0) {
+                    $('#txtName').text(data.EmployeeName);
+                    $('#txtAll').text(data.ALL);
+                    $('#txtStatus2').text(data.QueueStatusId2);
+                    $('#txtStatus3').text(data.QueueStatusId3);
+                    $('#txtStatus4').text(data.QueueStatusId4);
+                    $('#txtStatus5').text(data.QueueStatusId5);
+                    $('#txtStatus6').text(data.QueueStatusId6);
+                    $('#txtStatus7').text(data.QueueStatusId7);
+                } else {
+                    $('#txtName').text(empName);
+                    $('#txtAll').text(0);
+                    $('#txtStatus2').text(0);
+                    $('#txtStatus3').text(0);
+                    $('#txtStatus4').text(0);
+                    $('#txtStatus5').text(0);
+                    $('#txtStatus6').text(0);
+                    $('#txtStatus7').text(0);
+               }
+               $('#myModal').modal('show');
+            })
+        }
+
+        const GetQueueStatusOutsider = (dcr, branchId, userList) => {
+            $.get("@Url.Action("GetQueueStatusOutsider")", { dcr: dcr, branchId: branchId ,userList:userList}, function (data) {
+                if (data != 0) {
+                    $('#txtName').text("งานที่มอบหมายบุคคลภายนอก");
+                    $('#txtAll').text(data.ALL);
+                    $('#txtStatus2').text(data.QueueStatusId2);
+                    $('#txtStatus3').text(data.QueueStatusId3);
+                    $('#txtStatus4').text(data.QueueStatusId4);
+                    $('#txtStatus5').text(data.QueueStatusId5);
+                    $('#txtStatus6').text(data.QueueStatusId6);
+                    $('#txtStatus7').text(data.QueueStatusId7);
+                } else {
+                    $('#txtName').text("งานที่มอบหมายบุคคลภายนอก");
+                    $('#txtAll').text(0);
+                    $('#txtStatus2').text(0);
+                    $('#txtStatus3').text(0);
+                    $('#txtStatus4').text(0);
+                    $('#txtStatus5').text(0);
+                    $('#txtStatus6').text(0);
+                    $('#txtStatus7').text(0);
+               }
+               $('#myModal').modal('show');
+            })
+        }
+
+        const GetQueueUnderwritePendingOutsider = (dcr, branchId) => {
+            $.get("@Url.Action("GetQueueUnderwritePendingOutsider")", { dcr: dcr, branchId: branchId, userList: strList }, function (data) {
+                $("#pendingOutsiderList").empty();
+                if (data != 0) {
+                    $("#pendingOutsiderList").append(`<li onclick="GetQueueStatusOutsider(\'${dcr.toString()}\',${data.PayerBranchId},\'${strList}\');" class="item badgeDetail" style="cursor:pointer;"> <div style="margin-left: 15px;position: relative;"> <i class="fa fa-user-secret" style="color:#808080;margin-right: 15px;font-size: 20px;"></i> <span style="font-weight:600">งานที่มอบหมายบุคคลภายนอก</span> <div class="pull-right badge bg-yellow" style="position:absolute;right:5px;bottom:2px">${data.TotalCount}</div></div></li>`);
+                } else {
+                    $("#pendingOutsiderList").append(`<li class="item"> <div style="margin-left: 15px;position: relative;"> <i class="fa fa-user-secret" style="color:#808080;margin-right: 15px;font-size: 20px;"></i> <span style="font-weight:600">งานที่มอบหมายบุคคลภายนอก</span> <div class="pull-right badge bg-yellow" style="position:absolute;right:5px;bottom:2px">0</div> </div> </li>`);
+                }
+            })
+        }
+
+        const GetQueueUnderwritePending = (dcr, branchId) => {
+            $.get("@Url.Action("GetQueueUnderwritePending")", { dcr: dcr, branchId: branchId }, function (data) {
+                $("#pendingList").empty();
+                if (data.length > 0) {
+                    strList = data.map(function (elem) { return elem.UserId; }).join(",");
+                    let dcr = $("#selectStartCoverDate").val();
+                    for (var i = 0; i < data.length; i++) {
+                        $("#pendingList").append(`<li onclick="GetQueueStatusAssignToUser(\'${dcr.toString()}\',${data[i].UserId},\'${data[i].DirectorName}\');" class="item badgeDetail" style="cursor:pointer;"><div style="margin-left: 15px; position: relative;"> <i class="fa fa-user" style="color: #3C8DBC; margin-right: 15px; font-size: 20px;"></i> <span style="font-weight: 600;margin-bottom:10px">${data[i].DirectorName}</span> <div class="pull-right badge bg-yellow" style="position: absolute; right: 5px; bottom: 2px">${data[i].TotalCount}</div></div></li>`);
+                    }
+                } else {
+                    $("#pendingList").append('<li class="item"><div style="margin-left: 15px; position: relative;"> <i class="fa fa-user" style="color: #0094ff; margin-right: 15px; font-size: 20px;"></i> <span style="font-weight: 600">ไม่ระบุ</span> <div class="pull-right badge bg-yellow" style="position: absolute; right: 5px; bottom: 2px">0</div></div></li>');
+                }
+                inited = true;
+            })
+        }
+
+         const openNewPage = (tabType) => {
+            let branchId = $('#selectBranch').val();
+            let dcr = $("#selectStartCoverDate").val();
+            var yyyyMMdd = dcr.replace(new RegExp("-", 'g'), "");
+            window.open(`@Url.Action("MotorQueueWaitConsider", "MotorQueue")?menu=${tabType}&branchId=${branchId}&dcr=${yyyyMMdd}` ,'_self');
+        }
+
+        const openNewPage2 = () => {
+            let branchId = $('#selectBranch').val();
+            let dcr = $("#selectStartCoverDate").val();
+            var yyyyMMdd = dcr.replace(new RegExp("-", 'g'), "");
+            window.open(`@Url.Action("MotorQueueCancelBeforeDCR", "MotorQueue")?branchId=${branchId}&dcr=${yyyyMMdd}` ,'_self');
+        }
+    </script>
+}

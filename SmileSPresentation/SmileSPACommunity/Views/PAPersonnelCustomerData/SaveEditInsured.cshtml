@@ -1,0 +1,158 @@
+﻿@{
+    ViewBag.Title = "บันทึกแก้ไขรายชื่อผู้เอาประกัน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">ค้นหา @ViewBag.Title</h3>
+            </div>
+
+            <div class="box-body">
+                <div class="box-group">
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <label style="margin-top:1rem">ปีการศึกษา :</label>
+                            <select class="form-control select2" style="width: 100%" tabindex="-1" aria-hidden="true" id="educationYears">
+                                @{
+                                    var educationYears = ViewBag.educationYear as IEnumerable<SmileSPACommunity.Models.usp_PolicyYear_Select_Result>;
+                                    foreach (var educationYear in educationYears)
+                                    {
+                                        <option value="@educationYear.Code">@educationYear.Detail</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label style="margin-top:1rem">ค้นหาจากเลข App PA ยิ้มแฉ่ง หรือชื่อสถานศึกษา :</label>
+                            <input type="text" class="form-control" id="searchText" />
+                        </div>
+                        <div class="col-lg-3">
+                            <label style="margin-top:5rem"> </label>
+                            <button type="button" style="text-decoration:none" class="btn btn-primary" id="btnSearch"><i class="fa fa-fw fa-search"></i> ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">รายละเอียดรายการ</h3>
+            </div>
+
+            <div class="box-body">
+                <table id="dtPersonnelSearch" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@*modal*@
+<div class="modal fade" id="mdReject" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div id="renderDataModal"></div>
+    </div>
+</div>
+
+
+
+@section ViewSpecificJavascript
+{
+    <script>
+
+        $(function () {
+
+            // initail select2
+            $(".select2").select2();
+            //$("#educationYears").change(function () {
+            //    GetDataSaveEditInsured($("#educationYears").val());
+            //});
+            //$("#educationYears").val($("#educationYears").val()).change();
+
+            // search text
+            $("#btnSearch").click(function () {
+                GetDataSaveEditInsured($("#educationYears").val());
+            });
+        });
+
+
+        const GetDataSaveEditInsured = (year) => {
+
+            let textSearch = $("#searchText").val();
+            $("#dtPersonnelSearch").DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                ajax: {
+                    url: '/PAPersonnelCustomerData/GetDataSaveEditInsured?year=' + year,
+                    async: false,
+                    type: 'get',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = textSearch;
+                    }
+                },
+                columns: [
+                    { title: 'App ID', data: 'PersonnelApplicationCode', className: 'h-dt-center' },
+                    { title: 'ชื่อกรมธรรม์', data: 'PersonnelApplicationName', className: 'h-dt-center' },
+                    { title: 'สถานะ', data: 'PersonnelApplicationStatusName', className: 'h-dt-center' },
+                    {
+                        title: 'วันเริ่มคุ้มครอง', data: 'StartCoverDate', className: 'h-dt-center d-dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'วันสิ้นสุดคุ้มครอง', data: 'EndCoverDate', className: 'h-dt-center d-dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                    {
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) => {
+                            let encode_RequestCancelApplicationId = window.btoa(data.PersonnelApplicationId);
+                            return '<a href="/PAPersonnel/PAPersonnelDetail?appId=' + encode_RequestCancelApplicationId + '" class="btn btn-primary btn-sm" target="_blank" data-toggle="tooltip" data-placement="left" title="รายละเอียด"><i class="fa fa-fw fa-desktop"></i> รายละเอียด </a>';
+
+                        },
+                        width: '10%'
+                    },
+                    {
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) => {
+                            let encode_RequestCancelApplicationId = window.btoa(data.PersonnelApplicationId);
+                            return '<a href="/PAPersonnelCustomerData/SaveEditInsuredViewData?appId=' + encode_RequestCancelApplicationId + '" class="btn btn-warning btn-sm" edit" data-toggle="tooltip" data-placement="top" title="แก้ไขข้อมูล"><i class="fa fa-edit"></i> แก้ไขข้อมูล</a>';
+
+                        },
+                        width: '10%'
+                    },
+                ],
+                bLengthChange: false
+            });
+
+            $('[data-toggle="tooltip"]').tooltip()
+        }
+
+
+    </script>
+}

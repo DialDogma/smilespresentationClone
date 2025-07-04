@@ -1,0 +1,156 @@
+﻿@{
+    ViewBag.Title = "Model List";
+}
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header">
+                    <a href="@Url.Action("NewModel")" class="btn btn-success" style="float: right; width: 100px;">+ New Model</a>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <table id="datatable1" class="table table-bordered table-striped" style="width:100%"></table>
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+        <!-- /.box -->
+    </div>
+    <!-- Modal edit -->
+    <div class="modal fade bd-edit-modal-lg" id="selectPeriodModal" tabindex="-1" role="dialog" aria-labelledby="selectPeriodModal" aria-hidden="true">
+        <div class="modal-dialog  modal-md " role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">เลือกรอบการคิดค่าตอบแทน</h5>
+                    <input type="hidden" id="hd_Id" value="" />
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <label class="control-label">เลือกงวดของตัวอย่างข้อมูล :</label>
+                            <select class="form-control select2" tabindex="-1" aria-hidden="True" id="select_period" name="select_period"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-sm-offset-3 col-sm-3" style="margin-top: 10px">
+                        <a id="btnDownload" class="btn btn-block btn-success" onclick="DownloadDatasource()">ตกลง</a>
+                    </div>
+                    <div class="col-sm-3" style="margin-top: 10px">
+                        <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ยกเลิก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end modal *@
+</form>
+@section ViewSpecificJavascript
+{
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script>
+        $(function () {
+            loadDataTable();
+        });
+
+        function loadDataTable() {
+             //Load Datatable
+            $('#datatable1').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy:true,
+                ajax: {
+                    url: '@Url.Action("GetDatatable")',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    { title: 'Name', data: 'Name' },
+                    { title: 'Type', data: 'Type' },
+                    {
+                        title: 'Datasource',
+                        data: 'DatasourceCount',
+                        className: 'dt-right'
+                    },
+                    {
+                        title: 'Configuration',
+                        data: 'ConfigurationCount',
+                        className: 'dt-right'
+                    },
+                    {
+                        title: 'Parameter',
+                        data: 'ParameterCount',
+                        className: 'dt-right'
+                    },
+                    { title: 'CreatedBy', data: 'CreatedBy' },
+                    {
+                        title: 'CreatedDate', data: 'CreatedDate', className: 'd-dt-center h-dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY hh:mm:ss');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    {
+                        title: '',
+                        data: null,
+                        width: 150,
+                        render: function (data) {
+                            return '<a href="@Url.Action("EditModel")?id=' + data.Id + '" class="btn btn-success" title="Edit" style="margin: 2px;"><i class="fa fa-pencil-square-o"></i></a>' +
+                                '<a id="btnDownload_' + data.Id + '" class="btn btn-primary"  onclick="downloadDesignModel(' + data.Id + ')"><i class="fa fa-download"></i></a>'+
+                                   '<a class="btn btn-danger" title="Delete" onclick="deleteDesigner('+ data.Id +')" style="margin: 2px;"><i class ="fa fa-trash"></i></a>';
+                        }
+                    }
+
+                ]
+            });
+        }
+
+        function deleteDesigner(id) {
+
+            swal({
+                title: "ยืนยันการลบ?",
+                text: "เมื่อลบแล้วจะไม่สามารถเรียกคืนข้อมูลได้",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+                .then((willDelete) => {
+                    if (willDelete) {
+                        debugger;
+                        $.ajax({
+                            type: "POST",
+                            url: "@Url.Action("DeleteDesigner","ModelDesign")",
+                            data: `desingerId=${id.toString()}`,
+                            dataType: "json",
+                            success: function (response) {
+                                swal("ลบข้อมูลเรียบร้อยแล้ว!", {
+                                    icon: "success",
+                                });
+                                loadDataTable();
+                            }
+                        });
+                    } else {
+                    }
+                });
+        }
+
+        function downloadDesignModel(id) {
+            //redirect to Action 
+            var url = `@Url.Action("DownloadDesignModel", "ModelDesign")/${id}`;
+            window.open(url, "_blank");
+        }
+    </script>
+}

@@ -1,0 +1,513 @@
+﻿@{
+    ViewBag.Title = "รอปิดคิวงาน";
+}
+<style>
+    table.dataTable thead {
+        background-color: #337AB7;
+        color: azure;
+    }
+</style>
+
+<form action="" method="post" id="fmCreateQueue">
+    <div style="padding-bottom:10px">
+        <h3 class="box-title">รอปิดคิวงาน</h3>
+    </div>
+    <div class="row">
+        <div class="col-sm-12 col-md-12">
+            @* search form *@
+            <div id="Create_form">
+                <div class="box box-info">
+                    <div class="box-header">
+                        <h3 class="box-title">ค้นหารายการ</h3>
+                    </div>
+                    <div class="box-body">
+                        <div class="row" style="padding-top:6px">
+
+                            <div class="col-xs-12  col-md-3 col-lg-3">
+                                <label>DCR ยกเลิก</label>
+                                <div class="input-group date ">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpDCR" data-date-language="th-th" data-provide="datepicker" value="" />
+                                </div>
+                            </div>
+                            <div class="col-xs-12  col-md-3 col-lg-3">
+                                <label>สถานะการโทร</label>
+                                <select class="form-control" id="callStatusId">
+                                    <option value="-1">ทั้งหมด</option>
+                                    @{ if (ViewBag.CallStatusId != null)
+                                        {
+                                            foreach (var item in ViewBag.CallStatus)
+                                            {
+                                                if (@item.CallStatusId != 7)
+                                                {
+                                                    <option value="@item.CallStatusId" @((item.CallStatusId == ViewBag.CallStatusId) ? "selected" : "")>@item.CallStatusDetail</option>
+                                                }
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row" style="padding-top:6px">
+                            <div class="col-xs-12  col-md-3 col-lg-3">
+                                <label>ชื่อผู้ชำระเบี้ย</label>
+                                <div class="input-group date col-xs-12">
+                                    <input type="text" class="form-control" id="payerName" placeholder="ชื่อผู้ชำระเบี้ย" />
+                                </div>
+                            </div>
+                            <div class="col-xs-12  col-md-3 col-lg-3">
+                                <label>เลขบัตรประชาชน/Passport</label>
+                                <div class="input-group date col-xs-12">
+                                    <input type="text" class="form-control" id="payerIdCard" placeholder="เลขบัตรประชาชน/Passport" />
+                                </div>
+                            </div>
+                            <div class="col-xs-12  col-md-3 col-lg-3">
+                                <label>เบอร์โทรผู้ชำระเบี้ย</label>
+                                <div class="input-group date col-xs-12">
+                                    <input type="text" class="form-control" id="payerPhone" placeholder="เบอร์โทรผู้ชำระเบี้ย" />
+                                </div>
+                            </div>
+                            <div class="col-xs-12  col-md-2 col-lg-2" style="padding-top:25px;">
+                                <button type="button" class="btn btn-info" id="btnSearch_Wait"><i class="fa fa-search" aria-hidden="true"></i>ค้นหา</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* end form *@
+        </div>
+        <div class="col-sm-12 col-md-12 col-xs-12">
+            @* DT form *@
+            <div id="dt_form">
+                <div class="box box-warning">
+                    <div class="box-header">
+                        <h4 class="box-title">รายละเอียดรายการ</h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <table id="dtWaitCloseQueue" name="dtWaitCloseQueue" class="table table-bordered table-hover dataTable" style="width: 100%">
+                                    <tbody>
+                                        <tr style="text-align: center"><td>ไม่พบข้อมูล</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="box-group">
+                            <div style="text-align:center">
+                                <button type="button" id="btnClosedQueueAll" class="btn btn-danger" disabled="">ปิดคิวงานทั้งหมด</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* end form *@
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        $(function () {
+
+            /*start signalR*/
+            // Reference the auto-generated proxy for the hub.
+            var chat = $.connection.chatHub;
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                //join group
+                chat.server.joinGroup('1234');
+            });
+            //Show public message to client
+            chat.client.receiveGroupNotice = function (message) {
+                /*full msg*/
+                const fullMessage = message;
+                /*new date*/
+                const date = new Date();
+                /*set str*/
+                const str = date.getFullYear() +
+                    "-" +
+                    (date.getMonth() + 1).toString().padStart(2, "0") +
+                    "-" +
+                    date.getDate().toString().padStart(2, "0") +
+                    " " +
+                    date.getHours().toString().padStart(2, "0") +
+                    ":" +
+                    date.getMinutes().toString().padStart(2, "0") +
+                    ":" +
+                    date.getSeconds().toString().padStart(2, "0");
+                /*alert toastr*/
+                window.toastr["success"](`อัพเดตครั้งล่าสุด : ${str}`, fullMessage);
+                /*Load Datatables*/
+                $('#dtWaitCloseQueue').DataTable().ajax.reload();
+            };
+
+            window.toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": true,
+                "positionClass": "toast-top-center",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+            /*end signalR*/
+
+            //todo
+            if (`@ViewBag.DCR` == "") {
+                $('#dtpDCR').datepicker({
+                    autoclose: true,
+                    todayHighlight: true,
+                    minViewMode: "months",
+                    format: "dd/mm/yyyy",
+                }).datepicker('update', new Date(moment().set('date', 1).add('month', -2)));
+            } else {
+                $('#dtpDCR').datepicker({
+                    autoclose: true,
+                    todayHighlight: true,
+                    minViewMode: "months",
+                    format: "dd/mm/yyyy",
+                }).datepicker('update', new Date(moment().set('date', 1).set('month', @ViewBag.month).set('year',@ViewBag.year).add('month', -1).add('year', -543)));
+
+            }
+
+            DataTableWaitCloseQueue();
+
+            $('#btnClosedQueueAll').prop("disabled", "");
+
+            $('#btnSearch_Wait').click(function (e) {
+                e.preventDefault();
+                DataTableWaitCloseQueue();
+                $('#btnClosedQueueAll').prop("disabled", "");
+            });
+
+            $('#btnClosedQueueAll').click(function (e) {
+                e.preventDefault();
+                var totalDT_count = $('#totalDT_count').val();
+                DoCloseQueueAll(totalDT_count);
+            });
+
+        });
+
+        function DataTableWaitCloseQueue() {
+            $('#dtWaitCloseQueue').empty();
+            let t = $('#dtWaitCloseQueue').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                order: [[1, 'asc']],
+                autoWidth: false,
+                responsive: true,
+                 ajax: {
+                     url: '@Url.Action("GetWaitCloseQueue", "QueueManageAssign")',
+                        type: 'POST',
+                     data: function (d) {
+                            d.draw = d.draw;
+                            d.pageSize = d.length;
+                            d.indexStart = d.start;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                         d.search = d.search.value;
+                         d.period = $('#dtpDCR').val();
+                         d.callStatusId = $('#callStatusId').val();
+                         d.payerName = $('#payerName').val();
+                         d.payerIdCard = $('#payerIdCard').val();
+                         d.payerPhone = $('#payerPhone').val();
+
+                     },
+                     dataSrc: function (json) {
+                         rowDT = json.data.length;
+                         totalDT = json.recordsTotal;
+                         countToCloseQueue = json.countToCloseQueue;
+                         return json.data;
+                     },
+                },
+                    columns: [
+                        {
+                            title: 'ลำดับที่',
+                            data: null,
+                            className: "th-center",
+                            render: function (data, type, row, meta) {
+                                return meta.row + meta.settings._iDisplayStart + 1;
+                            }
+                        },
+                        {
+                            title: 'ชื่อผู้ชำระเบี้ย',
+                            data: "PayerName",
+                            className: 'h-dt-center'
+                        },
+                        {
+                            title: 'เลขบัตรประชาชน/Passport',
+                            data: "PayerIdCardNo",
+                            className: 'h-dt-center'
+                        },
+                        {
+                            title: 'เบอร์โทรผู้ชำระเบี้ย',
+                            data: "PayerPhone",
+                            className: 'h-dt-center'
+                        },
+                        {
+                            title: 'จำนวนผู้เอาประกัน',
+                            data: "QueueDetailAllCount",
+                            className: 'h-dt-center'
+                        },
+                        {
+                            title: 'สถานะการโทร',
+                            data: "CallStatusDetail",
+                            className: 'h-dt-center'
+                        },
+                        {
+                            title: 'DCR ยกเลิก',
+                            data: "Period",
+                            className: 'h-dt-center',
+                            render: function (data) {
+                                if (data == null) {
+                                    return "";
+                                } else {
+                                    return moment(data).add(543, 'years').format("DD/MM/YYYY");
+                                }
+
+                            }
+                        },
+                        {
+                            title: 'วันที่ทำรายการ',
+                            data: "UpdatedDate",
+                            className: 'h-dt-center',
+                            render: function (data) {
+                                if (data == null) {
+                                    return "";
+                                } else {
+                                    return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:ss");
+                                }
+
+                            }
+                        },
+                        {
+                            title: 'ตรวจสอบ',
+                            data: null,
+                            className: 'h-dt-center',
+                            width: '10%',
+                            orderable: false,
+                            render: function (data) {
+                                return `<button type="button" class="btn btn-success" onclick="selectDetail_QueueWait(${data.QueueId})">ตรวจสอบ</button>
+                                            <input type="hidden" id="totalDT_count" value="${countToCloseQueue}" />`;
+
+                            }
+                        },
+                        {
+                            title: 'ปิดคิวงาน',
+                            data: null,
+                            width: '10%',
+                            className: 'h-dt-center',
+                            orderable: false,
+                            render: function (data) {
+                                if (data.CallStatusId != 2) {
+                                    return `<button type="button" class="btn btn-warning" onclick="selectCloseQueue(${data.QueueId})">ปิดคิวงาน</button>`;
+
+                                } else {
+                                    return `<button type="button" class="btn btn-warning" disabled>ปิดคิวงาน</button>`;
+                                }
+                            }
+                        },
+                        {
+                            title: 'ยกเลิกคิวงาน',
+                            data: null,
+                            width: '10%',
+                            className: 'h-dt-center',
+                            orderable: false,
+                            render: function (data) {
+                                return `<button type="button" class="btn btn-danger" onclick="cancelQueue(${data.QueueId})">ยกเลิกคิวงาน</button>`;
+                                //if (data.CallStatusId != 2) {
+
+                                //} else {
+                                //    return `<button type="button" class="btn btn-danger" disabled>ยกเลิกคิวงาน</button>`;
+                                //}
+                            }
+                        },
+
+                    ],
+                bLengthChange: false,
+                'columnDefs': [
+                    {
+                        "targets": [0],
+                        "visible": false
+                    },
+                    {
+                        "targets": "_all", // your case first column
+                        "className": "text-center",
+                    }]
+
+                });
+        }
+
+        const GetCountToCloseQueue = () => {
+            $.get("@Url.Action("GetCountToCloseQueue")", function (data) {
+                d.draw = d.draw;
+                d.pageSize = d.length;
+                d.indexStart = d.start;
+                d.sortField = d.columns[d.order[0].column].data;
+                d.orderType = d.order[0].dir;
+                d.search = d.search.value;
+                d.period = $('#dtpDCR').val();
+                d.callStatusId = $('#callStatusId').val();
+                d.payerName = $('#payerName').val();
+                d.payerIdCard = $('#payerIdCard').val();
+                d.payerPhone = $('#payerPhone').val();
+                if (data.length !== 0) {
+                    console.log(data)
+                }
+            });
+        }
+
+        const selectCloseQueue = (QueueId) => {
+            swal({
+                text: "ยืนยันการปิดคิวงาน",
+                title: "",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#1CAC2A',
+                confirmButtonText: "ตกลง",
+                cancelButtonText: "ยกเลิก",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        closeQueue(QueueId);
+                    } else {
+                        swal.close();
+                    }
+                });
+        }
+
+        const closeQueue = (QueueId) => {
+            $.post("@Url.Action("updateCloseQueue")", { QueueId: QueueId },
+                function (data) {
+                    if (data.IsResult == true) {
+                        swal_success("", "สำเร็จ", "success");
+                        $('#dtWaitCloseQueue').DataTable().ajax.reload();
+                    } else {
+                        swal("ผิดพลาด", data.Msg, "error");
+                    }
+                },
+            );
+        }
+
+        //onclickCancelQueue ยกเลิกคิวงาน
+        const cancelQueue = (QueueId) => {
+            swal({
+                title: "ยืนยันการยกเลิกคิวงาน",
+                text: "<p style='color: red'>เมื่อกดยืนยันแล้วจะไม่สามารถแก้ไขได้</p>",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#1CAC2A',
+                confirmButtonText: "ตกลง",
+                cancelButtonText: "ยกเลิก",
+                closeOnConfirm: false,
+                closeOnCancel: false,
+                html:true
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        QueueCancelUpdate(QueueId);
+                    } else {
+                        swal.close();
+                    }
+                });
+        }
+
+        //ยกเลิกคิวงาน
+        const QueueCancelUpdate = (QueueId) => {
+            $.post("@Url.Action("QueueCancelUpdate")", { QueueId: QueueId },
+                function (data) {
+                    if (data.IsResult == true) {
+                        swal_success("", "<p style='color: blue;font-size: 25px'>ยกเลิกคิวงานเรียบร้อยแล้ว</p>", "success");
+                        $('#dtWaitCloseQueue').DataTable().ajax.reload();
+                    } else {
+                        swal("ผิดพลาด", data.Msg, "error");
+                    }
+                },
+
+            );
+
+        };
+
+        const DoCloseQueueAll = (data) => {
+            $('#btnClosedQueueAll').prop("disabled", "disabled");
+            if (data != undefined && data != null && data != 0) {
+                $('#btnClosedQueueAll').prop("disabled", "");
+                swal({
+                    text: `ยืนยันปิดคิวงานทั้งหมด` + " " + data + " " + `รายการ`,
+                    title: "",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "ตกลง",
+                    cancelButtonText: "ยกเลิก",
+                    closeOnConfirm: false,
+                    closeOnCancel: false
+                },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            closeQueueAll();
+                        } else {
+                            swal({
+                                text: "",
+                                title: "ยกเลิก",
+                                type: "error",
+                                confirmButtonClass: "btn-danger",
+                                confirmButtonText: "ตกลง",
+                            })
+                        }
+                    });
+            } else {
+                $('#btnClosedQueueAll').prop("disabled", "disabled");
+            }
+
+        }
+
+        const closeQueueAll = () => {
+            $.post("@Url.Action("updateCloseQueueAll")", {
+                callStatusId: $('#callStatusId').val(),
+                payerPhone: $('#payerPhone').val(),
+                payerIdCard: $('#payerIdCard').val(),
+                payerName: $('#payerName').val(),
+                period: $('#dtpDCR').val()
+            },
+                function (data, textStatus, jqXHR) {
+
+                    if (data.IsResult == true) {
+                        swal_success("ปิดคิวงานทั้งหมดโดยไม่ได้ตรวจสอบ");
+
+                        $('#dtWaitCloseQueue').DataTable().ajax.reload();
+                    } else {
+                        swal("ผิดพลาด", data.Msg, "error");
+                    }
+
+                },
+            );
+
+        }
+
+        const selectDetail_QueueWait = (QueueId) => {
+            let c_QueueId = window.btoa(QueueId);
+            window.open(`@Url.Action("UnderwriteCancelIndex", "CustomerCheckInfo")?QueueId=${c_QueueId}`, '_blank');
+        }
+    </script>
+}

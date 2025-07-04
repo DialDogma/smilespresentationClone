@@ -1,0 +1,142 @@
+﻿@{
+    ViewBag.Title = "แจ้งยกเลิก";
+
+}
+<style>
+
+    .table {
+        font-size: 14px;
+    }
+
+    .toolbar {
+        float: left;
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* search form *@
+        <div class="col-sm-12 col-md-12" id="Search_form">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-10 col-md-offset-1 col-md-4">
+                            <label class="control-label" for="">คำค้นหา :</label>
+                            <input type="text" id="txtSearch" name="txtSearch" class="form-control" placeholder="กรอกคำค้นหาเช่น applicationID ,ชื่อ-นามสกุล" />
+                        </div>
+                        <div class="col-sm-2 col-md-2" style="margin-top: 25px">
+                            <button class="btn btn-block btn-info" type="button" id="btnSearch"><i class="fa fa-search"></i> ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end search *@
+        @* Search Result  form *@
+        <div class="col-sm-12 col-md-12" id="SearchResult_Form">
+            <div class="box box-info">
+                <div class="box-body">
+                    <div class="col-sm-12">
+                        <table id="dtApplicationMonitor" name="dtApplicationMonitor" class="table table-bordered table-striped" style="width: 100%"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end Search Result *@
+    </div>
+    @* hidden *@
+    <input type="hidden" id="hd_userId" value="@ViewBag.userId" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+            $('#SearchResult_Form').hide();
+
+            $('#btnSearch').click(() => {
+                $('#SearchResult_Form').show();
+                GetMonitorApplication();
+            });
+
+        });
+
+        const GetMonitorApplication = () => {
+            var search = $('#txtSearch').val();
+            var userId = $('#hd_userId').val();
+
+            //call api
+            $('#dtApplicationMonitor').empty();
+            var appTable = $('#dtApplicationMonitor').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetMonitorApplication","Monitor")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchDetail = search;
+                        d.branchId = null;
+                        d.startCoverDate = null;
+                        d.cancelDate = null;
+                        d.endCoverDate = null;
+                        d.appStatusIdList = '2,3,4,8';
+                        d.appUdwStatusIdList = null;
+                        d.userId = userId;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'วันที่คุ้มครอง', data: 'StartCoverDate',
+                        render: function (data) {
+                            if (data != null) {
+                                 let startCoverDate = moment(data)._d;
+                                let yearBE = startCoverDate.getFullYear() + 543;
+                                let startCoverDateBE = moment(startCoverDate.setFullYear(yearBE)).format("DD/MM/YYYY");
+                                return startCoverDateBE;
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    { title: 'AppID', data: 'ApplicationCode' },
+                    { title: 'กรมธรรม์', data: 'CurrentPolicyNo' },
+                    { title: 'ผู้เอาประกัน', data: 'CustName' },
+                    { title: 'แผนประกัน', data: 'Product' },
+                    { title: 'เบี้ย', data: 'PremiumPerPolicy' },
+                    { title: 'ตัวแทน', data: 'S1EmployeeName' },
+                    { title: 'สถานะกรมธรรม์', data: 'ApplicationStatus' },
+                    { title: 'ผลการพิจารณา', data: 'ApplicationUnderwriteStatus' },
+                    {
+                        title: 'จัดการ',
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        mRender: function (data) {
+                                return '<a type="button" class="btn btn-block btn-info" id="btnPlay_' + data.ApplicationId
+                                    + '" onclick="Play(\'' + data.ApplicationCode + '\')">จัดการ <i class="fa fa-arrow-right"></i></a>';
+                        }
+                    }
+                ]
+            });
+        }
+
+        const Play = (appCode) => {
+            var enc = btoa(appCode);
+            window.location = ('@Url.Action("RequestCancelApplicationDetail","CancelApplication")?appCode=' + enc );
+        }
+    </script>
+}

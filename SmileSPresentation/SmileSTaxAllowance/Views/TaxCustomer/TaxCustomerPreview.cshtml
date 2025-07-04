@@ -1,0 +1,141 @@
+﻿
+@{
+    ViewBag.Title = "TaxCustomerPreview";
+    Layout = "~/Views/Shared/_LayoutForTaxCustomer.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+
+            @* Progress Step Bar *@
+            <div class="row  text-padding" style="text-decoration:none;">
+
+                <div class="container-fluid">
+
+                    <ul class="list-unstyled multi-steps">
+                        <li>Step 1</li>
+                        <li>Step 2</li>
+                        <li class="is-preview">Step 3</li>
+
+                    </ul>
+                </div>
+
+            </div>
+
+
+            @* Detail Preview *@
+            <div class="panel panel-default display-block">
+
+                <div class="row text-center text-padding text-wordwrap">
+                    <div style="">
+                        <span class="success-icon" style=""><span class="glyphicon glyphicon-ok-circle"></span></span>
+                    </div>
+
+                    <div style="font-size:18px; color:#717171" class="text-wordwrap">
+                        <span style="font-size:20px">ระบบบันทึกข้อมูลเรียบร้อย</span><br />
+
+                        <div class="display-none row text-center text-padding"  id="divloadPDF" style=" margin: 10px auto 5px auto">
+                            <span>ดาวน์โหลดเอกสารแจ้งความประสงค์ในการใช้สิทธิขอยกเว้นภาษีเงินได้</span><br />
+
+                            <div id="divlstpdf" style=" margin: 10px auto 10px auto"></div>
+                        </div>
+
+
+                        <div style="padding-top:40px">
+                            <span>สอบถามข้อมูลเพิ่มเติม</span><br />
+                            <span> Add Line: &#64;siamsmile</span><br />
+                            <div class="" style=" padding-top:10px; width:auto;">
+                                <span id="btnline" class="btn btn-social " style=" background-color: #00c300; color: #fff; font-size:18px ">
+                                    <i class="" style="top:-3px;left:2px;"><img  src="~/Content/img/line.png"style="width:40px" /></i> เพิ่มเพื่อน
+                                </span>
+                               
+                            </div>
+                        </div>
+
+
+                        <div class="row text-center text-padding">
+                            <div style="padding-top: 60px;">
+                                <button type="button" class="btn btn-danger" id="btnbackMain"> กลับหน้าหลัก</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <input type="hidden" id="hdfCustIDCard" hidden value="@ViewBag.CustIdCard" />
+            <input type="hidden" id="hdfdisclosureStatusID" hidden value="@ViewBag.disclosureStatusID" />
+            <input type="hidden" id="hdfCustFirstname" hidden value="@ViewBag.custFirstName" />
+            <input type="hidden" id="hdfCustLastname" hidden value="@ViewBag.custLastName" />
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        let decode_custFirstname = decodeURIComponent($('#hdfCustFirstname').val());
+        let decode_custLastname = decodeURIComponent($('#hdfCustLastname').val());
+
+        $(function () {
+
+            debugger;
+
+           
+
+            if ($('#hdfdisclosureStatusID').val() == "2") { 
+                GetTaxCustomerDataPreview();
+            }
+
+
+            $('#btnbackMain').click(function (e) {  
+                e.preventDefault();
+
+                 window.location.href = "@Url.Action("TaxCustomer", "TaxCustomer")";
+
+            });
+
+
+            $('#btnline').click(function (e) {
+                e.preventDefault();
+
+                window.location.href = "http://line.me/R/ti/p/%40siamsmile";
+
+            });
+
+        });
+
+        function GetTaxCustomerDataPreview()
+        {
+            debugger;
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetTaxCustomerData", "TaxCustomer")",
+                data: {
+                    custIDCard: $('#hdfCustIDCard').val(),
+                    custFirstName: decode_custFirstname,
+                    custLastName: decode_custLastname
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    if (response != false) {    
+
+                        $('#divloadPDF').removeClass("display-none");
+                        $('#divloadPDF').addClass("display-block");
+
+                        for (var i = 0; i < response.length; i++) { 
+
+                            $('#divlstpdf').append(`<a href='${response[i].URL}' target='_blank'>${response[i].FileName}</a><br/>`);
+                        }
+                    }
+
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,166 @@
+﻿<!--@{
+    //var userDetail = SmileClaimV2.Helper.Authorization.GetLoginDetail(this.Context);
+   // var Role = "Developer";
+}
+<aside class="main-sidebar">
+    <section class="sidebar">
+        <br />
+        @* BEGIN Search *@
+        @*<form action="#" method="get" class="sidebar-form">
+            <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search...">
+            <span class="input-group-btn">
+            <button type="submit" name="search" id="search-btn" class="btn btn-flat">
+            <i class="fa fa-search"></i>
+            </button>
+            </span>
+            </div>
+            </form>*@
+        @* END Search *@
+        @* BEGIN Menu *@
+        <ul class="sidebar-menu" data-widget="tree">
+            @*<li class="header">HEADER</li>*@
+          @*@if (@Role == "Developer")*@
+            {
+                <li>
+                    <a href="@Url.Action("Index", "HCI")"><i class="fa fa-home"></i><span>หน้าหลัก</span></a>
+                </li>
+                <li class="treeview">
+                    <a href="#">
+                        <i class="fa fa-book"></i> <span>แจ้งใช้สิทธิ์</span>
+                        <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li><a href="@Url.Action("Index","PH")">ประกันส่วนบุคคล</a></li>
+                        <li><a href="@Url.Action("Index","PA")">ประกันอุบัติเหตุนักเรียน</a></li>
+                    </ul>
+                </li>
+
+                <li>
+                    <a href="@Url.Action("GetHospital","HCI")"><i class="fa fa-search"></i> <span>ค้นหาเช็คสิทธิ์โรงพยาบาล</span></a>
+                </li>
+
+                <li>
+                    <a href="@Url.Action("GetHospitalCancel","HCI")"><i class="fa fa-ban"></i> <span>ยกเลิกการใช้สิทธิ์</span></a>
+                </li>
+                <li>
+                    <a href="@Url.Action("GetHospitalMonitor","HCI")"><i class="fa fa-desktop"></i> <span>Monitor</span></a>
+                </li>
+                <li>
+                    <a href="@Url.Action("StaticHCI", "HCI")"><i class="fa fa-signal"></i> <span>รายงานสถิติการแจ้งใช้สิทธิ์</span></a>
+                </li>
+                <li>
+                    <a href="@Url.Action("DownloadDocument", "HCI")"><i class="fa fa-file"></i> <span>ดาวน์โหลดคู่มือ</span></a>
+                </li>
+                <li>
+                    <a href="@Url.Action("ContactUs","HCI")"><i class="fa fa-phone-square"></i> <span>ติดต่อเรา</span></a>
+                </li>
+            }
+        </ul>
+        @* END Menu *@
+    </section>
+</aside> -->
+@* อย่าลืมเปลี่ยนชื่อ project และ namespace --------------------------------------------------------------------- *@
+
+@using WebHelpers.Mvc5
+@using SmileClaimV2.Models
+
+@{
+    //var projectName = "SmileClaimV2";
+    var userDetail = SmileClaimV2.Helper.GlobalFunction.GetLoginDetail(Context);
+    var Environments = SmileClaimV2.Helper.GlobalFunction.GetEnvironment(Context);
+    //var service = new SmileClaimV2.SSOService.SSOServiceClient();
+
+}
+
+@*------------------------------------------------------------------------------------------------------*@
+
+<aside class="main-sidebar">
+    <section class="sidebar">
+        <br />
+        @* BEGIN Menu *@
+
+        <ul class="sidebar-menu" data-widget="tree">
+
+            @{var username = userDetail.UserName;
+                if (username != null)
+                {
+                    //Get menu by roles
+                    //var menus = service.GetMenuList(username, projectName);
+
+                    //Get menu by roles
+                    var menus = MenuRoles.GetMenuByUserName(userDetail.UserName);
+
+                    var parentMenus = menus.ToList().Where(x => x.MainMenuId == 0);
+
+                    //Load Parent Menu Level 0
+                    foreach (var parent in parentMenus)
+                    {
+                        //Get Child Level 1
+                        var lstLevel1 = menus.ToList().Where(x => x.MainMenuId == parent.MenuId).OrderBy(x => x.SortOrder);
+
+                        if (!lstLevel1.Any())
+                        {
+                            //Render Parent without children (as a menu)
+                            if (!string.IsNullOrEmpty(parent.QueryString))
+                            {
+
+                            }
+                            <li><a href="@Url.Action(parent.Action, parent.Controller)@parent.QueryString"><i class="@parent.IconClassMenu"></i> <span>@parent.Detail</span></a></li>
+                        }
+                        else
+                        {
+                            //Render Parent with children
+                            <li class="treeview">
+                                <a href="#">
+                                    <i class="@parent.IconClassMenu"></i><span>@parent.Detail</span>
+                                    <span class="pull-right-container">
+                                        <i class="fa fa-angle-left pull-right"></i>
+                                    </span>
+                                </a>
+
+                                <ul class="treeview-menu">
+                                    @foreach (var Item1 in lstLevel1)
+                                    {
+                                        //Get list level 2
+                                        var lstLevel2 = menus.ToList().Where(x => x.MainMenuId == Item1.MenuId).OrderBy(x => x.SortOrder);
+
+                                        if (lstLevel2.Any())
+                                        {
+                                            //Has Level 2
+                                            <li class="treeview">
+                                                <a href="#">
+                                                    <i class="@Item1.IconClassMenu"></i><span>@Item1.Detail</span>
+                                                    <span class="pull-right-container">
+                                                        <i class="fa fa-angle-left pull-right"></i>
+                                                    </span>
+                                                </a>
+                                                <ul class="treeview-menu">
+                                                    @foreach (var Item2 in lstLevel2)
+                                                    {
+                                                        //Render level 2
+                                                        <li><a href="@Url.Action(Item2.Action, Item2.Controller)@Item2.QueryString">@Item2.Detail</a></li>
+                                                    }
+                                                </ul>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            //No level 2
+                                            //Render level 1
+                                            <li><a href="@Url.Action(Item1.Action, Item1.Controller)@Item1.QueryString">@Item1.Detail</a></li>
+                                        }
+                                    }
+                                </ul>
+                            </li>
+                        }
+
+                        @* END Menu *@
+                    }
+                }
+            }
+        </ul>
+    </section>
+</aside>

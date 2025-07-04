@@ -1,0 +1,290 @@
+﻿
+@{
+    ViewBag.Title = "รายการ PAชุมชน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*<h2>PACommunityMonitor</h2>*@
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12 ">
+
+            @* Search *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <label>สาขา :</label>
+                                <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlbranch">
+                                    @{
+                                        var rolelist = ViewBag.Role;
+                                        foreach (var item in rolelist)
+                                        {
+                                            if (item == "Developer" || item == "PACommunity_PAUnderwrite")
+                                            {
+                                                <option value="-1">--ทั้งหมด--</option>
+                                            }
+                                        }
+                                    }
+
+                                    @{foreach (var item in ViewBag.Branchs)
+                                        {
+                                            <option value="@item.BranchID">@item.Branch</option>
+                                        } }
+                                </select>
+                            </div>
+                            <div class="col-xs-3">
+                                <label>สถานะ :</label>
+                                <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlAppStatus">
+                                    <option value="-1">--โปรดระบุ--</option>
+
+                                    @{ foreach (var item in ViewBag.AppStatus)
+                                        {
+                                            <option value="@item.ApplicationStatusId">@item.ApplicationStatus</option>
+                                        }}
+                                </select>
+                            </div>
+
+                        </div>
+                        <div class="row" style="padding-top:6px;">
+                            <div class="col-xs-6">
+                                <label>คำค้น :</label>
+                                <input type="text" id="txtKeyWord" class="form-control" />
+                            </div>
+                            <div class="col-xs-2" style="padding-top:25px">
+                                <button type="button" style="" class="btn btn-primary" id="btnSearch"><i class="fa fa-fw fa-search"></i> ค้นหา</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            @* Detail *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียดรายการ</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="box-group">
+
+                        <table id="dtMonitor" class="table table-bordered table-hover dataTable" style="width:100%">
+                           
+                            
+                        </table>
+
+                    </div>
+
+                </div>
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="col-xs-4">
+                            <a class="btn btn-success" style="text-decoration:none;" href="@Url.Action("AddPACoumunityNewApp", "PACommunity")" target="_blank"><i class="fa fa-fw fa-plus-circle"></i> บันทึก NewApp</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+
+
+
+
+</form>
+
+@section ViewSpecificJavascript
+{
+
+ <script>
+
+     $(document).ready(function () {
+          var chat = $.connection.myHub;
+
+
+          //Start Connection
+         $.connection.hub.start().done(function () {
+
+              debugger;
+            chat.server.joinGroup(@ViewBag.userID);
+
+          });
+
+         //Show addNewNotice to client
+         chat.client.sendNoticeResult = function (Str1, Str2) {
+             debugger;
+
+             GetMonitor();
+             //window.location.reload();
+
+         };
+     });
+
+
+     $(document).ready(function () {
+
+         $('.select2').select2();
+
+         var d1 = new Date();
+         //$('#dtpDateFrom').datepicker("setDate", new Date(d1.getFullYear(), 0, 1));
+         //$('#dtpdatefrom').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date(d1.getFullYear(), d1.getMonth(), 1));
+
+         // $('#dtMonitor').DataTable();
+
+         //GetMonitor();
+
+         $('#btnSearch').click(function (e) {
+             e.preventDefault();
+
+             GetMonitor();
+
+             debugger;
+            // chat.server.sendNotice("", "");
+         });
+
+
+
+
+     });
+
+     const IsvalidateForSearch = () => {
+
+     }
+
+
+     const GetMonitor = () => {
+
+         $('#dtMonitor').empty();
+
+         let t = $('#dtMonitor').DataTable({
+             pageLength: 10,
+             processing: true,
+             serverSide: true,
+             responsive: true,
+             destroy: true,
+             searching: false,
+             ajax: {
+                    url: '@Url.Action("GetApplicationDetailMonitor", "PACommunity")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $('#txtKeyWord').val();
+                        d.branchID = $('#ddlbranch').val();
+                        d.applicationStatusId = $('#ddlAppStatus').val();
+                    }
+                },
+                columns: [
+                    { title: 'ApplicationCode', data: 'ApplicationCode' },
+                    { title: 'ชื่อกรมธรรม์', data: 'ApplicationName' },
+                    { title: 'สถานะ', data: 'ApplicationStatus' },
+                    {
+                        title: 'วันเริ่มคุ้มครอง', data: 'StartCoverDate', className: 'dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'วันสิ้นสุดคุ้มครอง', data: 'EndCoverDate', className: 'dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                        }
+                    },
+                    {
+                        data: null,
+                        mRender: (data, type, full) =>
+                        {
+                            if (data.ApplicationStatusId == 4) {
+                                return '';
+                            }
+                            else if (data.ApplicationStatusId == 5)
+                            {
+                                return '';
+                            }
+                            else
+                            {
+                                if (IsvalidateForCheckDCR(moment(data.StartCoverDate)._d)) {
+                                    let en_AppID = window.btoa(data.ApplicationId);
+                                    return '<a href="@Url.Action("AddPACoumunityNewApp", "PACommunity")?appID=' + en_AppID + '" style="" class="btn btn-warning btn-sm" target="_blank"><i class="fa fa-fw fa-edit"></i> แก้ไข </a>';
+                                } else {
+                                    let rs = CheckApplicationByPass(data.ApplicationId);
+                                    if (rs == true) {
+                                        let en_AppID = window.btoa(data.ApplicationId);
+                                        return '<a href="@Url.Action("AddPACoumunityNewApp", "PACommunity")?appID=' + en_AppID + '" style="" class="btn btn-warning btn-sm" target="_blank"><i class="fa fa-fw fa-edit"></i> แก้ไข </a>';
+                                    } else {
+                                        return '';
+                                    }
+                                }
+                                
+                            }
+                            
+                        }, width: '5%'
+                    },
+                    {
+                        data: null,
+                        mRender: (data, type, full) =>
+                        {
+                            let en_AppID = window.btoa(data.ApplicationId);
+                            return '<a href="@Url.Action("PACommunityDetail", "PACommunity")?applicationID=' + en_AppID +'" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-fw fa-desktop"></i> รายละเอียด </a>';
+                        }, width: '5%'
+                    },
+                ],
+                bLengthChange: false,
+                //createdRow: function (row, data, index) {
+                //    if (data.ClaimOnLineStatusId == 3) {
+                //        $('td', row).addClass('selected');
+                //    }
+                //},
+
+
+            });
+     }
+
+      const CheckApplicationByPass = (appId) => {
+            let rs;
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("CheckApplicationBypass", "PACommunity")",
+                data: { appId: appId},
+                dataType: "json",
+                async: false,
+                success: function (d) {
+                    debugger;
+                    rs = d.IsResult;
+
+                }
+            });
+
+            return rs;
+        }
+
+
+        const IsvalidateForCheckDCR = (startCoverDate) => {
+            let checkDCR = CheckStartCoverDate(new Date());
+
+            debugger;
+            if (startCoverDate < checkDCR) {    
+                return false;
+            }
+
+            return true;
+        }
+
+
+</script>
+}
+

@@ -1,0 +1,181 @@
+﻿@{
+    ViewBag.Title = "ค้นหาการทำรายการ Point";
+}
+
+@ViewBag.d
+
+<div class="row">
+    <div class="form-group">
+        <label for="DateFrom" class="col-sm-1 control-label">ตั้งแต่วันที่</label>
+        <div class="col-sm-2">
+            <div class="input-group date">
+                <div class="input-group-addon">
+                    <i class="fa fa-calendar"></i>
+                </div>
+                <input type="text" class="form-control pull-right datepicker" name="DateFrom" id="DateFrom" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy">
+            </div>
+        </div>
+        <label for="DateTo" class="col-sm-1 control-label">ถึงวันที่</label>
+        <div class="col-sm-2">
+            <div class="input-group date">
+                <div class="input-group-addon">
+                    <i class="fa fa-calendar"></i>
+                </div>
+                <input type="text" class="form-control pull-right datepicker" name="DateTo" id="DateTo" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy">
+            </div>
+        </div>
+        <div class="col-sm-1">
+            <button type="button" class="btn btn-info pull-right" name="btnSearch" id="btnSearch">แสดงรายการ</button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title">ค้นหาการทำรายการ Point</h3>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body" id="tableContainer">
+                <table id="datatable1" class="table table-bordered table-striped"></table>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+    <!-- /.box -->
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script>
+        var table;
+
+        $(function () {
+            LoadDatatable(null, null);
+
+            $('#btnSearch').click(function (e) {
+                //Get Datefrom
+                var dFrom = $('#DateFrom').val();
+                //Get Dateto
+                var dTo = $('#DateTo').val();
+
+                //Reinitialize datatable
+                table.destroy();
+
+                //TODO: Load Datatable
+                LoadDatatable(dFrom, dTo);
+
+            });
+        });
+
+        //Load Datatable
+        function LoadDatatable(datefrom, dateto) {
+            debugger;
+            table =  $('#datatable1').DataTable({
+
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                ajax: {
+                    url: '@Url.Action("SearchDatatable","Transaction")',
+                    method:'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.dFrom = datefrom;
+                        d.dTo = dateto;
+                    }
+                },
+                columns: [
+                    {
+                        title: '',
+                        data: 'TransactionId',
+                        width: 100,
+                        render: function (data) {
+                            return '<a href="@Url.Action("Detail")?id=' + data +'" class="btn btn-success" title="View Detail" style="margin: 2px;">View Detail</a>';
+                        }
+                    },
+                    {
+                        title: 'รหัส',
+                        data: 'TransactionId',
+                        className: 'dt-right'
+
+                    },
+                    {
+                        title: 'แผนก',
+                        data: 'TransactionGroupName'},
+                    {
+                        title: 'ประเภท',
+                        data: 'TransactionTypeName'},
+                    {
+                        title: 'รับ',
+                        data: 'AmountIncrease',
+                        className: 'dt-right' ,
+                        render: function (data) {
+                            var amount = data.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                            var result;
+                            if (amount != 0) {
+                                result = '<p class="text-blue">' + amount + '</p>';
+                            }
+                            else {
+                                result = '';
+                            }
+                            return result;
+                        }
+                    },
+                    {
+                        title: 'จ่าย',
+                        data: 'AmountDecrease',
+                        className: 'dt-right' ,
+                        render: function (data) {
+                            var amount = data.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                            var result;
+                            if (amount != 0) {
+                                result = '<p class="text-red">' + amount + '</p>';
+                            }
+                            else {
+                                result = '';
+                            }
+                            return result;
+                        }
+                    },
+                    {
+                        title: 'ผู้บันทึก',
+                        data: 'CreatedById',
+                        className: 'dt-right' },
+                    {
+                        title: 'วันที่บันทึก',
+                        data: 'CreatedDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            return DisplayJsonDateBE(data);
+                        }
+                    },
+                    {
+                        title: 'Status',
+                        data: 'TransactionStatusDetail',
+                        className: 'dt-center',
+                        render: function (data) {
+                            var result = data;
+                            if (data == 'Success') {
+                                result = '<span class="label label-success">'+ data +'</span>';
+                            }
+                            else if (data=='Cancel') {
+                                result = '<span class="label label-danger">'+ data +'</span>';
+                            }
+                            return result;
+                        }
+                    },
+                    { title: 'หมายเหตุ', data: 'Remark' }
+
+                ]
+            });
+        }
+    </script>
+}

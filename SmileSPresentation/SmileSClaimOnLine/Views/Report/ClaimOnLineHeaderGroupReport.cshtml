@@ -1,0 +1,148 @@
+﻿
+@{
+    ViewBag.Title = "รายงานสรุปชุดข้อมูลเรียกร้องค่าสินไหมทดแทน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+
+<form class="form-horizontal" method="post" id="myform">
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div class="box box-primary ">
+
+                <div class="box-body" style="margin-top:18px;">
+                    <div class="box-group">
+                        <div class="row " style="margin-left: 4px">
+                            <div class="col-xs-3 ">
+                                <label>สาขา :</label>
+                                <select class="form-control select2 " style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="branchId">
+                                    @if (ViewBag.checkBranch == true)
+                                    {
+                                        <option value="-1"> -- โปรดระบุ -- </option>
+                                    }
+
+                                    @foreach (var item in ViewBag.Branch)
+                                    {
+                                        <option value="@item.BranchID">   @item.Branch </option>
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row" style="margin-top:24px;margin-left:4px">
+                            <div class="col-xs-3 ">
+                                <label>จากวันที่ :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dateFrom" data-provide="datepicker" data-date-language="th-th">
+                                </div>
+                            </div>
+
+                            <div class="col-xs-3">
+                                <label>ถึงวันที่ :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dateTo" data-provide="datepicker" data-date-language="th-th">
+                                </div>
+                            </div>
+                            <div class="col-xs-3" style="padding-top: 25px;">
+                                <button class="btn btn-success" id="btnExport" type="button" style="width:80%">ExportToExcel</button>
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top:24px;margin-left:4px">
+                            <div class="col-xs-3 ">
+                                <span><b style="color:red">*</b> ย้อนหลังไม่เกิน <span id="month"></span> เดือน</span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <br />
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <input id="checkMonth" value="@ViewBag.checkMonth" type="hidden" />
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+
+            $('.select2').select2();
+            $('#month').text($('#checkMonth').val());
+
+            var today = new Date();
+            $('#dateFrom').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", today);
+            $('#dateTo').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", today);
+
+
+            $('#btnExport').click(function (e) {
+                e.preventDefault();
+
+                var date1 = $('#dateFrom').datepicker('getDate');
+                var date2 = $('#dateTo').datepicker('getDate');
+
+                if (monthDiff(date1, date2)) {
+                    if ($('#branchId').val() == -1) {
+                        swal("กรุณาเลือกสาขา", "", "warning");
+                    }
+                    else
+                    {
+                        loadingSpinner('fadeIn');
+                        Export();
+                    }
+                }
+                else {
+                    swal("เลือกวันที่ได้ไม่เกิน "+$('#checkMonth').val()+" เดือน", "", "warning");
+                }
+            });
+
+        });
+
+        function monthDiff(d1, d2) {
+            var check = $('#checkMonth').val();
+            var configDate = new Date();;
+            configDate = moment(d2).add(-check, 'months');
+            return configDate <= d1 ? true : false;
+        }
+
+        function Export() {
+            //debuger
+            loadingSpinner('fadeIn', 999999);
+            $.ajax({
+                url: "@Url.Action("ClaimOnLineHeaderGroupExport", "Report")",
+                type: "POST",
+                data: {
+                    branchId: $('#branchId').val(),
+                    dateFrom: $('#dateFrom').val(),
+                    dateTo: $('#dateTo').val()
+                },
+                success: function (response) {
+                    if (response.IsSuccess) {
+                        window.location = "@Url.Action("ClaimOnLineHeaderGroupExportDownload")";
+                        loadingSpinner('fadeOut');
+                        swal('สำเร็จ', response.Message, 'success');
+                    } else {
+                        swal('เกิดข้อผิดพลาด !', response.Message, 'error');
+                        loadingSpinner('fadeOut')
+                    }
+                }
+            });
+        }
+
+    </script>
+}

@@ -1,0 +1,124 @@
+﻿
+@{
+    ViewBag.Title = "รายงานคืนเงิน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal" method="post" id="myform">
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div class="box box-primary ">
+
+                <div class="box-body" style="margin-top:6px;">
+                    <div class="box-group">
+
+                        <div class="row" style="margin-top:24px;margin-left:4px">
+                            <div class="col-xs-3 ">
+                                <label>จากวันที่ :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dateFrom" data-provide="datepicker" data-date-language="th-th">
+                                </div>
+                            </div>
+
+                            <div class="col-xs-3">
+                                <label>ถึงวันที่ :</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dateTo" data-provide="datepicker" data-date-language="th-th">
+                                </div>
+                            </div>
+                            <div class="col-xs-3" style="padding-top: 25px;">
+                                <button class="btn btn-success" id="btnExport" type="button" style="width:80%">ExportToExcel</button>
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top:24px;margin-left:4px">
+                            <div class="col-xs-3 ">
+                                <span><b style="color:red">*</b> ย้อนหลังไม่เกิน <span id="month"></span> เดือน</span>
+
+                            </div>
+
+                        </div>
+                        <br />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <input id="checkMonth" value="@ViewBag.checkMonth" type="hidden" />
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+
+            $('.select2').select2();
+            $('#month').text($('#checkMonth').val());
+
+            var today = new Date();
+            $('#dateFrom').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", today);
+            $('#dateTo').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", today);
+
+
+            $('#btnExport').click(function (e) {
+                e.preventDefault();
+
+                var date1 = $('#dateFrom').datepicker('getDate');
+                var date2 = $('#dateTo').datepicker('getDate');
+
+                if (monthDiff(date1, date2)) {
+                        loadingSpinner('fadeIn');
+                        Export();
+                }
+                else {
+                    swal("เลือกวันที่ได้ไม่เกิน " + $('#checkMonth').val() + " เดือน", "", "warning");
+                }
+
+            });
+
+        });
+
+        function monthDiff(d1, d2) {
+            var check = $('#checkMonth').val();
+            var configDate = new Date();;
+            configDate = moment(d2).add(-check, 'months');
+            return configDate <= d1 ? true : false;
+        }
+
+
+        function Export() {
+            loadingSpinner('fadeIn', 999999);
+            $.ajax({
+                url: "@Url.Action("RefundTransferReportExport", "Report")",
+                type: "POST",
+                data: {
+                    dateFrom: $('#dateFrom').val(),
+                    dateTo: $('#dateTo').val()
+                },
+                success: function (response) {
+                    if (response.IsSuccess) {
+                        window.location = "@Url.Action("RefundTransferReportExportDownload")";
+                        loadingSpinner('fadeOut');
+                        swal('สำเร็จ', response.Message, 'success');
+                    } else {
+                        swal('เกิดข้อผิดพลาด !', response.Message, 'error');
+                        loadingSpinner('fadeOut')
+                    }
+                },
+                error: function (jqXHR, exception) {
+                    checkXHRStatus(jqXHR.status);
+                    loadingSpinner('fadeOut');
+                }
+            });
+        }
+
+    </script>
+}

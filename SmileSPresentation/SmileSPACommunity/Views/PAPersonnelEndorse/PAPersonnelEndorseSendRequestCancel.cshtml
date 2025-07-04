@@ -1,0 +1,570 @@
+﻿
+@{
+    ViewBag.Title = "บันทึกขอยกเลิกกรมธรรม์";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<form class="form-horizontal" id="form1" name="form1" action="@Url.Action("PAPersonnelEndorseSendRequestCancel")" method="post" enctype="multipart/form-data">
+
+    <div class="row">
+        <div class="col-xs-12">
+
+            <!-- /.box-ค้นหา Application  -->
+            @{
+                if (ViewBag.RequestCancelApplicationID == null)
+                {
+                    <div class="box box-danger">
+                        <div class="box-header with-border " style="background-color:#dd4b39  ; color:white">
+                            <h3 class="box-title">ค้นหารายการ</h3>
+
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                    <i class="fa fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- /.box-header -->
+                        <div class="box-body">
+                            <div class="box-group">
+                                <div class="row">
+                                    <div class="col-xs-3">
+                                        <label>สาขา :</label>
+                                        <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlbranch">
+                                            @{
+                                                foreach (var item in ViewBag.Branchs)
+                                                {
+                                                    <option value="@item.BranchID">@item.Branch</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <label>ปีการศึกษา :</label>
+
+                                        <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlYears">
+                                            @{
+                                                foreach (var item in ViewBag.Years)
+                                                {
+                                                    <option value="@item.Code">@item.Detail</option>
+                                                }
+
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row" style="padding-top:5px">
+                                    <div class="col-xs-6">
+                                        <label>ค้นหาจากเลข App ID PA ยิ้มแฉ่ง หรือ ชื่อสถานศึกษา :</label>
+                                        <input type="text" class="form-control" style="width:100%" id="txtKeyWord" />
+                                    </div>
+                                    <div class="col-xs-2" style="padding-top:25px">
+                                        <button type="button" class="btn btn-primary" id="btnSearch"><i class="fa fa-fw fa-search"></i> ค้นหา</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ./box-body -->
+                        <div class="box-body">
+                            <div class="box-group">
+                                <div class="col-xs-12">
+                                    <table id="dtMonitor" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                }
+            }
+
+            <!-- /.box-รายล่ะเอียน  -->
+
+            <div class="box box-danger">
+                <div class="box-header with-border" style="background-color:#dd4b39  ; color:white">
+                    <h3 class="box-title">ข้อมูลกรมธรรม์</h3>
+
+                    <div class="box-tools pull-right">
+
+
+
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div id="AppDetail" class="collapse">
+                    <div class="box-body">
+
+
+                        <div class="box-group">
+                            <div class="col-xs-3">
+                                <label>Application ID</label>
+                                <input type="text" class="form-control" id="txtAppID" disabled>
+                            </div>
+                            <div class="col-xs-6">
+                                <label>ชื่อกรมธรรม์</label>
+                                <input type="email" class="form-control" id="txtApplicationName" disabled>
+                            </div>
+                            <div class="col-xs-3">
+                                <label>สถานะกรมธรรม์</label>
+                                <input type="email" class="form-control" id="txtApplicationStatus" disabled>
+                            </div>
+                        </div>
+
+                        <div class="box-group">
+                            <div class="col-xs-3">
+                                <label>วันที่เริ่มสัญญา</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control" id="txtStartCoverDate" disabled>
+                                </div>
+
+                            </div>
+
+                            <div class="col-xs-3">
+                                <label>วันที่สิ้นสุดสัญญา</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control" id="txtEndCoverDate" disabled>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <!-- ./box-body -->
+                    <div class="box box-danger">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">รายละเอียดการยกเลิก</h3>
+                        </div>
+
+                        <div class="box-body">
+                            <div class="col-xs-3">
+
+                                <label>สาเหตุการยกเลิก</label>
+                                <select class="form-control select2 select2-hidden-accessible inputCause" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlCancelCause" name="ddlCancelCause">
+                                    <option value="-1">--โปรดระบุ--</option>
+
+                                    @{foreach (var item in ViewBag.CancelCause)
+                                        {
+
+                                            <option value="@item.PersonnelApplicationCancelCauseId">@item.PersonnelApplicationCancelCauseName</option>
+                                        }
+                                    }
+                                </select>
+
+                            </div>
+                            <div class="col-xs-9">
+                                <label>หมายเหตุ</label>
+                                <input type="text" class="form-control inputCause" id="txtRemark">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="box box-danger">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">รายการเอกสาร</h3>
+                        </div>
+
+                        <div class="box-body">
+
+                            <div class="col-xs-12">
+
+                                <table id="dtDocument" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+
+                            </div>
+                        </div>
+                        <!-- /.col -->
+
+                        <div class="box-body">
+                            <div class="box-group" style="text-align:center">
+                                <button class="btn btn-danger" id="btnSendCancel" name="btnSendCancel" type="button">ส่งขอยกเลิกกรมธรรม์</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" id="hdfApplicationID" hidden />
+        <input type="hidden" id="hdfRequestCancelApplicationId" hidden value="@ViewBag.RequestCancelApplicationID" />
+
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script>
+
+        var AppId;
+
+        var IsShow = true;
+        $(function () {
+            $('.select2').select2();
+
+            if ($('#hdfRequestCancelApplicationId').val() != "") {
+
+                $("#AppDetail").collapse('show');
+                GetRequestCancelApplicationById();
+                GetDocumentRequestCancelDetail();
+                EnabledInputCause(true);
+                EnabledButton(true);
+            } else {
+                EnabledInputCause(false);
+                EnabledButton(false);
+            }
+
+        });
+
+        $('#btnSearch').click(function (e) {
+            e.preventDefault();
+            if (IsValidateForSearch()) {
+                //GetMonitorSearch()
+                GetMonitor();
+            }
+
+        });
+
+        //btnSendCancel
+        $('#btnSendCancel').click(function (e) {
+            e.preventDefault();
+            
+            if (Isvalidate() == true) {
+
+
+                DoCancelPolicy($("#txtAppID").val());
+
+            }
+
+        });
+
+        const EnabledInputCause = (v) => {
+            $('.inputCause').attr('disabled', v);
+        }
+
+        const EnabledButton = (v) => {
+            $('button').attr('disabled', v);
+        }
+
+        const GetRequestCancelApplicationById = () => {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetRequestCancelApplicationById", "PAPersonnelEndorse")",
+                data: {
+                    requestCancelApplicationId: $('#hdfRequestCancelApplicationId').val()
+                },
+                dataType: "json",
+                success: function (response) {
+                    $('#txtAppID').val(response.PersonnelApplicationCode);
+                    $('#txtApplicationStatus').val(response.PersonnelApplicationStatusName);
+                    $('#txtApplicationName').val(response.PersonnelApplicationName);
+
+                    let startCoverdate = moment(response.ApplicationStartCoverDate).add(543, 'years').format('DD/MM/YYYY');
+                    let endCoverdate = moment(response.ApplicationEndCoverDate).add(543, 'years').format('DD/MM/YYYY');
+
+                    $('#txtStartCoverDate').val(startCoverdate);
+                    $('#txtEndCoverDate').val(endCoverdate);
+
+
+
+                    $('#ddlCancelCause').val(response.ApplicationCancelCauseId).trigger('change.select2');
+                    $('#txtRemark').val(response.ApplicationCancelCauseRemark);
+                }
+            });
+        }
+
+        const IsValidateForSearch = () => {
+            var rs = "";
+
+            if ($('#txtKeyWord').val() == "") {
+                rs = "กรุณากรอกชื่อสถานศึกษาหรือเลขที่ Application เพื่อค้นหา";
+                swal("ตรวจสอบ !!", rs, "warning");
+                return false
+            }
+
+            return true
+        }
+
+        const DoCancelPolicy = (appId) => {
+            swal({
+                title: "",
+                text: "ต้องการส่งยกเลิกกรมธรรม์นี้หรือไม่ ?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "ตกลง",
+                cancelButtonText: "ยกเลิก",
+                closeOnConfirm: false,
+                closeOnCancel: false
+                },
+                function(isConfirm) {
+                  if (isConfirm) {
+                    //swal("Deleted!", "Your imaginary file has been deleted.", "success");
+                      //$("#AppDetail").collapse('hide');
+                      //swal("", "", "success");
+
+                      UpdateRequestCancelApplication();
+
+                  } else {
+                    swal("ยกเลิกทำรายการ", "", "error");
+                  }
+                }
+            );
+        }
+
+        const UpdateRequestCancelApplication = () => {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("UpdateRequestCancelApplication", "PAPersonnelEndorse")",
+                data: {
+                    requestCancelApplicationId: $('#hdfRequestCancelApplicationId').val(),
+                    applicationCancelCauseId: $('#ddlCancelCause').val(),
+                    remark: $('#txtRemark').val()
+                },
+                dataType: "json",
+                success: function (data) {
+                    if (data[0] == "True")
+                    {
+                        swal_success(data[2])
+                        setTimeout(() => { window.location = ('@Url.Action("PAPersonnelEndorseRequestCancelMonitor", "PAPersonnelEndorse")'); },1500);//UI16
+                    }
+                    else
+                    {
+                        swal("", data[2], "error");
+                    }
+                }
+            });
+        }
+
+        const SaveRequestCancelApplication = () => {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("SaveRequestCancelApplication", "PAPersonnelEndorse")",
+                data: {
+                    applicationId: $('#hdfApplicationID').val()
+
+                },
+                dataType: "json",
+                success: function (data) {
+
+                    if (data[0] == "True") {
+                        swal("", data[2], "success");
+                        $('#hdfRequestCancelApplicationId').val(data[1]);
+                        IsShow = false;
+                        $("#AppDetail").collapse('show');
+                        GetApplicationDetail();
+                        GetDocumentRequestCancelDetail();
+                    } else {
+                        swal("", data[2], "error");
+                    }
+                }
+            });
+        }
+
+
+        const GetMonitor = () => {
+
+         $('#dtMonitor').empty();
+
+         let t = $('#dtMonitor').DataTable({
+             pageLength: 5,
+             processing: true,
+             serverSide: true,
+             responsive: true,
+             destroy: true,
+             searching: false,
+             ajax: {
+                 url: '@Url.Action("GetApplicationDetail", "PAPersonnelEndorse")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $("#txtKeyWord").val();
+                        d.branchID = $("#ddlbranch").val() == '-1' ? null : $("#ddlbranch").val();
+                        d.schoolYear = $("#ddlYears").val() == '-1' ? null: $("#ddlYears").val();
+                       //------------------------------------------------------
+                        //d.branchID = null;
+                        //d.branchID = @ViewBag.BranchID;
+                       //------------------------------------------------------
+
+                    }
+                },
+                columns: [
+                    { title: 'ApplicationCode', data: 'PersonnelApplicationCode', className: 'h-dt-center d-dt-center' },
+                    { title: 'ชื่อกรมธรรม์', data: 'PersonnelApplicationName', className: 'h-dt-center '},
+                    { title: 'สถานะ', data: 'PersonnelApplicationStatusName', className: 'h-dt-center' },
+                    {
+                        title: 'วันเริ่มคุ้มครอง', data: 'StartCoverDate', className: 'h-dt-center d-dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'วันสิ้นสุดคุ้มครอง', data: 'EndCoverDate',
+                        className: 'h-dt-center d-dt-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                        }
+                    },
+
+                    {
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) =>
+                        {
+                            let encode_appid = window.btoa(data.PersonnelApplicationId);
+                            return '<a href="@Url.Action("PAPersonnelDetail", "PAPersonnel")?appId=' + encode_appid + '" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-fw fa-desktop"></i> รายละเอียด </a>';
+                        }, width: '10%'
+                    },
+                    {
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) =>
+                        {
+                            if (data.PersonnelApplicationStatusId == 5)
+                            {
+                                return '';
+                            }
+                            else
+                            {
+                                return '<a  class="btn btn-danger btn-sm " onclick="GetAppDetail(\'' + data.PersonnelApplicationId + '\');" ; ><i class="glyphicon glyphicon-minus-sign"></i> ยกเลิกกรมธรรม์</a >';
+                            }
+
+                        }, width: '11%'
+                    },
+                ],
+                bLengthChange: false,
+            });
+     }
+
+        const GetDocumentRequestCancelDetail = () => {
+                $('#dtDocument').empty();
+
+                let t = $('#dtDocument').DataTable({
+                 pageLength: 5,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                 destroy: true,
+                 searching: false,
+                 ajax: {
+                     url: '@Url.Action("GetDocumentRequestCancelDetail", "PAPersonnelEndorse")',
+                        type: 'POST',
+                        data: function (d) {
+                            d.draw = d.draw;
+                            d.pageSize = d.length;
+                            d.pageStart = d.start;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.search = d.search;
+                            d.referenceId = $('#hdfRequestCancelApplicationId').val();
+                            d.documentTypeId = 43;
+                        }
+                    },
+                    columns: [
+                        { title: 'รหัสเอกสาร', data: 'DocumentCode', className: 'h-dt-center d-dt-center', width: '17%' },
+                        { title: 'ประเภทเอกสาร', data: 'DocumentType', className: 'h-dt-center '},
+                        {
+                            title: 'Action', data: null,
+                            className: 'h-dt-center d-dt-center',
+                            mRender: (data, type, full) =>
+                            {
+
+                                if ($('#hdfRequestCancelApplicationId').val() != "" && IsShow == true)
+                                {
+                                    return '<a href = "' + data.UrlLinkScan + '" target = "_blank" class="btn btn-warning btn-sm" disabled="disabled"> <i class="fa fa-fw fa-upload"></i> Scan</a> '
+                                        + '<a href="' + data.UrlLinkOpen + '" target="_blank" class="btn btn-info btn-sm" > <i class="fa fa-fw fa-file"></i> เอกสาร</a > ';
+                                } else
+                                {
+                                    return '<a href = "' + data.UrlLinkScan + '" target = "_blank" class="btn btn-warning btn-sm" > <i class="fa fa-fw fa-upload"></i> Scan</a> '
+                                        + '<a href="' + data.UrlLinkOpen + '" target="_blank" class="btn btn-info btn-sm" > <i class="fa fa-fw fa-file"></i> เอกสาร</a > ';
+                                }
+
+
+
+                            }, width: '20%'
+                        },
+
+                    ],
+                    bLengthChange: false,
+                });
+
+        }
+
+
+        const Isvalidate = () => {
+            
+            if ($('#ddlCancelCause').val() == -1) {
+                swal("ตรวจสอบข้อมูล", "กรุณาระบุสาเหตุการยกเลิก", "warning")
+                return false
+
+            }
+            else if ($('#txtRemark').val() == "") {
+                swal("ตรวจสอบข้อมูล", "กรุณาระบุหมายเหตุ", "warning")
+                return false
+            }
+            return true
+        }
+
+        const GetAppDetail = (AppID) => {
+
+            swal({
+                title: "",
+                text: "ต้องการยกเลิกกรมธรรม์รายการนี้หรือไม่ ?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "ตกลง",
+                cancelButtonText: "ยกเลิก",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+
+                        //Save
+                        $('#hdfApplicationID').val(AppID);
+                        SaveRequestCancelApplication();
+
+                    } else {
+                        swal("ยกเลิกทำรายการ", "", "error");
+                    }
+                }
+            );
+        }
+
+
+        const GetApplicationDetail = () => {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("GetApplicationDetail", "PAPersonnelEndorse")',
+                data: { applicationID: $('#hdfApplicationID').val() },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+                 
+                 if (response.data[0] == null) {
+
+                 } else {
+                     $('#txtAppID').val(response.data[0].PersonnelApplicationCode);
+                     $('#txtApplicationName').val(response.data[0].PersonnelApplicationName);
+                     $('#txtApplicationStatus').val(response.data[0].PersonnelApplicationStatusName);
+
+                     let StartDate = moment(response.data[0].StartCoverDate).add(543, 'years')._d;
+                     let EndDate = moment(response.data[0].EndCoverDate).add(543, 'years')._d;
+
+                     $('#txtStartCoverDate').datepicker({ format: "dd/mm/yyyy" }).datepicker('setDate', new Date(StartDate));
+                     $('#txtEndCoverDate').datepicker({ format: "dd/mm/yyyy" }).datepicker('setDate', new Date(EndDate));
+                 }
+             }
+            });
+        }
+    </script>
+}

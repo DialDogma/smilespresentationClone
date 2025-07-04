@@ -1,0 +1,237 @@
+﻿@{
+    ViewBag.Title = "แจ้งใช้สิทธิ์";
+}
+
+<style>
+    .dt-center {
+        text-align: center;
+    }
+
+    .dt-left {
+        text-align: left;
+    }
+</style>
+<form id="form_Index">
+    <div class="row" id="divcontent">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">ค้นหาโรงเรียน</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="form-group row">
+                        @*<div class="col-sm-3">
+                                <span for="input_textsearch" class="col-form-label" style="text-align: right">ปีการศึกษา</span>
+                                <select id="select_schoolYear" name="select_schoolYear" class="form-control select2" style="width: 100%;">
+                                    @for (var i = 0; i < 5; i++)
+                                    {
+                                        var y = Convert.ToInt32(@ViewBag.Year) - i;
+                                        <option value="@y">@y</option>
+                                    }
+                                </select>
+                            </div>*@
+                        <div class="col-sm-3">
+                            <span for="select_province" class="col-form-label" style="text-align: right">จังหวัด</span>
+                            <select id="select_province" name="select_province" class="form-control select2" style="width: 100%;"></select>
+                        </div>
+                        <div class="col-sm-6">
+                            <span for="input_textsearch" class="col-form-label" style="text-align: right;font-weight: bold">คำค้น</span><span for="input_textsearch" class="col-form-label"> (ชื่อสถานศึกษา, หมายเลข Application ID)</span>
+                            <div class="input-group">
+                                <input id="input_textsearch" name="input_textsearch" type="text" class="form-control" required="required" checkStrEmpty="checkStrEmpty" minlength="5" placeholder="ค้นหาโดย ชื่อสถานศึกษา, หมายเลข Application ID">
+                                <span class="input-group-btn">
+                                    <button id="button_search" name="button_search" type="button" class="btn btn-primary btn-flat"><i class="fa fa-search"></i> ค้นหา</button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <table id="datatable1" class="table table-bordered table-striped" style="width: 100%"></table>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+            GetProvince();
+            $('.select2').select2();
+            $('#input_textsearch').keypress(function (e) {
+                //13 keycode enter button
+                if (e.keyCode == 13) {
+                    event.preventDefault();
+                    $('#button_search').click();
+                }
+            });
+
+            $('#button_search').click(function () {
+                //var table = $('#datatable1').DataTable();
+                //table.draw();
+                if ($('#form_Index').valid()) {
+                    GetDatatables();
+                }
+            });
+        });
+
+        function GetDatatables() {
+            $('#datatable1').empty();
+
+            $('#datatable1').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                lengthChange: false,
+                responsive: true,
+                destroy: true,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetDatatableSchool")',
+                    method: "POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.provinceId = $('#select_province').val();
+                        d.search = $('#input_textsearch').val();
+                    }
+                },
+
+                columns: [
+                    {
+                        title: '#',
+                        data: null,
+                        bSortable: false,
+                        mRender: function (o) {
+                            var endCoverDatetime = moment(o.EndCoverDate)._d;
+                            endCoverDatetime.setHours(16, 30, 00, 00);
+                            var currentDatetime = new Date;
+                            //encode
+                            if (o.Status_id == "3005" || o.Status_id == "3090" || (currentDatetime > endCoverDatetime)) {
+
+                                return '<a class="btn btn-danger" title="เลือก" style="margin: 2px;" disabled="disabled"><i class="fa fa-search"></i></a>';
+
+                            } else {
+                                var encodeAppId = window.btoa(o.ApplicationID);
+                                    return '<a href="@Url.Action("GetPA", "PA")?appid=' +
+                                        encodeAppId +
+                                        '&schoolName=' +
+                                        o.SchoolName +
+                                        '&s=' +
+                                        o.SubDistrict +
+                                        '&d=' +
+                                        o.District +
+                                        '&p=' +
+                                        o.Province +
+                                        '&productName=' +
+                                        o.ProductCategory +
+                                        '" class="btn btn-success" title="เลือก" style="margin: 2px;"><i class="fa fa-search"></i></a>';
+                            }
+                        }
+
+                    },
+                    {
+                        title: 'ปีการศึกษา',
+                        data: 'ApplicationYear'
+                    },
+                    {
+                        title: 'ApplicationID',
+                        data: 'ApplicationID'
+                    },
+                    {
+                        title: 'ชื่อสถานศึกษา',
+                        data: 'SchoolName',
+                        className: 'dt-left'
+                    },
+                    {
+                        title: 'อำเภอ',
+                        data: 'District'
+                    },
+                    {
+                        title: 'จังหวัด',
+                        data: 'Province'
+                    },
+                    {
+                        title: 'ผลิตภัณฑ์',
+                        data: 'ProductCategory'
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: null,
+                        bSortable: false,
+                        render: function (o) {
+
+                            var endCoverDateTime = moment(o.EndCoverDate)._d;
+                            endCoverDateTime.setHours(16, 30, 00, 00);
+                            var currentDate = new Date;
+
+                            if (o.Status_id == "3005") {
+                                return '<span class="label label-warning">' + 'กรุณาติดต่อ Call Center' + '</span>';
+                            } else if (o.Status_id == "3090") {
+                                return '<span class="label label-danger">' + 'ยกเลิก' + '</span>';
+
+                            } else if ((currentDate > endCoverDateTime)) {
+                                return '<span class="label label-danger">' + 'สิ้นสุดความคุ้มครอง' + '</span>';
+
+                            } else {
+                                return '<span class="label label-success">' + 'ปกติ' + '</span>';
+                            }
+                        }
+
+                    },
+                    {
+                        title: 'วันเริ่มคุ้มครอง',
+                        data: 'StartCoverDate',
+                        render: function (data) {
+                            return DisplayJsonDateBE(data);
+                            //return moment(data).format('DD/MM/YYYY');
+                        }
+                    },
+                    {
+                        title: 'วันสิ้นสุดคุ้มครอง',
+                        data: 'EndCoverDate',
+                        render: function (data) {
+                            return `${DisplayJsonDateBE(data)}  16.30 น.`;
+
+                        }
+                    }
+                ]
+            });
+        }
+        //function HandleAlertClick(event) {
+        //    event.preventDefault();
+        //    swal_info("แจ้งเตือน!", "ไม่สามารถค้นหารายการได้ เนื่องจากไม่พบเลขกรมธรรม์", "OK");
+        //}
+        function GetProvince() {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetProvince", "DataMaster")',
+                success: function (response) {
+                    {
+                        if (response != '') {
+
+                            $('#select_province').empty();
+                            $('#select_province').append('<option value="-1">--ทั้งหมด--</option>');
+
+                            for (var i = 0; i < response.length; i++) {
+                                $('#select_province').append('<option value=' +
+                                    response[i].Province_ID +
+                                    '>' +
+                                    response[i].ProvinceDetail +
+                                    '</option>');
+                            }
+                        }
+                    }
+                }
+
+            });
+        }
+    </script>
+}

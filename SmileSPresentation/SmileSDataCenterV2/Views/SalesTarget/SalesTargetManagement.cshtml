@@ -1,0 +1,596 @@
+﻿
+@{
+    ViewBag.Title = "การนำเข้ารายงานเป้าสาขา";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var data = ViewBag.ProductType;
+
+}
+
+<style>
+    .modal-dialog {
+        min-height: calc(100vh - 60px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow: auto;
+    }
+</style>
+<form class="form-horizontal">
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="box box-solid box-primary" style="margin-top:15px">
+
+                <div class="box-header ">
+                    <h7 class="box-title">Export Template </h7>
+                </div>
+
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="box-body" style="margin-top:-10px">
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12  col-md-2">
+                                    <button class="btn  btn-block "  style="background-color: rgb(19, 199, 109); color: white ; width:200px " id="btnExportTemplteExcel"><i class="fa fa-file-excel-o"></i>  Export  </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="box box-solid box-info" style="margin-top:15px">
+
+                <div style="background-color: rgba(45, 122, 199, 0.7); color: white; border-color: rgba(18, 139, 119, 0.7) " class="box-header with-border">
+                    <h7 class="box-title">เลือกเงื่อนไขรายงาน</h7>
+                </div>
+
+                <div class="box-body">
+                    <div class="box-group">
+
+                        @*DCT - Product Field*@
+                        <div class="box-body" style="margin-top:-10px">
+                            <br />
+                            <div class="row">
+                                <div class=" col-md-3 col-sm-12">
+                                    <label>DCR รายงานเป้าสาขา : </label>
+                                    <input class="form-control date" id="dpDCRReport" name="dpDCRReport" data-provide="datepicker" data-date-language="th-th" required />
+                                </div>
+                                <div class=" col-md-3 col-sm-12">
+                                    <label>ผลิตภัณฑ์ : </label>
+                                    <select class="form-control select2" id="ddlProduct">
+                                        <option value="-1">---เลือก---</option>
+                                        @{ foreach (var item in ViewBag.ProductType)
+                                            {
+                                                <option value="@item.ProductTypeId">@item.ProductType</option>
+                                            } }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        @*Import Content*@
+                        <div class="box-footer">
+                            <div class="row">
+                                <div class="col-sm-12 ">   <label>เลือกไฟล์นำเข้า : </label></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12 col-md-4 ">
+                                    <input type="file" class="btn btn-block btn-default " style="border-color:darkolivegreen;margin-bottom:24px" id="xlsxFile" onchange="ReadExcelFile(this)" name="xlsxFile" />
+                                </div>
+                              
+                                <div class="col-sm-3 col-md-3 " id="showBtnUpload" style="display:block">
+                                    <button style="background-color: rgb(84, 155, 226)" class="btn btn-block btn-primary" id="btnUploadExcel"><i class="fa fa-upload"></i>  อัปโหลด </button>
+                                </div>
+                                <div class="col-sm-4 col-md-3 " id="showBtnUploadAgain" style="display:none">
+                                    <button style="background-color: rgb(84, 155, 226)" class="btn btn-block btn-primary" id="btnUploadExcelAgain"><i class="fa fa-upload"></i>  อัปโหลดอีกครั้ง </button>
+                                </div>
+                                <div class="col-sm-4  col-md-2 ">
+                                    <button type="button" data-toggle="modal" data-target="#exampleModal" id="btnSave" class="btn btn-block btn-success" disabled> <i class="glyphicon glyphicon-save"></i> บันทึก</button>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="progress" id="submit_progress" style="display:none ;height:25px">
+        <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar"
+             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="load" style="width:0% ; height:150px">
+        </div>
+    </div>
+
+
+
+
+    @*Get Upload Result*@
+    <div class="row" id="showTable" style="display:none">
+        <div class="col-sm-12">
+            <div class="box box-primary" style="margin-top:15px">
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="box-body" style="margin-top:-10px">
+                            <table id="dtDcrReport" class="table table-bordered table-hover display" style="width:100%"> </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+<!-- Modal Confim Save -->
+<div class="modal fade" id="exampleModal" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="width:500px">
+            <div class="modal-header" style="background-color:gold ; text-align:center">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">ยืนยันการบันทึกข้อมูล</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="margin-right: 25px">
+                    <div class="col-sm-5" style="text-align:right">
+                        <label>DCR รายงานเป้าสาขา : </label>
+                    </div>
+                    <div class="col-sm-7">
+                        <input type="text" class="form-control" id="dcrReportConfirm" value="" disabled>
+                    </div>
+                </div>
+
+                <div class="row" style="margin-top:10px ; margin-right:25px">
+                    <div class="col-sm-5" style="text-align:right">
+                        <label> ผลิตภัณฑ์ : </label>
+                    </div>
+                    <div class="col-sm-7">
+                        <input type="text" class="form-control" id="productConfirm" disabled>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="text-align:center">
+                <button type="button" class="btn btn-danger " data-dismiss="modal">ยกเลิก</button>
+                &nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;
+                <button type="button" class="btn btn-success" id="btnSaveConfirm">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal  Save  Success-->
+<div class="modal fade" id="saveSuccessModal" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="width:500px">
+            <div class="modal-header" style="background-color:steelblue ; text-align:center ; color:white">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="saveSuccessModalClose"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">บันทึกข้อมูลสำเร็จ!</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="margin-right: 25px">
+                    <div class="col-sm-5" style="text-align:right">
+                        <label>DCR รายงานเป้าสาขา : </label>
+                    </div>
+                    <div class="col-sm-7">
+                        <input type="text" class="form-control" id="dcrReportSaved" value="" disabled>
+                    </div>
+                </div>
+
+                <div class="row" style="margin-top:10px ; margin-right:25px">
+                    <div class="col-sm-5" style="text-align:right">
+                        <label> ผลิตภัณฑ์ : </label>
+                    </div>
+                    <div class="col-sm-7">
+                        <input type="text" class="form-control" id="productSaved" disabled>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="text-align:center">
+                <button type="button" class="btn btn-success" id="btnClose">ตกลง</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="hdfDcrDateReport" value="" />
+<input type="hidden" id="hdfProduct" value="" />
+<input type="hidden" id="hdfTempCode" value="" />
+
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        var productTypeList;
+        $(function () {
+
+            productTypeList = @Html.Raw(Json.Encode(ViewBag.ProductType));
+
+            DoShowDCR("");
+
+            ResetDefaultData(false, $('#ddlProduct').val(), "", "block", "none", true, "none", false, "none" ,false);
+
+            //Event click Export
+            $('#dpDCRReport').click(function (e) {
+                console.log($('#dpDCRReport').val());
+
+            /*    DoShowDCR($('#dpDCRReport').val());*/
+            });
+
+            //Event click Export
+            $('#btnExportTemplteExcel').click(function (e) {
+                e.preventDefault();
+                swal({
+                    title: "กำลังดาวน์โหลดไฟล์...",
+                    type: "warning",
+                    showConfirmButton: false,
+                    timer: 700
+                });
+
+                setTimeout(function () {
+                    ExportSalesTargetExcelTemplate()
+                },850);
+            });
+
+            //Event click อัปโหลด
+            $('#btnUploadExcel').click(function (e) {
+                e.preventDefault();
+
+                let dcrDate = $('#dpDCRReport').val();
+                let product = $('#ddlProduct').val();
+                let fileImport = $('#xlsxFile').val();
+                var productTxt = productTypeList.filter(x => x.ProductTypeId == product);
+
+                if ($('#ddlProduct').val() !== "-1") {
+                    //Modal Save Confirm
+                    $('#dcrReportConfirm').val(dcrDate);
+                    $('#productConfirm').val(productTxt[0].ProductType);
+
+                    //Modal After  Save
+                    $('#dcrReportSaved').val(dcrDate);
+                    $('#productSaved').val(productTxt[0].ProductType);
+
+                }
+
+                if (product === "-1") {
+                    swal("ตรวจสอบข้อมูล", "กรุณาเลือกผลิตภัณฑ์", "warning");
+                    return;
+                }
+                if (fileImport === "") {
+                    swal("ตรวจสอบข้อมูล", "กรุณานำเข้าไฟล์ DCR รายงานเป้าสาขา", "warning");
+                    return;
+                }
+                else {
+                    UploadSalseTargetExcel(fileImport);
+                }
+
+            });
+
+            //Event click อัปโหลดอีกครั้ง
+            $('#btnUploadExcelAgain').click(function (e) {
+                e.preventDefault();
+                UploadSalseTargetExcelAgain()
+            });
+
+            //Event click ยืนยัน บันทึก
+            $('#btnSaveConfirm').click(function (e) {
+                SaveDCR();
+            });
+
+            //Event click ตกลง หลังบันทึกสำเร็จ
+            $('#btnClose').click(function (e) {
+                $('#saveSuccessModal').modal('hide');
+                document.getElementById("btnUploadExcel").disabled = false;
+
+                ResetDefaultData(true, -1, "", "block", "none", true, "none", false, "none" ,false);
+            });
+            $('#saveSuccessModalClose').click(function (e) {
+                $('#saveSuccessModal').modal('hide');
+                document.getElementById("btnUploadExcel").disabled = false;
+
+                ResetDefaultData(true, -1, "", "block", "none", true, "none", false, "none" ,false);
+            });
+        })
+
+
+
+             //---------------------------------------------------------------DCR--------------------------------------------------------------------------
+
+        function DoShowDCR(dateSelected) {
+            //Get current date
+            var date = new Date(), d = date.getDate(), m = date.getMonth();
+            var startSelect;
+
+            //- DCR ปัจจุบัน ให้ดูจากช่วงวันที่ 11 เดือนปัจจุบัน (startDateDCR) ถึงวันที่ 10 เดือนหน้า (endDateDCR) เช่น ปัจจุบันวันที่ 19 ต.ค. 64 อยู่ในช่วงวันที่ 11 ต.ค. 64 ถึง 10 พ.ย. 64 ดังนั้น DCR ปัจจุบันคือ วันที่ 1 พ.ย. 64
+            if (d >= 11) {
+                //Get current DCR month
+                m = date.getMonth() + 1;
+            }
+
+            var currDCR = new Date(date.getFullYear(), m, 1);
+            if (d >= 11) {
+                startSelect = new Date(date.getFullYear(), date.getMonth() + 2, 1);
+            }
+            else {
+                startSelect = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+            }
+
+
+            $('#dpDCRReport').datepicker({
+                autoclose: true,
+                startDate: startSelect,
+                viewMode: "years",
+                minViewMode: "months",
+                format: 'dd/mm/yyyy',
+                language: 'th-th',
+            }).datepicker("setDate", currDCR).datepicker('fill');
+        };
+
+             //------------------------------------------------------------------Event click Export-----------------------------------------------------------------------
+        function ExportSalesTargetExcelTemplate() {
+
+
+            window.location.href = "@Url.Action("ExportTemplateFile", "SalesTarget")";
+
+            setTimeout(
+                function newSwalPopup(param) {
+                    swal({
+                        title: "แจ้งเตือน!",
+                        text: "ดาวน์โหลดไฟล์ Excel สำเร็จ",
+                        type: "success",
+                        showConfirmButton: true
+                    }, function (isConfirm) {
+                        if (!isConfirm) {
+                            newSwalPopup('No');
+                        }
+                    });
+                },500  );
+
+        }
+
+             //-----------------------------------------------------------------------Event Choose file-----------------------------------------------------------------------
+        function ReadExcelFile(sender) {
+
+            var validExts = new Array(".xlsx", ".xls", ".csv");
+            var fileExt = sender.value;
+            let path = fileExt;
+
+
+            fileExt = fileExt.substring(fileExt.lastIndexOf('.'));
+
+            if (fileExt.replaceAll(".", "") != "xlsx") {
+                swal("กรุณานำเข้าไฟล์ .xlsx เท่านั้น",path,"error");
+                $('#xlsxFile').val(null);
+            }
+         }
+
+            //-----------------------------------------------------------------------Event click อัปโหลด-----------------------------------------------------------------------
+        function UploadSalseTargetExcel(fileImport) {
+            document.getElementById("dpDCRReport").disabled = true;
+            document.getElementById("ddlProduct").disabled = true;
+            document.getElementById("btnUploadExcel").disabled = true;
+            $('#xlsxFile').attr('disabled', true);
+            ResetDefaultData(false, $('#ddlProduct').val(), fileImport, "block", "none", true, "none", true, "block" ,false);
+
+            //progress bar เริ่มโหลด
+            let percent = 0;
+            $('#load').css('width', '0px');
+            $('#load').addClass('progress-bar-striped active');
+            timerId = setInterval(function () {
+                // increment progress bar
+                percent = percent + 5;
+                $('#load').css('width', percent + '%');
+                $('#load').html(percent + '%');
+                $('#load').html('กำลังตรวจสอบข้อมูล...');
+
+                if (percent >= 70) {
+                    clearInterval(timerId);
+                }
+            }, 400);
+
+            setTimeout(function () {
+                var startTime = new Date().getTime();
+                 $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("UploadTemplateFile", "SalesTarget")",
+                     data: function () {
+                        var data = new window.FormData();
+                         data.append("file", jQuery("#xlsxFile").get(0).files[0]);
+                         data.append("dcr", $('#dpDCRReport').val());
+                         data.append("productTypeId", $('#ddlProduct').val());
+                        return data;
+                    }(),
+                    contentType: false,
+                    processData: false,
+                     success: function (response) { },
+                 }).done(function (response) {
+
+                     console.log(response);
+                     // process ที่ call ajax ทั้งหมด
+                     totalTime = new Date().getTime() - startTime;
+
+                         //progress bar โหลดที่เหลือให้ครบ 100% หลังจากจบ process ajax (.done)
+                        percent = percent + ( 100 - percent);
+                        $('#load').css('width', percent + '%');
+                        $('#load').html(percent + '%');
+                        $('#load').html('กำลังตรวจสอบข้อมูล...');
+
+                        // complete
+                        if (percent >= 100) {
+                            clearInterval(timerId);
+                            $('#load').removeClass('progress-bar-striped active');
+                            $('#load').html('ตรวจสอบข้อมูลสำเร็จ!');
+                     }
+
+                     if (response[2] === "ไม่มีข้อมูลในไฟล์" || response[2] === "ขั้นตอนการตรวจสอบมีปัญหา กรุณาอัปโหลดอีกครั้ง" || response[0] === false) {
+                         swal({
+                             title: "Template ไฟล์ Excel ไม่ถูกต้อง",
+                             text: "กรุณาตรวจสอบไฟล์ Excel หรือ Export ไฟล์เพื่อแก้ไข",
+                             type: "error",
+                             showConfirmButton: true
+                         }, function (isConfirm) {
+                             if (isConfirm) {
+                                 //ResetDefaultData(false, $('#ddlProduct').val(), $('xlsxFile').val(), "none", "block", true, "none", true, "block", false);  กรณีอยากเห็นข้อมูลเก่าที่อัปโหลดแล้วผิดพลาด Blank data in excel
+                                 ResetDefaultData(true, -1, "", "block", "none", true, "none", false, "none", false);
+                                 document.getElementById("btnUploadExcel").disabled = false;
+                             }
+                         });
+                     }
+                     else {
+                         //enable บันทึก
+                         if (response[0] === "True") {
+                             ResetDefaultData(false, $('#ddlProduct').val(), fileImport, "none", "block", false, "block", true, "block", true);
+                         }
+                         else {
+                             ResetDefaultData(false, $('#ddlProduct').val(), fileImport, "none", "block", true, "block", true, "block", false);
+                         }
+                         var tempCode = response[1];
+
+                         $('#hdfTempCode').val(tempCode);
+                         PreviewReport(tempCode);
+                     }
+
+
+                });
+
+            }, 5600); // time out follew up by setInterval 70 % 400 ms.
+
+
+            $('#dcrReportSaved').text($('#dpDCRReport').text())
+            $('#productSaved').text($('#ddlProduct').text())
+
+
+        }
+              //-----------------------------------------------------------------------Event click Preview-----------------------------------------------------------------------
+      function PreviewReport(tempCode) {
+            $('#dtDcrReport').empty();
+            var t = $('#dtDcrReport').dataTable({
+                pageLength: false,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                "order": [[0, "desc"]],
+                searching: false,
+                paging: false,
+
+                ajax: {
+                    url: '@Url.Action("GetPreviewTemplateFile", "SalesTarget")',
+
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.tempCode = tempCode;
+                        d.draw = d.draw;
+                        d.pageSize = 999999;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    },
+                },
+                success: function (data) {
+                    $.LoadingOverlay("hide");
+                    console.log(data);
+
+                },
+                columns: [
+                    {
+                        title: 'DCR', data: 'Period', className: 'h-dt-center ' ,
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY");
+                        }
+                    },
+                    { title: 'BranchID', data: 'BranchId' },
+                    { title: 'ชื่อสาขา', data: 'Branch' },
+                    { title: 'ผลิตภัณฑ์', data: 'ProductType'},
+                    { title: 'เป้าสาขา', data: 'SaleTargetValue'},
+                    { title: 'หมายเหตุ', data: 'ValidateResult' },
+
+                ],
+                bLengthChange: false,
+
+            });
+        }
+
+
+            //-----------------------------------------------------------------------Event click อัปโหลดอีกครั้ง-----------------------------------------------------------------------
+
+        function UploadSalseTargetExcelAgain() {
+            document.getElementById("btnUploadExcel").disabled = false;
+            ResetDefaultData(true, -1,"", "block", "none", true, "none",false ,"none" ,false);
+        }
+
+        //-----------------------------------------------------------------------Event click บันทึก-----------------------------------------------------------------------
+
+        function SaveDCR() {
+            $.LoadingOverlay("show");
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("SaveTargetManagement", "SalesTarget")",
+                data: function () {
+                    var data = new window.FormData();
+                    data.append("tempCode", $('#hdfTempCode').val());
+                    return data;
+                }(),
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    $.LoadingOverlay("hide");
+                    if (response[0] == "True") {
+                        $('#saveSuccessModal').modal({ backdrop: 'static', keyboard: false  });
+                        $('#exampleModal').modal('hide');
+                    }
+                    else {
+                       swal("ตรวจสอบข้อมูล", response[2], "error");
+                    }
+                }
+            });
+        }
+
+        //-----------------------------------------------------------------------  Reset Data -----------------------------------------------------------------------
+        function ResetDefaultData(dcrReport, product, fileImport, btnUpload, btnUploadAgain, btnSave, dtImportFile, enableField, submit_progress ,btnSaveDisableColor) {
+
+            if (dcrReport) {
+                DoShowDCR();
+            }
+
+            $('#ddlProduct').val(product).trigger('change.select2');
+
+            //$('#ddlProduct').val(product);
+            if (fileImport == "") {
+                $('#xlsxFile').val(null);
+            }
+            document.getElementById("showBtnUpload").style.display = btnUpload;
+            document.getElementById("showBtnUploadAgain").style.display = btnUploadAgain;
+            document.getElementById("btnSave").disabled = btnSave;
+            if (!btnSaveDisableColor) {
+                document.getElementById("btnSave").style.backgroundColor = "grey";
+            }
+            else if (btnSaveDisableColor) {
+                document.getElementById("btnSave").style.backgroundColor = "rgb(19, 199, 109)";
+            }
+            document.getElementById("showBtnUploadAgain").style.display = btnUploadAgain;
+            document.getElementById("showTable").style.display = dtImportFile;
+
+            document.getElementById("submit_progress").style.display = submit_progress;
+
+            //disable Field dcrDate , product , importFile
+            document.getElementById("dpDCRReport").disabled = enableField;
+            document.getElementById("ddlProduct").disabled = enableField;
+            $('#xlsxFile').attr('disabled', enableField);
+        }
+
+
+
+    </script>
+}

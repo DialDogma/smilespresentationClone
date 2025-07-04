@@ -1,0 +1,407 @@
+﻿
+@{
+    ViewBag.Title = "รายงานขอออกกรมธรรม์";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+
+            @* Search *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายงานขอออกกรมธรรม์</h3>
+
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                    <!-- /.box-tools -->
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body" style="">
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <label class="control-label"> วันที่สร้างรายงาน :</label>
+                            <input type="text" class="form-control pull-right" name="dtpFromDate" id="dtpFromDate" required="required"
+                                   data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy">
+                        </div>
+                        <div class="col-sm-3">
+                            <label class="control-label"> ถึงวันที่ :</label>
+                            <input type="text" class="form-control pull-right" name="dtpToDate" id="dtpToDate" required="required"
+                                   data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy">
+                        </div>
+                        <div class="col-sm-2" style="padding-top:27px;">
+                            <button id="btnSearchReport" name="btnSearchReport" class="btn btn-primary"><i class="glyphicon glyphicon-search"></i> ค้นหา </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-12 with-border">
+                            <h4 class="box-title">รายการที่ออกรายงานแล้ว</h4>
+                        </div>
+                        <div class="col-sm-12">
+                            <table id="dtMain" class="table table-bordered table-hover dataTable" role="grid"></table>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายการที่รอออกรายงาน</h3>
+
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                    <!-- /.box-tools -->
+                </div>
+                <!-- /.box-header -->
+
+                <div class="box-body" style="">
+
+                    <div class="row">
+                        <div class="col-xs-5">
+                            <label class="control-label"> เลือกบริษัทประกัน :</label>
+                            <select class="form-control select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" id="ddlOrganize" name="ddlOrganize">
+                                @*<option value="-1">--โปรดระบุ--</option>*@
+                                @{foreach (var item in ViewBag.Organize)
+                                    {
+                                        <option value="@item.OrganizeId">@item.Organize</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-xs-2" style="padding-top:27px">
+                            <button id="btnSearchWait" name="btnSearchWait" class="btn btn-primary"><i class="glyphicon glyphicon-search"></i> ค้นหา </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtMainWait" class="table table-bordered table-hover dataTable" role="grid"></table>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <button id="btnCreateReportCancel" name="btnCreateReportCancel" class="btn btn-block btn-warning" style="width:100%"> <i class="fa fa-plus-square"></i>  สร้างรายงานขอออกกรมธรรม์</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+
+    <script type="text/javascript">
+
+    $(function () {
+
+        $('.select2').select2();
+        EnabledCrateReport(true);
+        var startDate = new Date('01/01/2012');
+        var nowDate = new Date()
+        var FromEndDate = new Date();
+        var ToEndDate = new Date();
+        ToEndDate.setDate(ToEndDate.getDate() + 365);
+
+        $('#dtpFromDate').datepicker({
+            weekStart: 1,
+            startDate: '01/01/2012',
+            endDate: FromEndDate,
+            autoclose: true
+        }).datepicker("setDate", new Date(nowDate.getFullYear(), nowDate.getMonth(), 1))
+            .on('changeDate', function (selected) {
+                startDate = new Date(selected.date.valueOf());
+                startDate.setDate(startDate.getDate(new Date(selected.date.valueOf())));
+                $('#dtpToDate').datepicker('setStartDate', startDate);
+            });
+        $('#dtpToDate')
+            .datepicker({
+                weekStart: 1,
+                startDate: startDate,
+                endDate: ToEndDate,
+                autoclose: true
+            }).datepicker("setDate", new Date(nowDate.getFullYear(), nowDate.getMonth() + 1, 0))
+            .on('changeDate', function (selected) {
+                FromEndDate = new Date(selected.date.valueOf());
+                FromEndDate.setDate(FromEndDate.getDate(new Date(selected.date.valueOf())));
+                $('#dtpFromDate').datepicker('setEndDate', FromEndDate);
+            });
+
+    });
+
+        $('#btnSearchReport').click(function (e) {
+            e.preventDefault();
+            ReportLoad();
+    });
+
+        $('#btnSearchWait').click(function (e) {
+            e.preventDefault();
+            ReportWaitLoad();
+        });
+
+        $('#btnCreateReportCancel').click(function (e) {
+            e.preventDefault();
+            let t = $('#dtMainWait').DataTable();
+            if (t.page.info().recordsTotal <= 0) {
+                swal("", "กรุณากดค้นหาข้อมูล", "warning");
+                return;
+            }
+            if ($('#ddlOrganize').val() == "-1")
+            {
+                swal("", "กรุณาเลือกบริษัทประกัน", "warning");
+                return;
+            }
+        swal({
+            title: "",
+            text: "ยืนยันสร้างรายงานหรือไม่ ?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "ตกลง",
+            cancelButtonText: "ยกเลิก",
+            closeOnConfirm: false,
+            closeOnCancel: true
+        },
+            function (isConfirm) {
+                if (isConfirm) {
+                    //swal("Deleted!", "Your imaginary file has been deleted.", "success");
+
+                    GenReport();
+
+                } else {
+                    swal("ยกเลิกทำรายการ", "", "error");
+
+                }
+            }
+        );
+
+    });
+
+        const GenReport = () => {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GenCancelReport", "PAPersonnelReport")',
+                data: {
+                    InsuranceId: $("#ddlOrganize").val()
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response[0] == "True") {
+                        ReportLoad();
+                        ReportWaitLoad();
+                        swal("สำเร็จ", response[2], "success");
+
+                    } else {
+                        swal("ไม่สำเร็จ", response[2], "error");
+                    }
+                }
+            });
+        }
+
+    function ReportWaitLoad() {
+
+        $('#dtMainWait').empty();
+        let t = $('#dtMainWait').DataTable({
+             pageLength: 10,
+             processing: true,
+             serverSide: true,
+             responsive: true,
+                destroy: true,
+            "searching": true,
+            "autoWidth": false,
+             ajax: {
+                 url: '@Url.Action("SelectCancelApplicationRoundReport", "PAPersonnelReport")',
+                 type: 'POST',
+                    async:false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.insuranceId = $("#ddlOrganize").val();
+                    }
+                },
+                columns: [
+                    { title: 'App ID', data: 'PersonnelApplicationCode', orderable: false, className: 'h-dt-center' },
+                    { title: 'สถานศึกษา', data: 'PersonnelApplicationName', orderable: false, className: 'h-dt-center' },
+                    { title: 'แผนประกัน', data: 'ProductDetail', orderable: false, className: 'h-dt-center' },
+                    {
+                        title: 'วันที่เริ่มคุ้มครอง', data: 'StartCoverDate', orderable: false,
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                        }
+                    },
+                ],
+            bLengthChange: false,
+            'columnDefs': [
+                {
+                    "targets": [3], // your case first column
+                    "className": "text-center",
+                }],
+
+        });
+
+        var table = $('#dtMainWait').dataTable();
+        if (table.fnGetData().length == 0)
+        { EnabledCrateReport(true);}
+        else if (table.fnGetData().length > 0) {
+            EnabledCrateReport(false);
+        }
+
+    }
+
+    function ReportLoad() {
+
+            $('#dtMain').empty();
+            let t = $('#dtMain').DataTable({
+             pageLength: 10,
+             processing: true,
+             serverSide: true,
+             responsive: true,
+                destroy: true,
+                "searching": false,
+                "autoWidth": false,
+                order: [[0, 'desc']],
+             ajax: {
+                 url: '@Url.Action("GetGroupReport", "PAPersonnelReport")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+
+                        d.CreatedDateReportFrom = $('#dtpFromDate').val();
+                        d.CreatedDateReportTo = $('#dtpToDate').val();
+                        d.reportTypeId = 3;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'วันที่สร้างรายงาน', data: 'CreatedDate', orderable: true,
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                        }
+                    },
+                    { title: 'ผู้สร้างรายงาน', data: 'CreatedByName', orderable: false, className: 'h-dt-center' },
+                    { title: 'บริษัทประกัน', data: 'Insurance', orderable: false, className: 'h-dt-center' },
+                    { title: 'สถานะ', data: 'PersonnelReportGroupStatus', orderable: false, className: 'h-dt-center' },
+                    {
+                        title: '', data: null, orderable: false, width: '5%', className: 'h-dt-center',
+                        bSortable: false,
+                               mRender: (data, type, full) =>
+                               {
+                                   return '<a type="button"  onclick="DownloadExcel(\'' + data.PersonnelReportGroupId + '\',\'' + data.PersonnelReportGroupCode + '\' );"  class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-download" ></i>  Export to Excel </a>';
+
+                        },
+                    },
+                    {
+                        title: 'วันที่ทำการส่ง', data: 'SendedDate', orderable: false,
+                        mRender: function (data) {
+                            moment.locale('th');
+                            debugger
+                            if (data)
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                            else
+                                return " - "
+                        },
+                    },
+                    {
+                        title: '', data: null, orderable: false, width: '5%', className: 'h-dt-center',
+                        bSortable: false,
+                        mRender: (data, type, full) => {
+                            if (data.PersonnelReportGroupStatusId==2)
+                                return '<a type="button" onclick="GroupUpdate(\'' + data.PersonnelReportGroupId + '\');" width="100%" class="btn btn-block btn-primary btn-sm" target="_blank">  ยืนยัน </a>';
+                            else return '<a type="button" class="btn btn-block btn-default btn-sm" width="100%" target="_blank" disabled>  ยืนยันแล้ว </a>';
+
+                        },
+                    },
+                    //{
+                    //    title: '', data: null, orderable: false, width: '5%', className: 'h-dt-center',
+                    //    bSortable: false,
+                    //    mRender: (data, type, full) => {
+                    //        if (data.PersonnelReportGroupStatusId == 3)
+                    //            return '<a type="button" onclick="SendToSMI(\'' + data.PersonnelReportGroupId + '\');"  width="100%" class="btn btn-block btn-primary btn-sm" target="_blank"><i class="fa fa-paper-plane" ></i>  ยืนยันการส่งงาน </a>'
+                    //        else return '<a type="button" class="btn btn-block btn-default btn-sm" target="_blank" disabled><i class="fa fa-paper-plane" ></i>  ยืนยันการส่งงานแล้ว </a>';
+
+                    //    },
+                    //},
+                    
+                ],
+                bLengthChange: false,
+                'columnDefs': [
+                    {
+                        "targets": [3], // your case first column
+                        "className": "text-center",
+                    }],
+            });
+
+    }
+        const EnabledCrateReport = (v) => {
+            $('#btnCreateReportCancel').attr('disabled', v);
+
+        }
+        const DownloadExcel = (approundid, reportName) => {
+            var url = '@Html.Raw(Url.Action("ExporCancelReport", "PAPersonnelReport", new { groupid = "__groupId__", reportname = "__renamefile__"}))';
+            var params = url.replace('__groupId__', approundid).replace('__renamefile__', reportName);
+            window.location.href = params;
+        }
+        const GroupUpdate = (groupId) => {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("PersonnelGroupUpdate", "PAPersonnelReport")',
+                data: {
+                    GroupId: groupId,
+                    GroupStatusId: 3
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response[0] == "True") {
+                        ReportLoad();
+                        ReportWaitLoad();
+                        swal("ยืนยันสำเร็จ", response[2], "success");
+                    } else {
+                        swal("ยืนยันไม่สำเร็จ", response[2], "error");
+                    }
+                }
+            });
+        }
+
+        @*const SendToSMI = (groupId) => {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("PersonnelSentToSMI", "PAPersonnelReport")',
+                data: {
+                    GroupId: groupId
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response[0] == "True") {
+                        ReportLoad();
+                        ReportWaitLoad();
+                        swal("ยืนยันสำเร็จ", response[2], "success");
+
+                    } else {
+                        swal("ยืนยันไม่สำเร็จ", response[2], "error");
+                    }
+                }
+            })
+        }*@
+    </script>
+
+}

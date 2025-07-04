@@ -1,0 +1,436 @@
+﻿
+@{
+    ViewBag.Title = "Monitor KTB";
+}
+
+
+
+<form class="@Url.Action("Monitor")" method="post">
+
+
+    @* hidden field *@
+  
+   
+  <div class="row">
+      <div class="col-md-8">
+          <div class="box box-info">
+
+                 <div class="box-header with-border">
+                    <h3 class="box-title">Process KTB</h3>
+                    <div class="box-tools pull-right">
+                       <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                </button>
+                    </div>
+                   <div class="box-body">
+                      
+                     <div class="col-md-12">
+
+                          <div class="progress-group">
+                                <span class="progress-text">จำนวนงาน KTB ทั้งหมด  @ViewBag.GetProcess.AllDoc.ToString("#,##0") </span>
+                                <span class="progress-number" id="txtprogress01">@ViewBag.GetProcess.foundDoc.ToString("#,##0")/@ViewBag.GetProcess.AllDoc.ToString("#,##0")</span>
+
+                                <div class="progress">
+                                
+                                        <div class="progress-bar progress-bar-primary progress-bar-striped active" id="probar01" name="probar01" style="width: @ViewBag.GetProcess.Process%"></div>
+
+                                    
+                                </div>
+
+                               
+                            </div>
+
+                        
+                              <div class="row">
+                                <div class="col-md-4">
+                                  <div class="description-block border-right">
+          
+                                    <h5 class="description-header" id="ptxt01">@ViewBag.GetProcess.foundDoc.ToString("#,##0") </h5>
+                                    <span class="description-text">งาน KTB</span>
+                                  </div>
+                                  <!-- /.description-block -->
+                                </div>
+                                <!-- /.col -->
+                                <div class="col-md-4">
+                                  <div class="description-block border-right">
+                                  
+                                    <h5 class="description-header" id="ptxt02">@ViewBag.GetProcess.NotfoundDoc.ToString("#,##0") </h5>
+                                    <span class="description-text">คงเหลือ</span>
+                                  </div>
+                                  <!-- /.description-block -->
+                                </div>
+                                <!-- /.col -->
+                                <div class="col-md-4">
+                                  <div class="description-block border-right">
+                               
+                                    <h5 class="description-header" id="ptxt03"> @ViewBag.GetProcess.Process %</h5>
+                                    
+                                  </div>
+                                  <!-- /.description-block -->
+                                </div>
+         
+                              </div>
+                              <!-- /.row -->
+                           
+                     </div>
+                          
+
+                   </div>
+
+
+          </div>
+
+          </div>
+       
+
+      </div>
+
+           
+      <div class="col-md-5" >
+          <div class="box box-info">
+
+                 <div class="box-header with-border">
+                    <h3 class="box-title">Chart KTB</h3>
+                    <div class="box-tools pull-right">
+                       <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                </button>
+                    </div>
+                        <div class="box-body">
+
+                          <div class="form-group row">
+                            <div class="col-md-12">
+                                <div class="chart">
+                                    <canvas id="donutChart_totalResult" width="530" height="385" style="display: block; width: 560px; height: 385px;"></canvas>
+
+                                </div>
+
+                            </div>
+                          </div>
+                      
+                        <div class="col-md-12">       
+                     </div>
+                          
+
+                   </div>
+
+
+          </div>
+
+          </div>
+       
+
+      </div>
+
+      <div class="col-md-7">
+          <div class="box box-info">
+
+                 <div class="box-header with-border">
+                    <h3 class="box-title">Bar Chart KTB</h3>
+                    <div class="box-tools pull-right">
+                       <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                </button>
+                    </div>
+                        <div class="box-body">
+
+                          <div class="form-group row">
+                            <div class="col-md-12">
+                           
+
+                                <div class="chart">
+                                    <canvas id="barChart" style="height: 230px; width: 510px;" width="510" height="230"></canvas>
+                                </div>
+                            
+                            
+                            </div>
+                          </div>
+
+                       <div style="padding-top:25px "></div>
+
+                   </div>
+
+@*<button type="button" id="addData">Add Data</button>*@
+          </div>
+
+          </div>
+       
+
+      </div>
+  </div>
+
+</form>
+
+
+
+
+@section ViewSpecificJavascript{
+    <script>
+
+        $(function () {
+            $('#addData').on('click', function () {
+                debugger;
+                donutChartResult.data.labels.pop();
+                donutChartResult.update();
+
+                donutChartResult.data.labels.pop();
+                donutChartResult.update();
+
+                donutChartResult.data.labels.push(['111'],['11']);
+                donutChartResult.update();
+         });
+     
+
+        /////////////Chart กลม////////////////
+
+
+
+          var ChartData1 = {
+                  labels  : ['ถูกต้อง', 'ไม่ถูกต้อง'],
+                  datasets: [
+                    {
+                      data: [0,0],
+                      backgroundColor: ['#0040FF','#00BFFF']
+                    }
+
+                  ]
+                }
+
+            var donutChartResult = new Chart("donutChart_totalResult",
+                {
+                    type: 'doughnut',
+                    data: ChartData1,
+                    options: {showTooltips: true,
+
+                        responsive: true,
+                        legend: {
+					position: 'right',fullWidth: true
+				},
+                        elements: {
+						rectangle: {
+							borderWidth: 2,
+						}
+                        }
+                        
+                        }
+
+                });
+
+
+         ///////////////Chart แท่ง//////////////
+
+             var ChartData2 = {
+                    labels: ['เอกสารถูกต้อง', 'ลายเซ็นไม่เหมือนกัน', 'เลขที่บัญชีไม่ถูกต้อง', 'โปรดติดต่อเจ้าของบัญชี'
+                    ,'บัญชีปิดแล้ว','บัญชีนี้ไม่สามารถใช้หักบัญชีได้','เลขที่บัญชีกับชื่อบัญชีไม่ตรงกัน','อื่นๆ'],
+                      datasets: [
+                        {
+                          label: ['ผลตรวจ'],
+                              data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              backgroundColor: ['#A9D0F5','#A9BCF5','#819FF7','#8181F7','#58ACFA','#5882FA','#2E64FE','#2E2EFE']
+                        }
+
+                      ]
+                    }
+
+              var myBarChart = new Chart("barChart", {
+                    type: 'horizontalBar',
+                    data: ChartData2,
+                  options: {
+                      //legend: {
+                      //              display: false,
+                      //          },
+                      //          scales: {
+                      //              xAxes: [{
+                      //                  stacked: true
+                      //              }],
+                      //              yAxes: [{
+                      //                  stacked: true
+                      //              }]
+                      //          }
+                      elements: {
+						rectangle: {
+							borderWidth: 2,
+						}
+					},
+					responsive: true,
+					legend: {
+                        position: 'right',
+                        display: false
+					},
+					title: {
+						display: false,
+						text: 'Chart.js Horizontal Bar Chart'
+                      }
+                   }
+               })
+
+
+
+         /////////////////////////////
+
+             Chart.plugins.register({
+               afterDatasetsDraw: function (chart, easing) {
+                   // To only draw at the end of animation, check for easing === 1
+                   var ctx = chart.ctx;
+                   //var ctx = document.getElementById("barChart").getContext("2d");
+
+                   chart.data.datasets.forEach(function (dataset, i) {
+                       var meta = chart.getDatasetMeta(i);
+                       if (!meta.hidden) {
+                           meta.data.forEach(function (element, index) {
+                               // Draw the text in black, with the specified font
+                               ctx.fillStyle = 'rgb(0, 0, 0)';
+
+                               var fontSize = 12;
+                               var fontStyle = 'normal';
+                               var fontFamily = 'Helvetica Neue';
+                               ctx.font = Chart.helpers.fontString(fontSize, fontStyle, fontFamily);
+
+                               // Just naively convert to string for now
+                               var dataString = dataset.data[index].toString();
+
+                               // Make sure alignment settings are correct
+                               ctx.textAlign = 'center';
+                               ctx.textBaseline = 'middle';
+
+                               var padding;
+                               var position = element.tooltipPosition();
+                           //debugger;
+                               if (ctx.canvas.id == 'barChart') {
+                                   
+                
+                                 
+                                   ctx.fillText(dataString, position.x + 10, position.y);
+                               }
+
+                              
+
+                                   
+
+                                
+                           });
+                       }
+                   });
+               }
+           });
+                 RefreshdoughnutChart(donutChartResult);
+                 RefreshbarChart(myBarChart);
+
+ 
+
+             $(document).ready(function () {
+            // Reference the auto-generated proxy for the hub.
+            var chat = $.connection.myHub;
+                //debugger;
+                //Start Connection
+                $.connection.hub.start().done(function () {
+
+                    //join group
+                    chat.server.joinGroup('@ViewBag.CurrentUser');
+
+                });
+
+                 //Show addNewNotice to client
+
+
+               chat.client.sendNoticeResult = function (name, message) {
+                    RefreshProgressbar();
+                    RefreshdoughnutChart(donutChartResult);
+                    RefreshbarChart(myBarChart);
+
+                };
+
+
+        });
+
+
+
+           $('#Refresh01').on('click', function () {
+
+                RefreshProgressbar();
+            });
+
+        });
+
+        //var updateInterval = 500 //Fetch data ever x milliseconds
+        //var realtime = 'on'
+        //var Run = 1
+        //  function update() {
+
+
+        //        if (realtime === 'on')
+        //          setTimeout(update, updateInterval)
+        //          RefreshDate();
+        //        }
+
+        //        //INITIALIZE REALTIME DATA FETCHING
+
+        //  if (realtime === 'on') {
+        //       update()
+        //}
+
+
+
+        function addData(chart, data, datasetIndex) {
+           chart.data.datasets[datasetIndex].data = data;
+           chart.update();
+        }
+
+
+
+        function RefreshProgressbar() {
+           debugger;
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("RefreshDate")",
+                success: function (response) {
+
+                   //$('#probar01').css('width', '50%');
+                    $('#probar01').css('width', response[3]);
+                    $('#txtprogress01').text(response[4]);
+                    $('#ptxt01').text(response[0]);
+                    $('#ptxt02').text(response[1]);
+                    $('#ptxt03').text(response[3]);
+                }
+
+            });
+
+
+
+        }
+
+        function RefreshdoughnutChart(chart) {
+           //debugger;
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("RefreshDoughnutChart")",
+                success: function (response) {
+
+                    addData(chart, [response[0], response[1]], 0);
+                }
+
+            });
+
+
+
+        }
+
+        function RefreshbarChart(chart) {
+           //debugger;
+            $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("RefreshBarChart")",
+                    success: function (response) {
+                        addData(chart, [response[0], response[1], response[2], response[3], response[4]
+                            , response[5],response[6], response[7]], 0);
+                    }
+
+            });
+
+        }
+
+ 
+
+
+    </script>
+
+
+
+}

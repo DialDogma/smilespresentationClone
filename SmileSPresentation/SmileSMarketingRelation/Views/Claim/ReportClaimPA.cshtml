@@ -1,0 +1,171 @@
+﻿
+@{
+    ViewBag.Title = "ReportClaimPA";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal" action="@Url.Action("ExportReportPA","Claim")" method="post" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-sm-12">
+
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหาข้อมูล</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <label class="control-label">วันที่ :</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right datepicker" name="dtpDateFrom" id="dtpDateFrom" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" required="required">
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label class="control-label">ถึง :</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right datepicker" name="dtpDateTo" id="dtpDateTo" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" required="required">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <label class="control-label">ประเภทเคลม :</label>
+                            <select class="form-control select2" name="ddlClaimType" id="ddlClaimType" style="width: 100%;">
+                                <option value="-1">--ทั้งหมด--</option>
+                                @foreach (var item in ViewBag.ClaimStyle)
+                                    {
+                                        <option value="@item.Code">@item.Detail</option>
+                                    }
+                            </select>
+                        </div>
+                        <div class="col-sm-5">
+                            <label class="control-label">ประเภทการเข้ารักษา :</label>
+                            <select class="form-control select2" name="ddlClaimAdmitType" id="ddlClaimAdmitType" style="width: 100%;" multiple required="required">
+                                @*<option value="-1">--โปรดระบุ--</option>*@
+                                @foreach (var item in ViewBag.CliamType)
+                                    {
+                                        <option value="@item.Code">@item.Detail</option>
+                                    }
+                            </select>
+                        </div>
+
+                        <div class="col-sm-3" style="padding-top:27px">
+                            <input id="btnExport" name="btnExport" type="submit" value="Export Excel" class="btn btn-success" />
+                        </div>
+
+
+                    </div>
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            var d = new Date();
+
+            $("#dtpDateFrom").datepicker("setDate", new Date(d.getFullYear(), d.getMonth(), 1));
+            $("#dtpDateTo").datepicker("setDate", new Date());
+
+
+            $("#ddlClaimType").select2();
+
+            $.fn.select2.amd.require([
+                'select2/utils',
+                'select2/dropdown',
+                'select2/dropdown/attachBody'
+            ], function (Utils, Dropdown, AttachBody) {
+                function SelectAll() { }
+
+                SelectAll.prototype.render = function (decorated) {
+                    var $rendered = decorated.call(this);
+                    var self = this;
+
+                    var $selectAll = $(
+                        '<button type="button" class="btn btn-xs btn-default" style="margin-left:6px;"><i class="fa fa-square-o"></i> Select All</button>'
+                    );
+
+                    $unselectAll = $(
+                        '<button class="btn btn-xs btn-default" type="button" style="margin-left:6px;"><i class="fa fa-square-o"></i> Unselect All</button>'
+                    ),
+                        $btnContainer = $('<div style="margin-top:3px;">').append($selectAll).append($unselectAll);
+                    if (!this.$element.prop("multiple")) {
+                        // this isn't a multi-select -> don't add the buttons!
+                        return $rendered;
+                    }
+
+                    $rendered.find('.select2-dropdown').prepend($btnContainer);
+
+                    $selectAll.on('click', function (e) {
+                        var $results = $rendered.find('.select2-results__option[aria-selected=false]');
+
+                        // Get all results that aren't selected
+                        $results.each(function () {
+                            var $result = $(this);
+
+                            // Get the data object for it
+                            var data = $result.data('data');
+
+                            // Trigger the select event
+                            self.trigger('select', {
+                                data: data
+                            });
+                        });
+
+                        self.trigger('close');
+                    });
+
+
+                    $unselectAll.on('click', function (e) {
+                        var $results = $rendered.find('.select2-results__option[aria-selected=true]');
+                        $results.each(function () {
+                            self.trigger('unselect', {
+                                data: $(this).data('data')
+                            });
+                        });
+                        self.trigger('close');
+                    });
+
+
+                    return $rendered;
+                };
+
+                $("#ddlClaimAdmitType").select2({
+                    placeholder: "Select Option(s)...",
+                    dropdownAdapter: Utils.Decorate(
+                        Utils.Decorate(
+                            Dropdown,
+                            AttachBody
+                        ),
+                        SelectAll
+                    ),
+                });
+            });
+
+
+
+            $("#ddlClaimAdmitType").select2();
+
+            $("#btnExport").click(function () {
+                //alert("Selected value is: " + $("#ddlClaimAdmitType").select2("val"));
+                //var data = $("#ddlClaimAdmitType").select2("data"); delete data.element; alert("Selected data is: " + JSON.stringify(data));
+            });
+        })
+    </script>
+}

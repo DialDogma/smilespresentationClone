@@ -1,0 +1,68 @@
+﻿
+@{
+    ViewBag.Title = "คู่มือการใช้งานระบบ PA ชุมชน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-xs-12">
+        <div>
+            <table id="dtSystemGuide" class="table table-bordered table-hover dataTable" style="width:100%;background-color:white"></table>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            GetSystemGuideData();
+
+        });
+
+        const GetSystemGuideData = () => {
+            $('#dtSystemGuide').empty();
+
+            var table = $('#dtSystemGuide').DataTable({
+                   pageLength: 999,
+                   processing: true,
+                   serverSide: true,
+                   responsive: true,
+                   destroy: true,
+                   searching: true,
+                   ajax: {
+                       url: '@Url.Action("GetSystemGuideData", "System")',
+                       type: 'POST',
+                       data: function (d) {
+                           d.draw = d.draw;
+                           d.pageSize = d.length;
+                           d.pageStart = d.start;
+                           d.sortField = d.columns[d.order[0].column].data;
+                           d.orderType = d.order[0].dir;
+                           d.search = d.search.value;
+                           d.productTypeId = 27;  //27 PACommunity
+                       }
+                   },
+                   columns: [
+
+                       //{ title: 'รหัสรายการ', data: 'ApplicationRoundCode' },
+
+                       { title: 'คู่มือ', data: 'Detail', className: 'h-dt-center ', },
+                       { title: 'ประเภทไฟล์', data: 'FileType', className: 'h-dt-center d-dt-center', },
+                       { title: 'ขนาดไฟล์', data: 'FileSize', className: 'h-dt-center d-dt-center', },
+                       {
+                           title: 'ดาวน์โหลด', data: null, className: 'h-dt-center d-dt-center',
+                           mRender: function(data) {
+                               return '<a href="@Url.Action("DownloadSystem", "System")?path=' + data.Path+'" class="btn btn-primary btn-sm">Download</a>';
+                           }
+                       },
+                   ],
+                   bLengthChange: false,
+                   createdRow: function (row, data, index) {
+                   },
+
+            });
+        }
+
+    </script>
+}

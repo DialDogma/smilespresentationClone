@@ -1,0 +1,124 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .onoff {
+        border: none;
+        outline: none;
+        width: 150px; /* ปรับขนาดความกว้างของปุ่ม */
+        height: 100px; /* ปรับขนาดความสูงของปุ่ม */
+        font-size: 50px;
+    }
+
+</style>
+
+<div class="container" style="text-align:center">
+    <h3>เปิดการใช้งาน AI</h3>
+    <br />
+    <div class="btn-group btn-toggle" style="box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px; border-radius:25px">
+        <button class="btn btn-lg onoff" style="border-radius: 25px 0px 0px 25px;" id="btnOn" value="1">ON</button>
+        <button class="btn btn-lg onoff" style="border-radius: 0px 25px 25px 0px;" id="btnOff" value="0">OFF</button>
+    </div>
+    <br />
+    <br />
+    <div id="lastTransaction"></div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        //--------------------------------------------- Page load -----------------------------------------------
+        $(function () {
+            GetCurrentAllowedClaimAI();
+        });
+
+        //--------------------------------------------- Event ---------------------------------------------------
+        $('.btn-toggle .btn').click(function () {
+            let allow = $(this).attr('value');
+
+            if (allow == 1) {
+                $('#btnOff').removeClass('active');
+            } else {
+                $('#btnOn').removeClass('active');
+            }
+
+            AllowClaimAI_PayAuto(allow);
+        });
+
+        //--------------------------------------------- Method ---------------------------------------------------
+        const AllowClaimAI_PayAuto = (allow) => {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("AllowClaimAI_PayAuto")',
+                data: {
+                    allow: allow,
+                },
+                dataType: 'json',
+                async: false,
+                success: function (data) {
+                    if (data.IsSuccess) {
+                        GetCurrentAllowedClaimAI();
+                    } else {
+                        swal(data.Message, "", "warning");
+                    }
+                }
+            });
+        }
+
+         const GetCurrentAllowedClaimAI = () => {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetCurrentAllowedClaimAI")',
+                data: {},
+                dataType: 'json',
+                async: false,
+                success: function (data) {
+                    // clear the contents
+                    $('#lastTransaction').empty();
+
+                    console.log(data);
+
+                    if (data[0].IsActive !== null) {
+                        let btnON = $('#btnOn');
+                        let btnOFF = $('#btnOff');
+                        if (data[0].IsActive) {
+                            btnON.toggleClass('active');
+                            btnON.css('background-color', '#2AB633');
+                            btnON.css('color', 'white');
+                            btnOFF.css('background-color', 'white');
+                            btnOFF.css('color', 'black');
+                        } else {
+                            btnOFF.toggleClass('active');
+                            btnOFF.css('background-color', '#CB4335');
+                            btnOFF.css('color', 'white');
+                            btnON.css('background-color', 'white');
+                            btnON.css('color', 'black');
+                        }
+
+                        data.forEach(function (currentValue, index, array) {
+                            let dateLast = moment(currentValue.CreatedDate).add(543, 'years').format("DD/MM/YYYY HH:mm:ss", "LLLL")
+
+                            let spanFlag;
+                            if (currentValue.IsActive)
+                                spanFlag = '<span style="background-color: #BBE0C0; color: #19821A; font-weight: bold; padding: 5px; border-radius: 5px;"> ON&nbsp;</span>';
+                            else
+                                spanFlag = '<span style="background-color: #F4C6BD; color: #BE312E; font-weight: bold; padding: 5px; border-radius: 5px;">OFF</span>';
+
+                            $('#lastTransaction').append(`<label style="font-size:18px">${dateLast}&emsp;${currentValue.EmployeeName}</label>&emsp;${spanFlag}<br/>`);
+                        });
+
+                    }
+                }
+            });
+        }
+
+    </script>
+}
+
+
+
+
+

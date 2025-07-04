@@ -1,0 +1,613 @@
+﻿@*@model dynamic*@
+
+@{
+    //ViewBag.Title = "title";
+    //Layout = "_Layout";
+}
+<form class="form-horizontal" id="form1" action="" method="post" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-sm-12">
+
+            <div class="form-group">
+                <div class="col-sm-12">
+                    <label class="">จำนวนคิวค้าง Audit : <label class="control-label" id="lblAuditQueueCount" name="lblAuditQueueCount">@ViewBag.AuditCountCreated</label> รายการ </label>
+                    <input id="hdfAuditQueueCount" type="hidden" value="@ViewBag.AuditCountCreated" />
+                </div>
+            </div>
+
+            @* สุ่มคิวงาน *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">สุ่มคิวงาน</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">เปอร์เซ็นต์ในการสุ่ม :</label>
+                            <div class="row">
+
+                                <div class="col-sm-7">
+                                    <input id="txtAuditRandom" type="number" name="txtAuditRandom" class="form-control" required="required" step="1" pattern="^\d+(?:\.\d{1,2})?$" maxlength="3" style="width:100%" />
+                                </div>
+                                <div class="col-sm-4" style="padding-top:7px;">
+                                    <label>%</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-2" style="padding-top:27px;">
+                            <button id="btnSaveAuditRandom" name="btnSaveAuditRandom" type="button" class="btn btn-primary" style="width:100%">ตกลง</button>
+                        </div>
+                        <div class="col-sm-2" style="padding-top:27px;">
+                            <button id="btnAuditRandomHis" name="btnAuditRandomHis" type="button" class="btn btn-warning" style="width:100%" data-toggle="modal" data-target="#exampleModal" onclick="GetAuditHistory()">ประวัติการสุ่ม</button>
+                        </div>
+
+                        @*<div class="col-sm-2 col-sm-offset-3" style="padding-top:27px;text-align:right">
+                                <button id="" name="" type="button" class="btn btn-primary" style="width:120px;">ประวัติการสุ่ม</button>
+                            </div>*@
+                    </div>
+                </div>
+            </div>
+
+            @* สรุปคิวงาน *@
+            <div class="box box-success">
+                <div class="box-header with-border">
+                    <h3 class="box-title">สรุปคิวงานทั้งหมด</h3>
+
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                        @*<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>*@
+                    </div>
+                </div>
+                <!-- /.box-header -->
+
+                <div class="box-body" style="">
+
+                    <div class="form-group">
+
+                        @* คิวงานคงเหลือ *@
+                        <div class="col-sm-4 ">
+                            <!-- small box -->
+                            <div class="small-box bg-red-gradient">
+                                <div class="inner">
+                                    <h3><label id="lblAll" name="lblAll">@ViewBag.AuditAll</label></h3>
+
+                                    <input id="hdfAll" type="hidden" value="@ViewBag.AuditAll" />
+
+                                    <p>คิวงานคงเหลือ (ที่ยังไม่ได้กระจาย)</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fa fa-times-circle"></i>
+                                </div>
+                                <a href="#" class="small-box-footer"></a>
+                            </div>
+                        </div>
+
+                        @* รอดำเนินการ *@
+                        <div class="col-sm-4 ">
+                            <!-- small box -->
+                            <div class="small-box bg-yellow-gradient">
+                                <div class="inner">
+                                    <h3><label id="lblUnCheck" name="lblUnCheck">@ViewBag.AuditUnCheck</label></h3>
+
+                                    <p>คิวงานที่รอดำเนินการ</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fa fa-warning"></i>
+                                </div>
+                                <a href="#" class="small-box-footer"></a>
+                            </div>
+                        </div>
+
+                        @* ผ่านการตรวจสอบแล้ว *@
+                        <div class="col-sm-4 ">
+                            <!-- small box -->
+                            <div class="small-box bg-green-gradient">
+                                <div class="inner">
+                                    <h3><label id="lblCheck" name="lblCheck">@ViewBag.AuditCheck</label></h3>
+
+                                    <p>คิวงานที่ผ่านการตรวจสอบแล้ว</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fa fa-check-circle"></i>
+                                </div>
+                                <a href="#" class="small-box-footer"></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+
+            @* กระจายคิวงาน *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">กระจายคิวงาน</h3>
+                </div>
+
+                <div class="box-body">
+
+                    <div class="form-group">
+
+                        @* จำนวนคิวงาน *@
+                        <div class="col-sm-3">
+                            <label class="control-label">จำนวนคิวงาน :</label>
+                            <input id="txtQueueAmount" type="number" class="form-control" />
+                        </div>
+
+                        @* Assign To *@
+                        <div class="col-sm-3">
+                            <label class="control-label">Assign To :</label>
+                            <select name="txtSearchEmp" id="txtSearchEmp" class="form-control js-search-person" required="required"></select>
+                        </div>
+
+                        <div class="col-sm-2" style="padding-top:27px;">
+                            <button type="button" id="btnSaveQueue" name="btnSaveQueue" class="btn btn-success" style="width:100%">ตกลง</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* รายละเอียดคิว *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายการคิว</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="form-group">
+                        <div class="col-sm-12" style="width:100%">
+                            <table id="dtQueueDetail" class="table table-bordered table-striped" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <input id="hdfUserId" type="hidden" />
+
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close modal- " data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h5 class="modal-title" id="exampleModalLabel">รายละเอียด</h5>
+                        </div>
+                        <div class="modal-body" style="overflow-x: auto">
+                            <div class="col-sm-12">
+                                จำนวนคิวงานสุ่ม ทั้งหมด  <label style="color: green">@ViewBag.AuditSummary.AppTotal</label> รายการ <br />ประเภทคิวส่วนกลาง <label style="color: chocolate">@ViewBag.AuditSummary.QOffice</label> รายการ /คิวกระจายให้ตัวแทน <label style="color: brown">@ViewBag.AuditSummary.QAgent</label> รายการ
+                            </div>
+                            <div class="col-sm-12">
+                                <table id="dtHisRandomAudit" class="table table-bordered table-striped dataTable" style="width: 100%"></table>
+                            </div>
+                            <div class="col-sm-offset-9 col-sm-3">
+                                <a href="@Url.Action("ExportHistory")" class="btn btn-block btn-info" id="btnExportHistory">Export Excel ทั้งหมด</a>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            @*<button type="submit" class="btn btn-primary">Submit</button>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+
+            GetDatatableQueueDetail();
+            GetListAssign();
+
+            $("#txtSearchEmp").change(function () {
+
+                GetUserId($("#txtSearchEmp").val());
+
+            });
+
+            $("#txtAuditRandom").on("keypress keyup blur", function (event) {
+                $(this).val($(this).val().replace(/[^\d].+/, ""));
+                if ((event.which < 48 || event.which > 57)) {
+                    event.preventDefault();
+                }
+            });
+
+            $("#txtQueueAmount").on("keypress keyup blur", function (event) {
+                $(this).val($(this).val().replace(/[^\d].+/, ""));
+                if ((event.which < 48 || event.which > 57)) {
+                    event.preventDefault();
+                }
+            });
+
+            //Random Audit
+            $("#btnSaveAuditRandom").click(function () {
+
+                //IsValidate
+                debugger;
+                if (IsValidateForAuditRandom() != '') {
+                    window.swal({
+                            title: 'คำเตือน',
+                            text: IsValidateForAuditRandom(),
+                            type: 'error',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+
+                        });
+
+                } else
+                {
+                    //Random
+                    //alert(GetAppAudit());
+
+                    //var appAudit = GetAppAudit();
+
+                    SetRandomAudit($('#txtAuditRandom').val());
+                }
+
+            });
+
+            $('#btnSaveQueue').click(function () {
+
+                //Validate
+                debugger;
+                if (validateForAssignList() !='') {
+                    window.swal({
+                        title: 'คำเตือน',
+                        text: validateForAssignList(),
+                        type: 'error',
+                        showCancelButton: false,
+                        confirmButtonColor: '#ed2b09',
+                        confirmButtonText: 'ตกลง',
+                        closeOnEsc: false
+                    }, function () {
+
+                    });
+                } else {
+                    //AuditAssignList
+                    SetAuditAssignList($('#txtQueueAmount').val(), $('#hdfUserId').val());
+                }
+
+            });
+
+        });
+
+        function GetAppAudit()
+        {
+            var n1 = Number($('#hdfAuditQueueCount').val());
+            var n2 = Number($('#txtAuditRandom').val());
+
+            var sum = (n1 * n2) / 100;
+
+            return sum.toFixed();
+        }
+
+        function validateForAssignList()
+        {
+            var result = '';
+            debugger;
+
+            if ($('#txtQueueAmount').val() == '') {
+                result = 'กรุณากรอกจำนวนคิวงาน';
+                return result;
+            }
+
+            if ($('#txtSearchEmp').val() == null) {
+                result = 'กรุณาเลือกพนักงานที่ต้องการ Assign';
+                return result;
+            }
+
+            //TODO:
+            var countAll;
+            var queueamount = $('#txtQueueAmount').val();
+
+            countAll = $('#hdfAll').val();
+            var a1 = Number(queueamount);
+            var a2 = Number(countAll);
+
+            if (a1 > a2) {
+                result = 'กรุณาตรวจสอบจำนวนคิวงาน';
+                return result;
+            }
+
+            return result;
+        }
+
+        function SetAuditAssignList(AmountQueue,Assign)
+        {
+             $.ajax({
+                type: 'POST',
+                url: '@Url.Action("SetAuditAssignList", "Audit")',
+                data: {
+                    amountQueue: AmountQueue,
+                    assignTo: Assign
+                },
+                success: function (response) {
+                    if (response == true) {
+                        window.swal({
+                            title: 'ทำรายการสำเร็จ',
+                            type: 'success',
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            //GetDatatableQueue();
+                            //GetDatatableQueueEmployee();
+                             window.location = "@Url.Action("AuditAssign","Audit")";
+                        });
+                    } else {
+                        window.swal({
+                            title: 'เกิดข้อผิดพลาด!',
+                            type: 'error',
+                            text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            window.location = "@Url.Action("InternalServerError","Error")";
+                        });
+                    }
+                }
+            });
+        }
+
+        function SetRandomAudit(AmountPercent)
+        {
+             $.ajax({
+                type: 'POST',
+                url: '@Url.Action("SetRandomAudit", "Audit")',
+                data: {
+                    percent: AmountPercent
+                },
+                success: function (response) {
+                    if (response == true) {
+                        window.swal({
+                            title: 'ทำรายการสำเร็จ',
+                            text: 'ทำรายการสำเร็จจากการสุ่ม ' + AmountPercent + ' % จากคิวงานค้างทั้งหมด',
+                            type: 'success',
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            //GetDatatableQueue();
+                            //GetDatatableQueueEmployee();
+                             window.location = "@Url.Action("AuditAssign","Audit")";
+                        });
+                    } else {
+                        window.swal({
+                            title: 'เกิดข้อผิดพลาด!',
+                            type: 'error',
+                            text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            window.location = "@Url.Action("InternalServerError","Error")";
+                        });
+                    }
+                }
+            });
+        }
+
+        function IsValidateForAuditRandom()
+        {
+            var result = '';
+
+            //จำนวนคิวค้างเป็น 0 ไม่ให้สุ่ม
+            if ($('#lblAuditQueueCount').text() == "0") {
+                result = 'ไม่มีจำนวนคิวค้าง Audit';
+                return result;
+            }
+
+            //ห้ามว่าง
+            if ($('#txtAuditRandom').val() == '') {
+                result = 'กรุณากรอกเปอร์เซ็นต์การสุ่ม';
+                return result;
+            }
+
+            //ห้ามน้อยกว่าเท่ากับ 0
+            if ($('#txtAuditRandom').val() <= 0) {
+                result = 'เปอร์เซ็นต์การสุ่มต้องไม่น้อยกว่าหรือเท่ากับ 0';
+                return result;
+            }
+
+            //ห้ามเกิน 100%
+            if ($('#txtAuditRandom').val() > 100) {
+                result = 'เปอร์เซ็นต์การสุ่มต้องไม่เกิน 100 %';
+                return result;
+            }
+
+            return result;
+        }
+
+        function GetListAssign()
+        {
+            $('.js-search-person').select2({
+                //debugger();
+                    ajax: {
+                        type: 'GET',
+                        url: '@Url.Action("GetEmployee","Audit")',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function(params) {
+                            return {
+                                q: params.term ,// search term
+                                page: params.page
+                            };
+                        },
+                        processResults: function(data, search) {
+                            //params.page = params.page || 1;
+                            return {
+                                results: $.map(data,function(item) {
+                                    return {
+                                            id: item.EmployeeCode,
+                                            text: item.EmployeeCode + ' - ' + item.FirstName +' '+ item.LastName
+                                        }
+                                    })
+                            };
+                        },
+                        cache:true
+                    },
+                    templateResult: function(item) {
+                        if (item.loading) return item.text;
+                        return item.text;
+                    },
+                    escapeMarkup:function(markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 4,
+                    language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 4 ตัวอักษร'; } }
+            });
+        }
+
+        function GetUserId(empCode)
+                    {
+                        debugger;
+                        $.ajax({
+
+                            type: 'GET',
+                            url: '@Url.Action("GetUserIdByEmployeeCode","Audit")',
+                            dataType: 'json',
+                            data: { empCode: empCode },
+                            success: function (data) {
+                                debugger;
+                                $('#hdfUserId').val(data);
+                                //alert(data);
+                            },
+                           error: function (xhr, textStatus, errorThrown) {
+                                    alert('request fail');
+                                }
+
+                        });
+                        }
+
+        function GetDatatableQueueDetail()
+        {
+
+            $('#dtQueueDetail').empty();
+            var table = $('#dtQueueDetail').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                responsive: true,
+                ajax: {
+                    method: 'POST',
+                    url: '@Url.Action("GettableAuditQueueDetail", "Audit")',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    { title: 'ผู้ตรวจ', data: 'PersonName' },
+                    {
+                        title: 'จำนวนคิวทั้งหมด', data: 'All',
+                        className: 'dt-right',
+                        render: $.fn.dataTable.render.number(',')
+                    },
+                    {
+                        title: 'รอดำเนินการ', data: 'UnCheck',
+                        className: 'dt-right',
+                        render: $.fn.dataTable.render.number(',')
+                    },
+                    {
+                        title: 'ตรวจสอบแล้ว', data: 'Check',
+                        className: 'dt-right',
+                        render: $.fn.dataTable.render.number(',')
+                    },
+                    {
+                        title: 'วันที่ดำเนินการล่าสุด', data: 'LastUpdate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            return moment(data).format('DD/MM/YYYY');
+                        }
+                    }
+
+                ]
+            });
+
+        }
+
+        function GetAuditHistory()
+        {
+            $('#dtHisRandomAudit').empty();
+            var table = $('#dtHisRandomAudit').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                responsive: true,
+                ajax: {
+                    method: 'POST',
+                    url: '@Url.Action("GettableAuditHistory", "Audit")',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    {title:'ครั้งที่เรียกตรวจ',data:'AuditCreatedId'},
+                    { title: 'จำนวนการสุ่มคิว(%)', data: 'AuditPercent' },
+                    {
+                        title: 'คิวงานทั้งหมด', data: 'AppTotal',
+                        className: 'dt-right',
+                        render: $.fn.dataTable.render.number(',')
+                    },
+                    {
+                        title: 'คิวงานที่สุ่ม', data: 'AppAudit',
+                        className: 'dt-right',
+                        render: $.fn.dataTable.render.number(',')
+                    },
+                    {
+                        title: 'ประเภทคิวงานส่วนกลาง', data: 'QOffice',
+                        className:'dt-right',render:$.fn.dataTable.render.number(',')
+                    },
+                    {
+                        title: 'ประเภทคิวงานกระจายให้ตัวแทน', data: 'QAgent',
+                        className:'dt-right',render:$.fn.dataTable.render.number(',')
+                    },
+                    {
+                        title: 'วันที่สุ่ม', data: 'CreatedDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            return moment(data).format('DD/MM/YYYY');
+                        }
+                    },
+                    {
+                        title: 'Exportข้อมูล',
+                        data: 'AuditCreatedId',
+                        width: 100,
+                        className: 'dt-center',
+                        render: function (data) {
+                            return '<a href="@Url.Action("ExportHistory","Audit")?auditCreateId=' + data + '" class="btn btn-block btn-info" style="margin: 2px;"><i class="fa fa-fw fa-edit"></i></a>';
+                        }
+                    }
+
+                ]
+            });
+        }
+    </script>
+}

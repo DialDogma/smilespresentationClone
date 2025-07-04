@@ -1,0 +1,157 @@
+@model  SmileSClaimPayBack.Models.MedicalBillAllDataListModel
+@using SmileSClaimPayBack.Helper
+@{
+    Layout = "~/Views/Shared/_TPAReport.cshtml";
+}
+@{
+    var groupIds = Model.MedicalBillReports.Select(_ => _.Key);
+    int j = 0;
+    var getAllDatoToCount = Model.MedicalBillReports.Count();
+}
+@foreach (var pageData in Model.MedicalBillReports)
+{
+    var page = pageData.Value.ToList();
+    var sumAmount = page.Sum(_ => _.Amount);
+    string sumAmountString = sumAmount?.ToString("#,###.00");
+    string sumAmountText = GlobalFunction.ThaiBahtText(sumAmount.ToString());
+
+    <p>
+        <b style="text-align: left">
+            เลขที่ @page.FirstOrDefault().ReferenceNo
+        </b>
+    </p>
+    <p style="text-align: center">
+        วันที่ @GlobalFunction.DateThai(page.FirstOrDefault().CreatedDate)
+    </p>
+    <p>
+        เรื่อง @page.FirstOrDefault().SubjectName
+    </p>
+    <p>
+        เรียน @page.FirstOrDefault().HospitalName
+        <br />&nbsp;
+    </p>
+    <p style="text-indent: 40px">
+        ตามที่ @page.FirstOrDefault().HospitalName ได้ส่งเอกสารวางบิลเพื่อขอตั้งเบิกค่ารักษาพยาบาลของสมาชิก
+        โครงการบัตรประกันสุขภาพ  และโครงการบัตรประกันอุบัติเหตุนักเรียน  บริษัทฯ  ได้ทำการโอนเงินเพื่อชำระค่ารักษาพยาบาลของสมาชิกตามเอกสารวางบิล
+        เข้าบัญชีธนาคาร @page.FirstOrDefault().Bank เลขที่บัญชี @page.FirstOrDefault().BankAccountNo
+        ชื่อบัญชี  @page.FirstOrDefault().BankAccountName
+        เมื่อวันที่ @GlobalFunction.DateThai(page.FirstOrDefault().TransferDate) ยอดเงินรวมที่โอนทั้งสิ้น @sumAmountString บาท (@sumAmountText) โดยมีรายละเอียดการชำระ
+
+        ตามรายการดังนี้
+        <br /> &nbsp;
+    </p>
+    <table width="100%">
+        <tr>
+            <td style="text-align: center; width: 26% "><b style="text-decoration:underline"> ชื่อ - สกุล สมาชิก </b></td>
+            <td style="text-align: center; width: 5% "><b style="text-decoration:underline"> วันที่รักษา </b></td>
+            <td style="text-align: center; width: 12%"><b style="text-decoration:underline"> จำนวน </b></td>
+            <td style="text-align: center; width: 22% "><b style="text-decoration:underline"> หมายเหตุ </b></td>
+            <td style="text-align: center; width: 35% "><b style="text-decoration:underline"> ชื่อโรงเรียน </b></td>
+        </tr>
+        @{ int i = 1; }
+        @{ string amount = ""; }
+
+
+        @if (page != null)
+        {
+            foreach (var item in page)
+            {
+                { amount = item.Amount.HasValue ? item.Amount.Value.ToString("#,###.00") : ""; }
+                <tr>
+                    <td style="text-align: left; width: 20%; ">@i. &nbsp;@item.CustomerName</td>
+                    <td style="text-align: center; width: 5%; ">@item.AdmitDate.Value.ToString("dd/MM/yyyy")</td>
+                    <td style="text-align: right; width: 4% ">@amount</td>
+                    <td style="text-align: center; width: 21% "> @item.ClaimGroupCode</td>
+                    <td style="text-align: left; width: 50% ">@item.School</td>
+                </tr>
+                { i++; }
+            }
+        }
+    <tr>
+        <td colspan="2" style="text-align: left; width: 25%;">(@sumAmountText)</td>
+        @*<td style="text-align: center"></td>*@
+        <td style="text-align: right; width: 5%;"> <b style="text-decoration:underline">@sumAmountString</b></td>
+        <td colspan="2" style="text-align: left; width: 70%"></td>
+        @*<td style="text-align: left"></td>*@
+    </tr>
+    </table>
+    if (page.Count() < 6)
+    {
+        <br />
+    }
+    else if (page.Count() > 6 && page.Count() <= 17)
+    {
+        <p style="page-break-before:always" />
+    }
+    else if (page.Count() > 17 && ((page.Count() - 17) % 28) < 17)
+    {
+        <br />
+    }
+    else
+    {
+        <p style="page-break-before:always" />
+    }
+    <br style="page-break-before:avoid" />
+    <p style="text-indent:40px">
+        ทั้งนี้หากท่านได้ทำการตรวจสอบการชำระตามรายละเอียดดังกล่าวเรียบร้อยแล้ว <b>
+            โปรดออกใบเสร็จในนามสมาชิกโดยแยกเป็นรายบุคคล ตามด้วย ชื่อ บริษัท สไมล์ ทีพีเอ จำกัด พร้อมทั้งประทับตราของโรงพยาบาล
+        </b> และจัดส่งมายังที่อยู่ 89/6-10 ถนนเฉลิมพงษ์ แขวงสายไหม เขตสายไหม กรุงเทพมหานคร 10220 <b style="text-decoration:underline">
+            ภายใน 7 วัน หลังจากได้รับชำระ
+        </b> หากท่านมีข้อสงสัย สอบถามข้อมูลเพิ่มเติมโปรดติดต่อ<a>@ViewBag.ClaimPayBackMedicalManagerName</a> หมายเลขโทรศัพท์ 1434, 02-533-3999 และ 081-9527996
+        <br />&nbsp;
+    </p>
+    <p style="text-indent: 90px">
+        <b>จึงเรียนมาเพื่อทราบ และโปรดดำเนินการ</b>
+    </p>
+    <div style="float:right; text-align: center">
+        <p>
+            ขอแสดงความนับถือ
+            <br />
+            <br />&nbsp;
+        </p>
+        <p>
+            (@ViewBag.ClaimPayBackMedicalManagerName)
+        </p>
+        <p>
+            @ViewBag.ClaimPayBackMedicalPosition
+        </p>
+    </div>
+    j++;
+    <br style="clear:both" />
+    if (j < getAllDatoToCount)
+    {
+        <p style="page-break-before:always" />
+    }
+}
+
+@section ViewSpecificStyle {
+    <style>
+        td {
+            vertical-align: top;
+            height: 38px;
+        }
+
+        .content {
+            padding: 0cm 1cm !important;
+        }
+
+            .content p {
+                margin-bottom: 0.5cm;
+            }
+
+        .header-text {
+            text-align: right;
+        }
+
+        .footer-text {
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+    </style>
+}
+
+

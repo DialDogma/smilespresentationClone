@@ -1,0 +1,175 @@
+﻿
+@{
+    ViewBag.Title = "ReportCancellation";
+}
+
+<div class="box-header">
+    <h4 class="box-title">รายงานการโทรหาลูกค้ายกเลิก</h4>
+</div>
+<form action="" method="post" id="fmReport">
+    <div class="row">
+        <div class="col-sm-12 col-md-12">
+            @* search form *@
+            <div id="Create_form">
+                <div class="box box-info">
+                    <div class="box-header">
+                        <h4 class="box-title">ค้นหารายการ</h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="row" style="padding-top:6px">
+                            <div class="col-xs-1 col-md-1 col-lg-1" style="padding-top:25px; text-align:center">
+                                <div class="icheck-primary d-inline">
+                                    <input type="radio" id="DCRradio" name="r1" checked>
+                                </div>
+                            </div>
+                            <div class="col-xs-12  col-md-3 col-lg-3">
+                                <label>DCR ยกเลิก:</label>
+                                <div class="input-group date ">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="dtpDCR" data-date-language="th-th" data-provide="datepicker"  value="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="padding-top:6px">
+                            <div class="col-xs-1 col-md-1 col-lg-1" style="padding-top: 25px; text-align: center">
+                                <div class="icheck-primary d-inline">
+                                    <input type="radio" id="Rangeradio" name="r1" >
+                                </div>
+                            </div>
+                            <div class="col-xs-12  col-md-3 col-lg-3">
+                                <label>ช่วงวันที่ทำรายการ:</label>
+                                <div class="input-group date ">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="d_from" data-date-language="th-th" data-provide="datepicker" value="" />
+                                </div>
+                            </div>
+                            <div class="col-xs-12  col-md-3 col-lg-3">
+                                <label>ถึง:</label>
+                                <div class="input-group date ">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right" id="d_to" data-date-language="th-th" data-provide="datepicker" value="" />
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-2 col-lg-2" style="padding-top:5px">
+                                <br />
+                                <button type="button" class="btn btn-block bg-green" id="btnDownloadExcel"
+                                        onclick="checkRedio()">
+                                    <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+                                    ดาวน์โหลด
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* end form *@
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        $(function () {
+            //todo
+
+            $('#dtpDCR').datepicker({
+                autoclose: true,
+                todayHighlight: true,
+                minViewMode: "months",
+                format: "dd/mm/yyyy",
+            }).datepicker('update', new Date(moment().set('date', 1).add('month', -2)));
+
+            $('#d_from').datepicker({
+                autoclose: true,
+                todayHighlight: true,
+                minViewMode: "days",
+                format: "dd/mm/yyyy",
+            }).datepicker('update', new Date(moment()));
+
+            $('#d_to').datepicker({
+                autoclose: true,
+                todayHighlight: true,
+                minViewMode: "days",
+                format: "dd/mm/yyyy",
+            }).datepicker('update', new Date(moment()));
+
+        });
+
+
+        function checkRedio() {
+            var DCRradio = document.getElementById("DCRradio").checked
+            var Rangeradio = document.getElementById("Rangeradio").checked
+            if (DCRradio == true && Rangeradio == false) {
+                let data = {
+                    period: $('#dtpDCR').val(),
+                    dateFrom: null,
+                    dateTo: null
+                }
+                getDownloadLink(data);
+            } else {
+                let data = {
+                    period: null,
+                    dateFrom: $('#d_from').val(),
+                    dateTo: $('#d_to').val()
+                }
+                getDownloadLink(data);
+            }
+        }
+
+        function getDownloadLink(data) {
+                loadingSpinner('fadeIn', 999999);
+                $.ajax({
+                    url: "@Url.Action("CancellationReport", "Report")",
+                    type: "POST",
+                    data: {
+                        period: data.period,
+                        dateFrom: data.dateFrom,
+                        dateTo: data.dateTo
+                    },
+                    success: function (data) {
+                          if (data.IsResult == false) {
+                            loadingSpinner('fadeOut');
+                            swal("ผลการค้นหา", data.Msg, "warning", function (e) {
+                                swal.close();
+                                return false;
+                            });
+                          } else {
+                              let reportName = "รายงานการโทรหาลูกค้ายกเลิก";
+                            window.location = `@Url.Action("Download")?reportName=${reportName}`;
+                            loadingSpinner('fadeOut');
+                        }
+                    },
+                     error: function (jqXHR, exception) {
+                         checkXHRStatus(jqXHR.status);
+                         loadingSpinner('fadeOut');
+                     }
+                });
+        }
+        function checkXHRStatus(xhrStatus) {
+           var msg = '';
+              if (xhrStatus === 0) {
+                  msg = 'Not connect.\n Verify Network.';
+              } else if (jqXHR.status == 404) {
+                  msg = 'Requested page not found. [404]';
+              } else if (jqXHR.status == 500) {
+                  msg = 'Internal Server Error [500].';
+              } else if (exception === 'parsererror') {
+                  msg = 'Requested JSON parse failed.';
+              } else if (exception === 'timeout') {
+                  msg = 'Time out error.';
+              } else if (exception === 'abort') {
+                  msg = 'Ajax request aborted.';
+              } else {
+                  msg = 'Uncaught Error.\n' + jqXHR.responseText;
+            }
+            swal("ไม่สำเร็จ", msg, "error");
+        }
+
+    </script>
+}

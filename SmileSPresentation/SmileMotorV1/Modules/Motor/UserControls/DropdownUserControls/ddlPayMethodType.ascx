@@ -1,0 +1,2 @@
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="ddlPayMethodType.ascx.cs" Inherits="SmileMotorV1.Modules.Motor.UserControls.DropdownUserControls.ucPayMethodType" %>
+<asp:DropDownList ID="ddlPayMethodType" runat="server" OnSelectedIndexChanged="OnSelectChanged" AppendDataBoundItems="true"></asp:DropDownList>

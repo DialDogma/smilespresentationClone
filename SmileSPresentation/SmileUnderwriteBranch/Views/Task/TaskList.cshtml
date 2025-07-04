@@ -1,0 +1,315 @@
+﻿@{
+    ViewBag.Title = "งาน - ยังไม่ได้คัดกรอง";
+    Layout = "~/Views/Shared/_LayoutForTop.cshtml";
+}
+
+<section class="content">
+    <div class="row">
+        <div class="box box-info">
+            <div class="box-body">
+                <div class="col-md-12">
+                    <div class="box box-solid">
+                        <div class="box-body">
+                            <h4 class="font-header" style="display: block; background:#f4e542 ;text-align: center; padding: 7px 10px; margin-top: 0;    width: 100%; box-shadow: 0 4px 5px 0 #000000; box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.10);border-radius: 3px;">
+                                รายละเอียด คิวงานยังไม่ได้คัดกรอง
+                            </h4>
+                            <div>
+                                <table id="table_list1" class="table table-bordered table-striped table-hover display responsive nowrap" style="width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<input type="hidden" id="userId" value="@ViewBag.UserId" />
+<input type="hidden" value="@ViewBag.AreaId" id="hidden_areaId" />
+@section ViewSpecificJavascript
+{
+    <script>
+        var chat;
+        $(function () {
+            /*start signalR*/
+            // Reference the auto-generated proxy for the hub.
+            chat = $.connection.chatHub;
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                //join group
+                chat.server.joinGroup($('#userId').val());
+            });
+            //Show public message to client
+            chat.client.receiveGroupToUpdateQueue = function (message) {
+                /*full msg*/
+                const fullMessage = message;
+                /*new date*/
+                const date = new Date();
+                /*set str*/
+                const str = date.getFullYear() +
+                    "-" +
+                    (date.getMonth() + 1) +
+                    "-" +
+                    date.getDate() +
+                    " " +
+                    date.getHours() +
+                    ":" +
+                    date.getMinutes() +
+                    ":" +
+                    date.getSeconds();
+                /*alert toastr*/
+                window.toastr["success"](`อัพเดตครั้งล่าสุด : ${str}`, fullMessage);
+                /*Load Datatables*/
+                loadDatatables("table_list1");
+            };
+
+            window.toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+            /*end signalR*/
+
+            //Load Datatables
+            loadDatatables("table_list1");
+
+            //Event on click row
+            $('#table_list1 tbody').on('click', 'td', function (e) {
+                e.preventDefault();
+                //don't trigger when click row index 0
+                if ($(this).index() == 0 || $(this).index() == 15) {
+                    return;
+                } else {
+                    var table = $('#table_list1').DataTable();
+                    var data = table.row(this).data();
+                    goto_newpage(`${data.PHQueueId}`);
+                    selectedRow('table_list1', `${data.PHQueueId}`);
+                }
+            });
+        });
+
+        /*function Load Datatables*/
+        const loadDatatables = (t) => {
+            $(`#${t}`).empty();
+            const table = $(`#${t}`).DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                autoWidth: false,
+                destroy: true,
+                lengthChange: false,
+                searching: true,
+                info: true,
+                paging: true,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetDatatablesTask", "Task")',
+                    method: "POST",
+                    data: (d) => {
+                        d.draw = d.draw;
+                        d.pageSize = 10;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.schoolAreaId = $('#hidden_areaId').val();
+                        d.pHQueueStatusId = 2; //ยังไม่ได้คัดกรอง
+                        d.period = null;
+                        d.isResultPass = null,
+                        d.search = d.search.value;
+                    }
+                },
+
+                columns: [
+                    {
+                        title: 'ลำดับ',
+                        data: null,
+                        orderable: false,
+                        className: 'h-dt-center d-dt-center'
+                    },
+                    {
+                        title: 'AppCode',
+                        data: 'ApplicationCode',
+                        orderable: false,
+                        className: 'h-dt-center d-dt-left'
+                    },
+                    {
+                        title: 'ชื่อลูกค้า',
+                        data: 'CustomerFullName',
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-left'
+                    },
+                    {
+                        title: 'ผู้ชำระเบี้ย',
+                        data: 'PayerFullName',
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-left'
+                    },
+                    {
+                        title: 'เบอร์โทร',
+                        data: 'PayerTelephoneNo',
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-left'
+                    },
+                   {
+                       title: 'ช่องทางการคัดกรอง',
+                       data: 'QueueTypeDetail',
+                       orderable: false,
+                       className: 'h-dt-center  d-dt-left'
+                   },
+                    {
+                        title: 'วันหมดอายุ',
+                        data: 'QueueExpireDate',
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-left',
+                        render: (data) => {
+                            var day = new Date;
+                            var dExp = moment(data)._d;
+                            dExp.setHours(20);
+                            if (day > dExp) {
+                                return `<span style="color:red;font-weight:bold">${moment(dExp).format("DD/MM/YYYY HH:mm")} น.</span>`;
+                            } else {
+                                return `<span>${moment(dExp).format("DD/MM/YYYY HH:mm")} น.</span>`;
+                            }
+                        }
+                    },
+                    {
+                        title: 'สถานะการโทร',
+                        data: 'CallStatus',
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-left'
+                    },
+                    {
+                        title: 'สถานะการเข้าพบ',
+                        data: 'IsFoundCustomer',
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-center',
+                        mRender: (data) => {
+                            let str;
+                            switch (data) {
+                                case true:
+                                    str = "พบลูกค้า";
+                                    break;
+                                case false:
+                                    str = "ไม่พบลูกค้า";
+                                    break;
+                                default:
+                                    str = "รอข้อมูล";
+                                    break;
+                            }
+                            return str;
+                        }
+                    },
+                    {
+                        title: 'QueueCode',
+                        data: 'QueueCode',
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-left'
+                    },
+                    {
+                        title: 'แผน',
+                        data: 'ProductDetail',
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-left'
+                    },
+                    {
+                        title: 'เบี้ย',
+                        data: 'Premium',
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-left'
+                    },
+                    {
+                        title: 'งวดคุ้มครอง',
+                        data: null,
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-left',
+                        render: function (d) {
+                            return moment(d.Period).format("DD/MM/YYYY");
+                        }
+                    },
+                    {
+                        title: 'วันที่สร้างคิวงาน',
+                        data: null,
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-left',
+                        render: function (d) {
+                            return moment(d.CreatedDate).format("DD/MM/YYYY");
+                        }
+                    },
+                    {
+                        title: 'หมายเหตุ',
+                        data: 'Remark',
+                        orderable: false,
+                        className: 'h-dt-center  d-dt-left'
+                    },
+                    {
+                        title: 'บันทึกผลการโทร',
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        orderable: false,
+                        mRender: (data) => {
+                            //บันทึกได้ทุกสถานะ
+                            return `<button id="table_btn_${data.PHQueueId}" class="btn btn-info" onclick="goto_newpage(${data.PHQueueId});selectedRow('${t}',${data.PHQueueId})"><i class="fa fa-search"></i> เปิด</button>`;
+                            //แบบเดิม สถานะเกินกำหนด จะไม่ให้ทำการบันทึก
+                            //if (data.PHQueueStatusId != 4) {
+                            //    return `<button id="table_btn_${data.PHQueueId}" class="btn btn-info" onclick="goto_newpage(${data.PHQueueId});selectedRow('${t}',${data.PHQueueId})"><i class="fa fa-search"></i> เปิด</button>`;
+                            //}
+                            //return `<button class="btn btn-danger" disabled="disabled">เกินกำหนด</button>`;
+                        }
+                    }
+                ]
+            });
+
+            table.on('draw.dt', function () {
+                var PageInfo = table.page.info();
+                table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                })
+            })
+        }
+
+        /* Formatting function for row details */
+        const format = (d) => {
+            // `d` is the original data object for the row
+            return `<tr><td>QueueCode:</td><td>${d.QueueCode}</td></tr><tr><td>แผน:</td><td>${d.ProductDetail}</td></tr><tr><td>เบี้ย:</td><td>${d.Premium}</td></tr><tr><td>งวดคุ้มครอง:</td><td>${moment(d.Period).format("DD/MM/YYYY")}</td></tr><tr><td>วันที่สร้างคิวงาน:</td><td>${moment(d.CreatedDate).format("DD/MM/YYYY HH:mm")} น.</td></tr><tr><td>หมายเหตุ:</td><td>${d.Remark == null || d.Remark == "" ? '-' : d.Remark}</td></tr>`;
+        }
+
+        /*function redirect to new page*/
+        const goto_newpage = (Id) => {
+            const en_Id = btoa(Id);
+            //tl = task list
+            window.open(`@Url.Action("CallIndexCM", "Call")?queueId=${en_Id}&p=tl`, '_blank');
+        };
+
+        /*hilight row selected*/
+        const selectedRow = (t, Id) => {
+            const table = $(`#${t}`).DataTable();
+            /*loop every row*/
+            table.rows().every(function () {
+                /*set data */
+                const d = this.data();
+                /*check id*/
+                if (d.PHQueueId === Id) {
+                    /*true add class*/
+                    $(this.node().cells).addClass('selected');
+                } else {
+                    /*false remove class*/
+                    $(this.node().cells).removeClass('selected');
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,1098 @@
+﻿@{
+    ViewBag.Title = "ClaimOnline - โอนเงิน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="@Url.Content("~/Content/css/AccountBalance.css")" rel="stylesheet" type="text/css" />
+
+<style>
+    .nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
+        color: #3C8DBC !important;
+        cursor: default;
+        background-color: #fff !important;
+        -moz-border-radius-topleft: 5px;
+        border-top: solid 5px;
+        border-top-color: #3C8DBC !important;
+        font-weight: bold;
+    }
+
+    .checkspanF {
+        color: #8B1700;
+        background-color: #D39487;
+        font-weight: bold;
+        padding: 5px;
+        border-radius: 2px;
+        padding-inline: 10%;
+        padding-block-end: 6px;
+    }
+
+    .checkspanP {
+        color: #13791B;
+        background-color: #95C19B;
+        font-weight: bold;
+        padding: 5px;
+        border-radius: 2px;
+        padding-inline: 12%;
+        padding-block-end: 6px;
+    }
+</style>
+
+<form class="form-horizontal">
+    <div class="row" id="divBankAccount" hidden>
+        <div class="col-xs-12">
+            <div class="grid-child green" style="float: right;">
+                <div class="well">
+                    <div class="container-boxIconAmount" style="background-color: #72BBE5">
+                        <span class="boxIconAmount">
+                            <i class="fa fa-dollar icon"></i>
+                        </span>
+                    </div>
+                    <div class="well-text well-color">
+                        <label style="color: #3C8DBC ">ยอดเงินคงเหลือในบัญชี : @ViewBag.AccountBalance</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12">
+            <h6 style="display: block; text-align: right; margin-bottom: 0; margin-top: 5px;">Last Update date : @ViewBag.AccountBalanceLastUpdate</h6>
+        </div>
+    </div>
+
+
+
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div class="tab" role="tabpanel">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a href="#tab_1" aria-expanded="true" data-toggle="tab" style="background-color: #3C8DBC; color: white;">ข้อมูลการเคลม</a></li>
+                    <li role="presentation"><a href="#tab_2" aria-expanded="false" data-toggle="tab" style="background-color: #3C8DBC; color: white">ประวัติการทำรายการ</a></li>
+                </ul>
+                <!-- Tab panes -->
+                <div class="tab-content" style="padding: 10px;background-color:white">
+                    <div class="tab-pane fade in active" id="tab_1">
+                        @* panel ข้อมูลการเคลม *@
+                        @* ข้อมูลการเคลม *@
+                        <div class="box box-primary box-solid">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">ข้อมูลการเคลม</h3>
+                            </div>
+
+                            <div class="box-body" id="boxClaimDetail">
+                                <div class="row">
+                                    <div class="col-xs-3 col-xs-offset-1">
+                                        <label>เลขที่ COL :</label>
+                                        <input type="text" class="form-control" width="100" id="txtClaimOnlineCode" />
+                                    </div>
+                                    <div class="col-xs-4">
+                                        <label>ชื่อบัญชี :</label>
+                                        <input type="text" class="form-control" width="100" id="txtAccount" />
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <label>วันที่ส่ง :</label>
+                                        <input type="text" class="form-control" width="100" id="txtCreatedDate" />
+                                    </div>
+                                </div>
+                                <div class="row" style="padding-top:6px">
+                                    <div class="col-xs-3 col-xs-offset-1">
+                                        <label>ผู้แจ้งเคลมออนไลน์ :</label>
+                                        <input type="text" class="form-control" width="100" id="txtUserCreated" />
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <label>สาขา :</label>
+                                        <input type="text" class="form-control" width="100" value="" id="txtBranch" />
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <label>สถานะ :</label>
+                                        <input type="text" class="form-control" width="100" value="" id="txtStatus" />
+                                    </div>
+                                </div>
+                                <div style="padding-top:6px" class="row">
+                                    <div class="col-xs-12">
+                                        <table id="dtMainClaim" class="display table table-bordered table-striped " style="width: 100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>เลขที่เคลม</th>
+                                                    <th>เลขที่ Application</th>
+                                                    <th>ผู้เอาประกัน</th>
+                                                    <th>ผู้ชำระเบี้ย</th>
+                                                    <th>จำนวนเงิน</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @* รายการเอกสาร *@
+                        <div class="box box-primary box-solid">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">รายการเอกสาร</h3>
+                            </div>
+
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <table id="dtMainDocument" class="table table-bordered table-striped display" style="width: 100%"></table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="box box-primary box-solid divbutton" id="boxClaimAIAuditResult">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">ผลการตรวจสอบ</h3>
+                            </div>
+
+                            <div class="box-body" style="padding-block: 20px;">
+                                <div class="row">
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-4">
+                                        <label>ผู้ตรวจสอบเคลมออนไลน์ :</label>
+                                        &nbsp;&nbsp;&nbsp;<span id="spanEmpcheck"></span>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-4">
+                                        <label>ผลการตรวจสอบ :</label>
+                                        &nbsp;&nbsp;&nbsp;<span class="checkspanF" id="spanResultcheckFail" style="display: none;">ไม่ผ่าน</span>
+                                        <span class="checkspanP" id="spanResultcheckPass" style="display: none;">ผ่าน</span>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-4">
+                                        <label>หมายเหตุ :</label>
+                                        &nbsp;&nbsp;&nbsp;<span id="spanRemarkcheck"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @* ข้อมูลการโอน *@
+                        <div class="box box-primary box-solid" id="boxTransferPremium">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">ข้อมูลการโอน</h3>
+                            </div>
+
+                            <div class="box-body" id="divTransferPremium">
+                                <div class="row">
+                                    <div class="col-xs-6 col-sm-2 col-md-2">
+                                        <label>Reference :</label>
+                                        <input type="text" class="form-control" width="100" value="" id="txtReference" />
+                                    </div>
+                                    <div class="col-xs-6 col-sm-2 col-md-2">
+                                        <label>TransRefNo :</label>
+                                        <input type="text" class="form-control" width="100" value="" id="txtTransRefNo" disabled />
+                                    </div>
+                                    <div class="col-xs-6 col-sm-3 col-md-2">
+                                        <label>วันที่ เวลาโอน :</label>
+
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-clock-o"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right" id="dtpTransaferDate" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy hh:mm:ss" data-format="dd/MM/yyyy" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-2 col-md-2" style="padding-top:25px;margin-left: -24px;">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control pull-right timepicker" id="dtpTransferTime" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-2 col-md-2">
+                                        <label>เลขบัญชี :</label>
+                                        <input type="text" class="form-control" width="100" value="" id="txtAccountNo" onkeypress=" return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))" disabled />
+                                    </div>
+                                    <div class="col-xs-6 col-sm-2 col-md-2">
+                                        <label>หมายเหตุ :</label>
+                                        <input type="text" class="form-control" width="100" value="" id="txtRemark" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @* ข้อมูลการยกเลิก *@
+                        <div class="box box-danger box-solid" id="boxCancelCauseDetail">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">ข้อมูลการยกเลิก</h3>
+                            </div>
+
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-xs-4">
+                                        <label>สาเหตุการยกเลิก :</label>
+                                        <input type="text" class="form-control" id="txtCancelCauseDetail" />
+                                    </div>
+                                    <div class="col-xs-8">
+                                        <label>หมายเหตุ :</label>
+                                        <input type="text" class="form-control" id="txtCancelRemark" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @* Button Save / Reject *@
+                        <div class="row divbutton" style="padding-top:8px; text-align:center" id="divbutton">
+
+                            <button type="button" class="btn btn-success" style="text-decoration:none" id="btnTransferPremium">บันทึกโอนเงิน</button>
+                            <button type="button" class="btn btn-danger" style="text-decoration:none" id="btnUnTransfer">ไม่อนุมัติการเคลม</button>
+                        </div>
+                    </div>
+                    @* panel ประวัติการทำรายการ *@
+                    <div class="tab-pane fade" id="tab_2">
+                        <table id="dtHistory" class="table table-bordered table-striped display" style="text-align: center;width:100%"></table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="hdfclaimonlineID" value="@ViewBag.ClaimOnLine_Id" />
+</form>
+
+<!-- /.modal-dialog -->
+<div class="modal fade in" id="modal-RejectTransfer" style="display: none; padding-right: 5px;">
+    <div class="modal-dialog">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">รายละเอียดการยกเลิก</h3>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-10 col-xs-offset-1">
+                        <label>สาเหตุการยกเลิก :</label>
+                        <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id ="ddlCancelCause">
+                            <option value="-1">-----เลือก-----</option>
+                            @foreach (var item in @ViewBag.CancelCause)
+                            {
+                                <option value=@item.CancelCauseId>  @item.CancelCause </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 5px;">
+                    <div class="col-xs-10 col-xs-offset-1">
+                        <label>หมายเหตุ :</label>
+                        <textarea class="form-control" rows="3" id="txtRemarkUnTransfer"></textarea>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 5px;">
+                    <div class="col-xs-12" style="text-align:center">
+                        <button type="button" class="btn btn-success" id="btnSaveUnTransfer"><i class="glyphicon glyphicon-ok"></i> ตกลง</button>
+                        <button type="button" class="btn btn-success" id="btnSaveUnTransferByDev"><i class="glyphicon glyphicon-ok"></i> ตกลง (Dev)</button>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal" id="btnCancelUnTransfer"><i class="glyphicon glyphicon-remove"></i> ยกเลิก</button>
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        let total = 0;
+        let statusId;
+        let areaId;
+        let PayeeAccountNo;
+        let PayeeAccountName;
+        let PayeeBankName;
+        let PayeeBankId;
+        var intervalId;
+        var chat = $.connection.myHub;
+        let testcheck = 0;
+        let notcheck = 0;
+
+        $(function () {
+                //chat.server.joinGroup(@ViewBag.userID);
+
+                $('#btnTransferPremium').click(function (e) {
+                    e.preventDefault();
+
+                    if (IsvalidateForSaveTransferPremium()) {
+                        swal({
+                            title: "ยืนยันการทำรายการหรือไม่ ?",
+                            text: `ชื่อบัญชี : ${PayeeAccountName}\nจำนวนเงิน: ${numberWithCommas(total.toFixed(2))} บาท`,
+                            type: "warning",
+                            showCancelButton: true,
+                            confirmButtonClass: "btn-danger",
+                            confirmButtonText: "ตกลง",
+                            cancelButtonText: "ยกเลิก",
+                            closeOnConfirm: false,
+                            showLoaderOnConfirm: true,
+                        },
+                            function () {
+                                setTimeout(function () {
+                                    ValidateTransferPremium();
+                                }, 500)
+                            }
+                        )
+                    }
+
+                });
+
+                $('#btnSaveUnTransfer').click(function (e) {
+                    e.preventDefault();
+
+                    if (IsvalidateForSaveRejectPremium()) {
+                        swal({
+                            title: 'ยืนยันการไม่อนุมัติรายการ?',
+                            type: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#277020',
+                            confirmButtonText: 'ตกลง',
+                            cancelButtonText: 'ยกเลิก',
+                            closeOnConfirm: false,
+                            closeOnEsc: false,
+                            closeOnCancel: true
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                //Save
+                                let a = CheckClaimTransfered($('#hdfclaimonlineID').val(), true, false);
+                                if (a) {
+                                    SaveRejectClaimOnLine();
+                                }
+                            } else {
+                                swal("ยกเลิกทำรายการ", "", "error");
+                            }
+                        }
+                        );
+                    } else {
+                        $('#modal-RejectTransfer').modal('show');
+                    }
+                });
+
+                $('#btnSaveUnTransferByDev').click(function (e) {
+                    e.preventDefault();
+
+                    if (IsvalidateForSaveRejectPremium()) {
+                        swal({
+                            title: 'ยืนยันการไม่อนุมัติรายการ?',
+                            type: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#277020',
+                            confirmButtonText: 'ตกลง',
+                            cancelButtonText: 'ยกเลิก',
+                            closeOnConfirm: false,
+                            closeOnEsc: false,
+                            closeOnCancel: true
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                //Save
+                                let a = CheckClaimTransfered($('#hdfclaimonlineID').val(), true, true);
+                                if (a) {
+                                    SaveRejectClaimOnLine();
+                                }
+                            } else {
+                                swal("ยกเลิกทำรายการ", "", "error");
+                            }
+                        }
+                        );
+                    } else {
+                        $('#modal-RejectTransfer').modal('show');
+                    }
+                });
+
+                const ValidateTransferPremium = () => {
+                        $.ajax({
+                        type: "POST",
+                        url: "@Url.Action("ValidateClaimOnlineTransferVersion3", "ClaimOnLine")",
+                        data: {
+                            claimonLineId: $('#hdfclaimonlineID').val(),
+                            reference: $('#txtReference').val(),
+                            accountNo: $('#txtAccountNo').val(),
+                            remark: $('#txtRemark').val()
+                        },
+                        dataType: "json",
+                        async: false,
+                        success: function (data) {
+                            if (data.IsSuccess == 1) {
+                                SaveTmpClaimOnlineTransfer(data.Data.PersonContactPhoneNo, data.Data.PayeeAccountName, data.Data.PayeeAccountNo);
+                            } else {
+                                swal("", data.Message, "error");
+                            }
+                        }
+                    });
+                }
+
+                const SaveTmpClaimOnlineTransfer = (_PersonContactPhoneNo, _PayeeAccountName, _PayeeAccountNo) => {
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.Action("SaveTmpClaimOnlineTransfer", "ClaimOnLine")",
+                        data: {
+                            claimonLineId: $('#hdfclaimonlineID').val(),
+                            transferTypeID: 3,
+                            payerTypeId: 2,
+                            payeeTypeId: 4,
+                            reference: $('#txtReference').val(),
+                            transferAmountTotal: total,
+                            remark: $('#txtRemark').val(),
+                            personContactPhoneNo: _PersonContactPhoneNo,
+                            payeeAccountName: _PayeeAccountName,
+                            payeeAccountNo: _PayeeAccountNo,
+                            payeeBankId: PayeeBankId,
+                            transferFromMenu: 1, //1 บันทึกการโอนเงิน, 2 โอนเพิ่ม,
+                            payAutoTypeId: 2, //อนุมัติ
+                            claimOnLineCode: $('#txtClaimOnlineCode').val(),
+                        },
+                        dataType: "json",
+                        async: false,
+                        success: function (data) {
+                            if (data.IsSuccess == 1) {
+                                $.connection.hub.start().done(function () {
+                                    chat.server.sendNoticeGroup("อัพเดตข้อมูล", "", areaId);
+                                });
+                                swal({
+                                    title: "ทำรายการสำเร็จ",
+                                    text: data.Message,
+                                    type: "success",
+                                    showCancelButton: false,
+                                    closeOnConfirm: false,
+                                    showLoaderOnConfirm: true
+                                }, function () {
+                                    window.close();
+                                });
+                            } else {
+                                let text = data.Message;
+                                const myArray = text.split("/");
+                                const arrayLength = myArray.length;
+                                if (arrayLength > 1) {
+                                    let msgTH = myArray[0];
+                                    let msgEn = myArray[1];
+                                    swal("ทำรายการไม่สำเร็จ", msgTH + "\n" + msgEn, "error");
+                                } else {
+                                    swal("", data.Message, "error");
+                                }
+                            }
+                        }
+                    });
+                }
+
+            //});
+
+        });
+
+        $(function () {
+
+            $('.select2').select2();
+
+            $('.timepicker').timepicker({
+                showInputs: false,
+                showMeridian: false,
+                showSeconds : true,
+                timeFormat: 'HH:mm:ss',
+                defaultTime: '00:00:00'
+            });
+
+            $('#dtpTransaferDate').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+
+            $('#boxClaimDetail').find("input").prop('disabled', 'true');
+
+            DoLoad();
+
+            $('#btnUnTransfer').click(function (e) {
+                e.preventDefault();
+
+                $('#modal-RejectTransfer').modal('show');
+            });
+        });
+
+        const DoLoad = () => {
+            GetClaimonLineDetail();
+
+            //enabled Role Operation
+            if (statusId == 2 || statusId == 6) {
+                if ('@ViewBag.RoleOperation' === 'True') {
+                    $('#boxTransferPremium').hide();
+                    $('.divbutton').hide();
+                } else {
+                    $('#boxTransferPremium').show();
+                    $('.divbutton').show();
+                    $('#divBankAccount').show();
+                }
+            } else {
+                if (statusId == 5) {
+                    $('.divbutton').show();
+                    $('#boxCancelCauseDetail').hide();
+                } else {
+                    $('.divbutton').hide();
+                }
+            }
+
+            //enabled Role Developer
+            if ('@ViewBag.RoleDeveloper' === 'True')
+                $('#btnSaveUnTransferByDev').show();
+            else
+                $('#btnSaveUnTransferByDev').hide();
+
+            GetClaimDetail_DT();
+            GetDocumentDetail_DT();
+            GetClaimAIAuditResult();
+            GetClaimOnLinePayAuto_Transaction();
+        }
+
+        const GetClaimAIAuditResult = () => {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetClaimAIAuditResultByClaimOnLineId", "ClaimOnLine")",
+                data: {
+                    claimOnlineId: $('#hdfclaimonlineID').val()
+                },
+                async: false,
+                dataType: "json",
+                success: function (data) {
+
+                    //เช็คว่า AI Approve หรือเปล่า
+                    if (data.claimAIApproved === true) {
+                        $('#spanEmpcheck').text(data.employeeName);
+                        //แสดงผลตรวจว่าผ่านไม่ผ่าน
+                        if (data.is_valid === true) {
+                            $('#spanResultcheckPass').show();
+                            $('#spanRemarkcheck').text("-");
+                        } else {
+                            $('#spanResultcheckFail').show();
+                            $('#spanRemarkcheck').text(data.error_description);
+                        }
+                    } else {
+                        $('#boxClaimAIAuditResult').hide();
+                    }
+
+                }
+            });
+        }
+
+        function toBuddhistYear(moment, format) {
+            var christianYear = moment.format('YYYY')
+            var buddhishYear = (parseInt(christianYear) + 543).toString()
+            return moment
+                .format(format.replace('YYYY', buddhishYear).replace('YY', buddhishYear.substring(2, 4)))
+                .replace(christianYear, buddhishYear)
+        }
+
+        const GetClaimonLineDetail = () => {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetClaimOnLineDetailV2", "ClaimOnLine")",
+                data: {
+                    claimOnlineId: $('#hdfclaimonlineID').val()
+                },
+                async: false,
+                dataType: "json",
+                success: function (data) {
+
+                    areaId = data.AreaId;
+                    console.log('areaId:', areaId);
+                    $('#txtClaimOnlineCode').val(data.ClaimOnLineCode);
+
+                    let accountName = `${data.PayeeBankName} ${data.PayeeAccountNo} ${data.PayeeAccountName} `;
+
+                    $('#txtAccount').val(accountName);
+
+                    let c_createdDate = toBuddhistYear(moment(data.CreateClaimOnLineDate), 'DD/MM/YYYY HH:mm:ss');
+
+                    $('#txtCreatedDate').val(c_createdDate);
+
+                    $('#txtUserCreated').val(data.ClaimOnLinePersonName);
+                    $('#txtBranch').val(data.BranchDetail);
+                    $('#txtStatus').val(data.ClaimOnLineStatus);
+                    $('#txtAccountNo').val(data.PayeeAccountNo);
+
+                    PayeeAccountNo = data.PayeeAccountNo;
+                    PayeeAccountName = accountName;
+                    PayeeBankName = data.PayeeBankName;
+                    PayeeBankId = data.PayeeBankId;
+
+                    statusId = data.ClaimOnLineStatusId;
+
+                    //สถานะ ตั้งเบิกส่วนกลาง ให้แสดงปุ่มบันทึกการโอนเงิน
+                    if (statusId == 2 || statusId == 6) {
+                        $('.divbutton').show();
+                        $('#boxCancelCauseDetail').hide();
+                        $('#boxTransferPremium').show();
+
+                        //แสดงเวลา real-time
+                        var timeInput = $('#dtpTransferTime');
+                        setInterval(function () {
+                            timeInput.val(new Date().toLocaleTimeString([], { hour12: false }));
+                        }, 1000);
+                    }
+                    //สถานะ โอนเงินแล้ว ให้แสดงข้อมูลการโอนเงิน และปิด ปุ่นการโอนเงิน
+                    else if (statusId == 3) {
+                        $('.divbutton').hide();
+                        $('#divTransferPremium').find('input').prop('disabled', 'true');
+
+                        $('#boxCancelCauseDetail').hide();
+                        $('#boxTransferPremium').show();
+
+                        //Load Data TransferPremium
+                        $('#txtReference').val(data.Reference);
+                        $('#txtTransRefNo').val(data.TransRefNo);
+                        $('#txtAccountNo').val(data.ToAccountNo);
+
+                        if (data.TransferDate != null) {
+                            clearInterval(intervalId);
+                            let transferDate = toBuddhistYear(moment(data.TransferDate), 'DD/MM/YYYY');
+                            let transferTime = moment(data.TransferDate).format("HH:mm:ss");
+
+                            $('#dtpTransaferDate').val(transferDate);
+                            $('#dtpTransferTime').val(transferTime);
+                        } else {
+                            $('#dtpTransaferDate').val('');
+                            $('#dtpTransferTime').val('');
+                        }
+
+                        $('#txtRemark').val(data.RemarkTransfer);
+                    }
+                    //สถานะ ยกเลิก ให้แสดงข้อมูลการยกเลิก และปิดปุ่มการโอนเงิน
+                    else {
+                        $('.divbutton').hide();
+
+                        $('#boxCancelCauseDetail').show();
+                        $('#boxTransferPremium').hide();
+
+                        $('#boxCancelCauseDetail').find('input').prop('disabled', true);
+                        $('#txtCancelRemark').val(data.CancelRemark);
+                        $('#txtCancelCauseDetail').val(data.CancelCause);
+                    }
+
+                }
+            });
+        }
+
+        const GetClaimDetail_DT = () => {
+            $('#dtMainClaim').empty();
+            let t = $('#dtMainClaim').DataTable({
+             pageLength: 999,
+             processing: true,
+             serverSide: true,
+             responsive: true,
+                searching: false,
+                destroy: true,
+                "footerCallback": function (row, data, start, end, display) {
+                    var api = this.api(), data;
+                    // Remove the formatting to get integer data for summation
+                    var intVal = function (i) {
+                        return typeof i === 'string' ?
+                            i.replace(/[\$,]/g, '') * 1 :
+                            typeof i === 'number' ?
+                                i : 0;
+                    };
+
+                    // Total over all pages
+                    total = api
+                        .column(5)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    if (total >= @ViewBag.TransferAmountLimit && '@ViewBag.AllowTransferAmountLimit' === 'False') {
+                        $('#btnTransferPremium').attr('disabled', true);
+                    } else {
+                        $('#btnTransferPremium').attr('disabled', false);
+                    }
+
+                    if (statusId == 6 || statusId == 5)
+                        $('#btnTransferPremium').attr('disabled', true);
+
+                    $('#dtMainClaim tfoot').empty();
+                    //Update footer
+                    $('#dtMainClaim').append(`<tfoot><tr><th colspan="5" style="text-align:right">Total:</th><th style="text-align:right">${numberWithCommas(total.toFixed(2))}</th></tr></tfoot>`);
+                },
+             ajax: {
+                 url: '@Url.Action("GetClaimDetail_DT", "ClaimOnLine")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.claimOnlineId = $('#hdfclaimonlineID').val();
+                    }
+                },
+                columns: [
+                    {
+                        title: 'เลขที่เคลม',
+                        data: null,
+                        mRender: function (data) {
+                            return `<a href="${data.URLOpenClaimLink}" target="_blank">${data.ClaimCode}</a>`
+                        }
+
+                    },
+                    {
+                        title: 'ApplicationID',
+                        data: null,
+                        mRender: function (data) {
+                            return `<a href="${data.URLOpenApplicationLink}" target="_blank">${data.ApplicationCode}</a>`
+                        }
+                    },
+                    {
+                        title: 'ประเภทการรักษา',
+                        data: null,
+                        render: function (data) {
+
+                            return data.ClaimAdmitType
+                        }
+                    },
+                    { title: 'ผู้เอาประกัน', data: 'CustFullName' },
+                    { title: 'ผู้ชำระเบี้ย / ครูผู้ประสานงาน', data: 'PayerFullName' },
+                    {
+                        title: 'จำนวนเงิน',
+                        data: 'ClaimAmount',
+                        mRender: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return numberWithCommas(numberWithCommas(data.toFixed(2)));
+                            }
+
+                        }
+                    },
+                ],
+                columnDefs: [
+                    {
+                        targets: [5],
+                        className: 'dt-right'
+                    }
+                ],
+                bLengthChange: false,
+
+            });
+        }
+
+        const GetDocumentDetail_DT = () => {
+            $('#dtMainDocument').empty();
+            let t = $('#dtMainDocument').DataTable({
+             pageLength: 10,
+             processing: true,
+             serverSide: true,
+             responsive: true,
+             searching: false,
+             destroy: true,
+             ajax: {
+                 url: '@Url.Action("GetDocumentDetail_DT", "ClaimOnLine")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.claimOnlineId = $('#hdfclaimonlineID').val();
+                    }
+                },
+                columns: [
+                    { title: 'เลขที่เอกสาร', data: 'DocumentCode' },
+                    { title: 'ประเภทเอกสาร', data: 'DocumentDetail' },
+                    {
+                        title: 'แนบเอกสาร',
+                        data: null,
+                        mRender: function (data) {
+
+                            @*if (statusId == 2) {
+                                if ('@ViewBag.RoleOperation' === 'True') {
+                                    return '';
+                                } else {
+                                    if (data.DocumentTypeId == 28) {
+                                        return '';
+                                    } else {
+                                        return `<a href="${data.UrlScan}" target="_blank" class="btn btn-warning">แนบเอกสาร</a>`
+                                    }
+                                }
+                            } else {
+                                return '';
+                            }*@
+
+                            //ให้เเนบเอกสารได้ ตามที่แจ้ง 21-12-63 10:50น
+                            return `<a href="${data.UrlScan}" target="_blank" class="btn btn-warning">แนบเอกสาร</a>`
+                        }
+                    },
+                    {
+                        title: 'จำนวนเอกสาร',
+                        data: null,
+                        mRender: function (data) { //GetDocumentDetail_DT
+                            return `<a href="${data.UrlLinkOpen}" target="_blank" class="btn btn-primary">จำนวนเอกสาร : ${data.FileCount}</a> <a class="btn btn-info" onclick="GetDocumentDetail_DT();"><i class="fa fa-refresh"></i></a>`
+                        }
+                    },
+                ],
+                columnDefs: [
+                    {
+                        targets: [3],
+                        className: 'dt-center'
+                    }
+                ],
+                bLengthChange: false,
+
+            });
+        }
+
+        const GetClaimOnLinePayAuto_Transaction = () => {
+            $('#dtHistory').empty();
+            let t = $('#dtHistory').DataTable({
+             pageLength: 10,
+             processing: true,
+             serverSide: true,
+             responsive: true,
+             searching: false,
+             destroy: true,
+             "order": [[0, "desc"]],
+             ajax: {
+                 url: '@Url.Action("GetClaimOnLinePayAuto_Transaction", "PayAuto")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        //d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.claimOnlineId = $('#hdfclaimonlineID').val();
+                    }
+                },
+                columns: [
+                    { title: 'Transaction Code', data: 'ClaimOnLinePayAuto_TransactionCode'},
+                    {
+                        title: 'วันที่ทำรายการ',
+                        data: 'CreatedDate',
+                        render: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return toBuddhistYear(moment(data), 'DD/MM/YYYY HH:mm:ss');
+
+                            }
+
+                        }
+                    },
+                    { title: 'ประเภทรายการ', data: 'PayAutoTypeName' },
+                    { title: 'ผู้ทำรายการ', data: 'employeeName', className: "text-left", orderable: false },
+                    {
+                        title: 'จำนวนเงิน',
+                        data: 'AmountPayment',
+                        className: "text-right",
+                        orderable: false,
+                        mRender: function (data) {
+                            if (data == null) {
+                                return "";
+                            } else {
+                                return numberWithCommas(data.toFixed(2));
+                            }
+                        }
+                    },
+                    { title: 'ชื่อบัญชี', data: 'BankAccountName', className: "text-left", orderable: false},
+                    { title: 'TransRefNo', data: 'TransRefNo' },
+                ],
+                columnDefs: [
+                    {
+                        targets: [3],
+                        className: 'dt-center'
+                    }
+                ],
+                bLengthChange: false,
+            });
+        }
+
+        const SaveRejectClaimOnLine = () => {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("RejectClaimOnLine", "ClaimOnLine")",
+                data: {
+                    claimOnLineId: $('#hdfclaimonlineID').val(),
+                    cancelCauseId: $('#ddlCancelCause').val(),
+                    remark: $('#txtRemarkUnTransfer').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    if (data.IsResult == 1) {
+                        let _type = 1;
+                        let payAutoType = 5; //ไม่อนุมัติ
+                        SaveClaimOnLinePayAuto_Transaction(_type, payAutoType, $('#hdfclaimonlineID').val(), null);
+
+                        $.connection.hub.start().done(function () {
+                            chat.server.sendNoticeGroup("อัพเดตข้อมูล", "", areaId);
+                        });
+
+                         swal({
+                             title: "ยกเลิกรายการสำเร็จ",
+                             text: data.Msg,
+                             type: "success",
+                             showCancelButton: false,
+                             closeOnConfirm: false,
+                             showLoaderOnConfirm: true
+                         }, function () {
+                             setTimeout(function () {
+                                 //swal("Ajax request finished!");
+                                 window.close();
+                             }, 500);
+                         });
+                    } else {
+                         swal("", data.Msg, "error");
+                    }
+                }
+            });
+        }
+
+        const SaveRejectClaimOnLineByDev = () => {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("RejectClaimOnLineByDev", "ClaimOnLine")",
+                data: {
+                    claimOnLineId: $('#hdfclaimonlineID').val(),
+                    cancelCauseId: $('#ddlCancelCause').val(),
+                    remark: $('#txtRemarkUnTransfer').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    if (data.IsResult == 1) {
+                        let _type = 1;
+                        let payAutoType = 5; //ไม่อนุมัติ
+                        SaveClaimOnLinePayAuto_Transaction(_type, payAutoType, $('#hdfclaimonlineID').val(), null);
+
+                        $.connection.hub.start().done(function () {
+                            chat.server.sendNoticeGroup("อัพเดตข้อมูล", "", areaId);
+                        });
+
+                         swal({
+                             title: "ยกเลิกรายการสำเร็จ",
+                             text: data.Msg,
+                             type: "success",
+                             showCancelButton: false,
+                             closeOnConfirm: false,
+                             showLoaderOnConfirm: true
+                         }, function () {
+                             setTimeout(function () {
+                                 //swal("Ajax request finished!");
+                                 window.close();
+                             }, 500);
+                         });
+                    } else {
+                         swal("", data.Msg, "error");
+                    }
+                }
+            });
+        }
+
+        const SaveClaimOnLinePayAuto_Transaction = (_type, payAutoType, COL_Id, _payListHeaderId) => {
+            let result = false;
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("SaveClaimOnLinePayAuto_Transaction", "PayAuto")",
+                data: {
+                    _type: _type,
+                    payAutoTypeId: payAutoType,
+                    claimOnlineId: COL_Id,
+                    payListHeaderId: _payListHeaderId
+                },
+                dataType: 'json',
+                async: false,
+                success: function (data) {
+                    if (data.IsSuccess) {
+                        result = true;
+                    }
+                }
+            });
+            return result;
+        }
+
+        const CheckClaimTransfered = (COL_Id, IsUnTransfer, IsRejectByDev) => {
+            let success = false;
+            $.ajax({
+                type: 'GET',
+                url: "@Url.Action("CheckClaimTransfered")",
+                data: {
+                    claimonLineId: COL_Id,
+                },
+                dataType: 'json',
+                async: false,
+                success: function (data) {
+                    if (data.ClaimOnLineStatusId == 3) {
+                        swal("ทำรายการไม่สำเร็จ", "เคลมนี้ ส่วนกลางโอนเงินแล้ว\nThis claim transfer money successfully.", "error");
+                        DoLoad();
+                        success = false;
+                    } else if (data.ClaimOnLineStatusId == 4) {
+                        swal("ทำรายการไม่สำเร็จ", "เคลมนี้ อยู่ในสถานะยกเลิก\nThis claim status is cancel.", "error");
+                        DoLoad();
+                        success = false;
+                    } else if (data.ClaimOnLineStatusId == 5 && IsRejectByDev == false) {
+                        swal("ทำรายการไม่สำเร็จ", "เคลมนี้ อยู่ในระหว่างดำเนินการโอนเงิน\nThis claim in process of transfer.", "error");
+                        success = false;
+                    } else if (data.ClaimOnLineStatusId == 6 && IsUnTransfer == false) {
+                        //ต้องไม่ใช่สถานะไม่สำเร็จ คือ ต้องเอาเคลมที่ไม่เคยถูกสร้าง CliamOnLineTransfer แล้วเท่านั้น
+                        swal("ทำรายการไม่สำเร็จ", "รายการนี้ถูกทำรายการโอนแล้ว แต่ไม่สำเร็จ\nกรุณาตรวจสอบได้ที่เมนู บันทึกการโอนเงิน > แถบ ไม่สำเร็จ", "warning");
+                        success = false;
+                    } else {
+                        success = true;
+                    }
+                }
+            });
+            return success;
+        }
+
+        const IsvalidateForSaveTransferPremium = () => {
+            let nowDateStr = moment(new Date()).add(543,'years').format('DD/MM/YYYY HH:mm:ss');
+
+            //AccountNo
+            if ($('#txtAccountNo').val() == "") {
+                swal_fail("กรุณาตรวจสอบ เลขที่บัญชี");
+                return false;
+            } else {
+                let accountNo = $('#txtAccountNo').val();
+
+                var regex = new RegExp("^[0-9]+$");
+
+                if (!regex.test(accountNo)) {
+                    swal_fail("กรุณาตรวจสอบ เลขที่บัญชี เนื่องจากต้องเป็นตัวเลขเท่านั้น(0-9)");
+                    return false;
+                }
+            }
+
+            if ($('#hdfclaimonlineID').val() == "" || PayeeAccountNo == "" || PayeeAccountName == "" || total == 0) {
+                swal_fail("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง!");
+                return false;
+            }
+
+            return true;
+        }
+
+        const ConvertTime = (time) => {
+            let t = time.split(":");
+
+            if (t[0].length === 1) {
+                return `0${time}`;
+            }
+
+            return time;
+        }
+
+        const IsvalidateForSaveRejectPremium = () => {
+
+            //CancelCause
+            if ($('#ddlCancelCause').val() == "-1") {
+                swal_fail("กรุณาเลือก สาเหตุการยกเลิก");
+                return false;
+            }
+
+            //Remark
+            if ($('#txtRemarkUnTransfer').val() == "") {
+                swal_fail("กรุณากรอกหมายเหตุการไม่อนุมัติ");
+                return false;
+            }
+
+            return true
+        }
+    </script>
+}

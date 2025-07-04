@@ -1,0 +1,385 @@
+﻿@{
+    ViewBag.Title = "บันทึกจ่าย";
+
+}
+<style>
+    .table {
+        font-size: 14px;
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* Search form *@
+        <div class="col-sm-12" id="Input_form">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-offset-1 col-sm-4">
+                            <label for="" class="control-label">สาขา :</label>
+                            <select id="select_Branch" name="select_Branch" class="form-control select2" disabled>
+                                @foreach(var itm in ViewBag.branchList)
+                                {
+                                    <option @(ViewBag.branchCurrentUser == itm.BranchId ? "selected" : "") value="@itm.BranchId">@itm.Branch</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-offset-1 col-sm-4">
+                            <label for="" class="control-label">ชื่อบริษัท :</label>
+                            <select id="select_Company" name="select_Company" class="form-control select2 checkNA">
+                                <option value="-1">--กรุณาเลือก--</option>
+                                @foreach(var itm in ViewBag.CompanyList)
+                                {
+                                    if(itm.OrganizeId != 20)
+                                    {
+                                        <option @(ViewBag.organizeId == itm.OrganizeId ? "selected" : "") value="@itm.OrganizeId">@itm.OrganizeDetail</option>
+                                    }
+
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-offset-1 col-sm-2">
+                            <label for="" class="control-label">วันที่รับเงิน/ใบกำกับภาษี :</label>
+                            <input type="text" class="form-control pull-right" name="dateInput" id="dateInput"
+                                   data-date-language="th-th" data-provide="datepicker" required>
+                        </div>
+                        <div class="col-sm-2">
+                            <label for="" class="control-label">เวลา :</label>
+                            <input type="text" class="form-control pull-right timepicker" name="timeInput" id="timeInput" required>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-offset-1 col-sm-4">
+                            <label for="" class="control-label">เลขที่ใบเสร็จ/ใบกำกับภาษี :</label>
+                            <input type="text" class="form-control" name="receiptNumber" id="receiptNumber" value="@ViewBag.billBook" placeholder="โปรดระบุ..." required>
+                        </div>
+                        <div class="col-sm-2">
+                            <label for="" class="control-label">จำนวนเงินรวม :</label>
+                            <input type="text" class="form-control checkZero" name="receiptTotal" id="receiptTotal" value="@(ViewBag.amount > 0 ? ViewBag.amount : "0.00")" required>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-offset-1 col-sm-4">
+                            <label for="" class="control-label">ประเภทค่าใช้จ่าย :</label>
+                            <select id="select_TransactionType" name="select_TransactionType" class="form-control select2 checkNA" required="">
+                                <option value="-1">--กรุณาเลือก--</option>
+                                @foreach(var itm in ViewBag.PaymentType)
+                                {
+                                    if(ViewBag.ttSelected == itm.PettyCashTransactionTypeId)
+                                    {
+                                        <option selected="selected" value="@itm.PettyCashTransactionTypeId">@itm.PettyCashTransactionType</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@itm.PettyCashTransactionTypeId">@itm.PettyCashTransactionType</option>
+                                    }
+
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-offset-1 col-sm-4">
+                            <label for="" class="control-label">รายละเอียดเพิ่มเติม :</label>
+                            <input type="text" class="form-control" name="pccTypeDesc" value="@ViewBag.ttDescription" id="pccTypeDesc" placeholder="โปรดระบุ...">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-offset-1 col-sm-7">
+                            <label for="" class="control-label">หมายเหตุ :</label>
+                            <textarea rows="7" name="remark" id="remark" class="form-control">@ViewBag.remark</textarea>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-offset-1 col-sm-2">
+                            <label for="" class="control-label">สแกนเอกสาร :</label>
+                            <a target="_blank" href="@ViewBag.docLink" id="btnScanDoc" class="btn btn-block btn-default">เอกสาร:<label class="text-bold" id="docCount">0</label></a>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-4 pull-right">
+                            <div class="col-sm-6">
+                                <button type="button" id="btnSubmit" class="btn btn-block btn-success" disabled><i class="fa fa-save"></i> บันทึกรายการ</button>
+                            </div>
+                            <div class="col-sm-6">
+                                <button type="button" id="btnCancel" class="btn btn-block btn-danger"> ยกเลิก</button>
+                            </div>
+                            <p class="text-red"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* hidden *@
+    <input type="hidden" name="hd_docId" id="hd_docId" value="@ViewBag.docId" />
+    <input type="hidden" name="hd_docCode" id="hd_docCode" value="@ViewBag.docCode" />
+    <input type="hidden" name="hd_pettyCashId" id="hd_pettyCashId" value="@ViewBag.pettyCashId" />
+    <input type="hidden" name="hd_ptcTranId" id="hd_ptcTranId" value="@ViewBag.ptcTranId" />
+    <input type="hidden" name="hd_ptcTranGroup" id="hd_ptcTranGroup" value="@ViewBag.isGroup" />
+    <input type="hidden" name="hd_isUpdate" id="hd_isUpdate" value="@ViewBag.isUpdate" />
+    <input type="hidden" id="hd_ptcTypeId" value="@ViewBag.patmentTypeId" />
+
+    @* end hidden *@
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+            // Reference the auto-generated proxy for the hub.
+            chat = $.connection.chatHub;
+            //Start Connection
+            $.connection.hub.start().done(function(){
+                //submit
+                $('#btnSubmit').click(function () {
+                    swal_confirm("ยืนยันการบันทึก", "ต้องการบันทึกข้อมูล?", function () {
+                        InsertTransaction();
+                        var d = new Date();
+                        chat.server.sendGroupMessage("อัพเดตข้อมูล", d, '@ViewBag.UserId');
+                    });
+                });
+            });
+
+            $('form').valid();
+            $("#receiptTotal").maskMoney({allowZero:true,
+                allowNegative: false,
+                thousands:',',
+                decimal:'.',
+                affixesStay: false});
+
+            $('input, textarea, select,input[name=dateInput]').on('focusout keyup change', function() {
+                if ($('form').valid()) {
+                    $('#btnSubmit').prop('disabled',false);
+                }else{
+                    $('#btnSubmit').prop('disabled',true);
+                }
+            });
+
+            //check is group transaction
+            if ($('#hd_ptcTranGroup').val() != '') {
+                $('#receiptTotal').prop('disabled', true);
+            }
+
+            //set date time
+            if ("@ViewBag.billDate" != "") {
+
+                $('#dateInput').datepicker({ format: 'dd/mm/yyyy' }).datepicker('setDate',new Date('@ViewBag.billDate'));
+
+                if ($('form').valid()) {
+                    $('#btnSubmit').prop('disabled',false);
+                }else{
+                    $('#btnSubmit').prop('disabled',true);
+                }
+            } else {
+                var currentDate = new Date();
+               $('#dateInput').datepicker({ format: 'dd/mm/yyyy' }).datepicker('setDate',new Date());
+                if ($('form').valid()) {
+                    $('#btnSubmit').prop('disabled',false);
+                }else{
+                    $('#btnSubmit').prop('disabled',true);
+                }
+            }
+
+            if ("@ViewBag.billTime" != "") {
+                $('.timepicker').timepicker({
+                    showSeconds: true,
+                    showMeridian: false, //false = 24,true=12
+                    timeFormat: 'HH:mm:ss',
+                    interval: 15,
+                    defaultTime: ('@ViewBag.billTime')
+                });
+                 if ($('form').valid()) {
+                    $('#btnSubmit').prop('disabled',false);
+                }else{
+                    $('#btnSubmit').prop('disabled',true);
+                }
+            } else {
+                $('.timepicker').timepicker({
+                    defaulttime: 'current',
+                    showSeconds: true,
+                    showMeridian: false, //false = 24,true=12
+                    timeFormat: 'HH:mm:ss',
+                    interval: 15
+                });
+                 if ($('form').valid()) {
+                    $('#btnSubmit').prop('disabled',false);
+                }else{
+                    $('#btnSubmit').prop('disabled',true);
+                }
+            }
+            //valid
+            ValidDropdownPccType();
+            //get doc count loop
+            GetDocCount();
+
+            $('#select_TransactionType').on('change', function () {
+                ValidDropdownPccType();
+            });
+
+            ////submit
+            //$('#btnSubmit').click(function () {
+            //    swal_confirm("ยืนยันการบันทึก", "ต้องการบันทึกข้อมูล?", function () {
+            //        InsertTransaction();
+            //    });
+            //});
+
+            $('#select_Company').on('change', function () {
+                $(this).valid();
+            });
+
+            $('#btnCancel').on('click', function (e) {
+                e.preventDefault();
+                window.close();
+            });
+
+            if ('@ViewBag.isUpdate'==='true') {
+                $('#btnSubmit').removeClass('btn-success');
+                $('#btnSubmit').addClass('btn-warning');
+                $('#btnSubmit').text('แก้ไขอัพเดตข้อมูล')
+            }else{
+                $('#btnSubmit').removeClass('btn-warning');
+                $('#btnSubmit').addClass('btn-success');
+                $('#btnSubmit').text('บันทึกรายการ')
+            }
+        });
+
+        ///////////////////**********FUNCTION*********///////////////////////
+
+        const ValidDropdownPccType = () =>{
+            var paymentTypeList = @Html.Raw(Json.Encode(ViewBag.PaymentType));
+
+            var a = $('#select_TransactionType').val();
+            for (var i = 0; i < paymentTypeList.length; i++) {
+                if (a == paymentTypeList[i].PettyCashTransactionTypeId) {
+                    console.log(paymentTypeList[i].IsRequestDescription);
+                    if (paymentTypeList[i].IsRequestDescription) {
+                        if ($('#sp-star').length >0) $('#sp-star').remove();
+                        $('#label-moredetail').before('<span id="sp-star" style="color:red">**</span>');
+                        $('#pccTypeDesc').addClass('required');
+                        if ($('form').valid()) {
+                            $('#btnSubmit').prop('disabled',false);
+                        }else{
+                            $('#btnSubmit').prop('disabled',true);
+                        }
+                    } else {
+                        $('#sp-star').remove();
+                        $('#pccTypeDesc').removeClass('required');
+                        if ($('form').valid()) {
+                            $('#btnSubmit').prop('disabled',false);
+                        }else{
+                            $('#btnSubmit').prop('disabled',true);
+                        }
+                    }
+                }
+            }
+        }
+        //insert transaction
+        const InsertTransaction = () => {
+
+            if ($('#hd_isUpdate').val() == 'true') {
+                //UPDATE
+                Update();
+            } else {
+                //Insert
+                Insert();
+            }
+
+        }
+
+        //INSERT
+        const Insert= () => {
+            //var date = $("#dateInput").data("DateTimePicker").date();
+             var date = $('#dateInput').val()+' ' + $('#timeInput').val();
+            //var realDate = date.format('DD/MM/YYYY HH:mm:ss');
+            $.post('@Url.Action("InsertTransaction","PettyCash")',
+                {
+                    pctId: $('#hd_pettyCashId').val(),
+                    pctTypeId: $('#select_TransactionType').val(),
+                    pctDescription: $('#pccTypeDesc').val(),
+                    organizeId: $('#select_Company').val(),
+                    amount: $('#receiptTotal').val(),
+                    billBook: $('#receiptNumber').val(),
+                    billDate: date,
+                    remark: $('#remark').val(),
+                    documentId: $('#hd_docId').val(),
+
+                }, function (data) {
+                    if (data.boolResult) {
+                        swal_success(setTimeout(function () {
+                            if ('@ViewBag.isUpdate'==='true') {
+                                window.close();
+                                swal.close();
+                            }
+                            @*window.location = ('@Url.Action("ManagePettyCashTransaction","PettyCash")');*@
+                            window.location.reload();
+                            swal.close();
+                        }, 2000));
+                    } else {
+                        swal_fail(data.textResult, setTimeout(function () { swal.close();},2000));
+                    }
+                });
+        }
+
+        //UPDATE
+        const Update = () => {
+            var date = $('#dateInput').val()+' ' + $('#timeInput').val();
+            //var realDate = date.format('DD/MM/YYYY HH:mm:ss');
+
+            $.post('@Url.Action("UpdateTransaction","PettyCash")',
+                {
+                    pctId: $('#hd_ptcTranId').val(),
+                    pctTypeId: $('#select_TransactionType').val(),
+                    pctDescription: $('#pccTypeDesc').val(),
+                    organizeId: $('#select_Company').val(),
+                    amount: $('#receiptTotal').val(),
+                    billBook: $('#receiptNumber').val(),
+                    billDate: date,
+                    remark: $('#remark').val()
+
+                }, function (data) {
+                    if (data.boolResult) {
+                        if ($('#hd_ptcTranGroup').val() == '') {
+                            swal_success(setTimeout(function () {
+                                if ('@ViewBag.isUpdate'==='true') {
+                                    window.close();
+                                    swal.close();
+                                }
+                                @*window.location = ('@Url.Action("ManagePettyCashTransaction","PettyCash")');*@
+                                window.location.reload();
+                                swal.close();
+                            }, 2000));
+                        } else
+                        {
+                            swal_success(setTimeout(function () {
+                                if ('@ViewBag.isUpdate'==='true') {
+                                    window.close();
+                                    swal.close();
+                                }
+                                @*window.location = ('@Url.Action("EditNoPassPaymentManage","PettyCash")');*@
+                                window.location.reload();
+                                swal.close();
+                            }, 2000));
+                        }
+
+                    } else {
+                        swal_fail(data.textResult, setTimeout(function () { swal.close();},2000));
+                    }
+                });
+        }
+
+        //get doc count
+        const GetDocCount = () => {
+
+            $.get('@Url.Action("GetDocCount","PettyCash")', { docCode: $('#hd_docCode').val() },
+                function (data) {
+                    $('#docCount').text(data);
+                });
+            setTimeout(GetDocCount, 2000);
+        }
+    </script>
+}

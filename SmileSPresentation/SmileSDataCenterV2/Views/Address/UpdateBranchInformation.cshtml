@@ -1,0 +1,807 @@
+﻿@{
+    ViewBag.Title = "ระบบจัดการข้อมูลสาขา";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary" style="margin-top:44px">
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <table id="dtBranchInformation" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Modal Detail *@
+    <div class="modal fade in" id="modal-BranchInformationDetail" style="display: none;">
+        <div class="modal-dialog" style="width:65%">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียดสาขา</h3>
+                </div>
+                <div class="box-body">
+
+                    <div class="row">
+                        <div class=" col-xs-5 col-xs-offset-1">
+                            <label>สาขา :</label>
+                            <span id="lblBranch"></span>
+                        </div>
+                        <div class="col-xs-5 " style="text-align:right">
+                            <label>สถานะการใช้งาน :</label>
+                            <span id="lblActive"></span>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-11 col-xs-offset-1">
+                            <label>ที่อยู่ :</label>
+                            <span id="lblAddress1"> </span> <span id="lblAddress2"> </span>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top:5px">
+                        <div class="col-xs-3 col-xs-offset-1">
+                            <label>ตำบล :</label>
+                            <span id="lblSubDistrict"> </span>
+                        </div>
+                        <div class="col-xs-3">
+                            <label>อำเภอ :</label>
+                            <span id="lblDistrict"> </span>
+                        </div>
+                        <div class="col-xs-3">
+                            <label>จังหวัด :</label>
+                            <span id="lblProvince"> </span>
+                        </div>
+                        <div class="col-xs-2">
+                            <label>รหัสไปรษณีย์ :</label>
+                            <span id="lblZipCode"></span>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-6 col-xs-offset-1">
+                            <label>สถานที่ใกล้เคียง :</label>
+                            <span id="lblNearbyPlaces"> </span>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-3 col-xs-offset-1" ">
+                            <label>เบอร์โทรสาขา :</label>
+                            <span id="lblTel"> </span>
+                        </div>
+                        <div class="col-xs-3">
+                            <label>เบอร์สำรอง :</label>
+                            <span id="lblSecondTel"> </span>
+                        </div>
+                        <div class="col-xs-3">
+                            <label>Email :</label>
+                            <span id="lblEmail"> </span>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-6 col-xs-offset-1">
+                            <label>Latitude :</label>
+                            <span id="lblLatitude"> </span>
+                        </div>
+                        <div class="col-xs-5">
+                            <label>Longitude :</label>
+                            <span id="lblLongitude"> </span>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-6 col-xs-offset-1">
+                            <label>ผู้จัดการสาขา :</label>
+                            <span id="lblBranchManager"> </span>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-6 col-xs-offset-1">
+                            <label>ประธานสาขา :</label>
+                            <span id="lblBranchPresident"> </span>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-6 col-xs-offset-1">
+                            <label>ผู้อำนวยการบริหารงานลูกค้า :</label>
+                            <span id="lblBranchExecutiveDirector"> </span>
+                        </div>
+                    </div>
+
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-6 col-xs-offset-1">
+                            <label>ทีมส่งเสริมธุรกิจสาขา :</label>
+                            <span id="lblBranchPromotionTeam"> </span>
+                        </div>
+                    </div>
+
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-12" style="text-align:center">
+                            <button type="button" class="btn btn-danger" id="btnCloseDetail">ปิด</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    @* Modal Edit *@
+    <div class="modal fade in" id="modal-EditBranchInformation" style="display: none; padding-right: 5px;">
+        <div class="modal-dialog" style="width:70%">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">แก้ไขข้อมูลสาขา</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class=" col-xs-5 col-xs-offset-1">
+                            <label>สาขา :</label>
+                            <span id="lblBranch_e"></span>
+                        </div>
+                        <div class="col-xs-5 " style="text-align:right">
+                            <label>สถานะการใช้งาน :</label>
+                            <span id="lblActive_e"></span>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 2px;">
+                        <div class="col-xs-5 col-xs-offset-1">
+                            <label>ที่อยู่ :</label>
+                            <input class="form-control" type="text" placeholder="" id="txtAddress1">
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 2px;">
+                        <div class="col-xs-5 col-xs-offset-1">
+                            <input class="form-control" type="text" placeholder="" id="txtAddress2">
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top:2px">
+                        <div class="col-xs-3 col-xs-offset-1">
+                            <label>ตำบล :</label>
+                            <select class="form-control select2" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlSubDistrict"></select>
+                        </div>
+                        <div class="col-xs-3">
+                            <label>อำเภอ :</label>
+                            <input class="form-control" type="text" placeholder="" id="txtDistrct" disabled>
+                        </div>
+                        <div class="col-xs-3">
+                            <label>จังหวัด :</label>
+
+                            <input class="form-control" type="text" placeholder="" id="txtProvince" disabled>
+                        </div>
+                        <div class="col-xs-2">
+                            <label>รหัสไปรษณีย์ :</label>
+                            <input class="form-control" type="text" placeholder="" id="txtZipCode" disabled>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 2px;">
+                        <div class="col-xs-6 col-xs-offset-1">
+                            <label>สถานที่ใกล้เคียง :</label>
+                            <input class="form-control" type="text" placeholder="" id="txtNearbyPlaces">
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 2px;">
+                        <div class="col-xs-3 col-xs-offset-1">
+                            <label>เบอร์โทรสาขา :</label>
+                            <input class="form-control" type="text" placeholder="" id="txtTel" data-inputmask="'mask': '999-9999999'">
+                        </div>
+                        <div class="col-xs-3 ">
+                            <label>เบอร์สำรอง :</label>
+                            <input class="form-control" type="text" id="txtSecondTel" data-inputmask="'mask': '999-9999999'">
+                        </div>
+                        <div class="col-xs-5 ">
+                            <label>Email :</label>
+                            <input class="form-control" type="email" id="txtEmail">
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 2px;">
+                        <div class="col-xs-6 col-xs-offset-1">
+                            <label>Latitude :</label>
+                            <input class="form-control" type="number" placeholder="" id="txtLatitude">
+                        </div>
+                        <div class="col-xs-5">
+                            <label>Longitude :</label>
+                            <input class="form-control" type="number" placeholder="" id="txtLogitude">
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 2px;">
+                        <div class="col-xs-6 col-xs-offset-1">
+                            <label>ผู้จัดการสาขา :</label>
+                            <select class="form-control select2" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlBranchManager"></select>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 2px;">
+                        <div class="col-xs-6 col-xs-offset-1">
+                            <label>ประธานสาขา :</label>
+                            <select class="form-control select2" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlBranchPresident" disabled></select>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 2px;">
+                        <div class="col-xs-6 col-xs-offset-1">
+                            <label>ผู้อำนวยการบริหารงานลูกค้า :</label>
+                            <select class="form-control select2" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlBranchExecutiveDirector"></select>
+                        </div>
+                    </div>
+
+                    <div class="row" style="padding-top: 2px;">
+                        <div class="col-xs-6 col-xs-offset-1">
+                            <label>ทีมส่งเสริมธุรกิจสาขา :</label>
+                            <select class="form-control select2" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlBranchPromotionTeam" disabled></select>
+                        </div>
+                    </div>
+
+                    <div class="row" style="padding-top: 5px;">
+                        <div class="col-xs-12" style="text-align:center">
+                            <button type="button" class="btn btn-success" id="btnEditBranchInformation"><i class="glyphicon glyphicon-ok"></i>ตกลง</button>
+                            <button type="button" class="btn btn-danger" id="btnEditCancel"><i class="glyphicon glyphicon-remove"></i>ยกเลิก</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <input type="hidden" id="hdfbranchInformationID" hidden />
+    <input type="hidden" id="hdfbranchId" hidden />
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('.select2').select2();
+            $('#txtTel').inputmask();
+            $('#txtSecondTel').inputmask();
+
+            LoadBranchData();
+
+            $("#ddlSubDistrict").select2({
+               ajax: {
+                        url: '@Url.Action("ProvinceDistrictSubDistrict", "Address")',
+                        dataType: 'json',
+                        delay: 250,
+
+                        data: function (params) {
+                            return {
+                                q: params.term, // search term
+                                page: params.page
+                            };
+                        },
+                        processResults: processAddressData,
+                        cache: true
+                     },
+                    placeholder: 'ค้นหารายการ',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 3,
+
+                    //templateResult: formatRepo,
+                    templateSelection: formatAddressRepoSelection,
+                    selectOnClose: true,
+                    language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 3 ตัวอักษร'; } }
+            });
+
+            $("#ddlBranchManager").select2({
+                ajax: {
+                    url: '@Url.Action("GetPersonByDetail", "Address")',
+                    dataType: 'json',
+                    delay: 250,
+                    async: false,
+                    data: function (params) {
+                        return {
+                            keyword: params.term, // search term
+                            page: params.page
+                        };
+                    },
+                    processResults: processData,
+                    cache: true
+                },
+                placeholder: 'ค้นหารายการ',
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 4,
+                //templateResult: formatRepo,
+                templateSelection: formatRepoSelection,
+                selectOnClose: true,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 4 ตัวอักษร'; } }
+            });
+
+            $("#ddlBranchPresident").select2({
+                ajax: {
+                    url: '@Url.Action("GetPersonByDetail", "Address")',
+                    dataType: 'json',
+                    delay: 250,
+                    async: false,
+                    data: function (params) {
+                        return {
+                            keyword: params.term, // search term
+                            page: params.page
+                        };
+                    },
+                    processResults: processData,
+                    cache: true
+                },
+                placeholder: 'ค้นหารายการ',
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 4,
+                //templateResult: formatRepo,
+                templateSelection: formatRepoSelection,
+                selectOnClose: true,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 4 ตัวอักษร'; } }
+            });
+
+            $("#ddlBranchExecutiveDirector").select2({
+                ajax: {
+                    url: '@Url.Action("GetPersonByDetail", "Address")',
+                    dataType: 'json',
+                    delay: 250,
+                    async: false,
+                    data: function (params) {
+                        return {
+                            keyword: params.term, // search term
+                            page: params.page
+                        };
+                    },
+                    processResults: processData,
+                    cache: true
+                },
+                placeholder: 'ค้นหารายการ',
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 4,
+                //templateResult: formatRepo,
+                templateSelection: formatRepoSelection,
+                selectOnClose: true,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 4 ตัวอักษร'; } }
+            });
+
+            $("#ddlBranchPromotionTeam").select2({
+                ajax: {
+                    url: '@Url.Action("GetPersonByDetail", "Address")',
+                    dataType: 'json',
+                    delay: 250,
+                    async: false,
+                    data: function (params) {
+                        return {
+                            keyword: params.term, // search term
+                            page: params.page
+                        };
+                    },
+                    processResults: processData,
+                    cache: true
+                },
+                placeholder: 'ค้นหารายการ',
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 4,
+                //templateResult: formatRepo,
+                templateSelection: formatRepoSelection,
+                selectOnClose: true,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 4 ตัวอักษร'; } }
+            });
+
+            $('#ddlSubDistrict').change(function (e) {
+                e.preventDefault();
+
+                //LoadProvinceDistrict
+                GetProvinceDistrict();
+
+            });
+
+            $('#btnEditBranchInformation').click(function (e) {
+                e.preventDefault();
+
+                if (IsvalidateForSave()) {
+                    //DoSave
+                    DoSave()
+                } else {
+                    $('#modal-EditBranchInformation').modal('show');
+                }
+            });
+
+            $('#btnEditCancel').click(function (e) {
+                e.preventDefault();
+                DoClearForEdit();
+                $('#modal-EditBranchInformation').modal('hide');
+            });
+
+            $('#btnCloseDetail').click(function (e) {
+                e.preventDefault();
+                DoClearDetail();
+                $('#modal-BranchInformationDetail').modal('hide');
+
+            });
+
+        })
+
+        ////////////// Function ////////////////////////////////
+
+        const DoClearDetail = () => {
+            $('#lblBranch').text('');
+            $('#lblActive').text('');
+            $('#lblAddress1').text('');
+            $('#lblAddress2').text('');
+            $('#lblSubDistrict').text('');
+            $('#lblDistrict').text('');
+            $('#lblProvince').text('');
+            $('#lblZipCode').text('');
+            $('#lblNearbyPlaces').text('');
+            $('#lblTel').text('');
+            $('#lblSecondTel').text('');
+            $('#lblEmail').text('');
+            $('#lblLatitude').text('');
+            $('#lblLongitude').text('');
+            $('#lblBranchManager').text('');
+            $('#lblBranchPresident').text('');
+            $('#lblBranchExecutiveDirector').text('');
+            $('#lblBranchPromotionTeam').text('');
+            $('#hdfbranchInformationID').val('');
+            $('#hdfbranchId').val('');
+        }
+
+        const DoClearForEdit = () => {
+            $('#lblBranch_e').text('');
+            $('#lblActive_e').text('');
+            $('#txtAddress1').val('');
+            $('#txtAddress2').val('');
+
+            debugger;
+            var option = new Option('', null, true, true);
+            $('#ddlSubDistrict').append(option).trigger('change.select2');
+
+            $('#ddlSubDistrict').text('');
+
+            $('#txtDistrct').val('');
+            $('#txtProvince').val('');
+            $('#txtZipCode').val('');
+            $('#txtNearbyPlaces').val('');
+            $('#txtTel').val('');
+            $('#txtSecondTel').val('');
+            $('#txtEmail').val('');
+            $('#txtLatitude').val('');
+            $('#txtLogitude').val('');
+
+            $('#ddlBranchManager').append(option).trigger('change.select2');
+
+            $('#ddlBranchPresident').append(option).trigger('change.select2');
+            $('#ddlBranchExecutiveDirector').append(option).trigger('change.select2');
+            $('#ddlBranchPromotionTeam').append(option).trigger('change.select2');
+
+            $('#hdfbranchInformationID').val('');
+            $('#hdfbranchId').val('');
+        }
+
+        const DoSave = () => {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("SaveBranchInformation", "Address")",
+                data: {
+                    BranchInformation_ID: $('#hdfbranchInformationID').val(),
+                    Branch_ID: $('#hdfbranchId').val(),
+                    AddressDetail1: $('#txtAddress1').val(),
+                    AddressDetail2: $('#txtAddress2').val(),
+                    SubDistrict_ID: $('#ddlSubDistrict').val(),
+                    NearBy: $('#txtNearbyPlaces').val(),
+                    Telephone: $('#txtTel').val().replace('-',''),
+                    SecondPhoneNo: $('#txtSecondTel').val().replace('-', ''),
+                    Email: $('#txtEmail').val(),
+                    Latitude: $('#txtLatitude').val(),
+                    Longitude: $('#txtLogitude').val(),
+                    ManagerUser_ID: $('#ddlBranchManager').val(),
+                    ChairmanUser_ID: $('#ddlBranchPresident').val(),
+                    DirectorUser_ID: $('#ddlBranchExecutiveDirector').val(),
+                    BusinessPromoteTeamUser_ID: $('#ddlBranchPromotionTeam').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+
+                    if (data.IsResult == true) {
+
+                        //Aleart success
+                        swal("", data.Msg, "success");
+
+                        DoClearForEdit();
+                        //Hide Modal
+                        $('#modal-EditBranchInformation').modal('hide');
+                        //LoadData
+                        LoadBranchData();
+                    }
+
+                }
+            });
+        }
+
+        const IsvalidateForSave = () => {
+
+            if ($('#ddlSubDistrict').val() == null) {
+
+                swal("ตรวจสอบข้อมูล", "กรุณาเลือก ตำบล", "warning");
+                return false;
+            }
+
+            if ($('#txtTel').val() == '') {
+                swal("ตรวจสอบข้อมูล", "กรุณากรอก เบอร์โทร", "warning");
+                return false;
+            } else {
+
+                debugger;
+                //Check len tel
+                let tel = $('#txtTel').val();
+                tel = tel.replace('-', '').replace('_','');
+
+                let t = tel.length;
+
+                if (t != 10) {
+                    swal("ตรวจสอบข้อมูล", "กรุณาตรวจสอบ เบอร์โทร ต้องให้ครบ 10 หลัก", "warning");
+                    return false;
+                }
+            }
+
+            if ($('#txtSecondTel').val() != '') {
+
+                debugger;
+                //Check len tel
+                let tel = $('#txtSecondTel').val();
+                tel = tel.replace('-', '').replace('_', '');
+
+                let t = tel.length;
+
+                if (t != 10) {
+                    swal("ตรวจสอบข้อมูล", "กรุณาตรวจสอบ เบอร์สำรอง ต้องให้ครบ 10 หลัก", "warning");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        const LoadBranchData = () => {
+            $('#dtBranchInformation').empty();
+            var t = $('#dtBranchInformation').dataTable({
+                    pageLength: 9999999,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    destroy: true,
+                    ajax: {
+                        url: '@Url.Action("GetBranchInformation", "Address")',
+                        type: 'POST',
+                        async: false,
+                           data: function (d) {
+                               d.draw = d.draw;
+                               d.pageSize = d.length;
+                               d.pageStart = d.start;
+                               d.sortField = d.columns[d.order[0].column].data;
+                               d.orderType = d.order[0].dir;
+                               d.search = d.search.value;
+                           }
+                       },
+                       columns: [
+                           { title: 'สาขา', data: 'BranchDetail', className: 'h-dt-center text-font-small',width: '8%' },
+                           { title: 'ผู้จัดการสาขา', data: 'ManagerName', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'ประธานสาขา', data: 'ChairmanName', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'ผู้อำนวยการบริหารงานลูกค้า', data: 'DirectorName', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'ทีมส่งเสริมธุรกิจสาขา', data: 'BusinessPromoteTeamName', className: 'h-dt-center text-font-small', width: '15%' },
+                           {
+                               title: 'สถานะใช้งาน',
+                               data: null,
+                               className: 'h-dt-center d-dt-center text-font-small',
+                               width: '10%',
+                               mRender: (data, type, full) => {
+
+                                   if (data.IsActive == true) {
+                                       return 'ใช้งาน';
+                                   } else {
+                                       return 'ไม่ใช้งาน';
+                                   }
+
+                               }, width: '5%'
+                           },
+
+                           {
+                               title: 'เลือก',
+                               data: null,
+                               className: 'h-dt-center d-dt-center ',
+                               mRender: (data, type, full) =>
+                               {
+
+                                   return '<a onclick="GetBranchInformationDetail(\'' + data.BranchInformation_ID + '\');" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-eye-open ColorWhite"></i> ดู </a>  <a onclick="GetBranchInformationForEdit(\'' + data.BranchInformation_ID + '\');" class="btn btn-warning btn-sm"><i class="glyphicon glyphicon glyphicon-pencil ColorWhite"></i> แก้ไข</a>';
+                               }, width: '10%'
+                           },
+                       ],
+                       bLengthChange: false,
+                       //createdRow: function (row, data, index) {
+                       //    if (data.ClaimOnLineStatusId == 3) {
+                       //        $('td', row).addClass('selected');
+                       //    }
+                       //},
+
+           });
+        }
+
+        const GetBranchInformationForEdit = (branchInformationId) => {
+
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetBranchInformationById", "Address")",
+                data: {
+                    branchInformationId: branchInformationId
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+
+                    $('#lblBranch_e').text(data.BranchDetail); 3
+
+                    $('#hdfbranchInformationID').val(branchInformationId);
+                    $('#hdfbranchId').val(data.Branch_ID);
+
+                    let status = data.IsActive == true ? 'ใช้งาน': 'ไม่ใช้งาน'
+                    $('#lblActive_e').text(status);
+                    $('#txtAddress1').val(data.AddressDetail1);
+                    $('#txtAddress2').val(data.AddressDetail2);
+
+                    $('#txtNearbyPlaces').val(data.NearBy);
+                    $('#txtTel').val(data.Telephone);
+                    $('#txtSecondTel').val(data.SecondPhoneNo);
+                    $('#txtEmail').val(data.Email);
+
+                    $('#txtLatitude').val(data.Latitude);
+                    $('#txtLogitude').val(data.Longitude);
+
+                    debugger;
+
+                    if (data.SubDistrictDetail != null) {
+                        var subDistrict = new Option(data.SubDistrictDetail, data.SubDistrict_ID, true, true);
+                        $('#ddlSubDistrict').append(subDistrict).trigger('change');
+                    }
+
+                    $('#txtDistrct').val(data.DistrictDetail);
+                    $('#txtProvince').val(data.ProvinceDetail);
+                    $('#txtZipCode').val(data.ZipCode);
+
+                    if (data.ManagerUser_ID != null) {  
+                        var Manager = new Option(data.ManagerName, data.ManagerUser_ID, true, true);
+                        $('#ddlBranchManager').append(Manager).trigger('change');
+                    }
+
+
+                    if (data.ChairmanUser_ID != null) {
+
+                        var President = new Option(data.ChairmanName, data.ChairmanUser_ID, true, true);
+                        $('#ddlBranchPresident').append(President).trigger('change');
+                    }
+
+                    if (data.DirectorUser_ID != null) {
+                        var Director = new Option(data.DirectorName, data.DirectorUser_ID, true, true);
+                        $('#ddlBranchExecutiveDirector').append(Director).trigger('change');
+                    }
+
+                    if (data.BusinessPromoteTeamUser_ID != null) {  
+                        var PromotionTeam = new Option(data.BusinessPromoteTeamName, data.BusinessPromoteTeamUser_ID, true, true);
+                        $('#ddlBranchPromotionTeam').append(PromotionTeam).trigger('change');
+                    }
+                    
+
+                    
+
+                    $('#modal-EditBranchInformation').modal('show');
+                }
+            });
+        }
+
+        const GetBranchInformationDetail = (branchInformationId) => {
+            //$('#modal-BranchInformationDetail').modal('show');
+
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetBranchInformationById", "Address")",
+                data: {
+                    branchInformationId: branchInformationId
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+
+                    $('#lblBranch').text(data.BranchDetail);
+
+                    let status = data.IsActive == true ? 'ใช้งาน': 'ไม่ใช้งาน'
+                    $('#lblActive').text(status);
+                    $('#lblAddress1').text(data.AddressDetail1);
+                    $('#lblAddress2').text(data.AddressDetail2);
+
+                    $('#lblNearbyPlaces').text(data.NearBy);
+                    $('#lblTel').text(data.Telephone);
+                    $('#lblSecondTel').text(data.SecondPhoneNo);
+                    $('#lblEmail').text(data.Email);
+
+                    $('#lblLatitude').text(data.Latitude);
+                    $('#lblLongitude').text(data.Longitude);
+                    $('#lblBranchManager').text(data.ManagerName);
+                    $('#lblBranchPresident').text(data.ChairmanName);
+                    $('#lblBranchExecutiveDirector').text(data.DirectorName);
+                    $('#lblBranchPromotionTeam').text(data.BusinessPromoteTeamName);
+                    GetProvinceDistrictDetail(data.SubDistrict_ID)
+
+                    $('#modal-BranchInformationDetail').modal('show');
+                }
+            });
+        }
+
+        const GetProvinceDistrictDetail = (subDistrictId) => {
+            $.ajax({
+            type: "GET",
+            url: "@Url.Action("ProvinceDistrictSubDistrict", "Address")",
+            data: {
+                subDistrictId: subDistrictId
+            },
+            async:  false,
+            dataType: "json",
+            success: function (response) {
+                $('#lblSubDistrict').text(response[0].SubDistrictDetail)
+                $('#lblDistrict').text(response[0].DistrictDetail);
+                $('#lblProvince').text(response[0].ProvinceDetail);
+                $('#lblZipCode').text(response[0].ZipCode);
+            }
+            });
+        }
+
+    const GetProvinceDistrict = () => {
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("ProvinceDistrictSubDistrict", "Address")",
+            data: {
+                subDistrictId: $(`#ddlSubDistrict`).val()
+            },
+            async:  false,
+            dataType: "json",
+            success: function (response) {
+
+                $('#txtDistrct').val(response[0].DistrictDetail);
+                $('#txtProvince').val(response[0].ProvinceDetail);
+                $('#txtZipCode').val(response[0].ZipCode);
+
+            }
+        });
+    }
+
+        function processData(data) {
+            var mapdata = $.map(data, function (obj) {
+                debugger;
+                obj.id = obj.UserId;
+                obj.text = obj.PersonName;
+                return obj;
+            });
+            return { results: mapdata };
+        }
+
+        //เมื่อคลิกเลือกข้อมูล ให้ตั้งค่า ให้กับ text ใหม่ ให้แสดงเป็น Organize
+        function formatRepoSelection(repo) {
+            debugger;
+            if (repo.text != "ค้นหารายการ") {
+                //console.log(repo.EmployeeCode);
+                return repo.PersonName || repo.text;
+            }
+
+        }
+
+        function processAddressData(data) {
+            var mapdata = $.map(data, function (obj) {
+                obj.id = obj.SubDistrictId;
+                obj.text = `${obj.SubDistrictDetail} > ${obj.DistrictDetail} > ${obj.ProvinceDetail} > ${obj.ZipCode}`;
+                return obj;
+            });
+            return { results: mapdata };
+        }
+
+        function formatAddressRepoSelection(repo) {
+            return repo.SubDistrictDetail || repo.text;
+        }
+    </script>
+}

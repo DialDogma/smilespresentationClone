@@ -1,0 +1,205 @@
+﻿@using SmileSIncident.Helper;
+@using SmileSIncident.Models
+@{
+    // var userDetail = GlobalFunction.GetLoginDetail(this.Context);
+    var userDetail = SmileSIncident.Helper.GlobalFunction.GetLoginDetail();
+
+    ViewBag.Firstname = userDetail.FirstName;
+    ViewBag.Lastname = userDetail.LastName;
+    ViewBag.EmpCode = userDetail.UserName;
+    ViewBag.userId = userDetail.User_ID;
+    ViewBag.Department = userDetail.DepartmentDetail;
+    ViewBag.BranchDetail = userDetail.BranchDetail;
+    var hasRoleDev = false;
+    using (var _db = new IncidentEntities())
+    {
+        // Check role dev
+        var roles = GlobalFunction.GetRoles();
+        var lstRoles = roles.Split(',').ToList();
+        var lstIsDev = new List<string>() { "Developer", "IncidentDev" };
+        hasRoleDev = lstIsDev.Any(x => lstRoles.Contains(x));
+
+        if (hasRoleDev)
+        {
+            var TaskCountList = _db.usp_IncidentTask_SelectCount(null).FirstOrDefault();
+            ViewBag.TaskCountList = TaskCountList;
+            ViewBag.notiTaskCount = TaskCountList.New + TaskCountList.OnProcessing;
+
+            var jobCountList = _db.usp_IncidentJob_SelectCount(userDetail.User_ID).FirstOrDefault();
+            ViewBag.jobCountList = jobCountList;
+            ViewBag.notiJobCount = jobCountList.New + jobCountList.OnProcessing;
+
+            var messCountList = _db.usp_NoticeReplyCount_Select(userDetail.User_ID).FirstOrDefault();
+            ViewBag.MessCountList = messCountList.Value;
+        }
+        else
+        {
+            var messCountList = _db.usp_NoticeReplyCount_Select(userDetail.User_ID).FirstOrDefault();
+            ViewBag.MessCountList = messCountList.Value;
+
+            var TaskCountList = _db.usp_IncidentTask_SelectCount(userDetail.User_ID).FirstOrDefault();
+            ViewBag.TaskCountList = TaskCountList;
+            ViewBag.notiTaskCount = TaskCountList.New + TaskCountList.OnProcessing;
+        }
+
+    }
+
+}
+<style>
+    .notifications-menu-custom {
+        right: 0px !important;
+        font-size: 15px !important;
+    }
+
+    .icon-size-custom {
+        font-size: 20px;
+    }
+</style>
+<header class="main-header">
+    @* BEGIN Logo *@
+    <a href="@Url.Action("Index", "Home")" class="logo">
+        @* Mini logo for sidebar 50x50 pixels *@
+        <span class="logo-mini"><b>I</b>c</span>
+        @* Logo for regular state and mobile devices *@
+        <span class="logo-lg"><b>Incident</b>Dev</span>
+    </a>
+    @* END Logo *@
+    @* BEGIN Header *@
+    <nav class="navbar navbar-static-top" role="navigation">
+        <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+            <span class="sr-only">Toggle navigation</span>
+        </a>
+        <div class="navbar-custom-menu">
+            <ul class="nav navbar-nav">
+                @* BEGIN Notifications *@
+                <li class="dropdown notifications-menu">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="fa fa-calendar-plus icon-size-custom"></i>
+                        <span class="label label-danger notifications-menu-custom">@ViewBag.notiTaskCount </span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="header">You have @ViewBag.notiTaskCount notifications</li>
+                        <li>
+                            <ul class="menu">
+                                <li>
+                                    <a href="@Url.Action("Index","Home",new {taskStatus=1,userId=ViewBag.userId})">
+                                        <i class="fa fa-calendar-plus text-aqua"></i> @ViewBag.TaskCountList.New new Task today
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="@Url.Action("Index","Home",new {taskStatus=2,userId=ViewBag.userId})">
+                                        <i class="fa fa-laptop text-yellow"></i> @ViewBag.TaskCountList.OnProcessing On processing
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="@Url.Action("Index","Home",new {taskStatus=3,userId=ViewBag.userId})">
+                                        <i class="fa fa-check text-green"></i> @ViewBag.TaskCountList.Complete Complete(please give feedback)
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                @* END Notifications *@
+                @if (hasRoleDev)
+                {
+                    @* job noti *@
+                    <li class="dropdown notifications-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <i class="fa fa-bell icon-size-custom"></i>
+                            <span class="label label-danger notifications-menu-custom">@ViewBag.notiJobCount </span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li class="header">You have @ViewBag.notiJobCount Job notifications</li>
+                            <li>
+                                <ul class="menu">
+                                    <li>
+                                        <a href="@Url.Action("JobDetail","Home",new {jobStatus=1,devId=ViewBag.userId})">
+                                            <i class="fa fa-calendar-plus text-aqua"></i> @ViewBag.jobCountList.New new Jobs today
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="@Url.Action("JobDetail","Home",new {jobStatus=2,devId=ViewBag.userId})">
+                                            <i class="fa fa-laptop text-yellow"></i> @ViewBag.jobCountList.OnProcessing Jobs On processing
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    @* end job noti *@
+                    @* Message noti *@
+                    <li class="dropdown notifications-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <i class="far fa-comment icon-size-custom"></i>
+                            <span class="label label-danger notifications-menu-custom">@ViewBag.MessCountList</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li class="header">Message notifications</li>
+                            <li>
+                                <ul class="menu">
+                                    <li>
+                                        <a href="@Url.Action("JobNewMessage","Home")">
+                                            <i class="far fa-comment-dots text-aqua"></i> @ViewBag.MessCountList new Message today
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    @* end Message noti *@
+                }
+                else
+                {
+                    @* Message noti *@
+                    <li class="dropdown notifications-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <i class="far fa-comment icon-size-custom"></i>
+                            <span class="label label-danger notifications-menu-custom">@ViewBag.MessCountList</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li class="header">Message notifications</li>
+                            <li>
+                                <ul class="menu">
+                                    <li>
+                                        <a href="@Url.Action("JobNewMessage","Home")">
+                                            <i class="far fa-comment-dots text-aqua"></i> @ViewBag.MessCountList new Message today
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    @* end Message noti *@
+                }
+
+                @* BEGIN User Account Menu *@
+                <li class="dropdown user user-menu">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <span class="hidden-lg">@ViewBag.EmpCode</span>
+                        <span class="hidden-xs">@ViewBag.EmpCode  -  @ViewBag.Firstname  @ViewBag.Lastname</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="user-header" style="height:auto">
+                            <p>
+                                @ViewBag.Firstname - @ViewBag.Lastname
+                                <small><label>แผนก : </label>@ViewBag.Department</small>
+                                <small><label>รหัสพนักงาน : </label>@ViewBag.EmpCode</small>
+                                <small><label>สาขา : </label>@ViewBag.BranchDetail</small>
+                            </p>
+                        </li>
+                        <li class="user-footer">
+                            <div class="pull-left">
+                                <a href="@SmileSIncident.Properties.Settings.Default.ChangePasswordURL" target="_blank" class="btn btn-default btn-flat">เปลี่ยนรหัสผ่าน</a>
+                            </div>
+                            <div class="pull-right">
+                                <a href="@Url.Action("Logout", "Auth")" class="btn btn-default btn-flat">Sign out</a>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+                @* END User Account Menu *@
+            </ul>
+        </div>
+    </nav>
+</header>

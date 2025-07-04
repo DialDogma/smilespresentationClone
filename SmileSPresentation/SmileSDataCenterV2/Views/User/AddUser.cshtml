@@ -1,0 +1,216 @@
+﻿@{
+    ViewBag.Title = "เพิ่ม User";
+    //Layout = "_Layout";
+}
+@if (ViewBag.Result != null)
+{
+    @ViewBag.Result
+}
+<form class="form-horizontal" id="form1" action="@Url.Action("AddUser")" method="post" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-sm-12">
+            @* search emp *@
+            <div id="SelectEmployee_form">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h4 class="box-title">เลือกEmployee</h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group row">
+                            <div class="col-sm-8">
+                                <select name="select_Emp" id="select_Emp" class="form-control js-search-person"></select>
+                            </div>
+                            <div class="col-sm-4">
+                                <button type="button" style="width: 100%" class="btn btn-block btn-primary"
+                                        id="btn_selectEmp" name="btn_selectEmp" data-toggle="modal" data-target="#modal_Emp">
+                                    Select Employee
+                                </button>
+                            </div>
+                            <input type="hidden" name="hdfUserId" id="hdfUserId" value="" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* detail emp *@
+            <div id="Detail_form">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h4 class="box-title">รายละเอียดพนักงาน</h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <label for="lblName" class="control-label">ชื่อ : </label>
+                                <label id="lblName" style="color: green"></label>
+                            </div>
+                            <div class="col-sm-3">
+                                <label for="lblNickname" class="control-label">ชื่อเล่น : </label>
+                                <label id="lblNickname" style="color: green"></label>
+                            </div>
+                            <div class="col-sm-3">
+                                <label for="lblDepartment" class="control-label">แผนก : </label>
+                                <label id="lblDepartment" style="color: green"></label>
+                            </div>
+                            <div class="col-sm-3">
+                                <label for="lblTeam" class="control-label">ทีม : </label>
+                                <label id="lblTeam" style="color: green"></label>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <label for="lblBranch" class="control-label">สาขา : </label>
+                                <label id="lblBranch" style="color: green"></label>
+                            </div>
+                            <div class="col-sm-3">
+                                <label for="lblPosition" class="control-label">ตำแหน่ง : </label>
+                                <label id="lblPosition" style="color: green"></label>
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="lblIsHave" class="control-label">มี user ในโปรแกรม : </label>
+                                <label id="lblIsHave" style="color: green"></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* login user form *@
+            <div id="Login_form">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h4 class="box-title">ข้อมูลการ Login</h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group row">
+                            <div class="col-sm-4">
+                                <label for="txtUsername" class="control-label">Username</label>
+                                <input class="form-control" type="text" id="txtUsername" name="txtUsername" disabled required="" />
+                            </div>
+                            <div class="col-sm-4">
+                                <label for="txtPassword" class="control-label">รหัสผ่าน</label>
+                                <input class="form-control" type="text" id="txtPassword" name="txtPassword" disabled required="" />
+                            </div>
+                            <div class="col-sm-4">
+                                <label for="txtConfirmPassword" class="control-label">ยืนยันรหัสผ่าน</label>
+                                <input class="form-control" type="text" id="txtConfirmPassword" name="txtConfirmPassword" disabled required="" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-offset-10 col-sm-2">
+                                <button class="btn btn-block btn-success" type="submit">บันทึก</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            GetListAssign();
+
+            $('#select_Emp').change(function () {
+                GetUserId($('#select_Emp').val());
+                $('#Detail_form').show();
+            });
+
+            $('#Login_form').hide();
+            $('#Detail_form').hide();
+
+        });
+
+         function GetListAssign()
+        {
+            $('.js-search-person').select2({
+                //debugger();
+                    ajax: {
+                        type: 'GET',
+                        url: '@Url.Action("GetEmployee","User")',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function(params) {
+                            return {
+                                q: params.term ,// search term
+                                page: params.page
+                            };
+                        },
+                        processResults: function(data, search) {
+                            //params.page = params.page || 1;
+                            return {
+                                results: $.map(data,function(item) {
+                                    return {
+                                            id: item.EmployeeCode,
+                                            text: item.EmployeeCode + ' - ' + item.FirstName +' '+ item.LastName
+                                        }
+                                    })
+                            };
+                        },
+                        cache:true
+                    },
+                    templateResult: function(item) {
+                        if (item.loading) return item.text;
+                        return item.text;
+                    },
+                    escapeMarkup:function(markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 4,
+                    language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 4 ตัวอักษร'; } }
+            });
+        }
+
+         function GetUserId(empCode)
+                    {
+                        debugger;
+                        $.ajax({
+
+                            type: 'GET',
+                            url: '@Url.Action("GetUserId","User")',
+                            dataType: 'json',
+                            data: { empCode: empCode },
+                            success: function (data) {
+                                if (data == 0) {
+                                    $('#lblIsHave').text('ยังไม่มีข้อมูลในระบบ');
+                                    $('#lblIsHave').css('color', 'red');
+                                    $('#Login_form').show();
+                                    var empId = $('#select_Emp').val();
+                                    $('#txtUsername').val(empId);
+                                    $('#txtPassword').val(empId);
+                                    $('#txtConfirmPassword').val(empId);
+
+                                } else {
+                                    $('#hdfUserId').val(data);
+                                    $('#lblIsHave').text('มีข้อมูลในระบบแล้ว');
+                                    $('#lblIsHave').css('color', 'green');
+                                     $('#Login_form').hide();
+                                }
+
+                                //call other ajax
+                                $.ajax({
+                                    type: 'GET',
+                                    url: '@Url.Action("GetEmployeeDetail","User")',
+                                    dataType: 'json',
+                                    data: { empCode: empCode },
+                                    success: function (data2) {
+                                        debugger;
+                                        $('#lblName').text(data2.TitleDetail + ' ' + data2.FirstName + ' ' + data2.LastName);
+                                        $('#lblNickname').text(data2.NickName);
+                                        $('#lblDepartment').text(data2.DepartmentDetail);
+                                        $('#lblTeam').text(data2.EmployeeTeamDetail);
+                                        $('#lblBranch').text(data2.BranchDetail);
+                                        $('#lblPosition').text(data2.EmployeePositionDetail);
+
+                                    },
+                                    error: function (xhr, textStatus, errorThrown) {
+                                            alert('request fail');
+                                        }
+                                    });
+                            },
+                           error: function (xhr, textStatus, errorThrown) {
+                                    alert('request fail');
+                                }
+
+                        });
+        }
+    </script>
+}

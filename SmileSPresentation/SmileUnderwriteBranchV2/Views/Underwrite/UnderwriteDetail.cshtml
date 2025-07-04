@@ -1,0 +1,987 @@
+﻿@{
+    ViewBag.Title = "พิจารณาผลการคัดกรอง";
+    Layout = "~/Views/Shared/_LayoutForTopIndexPH.cshtml";
+}
+
+<style>
+    strong {
+        color: red;
+    }
+
+    label.title {
+        color: #3F8FBD
+    }
+
+    label.fonts-box {
+        font-family: sans-serif;
+        font-size: 14px;
+        font-weight: lighter;
+    }
+</style>
+<section class="content">
+    <div class="nav-tabs-custom">
+        <ul class="nav nav-tabs">
+            <li class="active"><a href="#tab_1" data-toggle="tab" aria-expanded="false"><h4>บันทึกผลการทำงาน</h4></a></li>
+            @*<li class=""><a href="#tab_2" data-toggle="tab" aria-expanded="true"><h4>เอกสาร</h4></a></li>*@
+            <li class=""><a href="#tab_3" data-toggle="tab" aria-expanded="true"><h4>ประวัติคิวงาน</h4></a></li>
+        </ul>
+        @if (ViewBag.QueueFullDetail != null)
+        {
+            <div class="tab-content">
+                <div class="tab-pane active" id="tab_1" style="padding:0px 20px 0px 20px">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="card" style="background-color: #E0F7FF; border-radius: 8px 8px; ">
+                                <div class="box-header" style="color: #3F8FBD; border-bottom: 1px solid #D2D6DE">
+                                    <i class="fa fa-user"></i>
+                                    <h4 class="box-title">ข้อมูลผู้เอาประกัน </h4>
+                                </div>
+                                <div class="box-body" style="align-items: center;">
+                                    <div class="row">
+                                        <h5 class=" col-md-3"><b>App ID</b> : <a href="#" target="_blank" id="openSSS" style="text-decoration: underline; color: #2833FF " onclick="OpenSSS(@ViewBag.QueueFullDetail.ApplicationCode)">@ViewBag.QueueFullDetail.ApplicationCode</a></h5>
+                                        <h5 class=" col-md-3">
+                                            <b>วันเริ่มคุ้มครอง</b>  : @(String.Format("{0:dd MMM yyyy}", ViewBag.QueueFullDetail.AppStartCoverDate))
+                                        </h5>
+                                        <h5 class=" col-md-3"><b>แผนประกัน</b> : @ViewBag.QueueFullDetail.Product</h5>
+                                        <h5 class=" col-md-3"><b>เบี้ย</b> : @ViewBag.QueueFullDetail.Premium บาท</h5>
+
+                                    </div>
+                                    <div class="row">
+                                        <h5 class=" col-md-3 "><b>ชื่อ</b> : @(String.Format("{0}{1} {2}", ViewBag.QueueFullDetail.CustTitle, ViewBag.QueueFullDetail.CustFirstName, ViewBag.QueueFullDetail.CustLastName))</h5>
+                                        <h5 class="col-md-3"><b>วันเกิด</b> : @(String.Format("{0:dd MMM yyyy}", ViewBag.QueueFullDetail.CustBirthDate))</h5>
+                                        <h5 class="col-md-3"><b>อายุวันสมัคร</b> : @ViewBag.QueueFullDetail.AgesAtRegister ปี</h5>
+                                        <h5 class="col-md-3"><b>อายุปัจจุบัน</b> :  @ViewBag.QueueFullDetail.AgesCurrent ปี</h5>
+                                    </div>
+                                    <div class="row">
+                                        <h5 class="col-md-3"><b>เบอร์โทร</b> : @ViewBag.QueueFullDetail.CustPhone</h5>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-12" style="margin-top:15px;margin-bottom :15px">
+                            <div class="card" style="background-color: #E0F7FF; border-radius: 8px 8px">
+                                <div class="box-header" style="color: #3F8FBD; border-bottom: 1px solid #D2D6DE">
+                                    <i class="fa fa-user"></i>
+                                    <h4 class="box-title">ข้อมูลผู้ชำระเบี้ย </h4>
+                                </div>
+                                <div class="box-body" style="align-items: center;">
+                                    <div class="row">
+
+                                        <h5 class=" col-md-4"><b>ชื่อผู้ชำระเบี้ย</b> : @(ViewBag.QueueFullDetail.PayerFirstName != null ? String.Format("{0}{1} {2}", ViewBag.QueueFullDetail.PayerTitle, ViewBag.QueueFullDetail.PayerFirstName, ViewBag.QueueFullDetail.PayerLastName) : "-")</h5>
+                                        <h5 class=" col-md-4"><b>ความสัมพันธ์</b> : @(ViewBag.QueueFullDetail.PayerRelate != null ? ViewBag.QueueFullDetail.PayerRelate : "-")</h5>
+                                        <h5 class=" col-md-4"><b>เบอร์โทร</b> : @(ViewBag.QueueFullDetail.PayerPhone != null ? ViewBag.QueueFullDetail.PayerPhone : "-")</h5>
+                                    </div>
+                                    <div class="row">
+                                        <h5 class=" col-md-4"><b>อาชีพ</b> : @(ViewBag.QueueFullDetail.PayerOccupationLevel != null ? ViewBag.QueueFullDetail.PayerOccupationLevel : "-")</h5>
+                                        <h5 class=" col-md-4"><b>ชื่อหน่วยงาน</b> : @(ViewBag.QueueFullDetail.PayerBuildingName != null ? ViewBag.QueueFullDetail.PayerBuildingName : "-")</h5>
+                                        <h5 class=" col-md-4"><b>เบอร์โทรที่ทำงาน</b> : @(ViewBag.QueueFullDetail.PayerBuildingPhone != null ? ViewBag.QueueFullDetail.PayerBuildingPhone : "-")</h5>
+                                    </div>
+
+                                    <div class="row">
+                                        <h5 class=" col-md-4"><b>การชำระ</b> : @(ViewBag.QueueFullDetail.PayMethodType != null ? ViewBag.QueueFullDetail.PayMethodType : "-")</h5>
+                                        <h5 class=" col-md-4"><b>ธนาคาร</b> : @(ViewBag.QueueFullDetail.PayerBankName != null ? ViewBag.QueueFullDetail.PayerBankName : "-")</h5>
+                                        <h5 class=" col-md-4"><b>เลขบัญชี</b> : @(ViewBag.QueueFullDetail.PayerBankAccountNo != null ? ViewBag.QueueFullDetail.PayerBankAccountNo : "-")</h5>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div class="col-md-12" style="text-align:right">
+
+                                            <a href="#" id="btnPayerOther" data-toggle="modal" data-target="#modal-warning" style="text-decoration: underline; color: #2833FF; display: none "></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <form id="sectionGiveCardFrom">
+                            <div class=" col-sm-12">
+                                <div class="box box-info bg-info " style="border-radius: 8px 8px 0px 0px ">
+                                    <div class="box-header" style="background-color: #00C0EF; color: azure; border-radius: 8px 8px 0px 0px ">
+                                        <h4 class="box-title">รายละเอียดการมอบบัตร</h4>
+                                    </div>
+                                    <div class=" box-body" style="height: auto;width: auto;margin-top:15px">
+
+                                        <div class="typeSelectChildxx form-group col-md-12">
+                                            <label class="col-md-2 control-label title">มอบบัตรให้กับ</label>
+                                            <label class="col-md-2 fonts-box"><input type="checkbox" name="typeSelectChild" id="typeSelectChildPayer" value="payer" @(ViewBag.QueueFullDetail.IsUnderwritePayer == true ? "checked" : "" )> ผู้ชำระเบี้ย </label>
+                                            <label class="col-md-2  fonts-box"><input type="checkbox" name="typeSelectChild" id="typeSelectChildCustomer" value="customer" @(ViewBag.QueueFullDetail.IsUnderwriteCust == true ? "checked" : "")> ผู้เอาประกัน</label>
+                                        </div>
+                                        <div class="  form-group col-md-12">
+                                            <label class="col-md-2 control-label title">ประเภทบัตร</label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isLineOA" value="1" id="IsSpecify_1" @(ViewBag.QueueFullDetail.IsLineOA == true ? "checked" : "" )> Line OA
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isLineOA" value="0" id="IsSpecify_2" @(ViewBag.QueueFullDetail.IsLineOA == false ? "checked" : "" )> Cobrand
+                                            </label>
+                                            <label class="col-md-4 fonts-box" id="formCobrand" style="display:none">
+                                                <input class="form-control" id="txtCoBrand" name="txtCoBrand" type="text" checkOnlyNum="checkOnlyNum" placeholder="ระบุเลข Cobrand" value="@ViewBag.QueueFullDetail.CoBrandNo" disabled />
+                                            </label>
+                                        </div>
+                                        <div class="form-group col-md-12" id="remarkisLineOAFrom">
+                                            <label class="col-md-2 control-label title">
+                                                หมายเหตุการมอบบัตร
+                                            </label>
+                                            <div class="col-md-8">
+                                                <input class="form-control" type="text" name="remarkisLineOA" id="remarkisLineOA" value="@ViewBag.QueueFullDetail.GiveRemark" disabled>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group col-md-12">
+                                            <label class="col-md-2 control-label title">
+                                                แนบรูปการมอบบัตร
+                                            </label>
+                                            <div class="col-md-8" id="editDropzone">
+                                                <a href="javascript:void();" class="pop">
+                                                    <img id="myImg" src="@ViewBag.QueueFullDetail.URLPath" alt="@ViewBag.QueueFullDetail.FileName" style="width:100%;max-width:100px">
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                            @if (ViewBag.QueueFullDetail.QueueStatusId != 8)
+                            {
+                                <div class="col-sm-12">
+                                    <div class="box box-info bg-info " style="border-radius: 8px 8px 0px 0px ">
+                                        <div class="box-header" style="background-color: #00C0EF; color: azure; border-radius: 8px 8px 0px 0px ">
+                                            <h4 class="box-title">ข้อมูลการเฝ้าระวัง</h4>
+                                        </div>
+                                        <div class="box-body shadow" style="height: auto;width: auto;margin-top:15px">
+                                            <div class="form-group text col-md-12">
+                                                <label class="col-md-12 control-label title">ข้อมูลการเฝ้าระวัง</label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isBeware" value="0" id="isBeware_1" @(ViewBag.QueueFullDetail.IsBeware == false ? "checked" : "" )> ไม่มี
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isBeware" value="1" id="isBeware_2" @(ViewBag.QueueFullDetail.IsBeware == true ? "checked" : "" )> มี
+                                                </label>
+                                                <label class="bewareRemarkLabel col-md-6 fonts-box" id="bewareRemarkLabel" style="display:none">
+                                                    <input class="form-control" id="bewareRemark" name="bewareRemark" disabled type="text" placeholder="รายละเอียดเพิ่มเติม" value="@ViewBag.QueueFullDetail.BewareRemark" />
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <div class="box box-info bg-info " style="border-radius: 8px 8px 0px 0px ">
+                                        <div class="box-header" style="background-color: #00C0EF; color: azure; border-radius: 8px 8px 0px 0px ">
+                                            <h4 class="box-title">รายละเอียดเพิ่มเติม</h4>
+                                        </div>
+                                        <div class="box-body" style="height: auto;width: auto;margin-top:15px">
+                                            <div class="form-group col-md-12">
+                                                <label class="col-md-12 control-label title">รายละเอียดเพิ่มเติม</label>
+                                                <textarea name="remarkFrom" id="remarkFrom" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px" value="@ViewBag.QueueFullDetail.QueueResultRemark" disabled>@ViewBag.QueueFullDetail.QueueResultRemark</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <input class="form-control" id="txtCoBrandDate" name="txtCoBrandDate" type="hidden" />
+                        </form>
+                    </div>
+                </div>
+                <div class="tab-pane" id="tab_2">
+                    <div id="Document_form" class="form-horizontal">
+                        @if (ViewBag.FirstDoc == null)
+                        {
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div id="form1_msg" class="alert alert-warning alert-dismissible">
+                                        <h4><i class="icon fa fa-ban"></i> แจ้งเตือน!</h4>
+                                        ไม่พบเอกสาร
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <br />
+                            <div class="form-group">
+                                @if (ViewBag.DocLink != null)
+                                {
+                                    foreach (var itm in ViewBag.DocLink)
+                                    {
+                                        <div class="col-sm-6 col-xs-12">
+                                            <button type="button" class="btn btn-block btn-info" id="btn_@itm.DocumentFileId" onclick="SeeDoc('@itm.PathFullDoc')"><i class="fa fa-fw fa-search"></i>@itm.DocumentTypeName:@itm.DocumentId</button>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <div class="row" id="DocDetail_form">
+                                <div class="col-sm-12" style="height: 950px">
+                                    <iframe class="SeeDoc" style="width: 100%; height: 100%;overflow:auto !important" src="@ViewBag.FirstDoc"></iframe>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div id="tab_3" class="tab-pane">
+                    <div class="form-horizontal">
+                        <table id="tableLog" name="tableLog" class="table table-bordered table-striped display responsive" style="width: 100%">
+                            <tbody>
+                                <tr style="text-align:center"><td>ไม่พบข้อมูล</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <!--Modal Img-->
+    <div class="modal fade" id="imagemodal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <img src="" class="imagepreview" style="width: 100%;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- The Modal Section CM-->
+    <form id="formModalApprovedCondition">
+        <div class="modal fade" id="modal-approved-condition">
+            <!--.modal-dialog -->
+            <div class="modal-dialog">
+                <!--.modal-content -->
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color:  #ffc318;border-color: #ffc318;">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                        <h4 class="modal-title">รายละเอียดการพิจารณาอนุมัติของประธานสาขา</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div id="box-approved-contidion" class="box-body" style="height: auto;width: auto;">
+                            <ul class="answerList" style="padding-left: 0px !important;">
+                                <li>
+                                    <label>
+                                        <input type="radio" name="healthChildPassCM" value="0" id="health-child-pass-conditionCM"> มีประวัติสุขภาพที่ติดข้อยกเว้น
+                                    </label>
+                                    <div style="padding-left:30px;">
+                                        <label>
+                                            <input type="radio" name="IsSpecify_CM" value="1" id="IsSpecify_CM1"> ระบุในใบสมัคร
+                                        </label>
+                                        <label>
+                                            <input type="radio" name="IsSpecify_CM" value="0" id="IsSpecify_CM0"> ไม่ระบุในใบสมัคร
+                                        </label>
+                                        <label>
+                                            <span style="color:red">*</span>ระบุข้อมูลข้อยกเว้น..
+                                            <textarea name="healthChildPassOtherRemarkCM" id="healthChildPassOtherRemarkCM" style="display: block;border-radius: 5px; margin: 10px;width: 100%;height: 80px;resize: none;"></textarea>
+                                        </label>
+                                    </div>
+                                    <div style="text-align:center;">
+                                        <input type="button" style="width:100px;margin:10px" class="btn btn-lg btn-default" data-dismiss="modal" name="button-cancel-condition" value="ยกเลิก" />
+                                        <input type="button" style="width:100px;margin:10px" class="btn btn-lg btn-success" name="button-save-condition" id="button-save-condition" value="บันทึก" />
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+    </form>
+
+    <form id="formModalUnapproved">
+        <!--.modal cm -->
+        <div class="modal fade" id="modal-unapproved">
+            <!--.modal-dialog -->
+            <div class="modal-dialog">
+                <!--.modal-content -->
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color:  #f67083;border-color: #f67083;">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                        <h4 class="modal-title">รายละเอียดการพิจารณาอนุมัติของประธานสาขา</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div id="box-unapproved" class="box-body" style="height: auto;width: auto;">
+                            <ul class="answerList" style="padding-left: 0px !important;">
+                                <li>
+                                    <label>
+                                        <input type="radio" name="healthCM" value="0" id="health_notpassCM"> ไม่ผ่านคัดกรอง
+                                    </label>
+                                    <div style="padding-left:30px;">
+                                        <label>
+                                            <input type="checkbox" name="healthChildNotPassCM" value="denyHealth" id="health-child-notpass-healthCM"> ด้านสุขภาพ
+                                        </label>
+                                        <label>
+                                            <input type="checkbox" name="healthChildNotPassCM" value="denyOccupation" id="health-child-notpass-occupationCM"> ด้านอาชีพ
+                                        </label>
+                                        <label>
+                                            <input type="checkbox" name="healthChildNotPassCM" value="denyCantPay" id="health-child-notpass-cantpayCM"> ไม่สามารถชำระเบี้ยตามเงื่อนไขได้
+                                        </label>
+                                        <label>
+                                            <input type="checkbox" name="healthChildNotPassCM" value="denyCantContact" id="health-child-notpass-cantcontactCM"> ติดต่อไม่ได้/ไม่รับสาย/ไม่สะดวกคุย
+                                        </label>
+                                        <label>
+                                            <input type="checkbox" name="healthChildNotPassCM" value="denyOther" id="health-child-notpass-otherCM"> อื่นๆ
+                                        </label>
+                                        <label>
+                                            <span style="color:red">*</span>อื่นๆ โปรดระบุ..
+                                            <textarea name="healthChildNotPassOtherRemarkCM" id="healthChildNotPassOtherRemarkCM" style="display: block;border-radius: 5px; margin: 10px;width: 100%;height: 80px;resize: none;" disabled></textarea>
+                                        </label>
+                                    </div>
+                                    <div style="text-align:center;">
+                                        <input type="button" style="width:100px;margin:10px" class="btn btn-lg btn-default" data-dismiss="modal" name="button-cancel" value="ยกเลิก" />
+                                        <input type="button" style="width:100px;margin:10px" class="btn btn-lg btn-success" name="button-save-unapproved" id="button-save-unapproved" value="บันทึก" />
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+        <!--/.modal -->
+        <!--.modal -->
+        <div class="modal fade" id="modal-warning">
+            <!--.modal-dialog -->
+            <div class="modal-dialog">
+                <!--.modal-content -->
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color: #ffd243;border-color: #ffeeba;">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true" style="color: black;">×</span>
+                        </button>
+                        <h4 class="modal-title">รายละเอียด</h4>
+                    </div>
+                    <div class="modal-body">
+                        <table id="tablePayerOther" class="table table-bordered table-striped display responsive" style="width: 100%"></table>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+        <!--/.modal -->
+    </form>
+</section>
+
+@section ViewSpecificJavascript
+{
+    <script>
+        var chat;
+        var healtVal;
+        var typeSelectVal;
+        var CMApproveStatusId;
+        var CMIsApprovePassCondition = null;
+        var CMRemark = null;
+        var CMSpecify = null;
+        var CMDenyHealth = null;
+        var CMDenyOccupation = null;
+        var CMDenyCantPay = null;
+        var CMDenyCantContact = null;
+        var CMDenyOther = null;
+        var CMDenyRemark = null;
+        var CMResultPassSpecifyRemark = null;
+
+        $(function () {
+            if (!isWindows()) {
+                $('#DocDetail_form').hide();
+            }
+
+            /*start signalR*/
+            // Reference the auto-generated proxy for the hub.
+            chat = $.connection.chatHub;
+
+            //Start Connection
+            $.connection.hub.start().done();
+
+            //disabled element input
+            $('input[name=isLineOA]:radio').prop("disabled", true)
+            $('input[name=typeSelectChild]:checkbox').prop("disabled", true)
+            $('input[name=isBeware]:radio').prop("disabled", true)
+            
+            if ($('input[name=isLineOA]:checked').val() == "0") {
+                $('#formCobrand').show();
+            }
+            //ประเภทบัตร
+            $('input[name=isLineOA]').on('ifChecked',
+                function (e) {
+                    if ($(this).valid()) {
+                        switch ($(this).val()) {
+                            case '1': //Line OA
+                                $('#formCobrand').hide();
+                                break;
+                            case '2': //Cobrand
+                                $('#formCobrand').show();
+                                break;
+                            default:
+                        }
+                    }
+
+                }
+            )
+            if ($('input[name=isBeware]:checked').val() == "1") {
+                $('#bewareRemarkLabel').show();
+            }
+
+            //ข้อมูลเฝ้าระวัง
+            $('input[name=isBeware]').on('ifChecked',
+                function (e) {
+                    if ($(this).valid()) {
+                        switch ($(this).val()) {
+                            case '0': //ไมีมี
+                                $('#bewareRemarkLabel').hide();
+                                break;
+                            case '1': //มี
+                                $('#bewareRemarkLabel').show();
+                                break;
+                            default:
+                        }
+                    }
+                }
+            )
+
+
+            //load dt payer other
+            getPayerOther('@ViewBag.AppCode');
+
+            // click img
+            $('.pop').on('click', function () {
+                $('.imagepreview').attr('src', $(this).find('img').attr('src'));
+                $('#imagemodal').modal('show');
+            });
+
+            /*tab change*/
+            $('a[data-toggle="tab"]').on('shown.bs.tab',
+                function (e) {
+                    e.preventDefault();
+                    loadingSpinner('fadeIn', 500);
+                    const target = $(e.target).attr("href");
+                    switch (target) {
+                        case "#tab_3":
+                            //Log
+                            GetQueueLog_DT();
+                            break;
+                        default:
+                    }
+                });
+
+            //มีประวัติสุขภาพที่ติดข้อยกเว้น
+            $('input[name=IsSpecify_CM]').on('ifChecked', function (e) {
+                if ($(this).valid()) {
+                    switch ($(this).val()) {
+                        case "1":
+                            CMSpecify = true;
+                            break;
+                        case "0":
+                            CMSpecify = null;
+                            break;
+                        default:
+                    }
+                }
+            });
+
+            //มีประวัติสุขภาพที่ติดข้อยกเว้น ส่วนประธานา
+            $('input[name=healthChildPassCM]').on('ifChecked', function (e) {
+                $(this).valid();
+            });
+
+            //ไม่ผ่านคัดกรอง ส่วนประธาน
+            $('input[name=healthCM]').on('ifChecked', function (e) {
+                $(this).valid();
+            });
+
+            //ไม่ผ่านคัดกรอง-ส่วนย่อย -ประธาน
+            $('input[name=healthChildNotPassCM]').on('ifChecked', function (e) {
+                $(this).valid();
+            });
+
+            //button save in modal condition cm
+            $('#button-save-condition').click(function (e) {
+                if ($('input[name=healthChildPassCM]').valid() && $('input[name=IsSpecify_CM]').valid() && $('textarea[name=healthChildPassOtherRemarkCM]').valid()) {
+                   FuncCMApproveUpdate();
+                }
+            });
+
+            //button save in modal unapprove cm
+            $('#button-save-unapproved').click(function (e) {
+                if ($('input[name=healthCM]').valid() && $('input[name=healthChildNotPassCM]').valid()) {
+                  FuncCMApproveUpdate();
+                }
+            });
+
+            //อนุมัติไม่ผ่านคัดกรอง อื่นๆ
+            $('#healthChildNotPassOtherRemarkCM').bind('input propertychange', function () {
+                CMDenyRemark = $(this).val();
+            });
+
+            //ระบุข้อยกเว้น มีประวัติสุขภาพที่ติดข้อยกเว้น
+            $('#healthChildPassOtherRemarkCM').bind('input propertychange', function () {
+                if ($(this).valid()) {
+                    //Assign Value PassOtherRemarkCM To Variable
+                    CMResultPassSpecifyRemark = $(this).val();
+                }
+
+            });
+
+            //checkbox notpass CM
+            $('input[name=healthChildNotPassCM]').on('ifChanged', function () {
+                if ($(this).is(':checked')) {
+                    switch ($(this).val()) {
+                        case "denyHealth":
+                            CMDenyHealth = true;
+                            break;
+                        case "denyOccupation":
+                            CMDenyOccupation = true;
+                            break;
+                        case "denyCantPay":
+                            CMDenyCantPay = true;
+                            break;
+                        case "denyCantContact":
+                            CMDenyCantContact = true;
+                            break;
+                        case "denyOther":
+                            CMDenyOther = true;
+                            //อื่นๆ เปิดช่องหมายเหตุ
+                            $('#healthChildNotPassOtherRemarkCM').attr('disabled', false)
+                            break;
+                        default:
+                    }
+                } else {
+                    //ปิด
+                    $('#healthChildNotPassOtherRemarkCM').attr('disabled', true)
+                    switch ($(this).val()) {
+                        case "denyHealth":
+                            CMDenyHealth = null;
+                            break
+                        case "denyOccupation":
+                            CMDenyOccupation = null;
+                            break
+                        case "denyCantPay":
+                            CMDenyCantPay = null;
+                            break
+                        case "denyCantContact":
+                            CMDenyCantContact = null;
+                            break
+                        case "denyOther":
+                            CMDenyOther = null;
+                            break
+                        default:
+                    }
+                }
+            });
+
+            //button CM approve
+            $('button[name=btnCM]').click(function (e) {
+                var healthResult = $('input[name=health]:checked').val();
+                var healthChildPass = $('input[name=healthChildPass]:checked').val();
+
+                var IshealthChildPassCM;
+                switch (parseInt($(this).val())) {
+
+                    case 1: //อนุมัติให้ผ่านคัดกรอง
+                        CMApproveStatusId = 3; //ผ่านคัดกรอง
+                        IshealthChildPassCM = 1; //ใช้เช็ค ตามมาตรฐาน
+                        CMIsApprovePassCondition = false; // ไม่ใช่ผ่านแบบมีเงื่อนไข
+                        break;
+                    case 2: //อนุมัติให้ผ่านคัดกรองแบบติดเงื่อนไข
+                        CMApproveStatusId = 4; //ผ่านคัดกรอง ติดเงื่อนไข
+                        IshealthChildPassCM = 0; //ใช้เช็ค ติดเงื่อนไขข้อยกเว้น
+                        CMIsApprovePassCondition = true; // ผ่านแบบมีเงื่อนไข
+                        ClearResultPassConditionCM(); //clear ทิ้ง
+                        $('input[id=health-child-pass-conditionCM]').iCheck('check'); // set ให้ใหม่
+                        break;
+                    case 0: //อนุมัติไม่ให้ผ่าน
+                        CMApproveStatusId = 5; //ไม่ให้ผ่านคัดกรอง
+                        ClearResultNotPassCM(); //clear ทิ้ง
+                        $('input[id=health_notpassCM]').iCheck('check'); // set ให้ใหม่
+                        break;
+                    default:
+                }
+                    //เช็คผล ผอ กับ ประธาน ตรงกันหรือไม่ (2 คือ val button ผ่านแต่แบบติดเงื่อนไข)
+                    if (parseInt($(this).val()) === parseInt(healthResult) || parseInt($(this).val()) === 2) {
+                        //เช็คผล ผอ และประธาน ว่าผ่านตามมาตรฐาน หรือ ติดข้อยกเว้น เหมือนกันหรือไม่
+                        if (parseInt(healthChildPass) === parseInt(IshealthChildPassCM) && healthChildPass != null && healthChildPass != 'undefined' && IshealthChildPassCM != null && IshealthChildPassCM != 'undefined') {
+                            //เช็คผ่านแบบมาตรฐาน
+                            if (parseInt($(this).val()) === 1) {
+                                swal({
+                                    title: "ยืนยันบันทึกข้อมูล",
+                                    text: 'รายละเอียดเพิ่มเติม',
+                                    type: 'input',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#277020',
+                                    confirmButtonText: 'ยืนยัน',
+                                    cancelButtonText: 'ยกเลิก',
+                                    closeOnConfirm: false,
+                                    closeOnEsc: false,
+                                    closeOnCancel: true
+                                }, function (inputValue) {
+                                    if (inputValue === false) return false;
+
+                                    if (inputValue === "") {
+                                        swal.showInputError("กรุณากรอกข้อมูลส่วนนี้..!");
+                                        return false
+                                    }
+                                    CMRemark = inputValue;
+                                    FuncCMApproveUpdate();
+                                });
+
+                                //swal_confirm("ยืนยันบันทึกข้อมูล", "", function (e) {
+                                //   FuncCMApproveUpdate();
+                                //});
+                            }
+                            //เช็คผ่านแบบติดเงื่อนไข
+                            else if (parseInt($(this).val()) === 2) {
+                                //Set Default
+                                SetResultPassConditionCM();
+
+                                //Assign Value PassOtherRemarkCM To Variable
+                                CMResultPassSpecifyRemark = $('textarea[id=healthChildPassOtherRemarkCM]').val();
+                            }
+                        }
+                        //ไม่ผ่านคัดกรอง
+                        else if (parseInt($(this).val()) === 0) {
+                            //Set Default
+                            SetResultNotPassCM();
+                        }
+                        else {
+                            //เช็คไม่เท่ากับ 2 คือไม่ใช่แบบติดเงื่อนไข  (2 จะแสดง modal )
+                            if (parseInt($(this).val()) != 2) {
+                                swal({
+                                    title: "โปรดระบุเหตุผลในการเปลี่ยนแปลง",
+                                    text: '',
+                                    type: 'input',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#277020',
+                                    confirmButtonText: 'ยืนยัน',
+                                    cancelButtonText: 'ยกเลิก',
+                                    closeOnConfirm: false,
+                                    closeOnEsc: false,
+                                    closeOnCancel: true
+                                }, function (inputValue) {
+                                    if (inputValue === false) return false;
+
+                                    if (inputValue === "") {
+                                        swal.showInputError("กรุณากรอกข้อมูลส่วนนี้..!");
+                                        return false
+                                    }
+                                    CMRemark = inputValue;
+                                    FuncCMApproveUpdate();
+                                });
+                            }
+                        }
+                    } else {
+                        //ผลของ ผอ และประธาน ขัดแย้งกัน เช็คว่าถ้าประธานผลเท่ากับผ่านตามมาตรฐาน
+                        if (parseInt($(this).val()) === 1) {
+                            swal({
+                                title: "โปรดระบุเหตุผลในการเปลี่ยนแปลง",
+                                text: '',
+                                type: 'input',
+                                showCancelButton: true,
+                                confirmButtonColor: '#277020',
+                                confirmButtonText: 'ยืนยัน',
+                                cancelButtonText: 'ยกเลิก',
+                                closeOnConfirm: false,
+                                closeOnEsc: false,
+                                closeOnCancel: true
+                            }, function (inputValue) {
+                                if (inputValue === false) return false;
+
+                                if (inputValue === "") {
+                                    swal.showInputError("กรุณากรอกข้อมูลส่วนนี้..!");
+                                    return false
+                                }
+                                CMRemark = inputValue;
+                               FuncCMApproveUpdate();
+                            });
+                        }
+                    }
+            });
+        });
+
+         const OpenSSS = (app) => {
+            var encoded = btoa(app);
+            window.open(`@ViewBag.OpenSSS?app=`+encoded,'_blank');
+        }
+
+        const showSectionGivecard = () => {
+            //ผ่านคัดกรอง และ เข้าพบลูกค้า
+            if (healtVal === '1' && typeSelectVal === '2') {
+                $('#sectionGivecard').show();
+            } else {
+                $('#sectionGivecard').hide();
+            }
+        }
+        /***Document**/
+        const SeeDoc = (path) => {
+            if (!isWindows()) {
+                window.location.href = path;
+            } else {
+                $('#DocDetail_form').children().show();
+                //const extension = path.substr(path.length - 4);
+                let extension = '';
+                const indexPDF = path.indexOf('.pdf');
+                const indexJPG = path.indexOf('.jpg');
+
+                if (indexPDF >= 0) extension = '.pdf';
+                if (indexJPG >= 0) extension = '.jpg';
+
+                switch (extension) {
+                    case '.pdf':
+                        $('.SeeDoc').attr('src', path);
+                        break;
+                    case '.jpg':
+                        $('.SeeDoc').attr('src', path);
+                        break;
+                    default:
+                }
+            }
+        }
+
+        const GetQueueLog_DT = () => {
+            $('#tableLog').empty();
+            var table = $('#tableLog').DataTable({
+                pageLength: 10,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("QueueLog")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.queueId = "@ViewBag.QueueFullDetail.QueueId";
+                    }
+                },
+                columns: [
+                    {
+                        title: 'วันที่ทำรายการ',
+                        data: 'CreatedDate',
+                        render: function (data) {
+                            return moment(data).format("DD/MM/YYYY HH:mm:ss");
+                        }
+
+                    },
+                    {
+                        title: 'ผู้มอบหมายคิวงาน',
+                        data: 'FromEmployeeName'
+                    },
+                    {
+                        title: 'ผู้รับคิวงาน',
+                        data: 'ToEmployeeName'
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: 'TransactionTypeDetail'
+                    },
+                ]
+            });
+
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        //set ค่าผลคัดกรอง แบบติดข้อยกเว้นของ ผอ ให้เป็นค่า default ของประธาน
+        const SetResultPassConditionCM = () => {
+            //clear
+            $('input[id=health-child-pass-conditionCM]').iCheck('uncheck');
+            $('textarea[id=healthChildPassOtherRemarkCM]').val("");
+            $('input[id=IsSpecify_CM1]').iCheck('uncheck');
+            $('input[id=IsSpecify_CM0]').iCheck('uncheck');
+
+            if ($('input[name=healthChildPass]:checked').val() === "0") {
+                //มีประวัติสุขภาพที่ติดข้อยกเว้น
+                $('input[id=health-child-pass-conditionCM]').iCheck('check');
+
+                //รายละเอียดเพิ่มเติม
+                $('textarea[id=healthChildPassOtherRemarkCM]').val($('textarea[id=healthChildPassOtherRemark]').val());
+
+                if ($('input[name=IsSpecify]').val() === "1") {
+                    //ระบุในใบสมัคร
+                    $('input[id=IsSpecify_CM1]').iCheck('check');
+                } else if ($('input[name=IsSpecify]').val() === "0") {
+                    //ไม่ระบุ
+                    $('input[id=IsSpecify_CM0]').iCheck('check');
+                }
+            }
+        }
+
+        //set ค่าผลคัดกรอง *ไม่ผ่านคัดกรอง ของ ผอ ให้เป็นค่า default ของประธาน
+        const SetResultNotPassCM = () => {
+            //check before set value
+            if ($('input[name=health]:checked').val() === "0") {
+                //มีประวัติสุขภาพที่ติดข้อยกเว้น
+                $('input[id=health_notpassCM]').iCheck('check');
+
+                //ด้านสุขภาพ
+                if ($('input[id=health-child-notpass-health]').is(':checked')) $('input[id=health-child-notpass-healthCM]').iCheck('check');
+                //ด้านอาชีพ
+                if ($('input[id=health-child-notpass-occupation]').is(':checked')) $('input[id=health-child-notpass-occupationCM]').iCheck('check');
+                //ไม่สามารถชำระเบี้ยตามเงื่อนไขได้
+                if ($('input[id=health-child-notpass-cantpay]').is(':checked')) $('input[id=health-child-notpass-cantpayCM]').iCheck('check');
+                //อื่นๆ
+                if ($('input[id=health-child-notpass-other]').is(':checked')) $('input[id=health-child-notpass-otherCM]').iCheck('check', function (e) {
+                    //รายละเอียดเพิ่มเติม
+                    $('textarea[id=healthChildNotPassOtherRemarkCM]').val($('textarea[id=healthChildNotPassOtherRemark').val());
+                });
+            }
+        }
+
+        const ClearResultNotPassCM = () => {
+            //clear ทุกครั้ง
+            $('input[id=health_notpassCM]').iCheck('uncheck');
+            $('input[id=health-child-notpass-healthCM]').iCheck('uncheck');
+            $('input[id=health-child-notpass-occupationCM]').iCheck('uncheck');
+            $('input[id=health-child-notpass-cantpayCM]').iCheck('uncheck');
+            $('input[id=health-child-notpass-otherCM]').iCheck('uncheck');
+            $('textarea[id=healthChildNotPassOtherRemarkCM]').val("");
+        }
+
+        const ClearResultPassConditionCM = () => {
+            //clear ทุกครั้ง
+            $('input[id=health-child-pass-conditionCM]').iCheck('uncheck');
+            $('textarea[id=healthChildPassOtherRemarkCM]').val("");
+            $('input[id=IsSpecify_CM1]').iCheck('uncheck');
+            $('input[id=IsSpecify_CM0]').iCheck('uncheck');
+        }
+
+        //Function Update
+        const FuncCMApproveUpdate = () => {
+                //UPDATE
+                CMApproveUpdate('@ViewBag.QueueId',
+                                 CMApproveStatusId,
+                                 CMRemark,
+                                 CMIsApprovePassCondition,
+                                 CMSpecify,
+                                 CMDenyHealth,
+                                 CMDenyOccupation,
+                                 CMDenyCantPay,
+                                 CMDenyCantContact,
+                                 CMDenyOther,
+                                 CMDenyRemark,
+                                 CMResultPassSpecifyRemark);
+        }
+
+        /*fn aprrove update*/
+        const CMApproveUpdate = (QueueId, CMApproveStatusId, CMRemark, CMIsApprovePassCondition, CMResultPassIsSpecify, CMDenyHealth, CMDenyOccupation, CMDenyCantPay, CMDenyCantContact, CMDenyOther, CMDenyRemark, CMResultPassSpecifyRemark) => {
+            $.post('@Url.Action("QueueApproveUpdate")',
+                {
+                    QueueId: QueueId,
+                    ApproveStatusId: CMApproveStatusId,
+                    ApproveRemark: CMRemark,
+                    CMIsApprovePassCondition: CMIsApprovePassCondition,
+                    CMResultPassIsSpecify: CMResultPassIsSpecify,
+                    CMDenyHealth: CMDenyHealth,
+                    CMDenyOccupation: CMDenyOccupation,
+                    CMDenyCantPay: CMDenyCantPay,
+                    CMDenyCantContact: CMDenyCantContact,
+                    CMDenyOther: CMDenyOther,
+                    CMDenyRemark: CMDenyRemark,
+                    CMResultPassSpecifyRemark: CMResultPassSpecifyRemark},
+                function(data) {
+                    if (data.IsResult === true) {
+                        $('.modal').hide();
+                        swal_success(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        window.location.reload();
+                    }
+                });
+        }
+
+        /*fn get payer other*/
+        const getPayerOther = (appCode) => {
+            $.get('@Url.Action("GetPayerOtherApp")',
+                { appCode: appCode },
+                function (data) {
+                    if (data.length > 0) {
+                        /*declare str*/
+                        const str = `ชำระเบี้ยให้อีก ${data.length} คน`;
+                        /*show button*/
+                        $('#btnPayerOther').show();
+                        /*set str to text button*/
+                        $('#btnPayerOther').text(str);
+                        /*load datatables*/
+                        loadDatatablesPayerOther(data);
+                    }
+                });
+        }
+
+        /*load datatables payer other*/
+        const loadDatatablesPayerOther = (data) => {
+            $(`#tablePayerOther`).empty();
+            $(`#tablePayerOther`).DataTable({
+                pageLength: 100,
+                processing: true,
+                serverSide: false,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: false,
+                info: true,
+                paging: true,
+                data: data,
+                language: {
+                    url: "http://cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Thai.json"
+                },
+                columns: [
+                    {
+                        title: 'AppId',
+                        data: 'app_Id',
+                        orderable: false,
+                        render: (data) => {
+                            return `<a href="#" target="_blank" id="openSSS" style="text-decoration: underline; color: #2833FF " onclick="OpenSSS(${data})">${data}</a>`
+                        }
+                    },
+                    {
+                        title: 'ชื่อ-สกุล',
+                        data: null,
+                        orderable: false,
+                        render: (d) => {
+                            return `${d.customerFirstName} ${d.customerLastName}`;
+                        }
+
+                    },
+                    {
+                        title: 'วันเริ่มคุ้มครอง',
+                        data: 'startCoverDate',
+                        orderable: false,
+                        render: (d) => {
+                            return moment(d).format("DD/MM/YYYY");
+                        }
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: 'status',
+                        orderable: false
+                    }
+                ]
+            });
+        }
+    </script>
+}

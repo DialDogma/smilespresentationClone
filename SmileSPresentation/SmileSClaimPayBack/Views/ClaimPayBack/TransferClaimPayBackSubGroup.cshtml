@@ -1,0 +1,523 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "การโอนเงิน";
+}
+
+<style>
+    /* สร้างคลาสเพื่อจัดหน้าตาของปุ่ม */
+    .button-container {
+        text-align: right; /* จัดตำแหน่งปุ่มไปทางขวา */
+        padding: 30px 0px 10px 0px;
+    }
+
+        /* สร้างคลาสเพื่อจัดหน้าตาของปุ่ม */
+        .button-container .btn {
+            color: white;
+        }
+
+            .button-container .btn:hover {
+                color: #ffffff;
+            }
+
+    .loading::before {
+        content: "";
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        border: 3px solid white;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+
+
+    .info-box {
+        min-height: 0px !important;
+    }
+</style>
+
+<form id="formHospitalClaimGroup">
+    <div class="row" id="TransferClaimPayBackSubGroupDashBord">
+
+    </div>
+    <div class="box box-primary">
+        <div class="box-header with-border " style="background-color: #3C8DBC; color: white">
+            <h3 class="box-title"><i class="fa fa-thumb-tack"></i> รหัสรายการ : @ViewBag.ClaimPayBackTransferCode</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <svg class="svg-inline--fa fa-minus fa-w-14" aria-hidden="true" data-prefix="fa" data-icon="minus" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><path fill="currentColor" d="M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"></path></svg><!-- <i class="fa fa-minus"></i> -->
+                </button>
+            </div>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <div class="box-group">
+                <div class="row" style="margin-top:15px">
+                    <div class="col-xs-12">
+                        <table id="dtClaimPayBackSubGroup" class="table table-bordered dataTable table-hover" style="text-align: center"></table>
+                    </div>
+                </div>
+                <div class="row" style="padding-top:6px; text-align:center;">
+                    <div class="col-sm-12"></div>
+                    <span class="label" style="background:#65aadb; color:white; font-size:16px;">
+                        <label><b><i class="fa fa-check-square-o"></i> รายการที่เลือก: </b> </label>
+                        <span id="spnTotalItem">0</span>
+                        <span>รายการ</span>
+                    </span>
+                    <span class="label" style=" font-size:16px;">
+                        <!-- white space-->
+                    </span>
+                    <span class="label" style="background:#65aadb; color:white; font-size:16px;">
+                        <label><b><i class="fa fa-calculator"></i> ยอดเงินรวม: </b> </label>
+                        <span id="spnTotal">0.00</span>
+                        <span>บาท</span>
+                    </span>
+                </div>
+                <div class="row" style="margin-top:50px; text-align:center">
+                    <div class="col-sm-12">
+                        @{
+                            bool isRolePermision = ViewBag.IsRolePermision;
+                            if (isRolePermision)
+                            {
+                                <button type="button" class="btn  bg-olive" id="btnSaveTransfer" style="color:#ffffff; width: 200px;min-width:50px; min-height:20px" disabled>โอนเงิน</button>
+                            }
+                        }
+
+                    </div>
+                </div>
+                <input type="hidden" id="hdfClaimPayBackTransferId" name="hdfClaimPayBackTransferId" value='@ViewBag.ClaimPayBackTransferId' />
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- TransferNoticeModal Modal -->
+<div class="modal fade bd-example-modal-lg" id="transferNoticeModal" aria-labelledby="transferNoticeModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #65aadb ">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" style="color:#FFFFFF"> ยืนยันรายการโอนเงิน </h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="padding:0px 30px 0px 30px">
+                    <div class="form-group">
+                        <!-- White space -->
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-xs-12" style="text-align: center; font-size: 2.5rem ">
+                                <b style="font-size: 15px">จำนวนเงินโอน</b>
+                                <h2 id="txtTransferAmount" style="color: #3378bb; margin: 5px"></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-md-12" style="background-color: #ecedf1; padding: 5%; margin-bottom: 2%">
+                            <div class="row">
+                                <div class="col-xs-6 col-md-4">
+                                    <span style="color: #9f9fa1;">จำนวนรายการ :</span>
+                                </div>
+                                <div class="col-xs-6 col-md-8">
+                                    <label id="itemHCGCount"></label> <strong>รายการ</strong>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-6 col-md-4">
+                                    <span style="color: #9f9fa1;">จำนวนสถานพยาบาล :</span>
+                                </div>
+                                <div class="col-xs-6 col-md-8">
+                                    <label id="hospitalCount"></label> <strong>รายการ</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 text-center">
+                            <strong><i class="fa fa-warning" style="color:orange"></i> กรุณาตรวจสอบรายการก่อนโอนเงิน</strong>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 25px;">
+                        <div class="col-xs-12" style="text-align:center">
+                            <button class="btn" id="btnTransferConfirm" style="color: white; background-color: #4FA072; width: 100px; border-radius: 20px" type="button"><i class="glyphicon glyphicon-ok"></i>&nbsp;ยืนยัน</button>
+                            <button class="btn btnCancel" id="btnCancel" style="color: white; background-color: #BF5D49; width: 100px; border-radius: 20px; margin-left: 3% " type="button" data-dismiss="modal">ยกเลิก</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View History Transfer Modal -->
+<div class="modal fade bd-example-modal-lg" id="transactionDetailModal" aria-labelledby="transactionDetailModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content modal-lg">
+            <div id="resultTransactionDetailModal"></div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        var count = 0;
+        var rowDT = 0;
+        var totalDT = 0;
+        var isActionList = [];
+        var ListCheckBox = [];
+        var ListCheckBoxAll = [];
+        var totalAmount = 0;
+        var amountDecreed = 0;
+        var amountIncreed = 0;
+        var dataClaimPayBackSubGroupJson = {};
+
+        var chat = $.connection.myHub;
+
+        $(function () {
+
+            GetClaimPayBackSubGroup();
+            TransferClaimPayBackSubGroupDashBord();
+
+            $('#dtClaimPayBackSubGroup').on('change', 'input[type="checkbox"]', function (e) {
+                let table = $('#dtClaimPayBackSubGroup').DataTable();
+                let rows = table.rows().nodes();
+                let isActionListLenght = isActionList.filter(i => i).length;
+                switch (this.className) {
+                    case 'chk-row-select-all':
+                        if (this.checked) {
+                            $('input[class="chk-row-select"]', rows).prop('checked', true).change();
+                        } else {
+                            $('input[class="chk-row-select"]', rows).prop('checked', false).change();
+                        }
+                        break;
+                    case 'chk-row-select':
+                        if (this.checked) {
+                            let count = 0;
+                            const value = this.value;
+                            var checkedCount = $("#dtClaimPayBackSubGroup input[class='chk-row-select']:checked").length;
+
+                            const myArr = value.split("//");
+
+                            //adds one or more elements to the end of an array and returns the new length of the array.
+                            if (!ListCheckBox.includes(myArr[0])) ListCheckBox.push(myArr[0]);
+                            if (!ListCheckBoxAll.includes(myArr[0])) {
+                                ListCheckBoxAll.push(myArr[0])
+                                amountIncreed += parseFloat(myArr[1]);
+                            };
+
+                            //check count data equal rows.length then checkbox-all is checked
+                            if (!(checkedCount  === (rows.length - isActionListLenght))) {
+                                $('table[id="dtClaimPayBackSubGroup"]').find(".chk-row-select-all").prop('checked', false);
+                            } else {
+                                $('table[id="dtClaimPayBackSubGroup"]').find(".chk-row-select-all").prop('checked', true);
+                            }
+
+                        } else {
+                            const value = this.value;
+
+                            const myArr = value.split("//");
+
+
+                            //replaces 1 element at indexOd() returnValue index
+                            ListCheckBox.splice(ListCheckBox.indexOf(myArr[0]), 1);
+                            ListCheckBoxAll.splice(ListCheckBoxAll.indexOf(myArr[0]), 1);
+
+                            //check count data equal rows.length then checkbox-all is checked
+                            if (!(ListCheckBox.length === rows.length)) {
+                                $('table[id="dtClaimPayBackSubGroup"]').find(".chk-row-select-all").prop('checked', false);
+
+                            } else {
+                                $('table[id="dtClaimPayBackSubGroup"]').find(".chk-row-select-all").prop('checked', true);
+                            }
+
+                            amountDecreed += parseFloat(myArr[1]);
+
+                        }
+                        break;
+                    default:
+                }
+
+                totalAmount = amountIncreed - amountDecreed
+
+                $("#spnTotal").text(numberWithCommas(totalAmount.toFixed(2)));
+
+                if (ListCheckBoxAll.length === 0) {
+                    $('#btnSaveTransfer').attr('disabled', true);
+                }
+                else {
+                    $('#btnSaveTransfer').attr('disabled', false);
+                }
+
+                $("#spnTotalItem").text(ListCheckBoxAll.length);
+
+            });
+
+            $('#btnSaveTransfer').click(() => {
+                $('#txtTransferAmount').text(`${numberWithCommas(totalAmount.toFixed(2)) } บาท`);
+
+                let itemAmount = dataClaimPayBackSubGroupJson.data.filter(i => ListCheckBox.includes(i.ClaimPayBackSubGroupId.toString()));
+                $('#itemHCGCount').text(itemAmount.reduce((total, item) => total + item.ItemCount, 0));
+
+                $('#hospitalCount').text(ListCheckBox.length);
+
+                $('#transferNoticeModal').modal('show');
+            });
+
+            $('#btnTransferConfirm').click(() => {
+                $('#transferNoticeModal').modal('hide');
+                swal({
+                    title: "กำลังทำรายการ" ,
+                    text: '<i class="fa fa-spinner fa-spin" style="font-size:50px;color:green"></i>',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    type: 'info',
+                    html: true,
+                });
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("TransferClaimPayBackSubGroupTransfer", "ClaimPayBack")",
+                    data: {
+                        ClaimPayBackSubGroupId: ListCheckBoxAll
+                    },
+                    dataType: "json",
+                    async: true,
+                    success: function (response) {
+                       if (response.valid) {
+                           swal('สำเร็จ', response.message, 'success')
+                           $('#btnSaveTransfer').attr('disabled', false);
+                           ClearCheckboxAll();
+                           GetClaimPayBackSubGroup();
+                           TransferClaimPayBackSubGroupDashBord();
+
+                           //Start Connection
+                           $.connection.hub.start().done(function () {
+                               chat.server.sendNotice("", "");
+                               chat.server.joinGroup();
+                           });
+
+                       }
+                       else {
+                           swal('ข้อมูลผิดพลาด !!', response.message, 'error');
+
+                       }
+                    }
+                });
+            });
+
+        });
+
+        //----------------------------Data Table------------------------------//
+        const GetClaimPayBackSubGroup = () => {
+            $('#dtClaimPayBackSubGroup').empty();
+            var table = $('#dtClaimPayBackSubGroup').dataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                "order": [[2, "desc"]],
+                "info": true,
+                "lengthMenu": [[10, 25, 50, 100, 9999999], [10, 25, 50, 100, "All"]],
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetClaimPayBackSubGroup")',
+
+                    type: 'POST',
+                    async: true,
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = null;
+                        d.ClaimPayBackTransferId = $('#hdfClaimPayBackTransferId').val();
+                        d.mailStatus = "-1";
+                        d.docStatus = "-1";
+                        d.IsPayTransfer = "-1";
+                    },
+                    error: function (xhr, error, thrown) {
+                        checkXHRStatus(xhr, error);
+                    },
+                     dataSrc: function (json) {
+                         rowDT = json.data.length;
+                         count = 0;
+                         totalDT = json.recordsTotal;
+                         isActionList = json.isActionList;
+                         dataClaimPayBackSubGroupJson = json;
+                        return json.data;
+                    },
+
+                },
+                columns: [
+                    {
+                        title: '<label>เลือก</label><input id="chk-all" name="chk-all" style="cursor:pointer"  class="chk-row-select-all" type="checkbox" />',
+                        data: null,
+                        orderable: false,
+                        className: 'th-center td-center-checkbox nosort text-center',
+                        width: "33px",
+                        render: function (data, type, row, meta) {
+                            let Ischecked = "";
+                            if (ListCheckBoxAll.includes(data.ClaimPayBackSubGroupId.toString())) {
+
+                                Ischecked = "checked"
+                            }
+
+                            if (count === rowDT) {
+                                $('input[class="chk-row-select-all"]').prop('checked', true);
+
+                            } else {
+                                $('input[class="chk-row-select-all"]').prop('checked', false);
+                            }
+
+                            if (isActionList[meta.row]) {
+                                return ``;
+                            }
+
+                            return `<input type="checkbox" style="cursor:pointer"  class="chk-row-select" ${Ischecked} id="chkdtrow_${data.ClaimPayBackSubGroupId}" name="chkdtrow_${data.ClaimPayBackSubGroupId}" value="${data.ClaimPayBackSubGroupId}//${data.Amount}">`;
+                        }
+                    },
+
+                    {
+                        title: 'ลำดับ', data: null,
+                        className: 'h-dt-center text-center',
+                        width: '5%',
+                        orderable: false,
+                        render: function (data, type, row, meta) {
+
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        title: 'รหัสรายการ',
+                        className: 'h-dt-center',
+                        data: 'ClaimPayBackSubGroupCode',
+                        mRender: (data, type, row, meta) => {
+                            return '<div class="row"  style="text-align:center; vertical-align: baseline;">' +
+                                '<a href="javascript:void(0)" class="viewDetailTransaction" data-id="' + row.ClaimPayBackSubGroupId + '" data-code="' + row.ClaimPayBackSubGroupCode + '" data-toggle="tooltip" data-placement="top" data-original-title="ดูรายละเอียด" style="color: #6c9cc3;" >' + row.ClaimPayBackSubGroupCode + '</a>' +
+                                '</div>'
+                        }
+                    },
+                    {
+                        title: 'จำนวนราย',
+                        className: 'h-dt-center',
+                        data: 'ItemCount',
+                        orderable: false,
+                        mRender: function (data) {
+                            return numberWithCommas(data);
+                        }
+                    },
+                    {
+                        title: 'ยอดเงินรวม',
+                        className: 'h-dt-center text-right',
+                        data: 'Amount',
+                        mRender: function (data) {
+                            return numberWithCommas(data.toFixed(2));
+                        }
+                    },
+                    {
+                        title: 'สถานพยาบาล',
+                        className: 'h-dt-center text-left',
+                        data: 'HospitalName',
+                    },
+                    {
+                        title: 'เลขที่บัญชี',
+                        className: 'h-dt-center',
+                        data: 'ReceivingBankAccountNo',
+                    },
+                    {
+                        title: 'ชื่อบัญชี',
+                        className: 'h-dt-center text-left',
+                        data: 'ReceivingName',
+                    },
+                    {
+                        title: 'ธนาคาร',
+                        className: 'h-dt-center text-left',
+                        data: `BankName`,
+                        orderable: false,
+                    },
+                    {
+                        title: 'การโอนเงิน',
+                        className: 'h-dt-center text-center',
+                        data: 'IsPayTransfer',
+                        orderable: false,
+                        mRender: function (data, type, row, meta) {
+                            if (isActionList[meta.row]) {
+                                if (data) {
+                                    return `<i class="glyphicon glyphicon-ok-sign" style="font-size: 22px;color: #00a65a;"></i>`;
+                                } else {
+                                    return `<i class="glyphicon glyphicon-remove-sign" style="font-size: 22px;color: #f56954;" data-toggle="tooltip" data-placement="top" data-original-title="โอนเงินไม่สำเร็จ"></i>`;
+                                }
+                            } else {
+                                return `-`;
+                            }
+                        }
+                    },],
+                bLengthChange: true,
+                drawCallback: () => {
+                    $('[data-toggle="tooltip"]').tooltip();
+                    viewDetailTransaction();
+                }
+            });
+
+        }
+
+        const viewDetailTransaction = () => {
+            $('.viewDetailTransaction').click(function () {
+                $.get("/ClaimPayBack/ViewDetailTransaction",
+                    {
+                        "ClaimPayBackSubGroupId": $(this).attr("data-id"),
+                        "ClaimPayBackSubGroupCode": $(this).attr("data-code")
+                    }, function (data) {
+                        $('#resultTransactionDetailModal').html(data);
+                        $('#transactionDetailModal').modal('show');
+                        $('[data-toggle="tooltip"]').tooltip();
+                    }
+                );
+            });
+        }
+
+        const TransferClaimPayBackSubGroupDashBord = () => {
+                $.ajax({
+                    type: 'GET',
+                    url: "@Url.Action("TransferClaimPayBackSubGroupDashBord")",
+                    data: {
+                        claimPayBackTransferId: $('#hdfClaimPayBackTransferId').val(),
+                    },
+                    async: false,
+                    success: function (data) {
+                        $("#TransferClaimPayBackSubGroupDashBord").html(data);
+                    },
+                });
+        }
+
+        const ClearCheckboxAll = () => {
+            ListCheckBoxAll = [];
+            ListCheckBox = [];
+            totalAmount = 0;
+            amountDecreed = 0;
+            amountIncreed = 0;
+            $('#spnTotal').text('0');
+            $('#spnTotalItem').text('0');
+            $('table[id="dtReceipt"]').find(".chk-row-select").prop('checked', false);
+            $('table[id="dtReceipt"]').find(".chk-row-select-all").prop('checked', false);
+            $('#btnSaveTransfer').attr('disabled', true);
+        }
+
+
+
+    </script>
+}

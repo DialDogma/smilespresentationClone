@@ -1,0 +1,388 @@
+﻿@{
+    ViewBag.Title = "MotorQueueWaitConsider";
+    Layout = "~/Views/Shared/_LayoutForTopIndexMotor.cshtml";
+}
+
+<style>
+
+    .table {
+        font-size: 14px;
+    }
+</style>
+<div class="box box-header bg-aqua">
+    <center><span style="font-size:large;">ประกันรถยนต์</span></center>
+</div>
+<form action="" method="post" id="Mainform">
+    <div class="row" style="margin-top: 25px">
+        <div class="col-sm-12 col-md-12">
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs nav-justified">
+                    <li @if (ViewBag.menu == "queueWaitConsidered" || ViewBag.menu == "" || ViewBag.menu == null) { <text> class="active" </text> }><a style="font-size: larger" href="#tab1" data-toggle="tab" aria-expanded="True">รอพิจารณา</a></li>
+                    <li @if (ViewBag.menu == "queueConsidered") { <text> class="active" </text> }><a style="font-size: larger" href="#tab2" data-toggle="tab" aria-expanded="True">พิจารณาแล้ว</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane @if(ViewBag.menu == "queueWaitConsidered" || ViewBag.menu == "" || ViewBag.menu == null) { <text> active </text> }" id="tab1">
+                        @* DT form *@
+                        <div id="dt_form">
+                            <div class="box box-warning">
+                                <div class="box-body">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <table id="dtConsidering" name="dtConsidering" class="table table-bordered table-striped display responsive" style="width: 100%">
+                                                <tbody>
+                                                    <tr style="text-align:center"><td>ไม่พบข้อมูล</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* end form *@
+                    <div class="tab-pane @if(ViewBag.menu == "queueConsidered") { <text> active </text> }" id="tab2">
+                        <div id="docReturn_form">
+                            <div class="box box-success">
+                                <div class="box-body">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <table id="dtConsidered" name="dtConsidered" class="table table-bordered table-striped display responsive" style="width: 100%">
+                                                <tbody>
+                                                    <tr style="text-align:center"><td>ไม่พบข้อมูล</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* hidden *@
+    <input type="hidden" id="userId" value="@ViewBag.UserId" />
+    <input type="hidden" id="hd_branchId" value="@ViewBag.branchId" />
+</form>
+@section ViewSpecificJavascript
+{
+
+    <script type="text/javascript">
+        $(function () {
+            /*start signalR*/
+            // Reference the auto-generated proxy for the hub.
+            var chat = $.connection.chatHub;
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                //join group
+                chat.server.joinGroup('1234');
+            });
+            //Show public message to client
+            chat.client.receiveGroupNotice = function (message) {
+                /*full msg*/
+                const fullMessage = message;
+                /*new date*/
+                const date = new Date();
+                /*set str*/
+                const str = date.getFullYear() +
+                    "-" +
+                    (date.getMonth() + 1).toString().padStart(2,"0") +
+                    "-" +
+                    date.getDate().toString().padStart(2, "0") +
+                    " " +
+                    date.getHours().toString().padStart(2, "0") +
+                    ":" +
+                    date.getMinutes().toString().padStart(2, "0") +
+                    ":" +
+                    date.getSeconds().toString().padStart(2, "0");
+                /*alert toastr*/
+                window.toastr["success"](`อัพเดตครั้งล่าสุด : ${str}`, fullMessage);
+                /*Load Datatables*/
+                $('#dtConsidering').DataTable().ajax.reload();
+                $('#dtConsidered').DataTable().ajax.reload();
+            };
+
+            window.toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": true,
+                "positionClass": "toast-top-center",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+            /*end signalR*/
+
+            GetMotorQueueWaitConsidering_dt();
+
+            GetMotorQueueWaitConsidered_dt();
+
+            //tab
+            $('a[data-toggle="tab"]').on('shown.bs.tab',
+                function (e) {
+                    e.preventDefault();
+                    let target = $(e.target).attr("href");
+                    switch (target) {
+                        case "#tab1":
+                            GetMotorQueueWaitConsidering_dt();
+                            break;
+                        case "#tab2":
+                            GetMotorQueueWaitConsidered_dt();
+                            break;
+                        default:
+                    }
+                }
+            );
+           @* //Datatable Event onSearch
+            $('#dtConsidering').on('search.dt', function () {
+                $('.dataTables_filter input').off().on('keyup', function () {
+                    if (this.value.length === 0) {
+                        $('#dtConsidering').DataTable().search(this.value.trim(), false, false, false).draw();
+                        $('.dataTables_filter input').removeClass('border-red');
+                        $('.dataTables_filter input').removeClass('border-green');
+                        $('#sp_error').remove();
+                    } else if (this.value.length > 4) {
+                        $('.dataTables_filter input').removeClass('border-red');
+                        $('.dataTables_filter input').addClass('border-green');
+                        $('#dtConsidering').DataTable().search(this.value.trim(), false, false, false).draw();
+                        $('#sp_error').remove();
+                    } else {
+                        //swal_info("Pls input morethan 5 charactor..")
+                        $('.dataTables_filter input').addClass('border-red');
+                        $('.dataTables_filter input').removeClass('border-green');
+                        $('.dataTables_filter input').focus();
+                        if ($('#sp_error').length == 0) {
+                            $(".dataTables_filter").append("<p style='color:red' id='sp_error'>ระบุคำค้นหาอย่างน้อย 5 ตัวอัการ</p>");
+                        }
+                    }
+                });
+            });*@
+
+            @*//Datatable Event onSearch
+            $('#dtConsidered').on('search.dt', function () {
+                $('.dataTables_filter input').off().on('keyup', function () {
+                    if (this.value.length === 0) {
+                        $('#dtConsidered').DataTable().search(this.value.trim(), false, false, false).draw();
+                        $('.dataTables_filter input').removeClass('border-red');
+                        $('.dataTables_filter input').removeClass('border-green');
+                        $('#sp_error').remove();
+                    } else if (this.value.length > 4) {
+                        $('.dataTables_filter input').removeClass('border-red');
+                        $('.dataTables_filter input').addClass('border-green');
+                        $('#dtConsidered').DataTable().search(this.value.trim(), false, false, false).draw();
+                        $('#sp_error').remove();
+                    } else {
+                        //swal_info("Pls input morethan 5 charactor..")
+                        $('.dataTables_filter input').addClass('border-red');
+                        $('.dataTables_filter input').removeClass('border-green');
+                        $('.dataTables_filter input').focus();
+                        if ($('#sp_error').length == 0) {
+                            $(".dataTables_filter").append("<p style='color:red' id='sp_error'>ระบุคำค้นหาอย่างน้อย 5 ตัวอัการ</p>");
+                        }
+                    }
+                });
+            });*@
+        });
+
+        const GetMotorQueueWaitConsidering_dt = () => {
+            $('#dtConsidering').empty();
+            var tbl = $('#dtConsidering').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: true,
+                order: [[3, "asc"]],
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("MotorQueueWaitConsider_dt","MotorQueue")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchDetail = d.search.value;
+                        d.payerBranchId = $('#hd_branchId').val();
+                        d.dcr = '@ViewBag.DCR';
+                       // console.log(d);
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ',
+                        data: null,
+                        orderable: false,
+                        className:"h-dt-center"
+                    },
+                    { title: 'เลข App', data: 'ApplicationCode' },
+                    { title: 'ชื่อผู้เอาประกัน', data: 'InsuredName' },
+                    { title: 'ชื่อผู้ชำระเบี้ย', data: 'PayerName' },
+                    { title: 'ชื่อ ผอ.บล.', data: 'DirectorName' },
+                    { title: 'สาขา', data: 'BranchDetail' },
+                    { title: 'ผู้บันทึกคัดกรอง', data: 'UnderwriterName' },
+                    {
+                        title: 'ผลการคัดกรอง ผอ.บล.', data: 'IsUnderwritePass',
+                        className:"text-center",
+                        render:function(data){
+                            switch (data) {
+                            case true:
+                                return '<span class="label label-success">ผ่าน</span>';
+                                break;
+                            case false:
+                                    return '<span class="label label-danger">ไม่ผ่าน</span>';
+                                break;
+                            default:
+                                    return '<span class="label label-default">รอข้อมูล</span>';
+                                break;
+                            }
+                        }
+                    },
+                    {
+                        title: 'จัดการ', data: null,
+                        orderable: false,
+                        render: function (data) {
+                            return '<a target="_blank" onclick="LoadDetail(' + data.QueueId +')" class="btn btn-block btn-info">เปิด</a>';
+                        }
+                    }
+                ]
+            });
+            tbl.on('draw.dt', function () {
+                var PageInfo = tbl.page.info();
+                tbl.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                });
+            });
+            window.onresize = function () {
+                tbl.columns.adjust().responsive.recalc();
+            };
+        }
+
+        const GetMotorQueueWaitConsidered_dt = () => {
+           $('#dtConsidered').empty();
+            var tbl = $('#dtConsidered').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: true,
+                order: [[3, "asc"]],
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("MotorQueueConsiderComplete_dt", "MotorQueue")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchDetail = d.search.value;
+                        d.payerBranchId = $('#hd_branchId').val();
+                        d.dcr ='@ViewBag.DCR' ;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ',
+                        data: null,
+                        orderable: false,
+                        className:"h-dt-center"
+                    },
+                    { title: 'เลข App', data: 'ApplicationCode' },
+                    { title: 'ชื่อผู้เอาประกัน', data: 'InsuredName' },
+                    { title: 'ชื่อผู้ชำระเบี้ย', data: 'PayerName' },
+                    { title: 'ชื่อ ผอ.บล.', data: 'DirectorName' },
+                    { title: 'สาขา', data: 'BranchDetail' },
+                    { title: 'ผู้บันทึกคัดกรอง', data: 'UnderwriterName' },
+                    {
+                        title: 'ผลการคัดกรอง ผอ.บล.', data: 'IsUnderwritePass',
+                        className:"text-center",
+                        render:function(data){
+                            switch (data) {
+                            case true:
+                                return '<span class="label label-success">ผ่าน</span>';
+                                break;
+                            case false:
+                                    return '<span class="label label-danger">ไม่ผ่าน</span>';
+                                break;
+                            default:
+                                    return '<span class="label label-default">รอข้อมูล</span>';
+                                break;
+                            }
+                        }
+                    },
+                    {
+                        title: 'ผลการคัดกรองประธานสาขา', data: null,
+                        className: "text-center",
+                        render: function(data){
+                            switch (data.ApproveStatusId) {
+                                case 1:
+                                case 2:
+                                    return '<span class="label label-default">'+data.ApproveStatus+'</span>';
+                                    break;
+                                case 3:
+                                    return '<span class="label label-success">'+data.ApproveStatus+'</span>';
+                                    break;
+                                case 4:
+                                    return '<span class="label label-warning">' + data.ApproveStatus + '</span>';
+                                    break;
+                                case 5:
+                                    return '<span class="label label-danger">' + data.ApproveStatus + '</span>';
+                                    break;
+                                default:
+                                    return 'xx';
+                                    break;
+                            }
+                        }
+                    },
+                    {
+                        title: 'จัดการ', data: null,
+                        orderable: false,
+                        render: function (data) {
+                            return '<a target="_blank" onclick="LoadDetail(' + data.QueueId +')" class="btn btn-block btn-info">เปิด</a>';
+                        }
+                    }
+                ]
+            });
+            tbl.on('draw.dt', function () {
+                var PageInfo = tbl.page.info();
+                tbl.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                });
+            });
+            window.onresize = function () {
+                tbl.columns.adjust().responsive.recalc();
+            };
+        }
+         const LoadDetail = (qId) => {
+            var encoded = btoa(qId);
+            window.open(`@Url.Action("MotorUnderwriteViewDetail","MotorUnderwrite")?queueId=`+encoded,'_blank');
+        }
+    </script>
+}

@@ -1,0 +1,207 @@
+﻿@{
+    ViewBag.Title = "บันทึกคืนเงิน";
+
+}
+<style>
+
+    .table {
+        font-size: 14px;
+    }
+
+    .toolbar {
+        float: left;
+    }
+</style>
+<div class="row">
+    <div id="Search_form" class="col-xs-12 col-md-12">
+        <div class="box box-primary">
+            <div class="box-body">
+                <div class="form-group row">
+                    <div class="col-xs-10 col-md-offset-2 col-md-5">
+                        <label class="control-label" for="">คำค้นหา :</label>
+                        <input type="text" class="form-control" id="txtSearchText" placeholder="หมายเลข Account/ชื่อ-สกุลผู้ชำระเบี้ย">
+                    </div>
+                    <div class="col-xs-2 col-md-2" style="margin-top: 25px">
+                        <button type="button" id="btnSearch" class="btn btn-block btn-info">Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* DT form *@
+    <div id="dt_form" class="col-xs-12 col-md-12">
+        <div class="box box-default">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <table id="dtCashbackList" name="dtCashbackList" class="table table-bordered table-striped" style="width: 100%"></table>
+                    </div>
+                </div>
+                @*<div class="form-group row">
+                        <button type="button" id="btnTestModal" class="btn btn-block btn-success" onclick="LoadRefundData(1)" data-toggle="modal" data-target=".bd-cashback-modal-lg">modal</button>
+                    </div>*@
+            </div>
+        </div>
+    </div>
+    @* end form *@
+</div>
+<!-- Modal -->
+<div class="modal fade bd-cashback-modal-lg" id="cashbackModal" tabindex="-1" role="dialog" aria-labelledby="cashbackModal" aria-hidden="true">
+    <div class="modal-dialog  modal-md " role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">บันทึกคืนเงิน</h4><input type="hidden" id="hd_refundId" value="" />
+            </div>
+            <div class="modal-body">
+                <div class="form-group row">
+                    <div class="col-xs-6 col-md-6">
+                        <label class="control-label" for="">วิธีการคืนเงิน :</label>
+                        <select id="select_CashbackType" class="form-control">
+                            <option value="-1">--- กรุณาเลือก ---</option>
+                            @foreach(var itm in ViewBag.refundType)
+                            {
+                                <option value="@itm.RefundTypeId">@itm.RefundType</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-xs-12 col-md-6">
+                        <label class="control-label" for="">จำนวนเงิน :</label>
+                        <input type="text" id="txtCashbackValue" class="form-control"
+                               data-inputmask="'alias':'decimal','groupSeparator': ',', 'autoGroup': true, 'digits': 2,
+                                   'digitsOptional': false, 'suffix': ' ฿', 'placeholder': '0'" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-12">
+                        <label class="control-label" for="">หมายเหตุ</label>
+                        <textarea id="txtRemark" class="form-control" rows="3" placeholder="กรุณากรอกหมายเหตุ"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-sm-offset-3 col-sm-3">
+                    <button type="button" class="btn btn-block btn-success" onclick="SubmitRefund()">ยืนยัน</button>
+                </div>
+                <div class="col-sm-3">
+                    <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ยกเลิก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@* end modal *@
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('#txtCashbackValue').inputmask();
+
+            $('#btnSearch').click(() => {
+                if ($('#txtSearchText').val().length < 3) {
+                    return swal_fail('กรุณาใส่คำค้นหามากกว่า 3 คำ');
+                } else {
+                    GetRefund_DT();
+                }
+
+            });
+        });
+
+        const GetRefund_DT = () => {
+            $('#dtCashbackList').empty();
+            var tbl = $('#dtCashbackList').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetRefund_DT","BillPayment")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $('#txtSearchText').val();
+                    }
+                },
+                columns: [
+                    { title: 'AccountId', data: 'ReserveAccountCode' },
+                    { title: 'ReferenceCode',data:'ReferenceCode'},
+                    { title: 'ชื่อผู้ชำระเบี้ย', data:'ReferenceDetail'},
+                    { title: 'ยอดเงินคงเหลือในถังกลาง', data:'AmountBalance'},
+                    {
+                        title: 'วันที่ดำเนินการล่าสุด', data:'UpdatedDate',
+                        render: function (data) {
+                            if (data != null) {
+                                let sendDate = moment(data)._d;
+                                let yearBE = sendDate.getFullYear() + 543;
+                                let sendDateBE = moment(sendDate.setFullYear(yearBE)).format("DD/MM/YYYY HH:mm");
+                                return sendDateBE;
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    {
+                        title: 'จัดการ', data:null,
+                        render: function (data) {
+                            if (data.AmountBalance == 0) {
+                                return '';
+                            } else {
+                                return '<button class="btn btn-block btn-info" id="btnCashback_'+data.ReserveAccountId+'" onclick="LoadRefundData('+data.ReserveAccountId+')"' +
+                                    ' data-toggle="modal" data-target=".bd-cashback-modal-lg">บันทึกคืนเงิน</button>';
+                            }
+
+                        }
+                    }
+                ]
+            });
+        }
+
+        const LoadRefundData = (id) => {
+            $('#txtCashbackValue').val("");
+            $('#select_CashbackType').val(-1);
+            $('#txtRemark').val("");
+            //call function get cashback data
+            $('#hd_refundId').val(id);
+        }
+
+        const SubmitRefund = () => {
+            let refundId = $('#hd_refundId').val();
+            let refundText = $('#txtCashbackValue').val();
+            let splitValue = refundText.split(' ');
+            let refundValue = splitValue[0];
+            let refundType = $('#select_CashbackType').val();
+            let refundRemark = $('#txtRemark').val();
+
+            if (refundType == -1) {
+                return swal_fail('กรุณาระบุวิธีการคืนเงิน');
+            }
+
+            if (refundText == "") {
+               return swal_fail('กรุณาใส่จำนวนเงิน');
+            }
+
+            if (refundRemark == "") {
+                return swal_fail('กรุณาใส่หมายเหตุการคืนเงิน');
+            }
+            if (refundValue < 1) {
+                return swal_fail('กรุณาระบุยอดเงินให้ถูกต้อง');
+            }
+
+            swal_confirm('ยืนยันบันทึกรายการ', 'ต้องการบันทึกรายการคืนเงินนี้หรือไม่?', () => {
+                $.post('@Url.Action("SaveRequestRefund","BillPayment")', { refundId: refundId ,refundTypeId:refundType,amount:refundValue,remark:refundRemark}, (data) => {
+                    if (data.IsResult) {
+                        swal_success('ทำรายการสำเร็จ');
+                        return setTimeout(() => { window.location = '@Url.Action("RefundPayment","BillPayment")'; }, 1500);
+                    } else {
+                        return swal_fail(data.Msg);
+                    }
+                });
+            });
+        }
+    </script>
+}

@@ -1,0 +1,364 @@
+﻿@{
+    ViewBag.Title = "รายละเอียดการใช้สิทธิ์";
+}
+
+<link rel="stylesheet" type="text/css" href="~/Content/js/plugins/sweetalert2-7.19.3/dist/sweetalert2.css" />
+
+<style>
+    .title1 {
+        color: dimgray;
+        font-weight: normal;
+    }
+    /* On screens that are 415px wide or less, the background color is olive */
+    @@media screen and (max-width: 400px) {
+        .b-left {
+            float: left !important;
+        }
+    }
+</style>
+
+<form id="myForm" action="@Url.Action("CancelHCI")" method="POST" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-xs-12 col-md-12 pull-right">
+            <div class="alert alert-danger" id="error-alert" style="display: none">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                    ×
+                </button>
+                <span class="glyphicon glyphicon-hand-right"></span> <strong>เกิดข้อผิดพลาด !</strong>
+                <hr class="message-inner-separator">
+                <p>
+                    ไม่สามารถยกเลิกการใช้สิทธิ์เคลมได้ กรุณาติดต่อ Call Center
+                </p>
+            </div>
+        </div>
+        <div class="col-xs-12 col-md-12">
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ข้อมูลการยืนยันใช้สิทธิ์</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip" title="" data-original-title="Collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-lg-5">
+                            <div class="form-group">
+                                <label class="title1">เลขที่ยืนยันการใช้สิทธิ์ :</label>
+                                <label>@ViewBag.Detail.HospitalClaimInformCode</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label class="title1">สถานะ :</label>
+                                @{int stdId = @ViewBag.Detail.HCIStatusID;}
+                                @switch (stdId)
+                                {
+
+                                    case 2:
+                                        <label class="label label-info">@ViewBag.Detail.HCIStatusDetail</label>
+
+                                        break;
+                                    case 3:
+                                        <label class="label label-success">@ViewBag.Detail.HCIStatusDetail</label>
+                                        break;
+                                    case 4:
+                                        <label class="label label-danger">@ViewBag.Detail.HCIStatusDetail</label>
+                                        break;
+                                }
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="title1">เลขที่เคลม :</label>
+                                <label>@ViewBag.Detail.ClaimHeaderID</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="form-group">
+                                <label class="title1">ชื่อสถานพยาบาล :</label>
+                                <label>@ViewBag.Detail.OrganizeDetail</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label class="title1">ชื่อเจ้าหน้าที่ :</label>
+                                <label>@(ViewBag.Detail.CreatedOfficerFullName == null ? "-" : ViewBag.Detail.CreatedOfficerFullName)</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label class="title1">แผนก :</label>
+                                <label>@(ViewBag.Detail.CreatedOfficerDepartment == null ? "-" : ViewBag.Detail.CreatedOfficerDepartment)</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-5 ">
+                            <div class="form-group">
+                                <label class="title1">วันที่ทำรายการ :</label>
+                                <label>@ViewBag.Detail.CreatedDate.ToString("dd/MM/yyyy HH:mm") น.</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-5 ">
+                            <div class="form-group">
+                                <label class="title1">วันที่เข้ารักษา :</label>
+                                <label>@ViewBag.Detail.DateIssue.ToString("dd/MM/yyyy")</label>
+                            </div>
+                        </div>
+                        <div class="clearfix visible-lg-block"></div>
+                        <div class="col-lg-5 ">
+                            <div class="form-group">
+                                <label class="title1">ประเภทการเข้ารักษา :</label>
+                                <label>@ViewBag.Detail.ClaimTypeDetail</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-7 ">
+                            <div class="form-group">
+                                <label class="title1">สาเหตุ/โรคที่เข้ารับการรักษา :</label>
+                                <label>@ViewBag.CustomerDetail.Cause</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label class="title1">อาการ (Chief Complain) :</label>
+                                <label>@ViewBag.Detail.ChiefComplainDetail</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label class="title1">รายละเอียดเพิ่มเติม :</label>
+                                <label>@ViewBag.Detail.Remark</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ข้อมูลผู้เอาประกัน</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip" title="" data-original-title="Collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label class="title1">เลขที่อ้างอิง :</label>
+                                <label>@ViewBag.CustomerDetail.ApplicationID</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="title1">ชื่อ-สกุล :</label>
+                                <label>@ViewBag.CustomerDetail.FullName</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="form-group">
+                                <label class="title1">เลขบัตรประชาชน :</label>
+                                <label>@(@ViewBag.CustomerDetail.IdentityNumber != null ? @ViewBag.CustomerDetail.IdentityNumber : "-")</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label class="title1">วันเกิด :</label>
+                                <label>@(@ViewBag.CustomerDetail.BirthDate != null ? @ViewBag.CustomerDetail.BirthDate.ToString("d") : "-")</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="title1">อายุ :</label>
+                                <label>@(@ViewBag.CustomerDetail.Ages != null ? @ViewBag.CustomerDetail.Ages : "-")</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="form-group">
+                                <label class="title1">วันที่เริ่มคุ้มครอง :</label>
+                                <label>@ViewBag.CustomerDetail.StartCoverDate.ToString("d")</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label class="title1 )">สถานะกรมธรรม์ :</label>
+                                <label>@ViewBag.CustomerDetail.ApplicationStatus</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="pull-left">
+                @if (@ViewBag.Detail.HCIStatusID != 4)
+                {
+                    <button id="button_print" type="button" name="button_print" class="btn btn-success btn-flat" style="width: 100%"><i class="fa fa-print"></i> พิมพ์เอกสารยืนยันการใช้สิทธิ์</button>
+                }
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="pull-right b-left">
+                @if (@ViewBag.Detail.HCIStatusID != 4)
+                {
+                    <button id="button_cancel" name="button_cancel" type="button" class="btn btn-danger btn-flat" style="width: 100%" @(ViewBag.IsCallClaim == true ? "disabled" : "")><i class="fa fa-paper-plane"></i> ยกเลิกการใช้สิทธิ์</button>
+
+                }
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="hciId" name="hciId" value="@ViewBag.Detail.HospitalClaimInformID" />
+    <input type="hidden" id="claimCode" name="claimCode" value="@ViewBag.Detail.ClaimHeaderID" />
+    <input type="hidden" id="pGroupId" name="pGroupId" value="@ViewBag.Detail.ProductGroupID" />
+    <input type="hidden" id="hciStatusId" name="hciStatusId" value="@ViewBag.Detail.HCIStatusID" />
+    <input type="hidden" id="cancelCauseId" name="cancelCauseId" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script src="~/Content/js/plugins/sweetalert2-7.19.3/dist/sweetalert2.min.js"></script>
+    <script src="https://unpkg.com/promise-polyfill@7.1.0/dist/promise.min.js"></script>
+
+    <script>
+        var page4;
+        var appYear;
+        var product;
+        var InsuranceCode;
+        $(function () {
+            //รูปแบบ เดือน-วัน-ปี
+            CheckDate120('@ViewBag.CustomerDetail.StartCoverDate.ToString("MM/dd/yyyy")','@ViewBag.Detail.DateHappen.ToString("MM/dd/yyyy")');
+            //ปุ่มปริ้น
+            $("#button_print").click(function () {
+                debugger
+                const Id = $('#hciId').val();
+                const pGroup = $('#pGroupId').val();
+                const encodeId = window.btoa(Id);
+                var page5 = false;
+
+                if (pGroup == "3") {
+                    appYear =   '@ViewBag.CustomerDetail.Year'; 
+                    //8805 = เลืกสิทธฺ์
+                   product = '@ViewBag.CustomerDetail.ProductCategory_id';
+                   InsuranceCode = '@ViewBag.CustomerDetail.InsuranceCompanyCode';
+                }
+
+                switch (pGroup) {
+                    case "2":
+                        window.open('@Url.Action("GetOPDAndGuaranteeReport","HCI")?hciId=' + encodeId +"&page4="+page4,'_blank');
+                        break;
+                    case "3":
+                        if (appYear == 2567 & product == "8805" & InsuranceCode == "100000000041") {
+                            page5 = true;
+                        }
+                        window.open('@Url.Action("GetOPDAndGuaranteeReport_PA_New","HCI")?hciId=' + encodeId + "&page5=" + page5, '_blank');
+                        break;
+                    default:
+                }
+            });
+
+            var inputOptions = {};
+            const listCancelCause = @Html.Raw(ViewBag.listCancelCause);
+            for (let i = 0; i < listCancelCause.length; i++) {
+                inputOptions[listCancelCause[i].CancelCauseID] = listCancelCause[i].CancelCauseDetail;
+            }
+
+            //CancelHCI
+            $('#button_cancel').click(function(e) {
+                e.preventDefault();
+                if (CheckClaimStatus() == 0) {
+                    window.swal({
+                        title: 'กรุณาเลือกสาเหตุการยกเลิก',
+                        type: 'warning',
+                        input: 'select',
+                        inputOptions: inputOptions,
+                        showCancelButton: true,
+                        confirmButtonColor: '#277020',
+                        confirmButtonText: 'ตกลง',
+                        cancelButtonText: 'ยกเลิก',
+                        inputValidator: (value) => {
+                            return new window.Promise((resolve) => {
+                                if (value != '1') {
+                                    $('#cancelCauseId').val(value);
+                                    resolve();
+                                } else {
+                                    resolve('กรุณาเลือกสาเหตุ');
+                                }
+                            });
+                        }
+                    }).then(function(inputValue) {
+                        if (inputValue.dismiss === 'cancel' || inputValue.dismiss === 'overlay' || inputValue.dismiss === 'esc') {
+                            return false;
+                        } else {
+                            const dataObj = $('#myForm').serialize();
+                            $.ajax({
+                                type: "POST",
+                                url: $('#myForm').attr('action'),
+                                data: dataObj,
+                                cache: false,
+                                success: function(response) {
+                                    window.swal({
+                                        title: 'ดำเนินการเรียบร้อย!',
+                                        type: 'success',
+                                        confirmButtonColor: '#26A65B',
+                                        confirmButtonText: 'ตกลง'
+                                    }).then(function() {
+                                        window.location.reload();
+                                    });
+                                }
+                            });
+                        }
+                        return false;
+                    });
+                } else {
+                    document.body.scrollTop = 0; // For Chrome, Safari and Opera
+                    document.documentElement.scrollTop = 0; // For IE and Firefox
+                    ShowAlert();
+                }
+
+            });
+        });
+        function ShowAlert() {
+            $("#error-alert").fadeTo(5000, 10).slideUp(1000,
+                function() {
+                    $("#error-alert").slideUp(1000);
+                });
+        }
+
+        function CheckClaimStatus() {
+            var result;
+            const claimId = $('#claimCode').val();
+            $.ajax({
+                type:'GET',
+                url:'@Url.Action("CheckClaimStatus","HCI")?claimCode=' + claimId,
+                async:false,
+                success:function(response) {
+                    result = response.length;
+                }
+            });
+            return result;
+        };
+
+        //CHECK 120
+        const CheckDate120=(startcoverdate,datehappen)=> {
+            const st =startcoverdate;
+            const d = moment(st).toDate();
+            const dStart = new Date(d.getFullYear() - 543, d.getMonth(), d.getDate());
+            const d120 = new Date(dStart);
+            d120.setDate(dStart.getDate() + 120);
+            const hp = moment(datehappen).toDate();
+            const dHappen = new Date(hp.getFullYear() - 543, hp.getMonth(), hp.getDate());
+
+            if (dHappen >= dStart && dHappen <= d120) {
+                page4 = true;
+                //'*ผู้เอาประกันอยู่ในระยะรอคอย 120 วัน'
+            } else {
+                page4 = false;
+                //ไม่ใช่
+            }
+        }
+    </script>
+
+}

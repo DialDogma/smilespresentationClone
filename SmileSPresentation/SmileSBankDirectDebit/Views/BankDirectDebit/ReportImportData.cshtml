@@ -1,0 +1,151 @@
+﻿@{
+    ViewBag.Title = "รายงานผลการนำเข้าข้อมูล";
+}
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* Search form *@
+        <div class="col-sm-12" id="ReportSearch_form">
+            <div class="box box-default">
+                <div class="box-header">
+                    <h3 class="box-title">ค้นหา</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-offset-1 col-sm-3">
+                            <label for="" class="control-label">ธนาคาร:</label>
+                            <select class="form-control select2 " tabindex="-1" aria-hidden="true" id="ddlBank" name="ddlBank">
+                                @{
+                                    foreach (var itm in ViewBag.BankList)
+                                    {
+                                        if (itm.TempCode == "-1")
+                                        {
+                                            <option value="">ทั้งหมด</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@itm.TempCode">@itm.OrganizeDetail</option>
+                                        }
+
+                                    }
+                                }
+                            </select>
+                        </div>
+                        @*<div class="col-sm-offset-3 col-sm-3">
+                                <label for="" class="control-label">ค้นหา:</label>
+                                <input type="text" name="txtSearch" id="txtSearch" class="form-control" />
+                            </div>*@
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-offset-1 col-sm-3">
+                            <label for="" class="control-label">วันที่นำส่ง:</label>
+                            <input type="text" class="form-control pull-right" name="DateFrom" id="DateFrom" required="required"
+                                   data-provide="datepicker" placeholder="dd/mm/yyyy">
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="" class="control-label">ถึง:</label>
+                            <input type="text" class="form-control pull-right" name="DateTo" id="DateTo" required="required"
+                                   data-provide="datepicker" placeholder="dd/mm/yyyy">
+                        </div>
+                        <div class=" col-sm-3" style="padding-top: 26px">
+                            <button type="button" class="btn btn-block btn-info" id="btnShow">แสดงรายการ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* Result form *@
+        <div class="col-sm-12" id="Result_Form">
+            <div class="box box-default">
+                <div class="box-header">
+                    <h3 class="box-title">รายการ</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtShowDetail" name="dtShowDetail" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* hidden *@
+    <input type="hidden" name="hd_headerId" id="hd_headerId" value="" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            //set default date
+            $('#DateFrom').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+            $('#DateTo').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+            GetDataTable();
+            moment.locale('en');
+             $('#btnShow').click(function () {
+                GetDataTable();
+                $('#DataTable_form').show();
+            });
+        });
+
+        function GetDataTable() {
+             $('#dtShowDetail').empty();
+            $('#dtShowDetail').DataTable({
+                 pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetReportImportData")',
+                    method: 'POST',
+                    async : false,
+                    data: function (d) {
+                       d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = null;
+                        d.dFrom = $('#DateFrom').val();
+                        d.dTo = $('#DateTo').val();
+                        d.BankId = $('#ddlBank').val();
+                    }
+                },
+                columns: [
+                    {
+                        title:'วันที่นำส่ง' ,data:'MaxDeliverDate'
+                        ,render: function (data) {
+                            return moment(data).format('DD/MM/YYYY');
+                        }
+                    },
+                    { title: 'จำนวนรายการ', data: 'TotalRowCount' },
+                    { title: 'ธนาคาร', data: 'Bank' },
+                    {
+                        title: 'วันที่นำเข้า', data: 'CreateDate'
+                        , render: function (data) {
+                            return moment(data).format('DD/MM/YYYY');
+                        }
+                    },
+                     { title: 'ผู้นำเข้า', data: 'CreateByName' },
+                    {
+                        title: 'Export Excel',
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        data: null,
+                        mRender: function (data) {
+                            return '<button type="button" class="btn btn-block btn-success" id="btnExport_' +
+                                data.KTBReportHeaderId + '" onclick="ExportExcel(' +
+                                data.KTBReportHeaderId + ')" >Export</button>';
+                        }
+                    }
+                ]
+            });
+        }
+
+        function ExportExcel(headerId) {
+            $('#hd_headerId').val(headerId);
+            $('#Mainform').submit();
+        }
+    </script>
+}

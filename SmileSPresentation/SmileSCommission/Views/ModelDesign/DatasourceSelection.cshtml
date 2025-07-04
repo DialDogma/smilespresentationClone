@@ -1,0 +1,97 @@
+﻿@{
+    ViewBag.Title = "Datasource Selection";
+}
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="box box-success">
+            <!-- /.box-header -->
+            <div class="box-body">
+                <!-- form start -->
+                <form class="form-horizontal" id="form1" action="@Url.Action("DatasourceSelection")" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="DesignModel_Id" value="@ViewBag.DesignModel_Id" />
+                    <input type="hidden" name="Act" value="@ViewBag.Act" />
+                    <input type="text" id="SelectedDatasouce" name="SelectedDatasouce" style="display:none" />
+                    <div class="box-body">
+                        <table id="datatable1" class="table table-bordered table-striped" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Select</th>
+                                    <th>Datasource Name</th>
+                                </tr>
+                            </thead>
+                            <tbody id="datatable-body">
+                                @foreach (var item in ViewBag.SourceList)
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (item.Checked == 1)
+                                            {
+                                                <input type="checkbox" name="@(item.TableName)" id="@(item.TableName)" class="chk" checked>
+                                            }
+                                            else
+                                            {
+                                                <input type="checkbox" name="@(item.TableName)" id="@(item.TableName)" class="chk" >
+                                            }
+                                        </td>
+                                        <td>@item.TableName</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /.box-body -->
+                    <div class="box-footer" align="center">
+                        @if (ViewBag.Act == "New")
+                        {
+                            <a href="@Url.Action("NewModel", new { Id = ViewBag.DesignModel_Id, act = ViewBag.Act })" class="btn btn-danger"><i class="fa fa-arrow-left"></i> Back</a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("EditModel", new { Id = ViewBag.DesignModel_Id, act = ViewBag.Act })" class="btn btn-danger"><i class="fa fa-arrow-left"></i> Back</a>
+                        }
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-arrow-right"></i> Next </button>
+                    </div>
+                    <!-- /.box-footer -->
+                </form>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+    <!-- /.box -->
+</div>
+
+@section ViewSpecificJavascript{
+    <script>
+        var selectedList = [];
+        var dt;
+        $(function () {
+            dt = $('#datatable1').DataTable({
+                paging:false
+            });
+            //Init Selected Items from viewbag
+            var array = @Html.Raw(Json.Encode(@ViewBag.SourceList));
+            for (var i = 0; i < array.length; i++) {
+                if (array[i].Checked == 1 ) {
+                    selectedList.push(array[i].TableName);
+                }
+            }
+            $("#SelectedDatasouce").val(selectedList.toString());
+
+            //Checkbox checked
+            $('.chk').on('ifChecked', function (event) {
+                debugger;
+                selectedList.push(event.target.id);
+                $("#SelectedDatasouce").val(selectedList.toString());
+            });
+
+            //Checkbox unchecked
+            $('.chk').on('ifUnchecked', function (event) {
+                debugger;
+                selectedList = $.grep(selectedList,(e)=>{ return e !== event.target.id});
+                 $("#SelectedDatasouce").val(selectedList.toString());
+            });
+
+        });
+    </script>
+}

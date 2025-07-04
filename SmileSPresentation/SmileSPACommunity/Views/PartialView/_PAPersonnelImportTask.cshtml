@@ -1,0 +1,69 @@
+﻿
+<div class="row">
+    <div class="col-xs-12" style="padding-top:6px">
+        <table id="dtImportHistory" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+        const GetHistoryImport = (appId) => {
+
+            $('#dtImportHistory').empty();
+            var table = $('#dtImportHistory').DataTable({
+                     pageLength: 10,
+                     processing: true,
+                     serverSide: true,
+                     responsive: true,
+                     destroy: true,
+                     orderable: false,
+                     searchable: false,
+                     targets: 0,
+                     searching: false,
+                     //paging: false,
+                     info: false,
+                     ajax: {
+                         url: '@Url.Action("GetImportTask", "PartialView")',
+                         type: 'POST',
+                         async: false,
+                         data: function (d) {
+                             d.draw = d.draw;
+                             d.pageSize = d.length;
+                             d.pageStart = d.start;
+                             d.sortField = d.columns[d.order[0].column].data;
+                             d.orderType = d.order[0].dir;
+                             d.search = d.search.value;
+                             d.applicationID = appId;
+                             //d.applicationID = 2;
+                         }
+                     },
+                columns: [
+                    { title: 'รหัสรายการ', data: 'PersonnelApplicationRoundCode', className: 'h-dt-center d-dt-center', },
+                    { title: 'รอบที่นำเข้า', data: 'RoundNo', className: 'h-dt-center d-dt-center', },
+                    { title: 'จำนวนผู้เอาประกัน', data: 'CustomerCount', className: 'h-dt-center d-dt-center', },
+                    { title: 'รหัสพนักงาน', data: 'CreatedByCode', className: 'h-dt-center d-dt-center', },
+                    { title: 'ผู้นำเข้า', data: 'CreatedByName', className: 'h-dt-center d-dt-center', },
+                         {
+                             title: 'วันที่ทำรายการ', data: 'CreatedDate', className: 'h-dt-center d-dt-center'
+                             , mRender: function (data) {
+                                 moment.locale('th');
+                                 return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:ss");
+                             }, width: '15%'
+                        },
+                    { title: 'สถานะอนุมัติ', data: 'PersonnelApplicationRoundApproveStatus', className: 'h-dt-center d-dt-center', },
+
+                     ],
+                     bLengthChange: false,
+                     createdRow: function (row, data, index) {
+
+                     },
+                     order: [[ 1, 'asc' ]]
+            });
+
+            //table.on( 'order.dt search.dt', function () {
+            //    table.column(0, {search:'applied', order:'applied'}).nodes().each( function (cell, i) {
+            //        cell.innerHTML = i+1;
+            //    } );
+            //} ).draw();
+        }
+</script>

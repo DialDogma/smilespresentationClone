@@ -1,0 +1,1220 @@
+﻿@{
+                /**/
+
+                ViewBag.Title = "รายละเอียด";
+}
+
+@{
+    //var userDetail = SmileClaimV2.Helper.Authorization.GetLoginDetail(this.Context);
+    var userDetail = SmileClaimV2.Helper.OAuth2Helper.GetLoginDetail();
+}
+<style>
+    .title1 {
+        color: dimgray;
+        font-weight: normal;
+    }
+
+    .dt-center {
+        text-align: center;
+    }
+
+    td.dt-center {
+        text-align: center;
+    }
+
+    th.fix-width {
+        width: 425px;
+    }
+
+    /*thead {
+        position: absolute !important;
+        top: -9999px !important;
+        left: -9999px !important;
+    }*/
+
+    #table_desease_except_wrapper > div:nth-child(2) > div > div.dataTables_scroll > div.dataTables_scrollHead {
+        display: none !important;
+    }
+
+    .form-group {
+        margin-bottom: 5px !important;
+        /*font-family: 'Sarabun';*/
+        /*font-size: 22px;*/
+    }
+    /*.div-form {
+        display: table;
+        width: 100%;
+    }
+
+    .div-title {
+        display: table-cell;
+        vertical-align: middle;
+        width: 29.7%;
+    }
+
+    .div-title-benefit {
+        display: table-cell;
+        vertical-align: middle;
+        width: 35%;
+    }*/
+    /* On screens that are 415px wide or less, the background color is olive */
+    @@media screen and (max-width: 415px) {
+        .a1 {
+            position: absolute;
+            top: 160px;
+            right: 28px;
+        }
+    }
+
+    /* On screens that are 1304px wide or less, the background color is olive */
+    @@media screen and (max-width: 1304px) {
+        .a2 {
+            position: absolute;
+            top: 155px;
+            right: 20px;
+        }
+
+        .a3 {
+            position: absolute;
+            top: 170px;
+            right: 20px;
+        }
+    }
+</style>
+
+<form id="myForm" action="@Url.Action("CreateClaimInform")" method="POST" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <div class="alert alert-danger" id="error-alert" style="display: none">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                    ×
+                </button>
+                <span class="glyphicon glyphicon-hand-right"></span> <strong>เกิดข้อผิดพลาด !</strong>
+                <hr class="message-inner-separator">
+                <p>
+                    <label id="error_text" name="error_text"></label>
+                </p>
+            </div>
+        </div>
+        <div class="col-xs-12 col-md-7">
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ข้อมูลผู้เอาประกัน</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                        @*<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>*@
+                    </div>
+                </div>
+                <div id="box-body-customer" class="box-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group col-md-6">
+                                <label class="title1">เลขที่อ้างอิง :</label>
+                                <label>@ViewBag.Detail.ApplicationID</label>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label class="title1">สถานะกรมธรรม์ :</label>
+                                <label>@ViewBag.Detail.ApplicationStatus</label>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group col-md-12">
+                                <label class="title1">ชื่อ - สกุล :</label>
+                                <label>@ViewBag.Detail.FullName</label>
+                            </div>
+                        </div>
+                        @*<div class="clearfix visible-lg-block"></div>*@
+                        <div class="col-md-12">
+                            <div class="form-group col-md-12">
+                                <label class="title1">เลขบัตรประชาชน :</label>
+                                <label>@ViewBag.Detail.IDCardNumber</label>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group col-md-4">
+                                <label class="title1">วันเกิด :</label>
+                                <label>@ViewBag.BirthDate</label>
+                                <input type="hidden" id="birthdate" name="birthdate" value="@ViewBag.BirthDate" />
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label class="title1">อายุ :</label>
+                                <label>@ViewBag.Detail.Ages</label>
+                            </div>
+                            <div class="form-group col-md-5">
+                                <label class="title1">วันที่เริ่มคุ้มครอง :</label>
+                                <label>@ViewBag.StartCoverDate</label>
+                                <input type="hidden" id="startcoverdateTH" name="startcoverdateTH" value="@ViewBag.StartCoverDate" />
+                            </div>
+                        </div>
+                        <div class="col-md-12" style="margin-top:0.7cm;display: flex;align-items: center;">
+                            <div class="col-md-3 pull-left">
+                                <button type="button" style="width: 100%;" class="btn btn-warning btn-flat" id="desease_except" name="desease_except" data-toggle="modal" data-target="#modal-cause"><i class="fa fa-search"></i> โปรดตรวจสอบ</button>
+                            </div>
+                            <span>
+                                <span id="warning_1" style="color: red; display: none; font-size: 0.4cm; font-weight: bold;">*ผู้เอาประกันมีโรคยกเว้นเฉพาะบุคคล โปรดตรวจสอบรายละเอียด</span>
+                                <span id="warning_2" style="color: red; font-size: 0.4cm; font-weight: bold;"></span>
+                            </span>
+
+                            @*<span>
+                                    <span id="warning_1" style="color: red; display: none; font-size: 0.4cm; font-weight: bold; padding-top: 5px; display: inline-block; vertical-align: middle">*ผู้เอาประกันมีโรคยกเว้นเฉพาะบุคคล โปรดตรวจสอบรายละเอียด</span>
+                                    <span id="warning_2" style="color: red; font-size: 0.4cm; font-weight: bold; padding-top: 5px; display: inline-block; vertical-align: middle"></span>
+                                </span>*@
+
+
+                            @*<div class="col-md-9 pull-left" style="height: 34px; text-align: left">
+                                    <span id="warning_1" style="color: red; display: none; font-size: 0.4cm; font-weight: bold; padding-top: 5px">*ผู้เอาประกันมีโรคยกเว้นเฉพาะบุคคล โปรดตรวจสอบรายละเอียด</span>
+                                    <span id="warning_2" style="color: red; font-size: 0.4cm; font-weight: bold; padding-top: 5px; display: inline-block; vertical-align: middle"></span>
+                                </div>*@
+                            @*<div class="col-md-6 pull-left" style="margin-top:3px" >
+                                    <p class="text-yellow" style="text-indent:0cm; font-size:0.35cm;">(รายละเอียดโรคระยะเวลารอคอยและโรคยกเว้น)</p>
+                                </div>*@
+                        </div>
+                        <div class="col-md-6 pull-left" style="margin-top: 3px;">
+                            <p class="text-yellow" style="text-indent:0.35cm; font-size:0.35cm;">(รายละเอียด ระยะเวลารอคอย และโรคยกเว้น)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12 col-md-5">
+            <div id="div_alert" class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">สิทธิประโยชน์</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                        @*<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>*@
+                    </div>
+                </div>
+                <div id="box-body-benefit" class="box-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <!--.info-box-content -->
+                            <div id="div_green" class="info-box bg-green">
+                                <span class="info-box-icon"><i class="fa fa-ambulance"></i></span>
+                                <div class="info-box-content" style="padding-top: 10px;">
+                                    <span class="info-box-number pull-right">OPD อุบัติเหตุ ครั้งละไม่เกิน : <span id="accident_priceperunit"></span> บาท<br /><span class="info-box-text pull-right hidden-xs">(ต่ออุบัติเหตุ)</span></span>
+                                </div>
+                                <!-- /.info-box-content -->
+                            </div>
+
+                            <!--.info-box-content -->
+                            <div id="div_blue" class="info-box bg-blue">
+                                <span class="info-box-icon"><i class="fa fa-heartbeat"></i></span>
+                                <div class="info-box-content">
+                                    <span id="sp_opd_parent1" class="info-box-number pull-right" style="display:none"></span>
+                                    <span id="sp_opd_parent2" class="info-box-number pull-right" style="display:none;white-space: nowrap;">
+                                        OPD โรคทั่วไป ครั้งละไม่เกิน : <span id="sick_priceperunit"></span> บาท
+                                        <br /><span id="sp_opd" class="info-box-number pull-right a1 a3"></span>
+                                        <br /><span class="info-box-text pull-right hidden-xs a3">(ส่วนเกินลูกค้าสำรองจ่าย)</span>
+                                        @*<br />*@@*<span class="info-box-text pull-right hidden-xs a2">(ส่วนเกินลูกค้าสำรองจ่าย)</span>*@
+                                        @*คงเหลือ :
+                                            <span id="label_opd" style="font-size: 15pt"></span> ครั้ง*@
+
+                                    </span>
+                                    @*<div class="progress">
+                                            <div class="progress-bar" style="width: 100%"></div>
+                                        </div>*@
+                                </div>
+                                <!-- /.info-box-content -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--DATATABLES-->
+    <div id="row_deseaseExcept" class="row" style="display: none">
+        <div class="col-xs-12 col-md-12">
+            <div class="box" style="border: 3px solid #dd4b39 !important">
+                <div class="box-header with-border" style="background-color: #DD4B39;">
+                    <h3 class="box-title" style="color:white !important">รายละเอียดโรคยกเว้นเฉพาะบุคคล</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <table id="datatable_deseaseExcept" class="table table-bordered table-striped" style="width: 100%"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--END DATATABLES-->
+    <!--DATATABLES HISTORY-->
+    <!--comment 12-01-2561 ไม่ใช้งาน-->
+    @*<div class="row">
+            <div class="col-xs-12 col-md-12">
+                <div class="box box-default">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">ประวัติการเคลม</h3>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            @*<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <table id="datatable_history" class="table table-bordered table-striped "></table>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+    <!--END DATATABLES-->
+    <div class="row" id="div_detail">
+        <div class="col-xs-12 col-md-12">
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ข้อมูลเบื้องต้น<span style="color: red;font-size: small"> (* ข้อมูลที่จำเป็นต้องกรอก)</span></h3>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group col-md-6">
+                                <label class="title1"><span style="color: red">*</span>วันที่เกิดเหตุ :</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input class="form-control dpk" id="date_happen" name="date_happen" data-provide="datepicker" data-date-language="th-th" required="required" />
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <label class="title1"><span style="color: red">*</span>เวลาที่เกิดเหตุ :</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-clock-o"></i>
+                                    </div>
+                                    <input id="time_happen" name="time_happen" type="text" class="form-control timepicker" required="required">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group col-md-6">
+                                <label class="title1"><span style="color: red">*</span>วันที่เข้ารักษา :</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input id="date_in" name="date_in" class="form form-control dpk" data-provide="datepicker" data-date-language="th-th" required="required" />
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <label class="title1"><span style="color: red">*</span>เวลาที่เข้ารักษา :</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-clock-o"></i>
+                                    </div>
+                                    <input id="time_in" name="time_in" type="text" class="form-control timepicker" required="required">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group col-md-12">
+                                <label class="title1"><span style="color: red">*</span>เบอร์โทรผู้ป่วย :</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-phone"></i>
+                                    </div>
+                                    <input type="number" id="phone_number" name="phone_number" class="form form-control" placeholder="ตัวอย่าง 0925556789" required="required" maxlength="10" />
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <label class="title1"><span style="color: red">*</span>ประเภทการเข้ารักษา :</label>
+                                <select type="number" id="claim_admittype" name="claim_admittype" class="form form-control select2" checkNA="checkNA" style="width: 100%">
+                                    <option value="-1">--โปรดระบุ--</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group col-md-12">
+                                <label class="title1"><span style="color: red">*</span>ประเภทการเคลม :</label>
+                                <select type="number" id="claim_type" name="claim_type" class="form form-control select2" checkNA="checkNA" disabled="disabled" style="width: 100%">
+                                    @*<option value="-1">--โปรดระบุ--</option>*@
+                                    @foreach (var i in ViewBag.listClaimType)
+                                    {
+                                        if (@i.ClaimTypeID == 1) //1 = เคลมโรงพยาบาล
+                                        {
+                                            ViewBag.ClaimTypeID = @i.ClaimTypeID;
+                                            <option value="@ViewBag.ClaimTypeID">@i.ClaimTypeDetail</option>
+
+                                        }
+                                    }
+                                </select>
+                                <input type="hidden" id="claim_type_hidden" name="claim_type_hidden" value="@ViewBag.ClaimTypeID" />
+                            </div>
+                            <div class="form-group col-md-12">
+                                <label class="title1"><span style="color: red">*</span>อาการ(ChiefComplain) :</label>
+                                <select type="number" id="chief_complain" name="chief_complain" class="form form-control select2" checkNA="checkNA" style="width: 100%"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group col-md-12">
+                                <label class="title1">โรคที่เข้ารับการรักษา :</label>
+                                <input type="text" id="cause" name="cause" class="form form-control" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group col-md-6">
+                                <label class="title1"><span style="color: red">*</span>ชื่อ-สกุล เจ้าหน้าที่ผู้ทำรายการ :</label>
+                                <input type="text" id="officerName" name="officerName" class="form form-control" required="required" minlength="5" checkCharThEnOnly="checkCharThEnOnly" checkStrEmpty="checkStrEmpty" />
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label class="title1"><span style="color: red">*</span>แผนก :</label>
+                                <input type="text" id="officerDepartment" name="officerDepartment" class="form form-control" required="required" minlength="5" checkCharThEnOnly="checkCharThEnOnly" checkStrEmpty="checkStrEmpty" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group col-md-12">
+                                <label class="title1">รายละเอียดเพิ่มเติม :</label>
+                                <input type="text" id="remark" name="remark" class="form form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <div class="pull-right">
+                <button id="confirm" name="confirm" type="submit" class="btn btn-success btn-flat" style="width: 100%"><i class="fa fa-paper-plane"></i> ยืนยันการใช้สิทธิ์</button>
+            </div>
+        </div>
+    </div>
+    <!--modal confirm-->
+    <div class="modal fade" id="modal-confirm">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #ffd243;border-color: #ffeeba;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title">โรคที่เข้ารักษาอาจเข้าข่ายโรคและข้อยกเว้น ดังนี้</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="div_desease_except" class="form-group col-md-12">
+                        <span style="color: red">***</span> โรคยกเว้นเฉพาะบุคคล : <span style="color: darkred"></span><label id="lbl_desease_except"></label>
+                    </div>
+                    <table id="table_except_detail" class="table table-bordered table-striped" style="width: 100%">
+                        @*<thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>รายละเอียด</th>
+                                    <th>ประเภท</th>
+                                </tr>
+                            </thead>*@
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="modal-footer" style="text-align: center">
+                    <button type="button" class="btn btn-danger btn-flat" style="width: 20%" data-dismiss="modal">ยกเลิก</button>
+                    <button id="btn_modal_confirm" type="button" class="btn btn-success btn-flat" style="width: 20%">ดำเนินการต่อ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--/.mocal-confirm-->
+    <!--.modal -->
+    <div class="modal fade" id="modal-cause">
+        <!--.modal-dialog -->
+        <div class="modal-dialog">
+            <!--.modal-content -->
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #ffd243;border-color: #ffeeba;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title">โรคและข้อยกเว้น</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group col-md-12">
+                        @if (@ViewBag.Detail.DeseaseExcept != null)
+                        {
+                            <label><span style="color: red">***</span> โรคยกเว้นเฉพาะบุคคล : <span style="color: darkred">@ViewBag.Detail.DeseaseExcept</span></label>
+                            <hr />
+                        }
+                    </div>
+                    <table id="table_desease_except" class="table table-bordered table-striped" style="width: 100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>รายละเอียด</th>
+                                <th>ประเภท</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in @ViewBag.DE)
+                            {
+                                <tr>
+                                    <td>@item.Except_ID</td>
+                                    <td>@item.ExceptDetail</td>
+                                    <td>@item.ExceptTypeDetail</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!--/.modal -->
+    <input type="hidden" id="hidden_opd" name="hidden_opd" />
+    <input type="hidden" id="pGroupId" name="pGroupId" value="@ViewBag.pGroupId" />
+    <input type="hidden" id="appId" name="appId" value="@ViewBag.Detail.ApplicationID" />
+    <input type="hidden" id="SSSProductId" name="SSSProductId" value="@ViewBag.Detail.ProductID" />
+    <input type="hidden" id="startcoverdate" name="startcoverdate" value="@ViewBag.StartCoverDateEN" />
+    <input type="hidden" id="InsuranceCompanyId" name="InsuranceCompanyId" value="@ViewBag.InsuranceCompanyId" />
+    @*<input type="hidden" id="pGroupId" name="pGroupId" value="@ViewBag.pGroupId" />*@
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script>
+        var page4 = false;
+        var IsCheckDate30;
+        $(document).ready(function () {
+            //SELECTOR2
+            $('.select2').select2();
+
+            //DATE
+            var currentDate = new Date();
+            var date = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+            $('.dpk').datepicker({
+                format: 'dd/mm/yyyy',
+                autoclose: true,
+                endDate: today + 1
+            });
+
+            //DATE HAPPEN
+            $('#date_happen').datepicker("setDate", new Date()).change(function () {
+                //CHECK Date 30 , 120
+                CheckDate();
+                //GET CLAIM ADMIT
+                GetClaimAdmit(@ViewBag.pGroupId, $('#claim_type_hidden').val(), true);
+            });
+
+            //DATE IN
+            $('#date_in').datepicker("setDate", new Date()).change(function(){
+                CountClaimPHRepeatedly($('#appId').val(),$('#date_in').val());
+            });
+
+            //DATE//TIME PICKER
+            $('.timepicker').timepicker({
+                defaulttime: 'current',
+                minuteStep: 1,
+                secondStep: 1,
+                showSeconds: true,
+                showMeridian: false, //false = 24,true=12
+                explicitMode: true
+            });
+
+
+            //getmemo on load
+            getMemo($('#appId').val());
+            //set height on load
+            setHeight();
+            //Check date
+            CheckDate();
+
+            console.log("IsCallClaim Condition", '@ViewBag.IsCallClaim');
+
+            //CHECK SESSION ORGANIZE_ID 
+            if ('@userDetail.Organize_ID' == '') {
+                $("#div_detail :input").attr("disabled", true);
+                $('#error_text').text('ผู้ใช้งานนี้ไม่สามารถบันทึกใช้สิทธิ์ได้ กรุณาตรวจสอบสิทธิ์การเข้าใช้งาน');
+                $('#confirm').hide();
+                $("#error-alert").show();
+
+                if ('@ViewBag.IsCallClaim' == 'True') {
+                    $('#claim_admittype').attr('disabled',false)
+                    $('#chief_complain').attr('disabled',false)
+                }
+            }
+
+            //ONLOAD CHECK CLAIM REPEATEDLY
+            CountClaimPHRepeatedly($('#appId').val(),$('#date_in').val());
+
+            //DESEASE EXCEPT
+            $('#desease_except').click(function() {
+                //GET DATATABLES
+                GetDatatables('table_desease_except');
+            });
+            //BUTTON CONFIRM
+            $('#btn_modal_confirm').click(function() {
+                //HIDE MODAL
+                $('#modal-confirm').modal('hide');
+                //CREATE HCI
+                CreateHCI();
+            });
+            //DATE CHANGE
+            $('.dpk').change(function() {
+                $(this).valid();
+            });
+            //SELECT2 CHANGE
+            $('.select2').change(function() {
+                $(this).valid();
+            });
+
+            //GET CHIEF COMPLAIN
+            GetChiefComplain(true);
+            //GET CLAIM ADMIT
+            GetClaimAdmit(@ViewBag.pGroupId, $('#claim_type_hidden').val(), true);
+            //GET OPD REMAIN
+            GetOPDRemain($('#appId').val(), $('#date_happen').val());
+
+            //GET DATATABLES HISTORY
+            //comment 12-01-2561 ไม่ใช้งาน
+            //GetDatatablesClaimHistory();
+
+            $('#claim_admittype').change(function(e){
+                e.preventDefault();
+                check_claimadmit($('#hidden_opd').val(),$('#accident_priceperunit').val());
+            });
+
+            //FORM SUBMIT
+            $('#myForm').submit(function (e) {
+                e.preventDefault();
+                $('#confirm').prop('disabled', true);
+                $.get('@Url.Action("CheckDuplicate")', { appId: $('#appId').val(), chiefComplainCode: $('#chief_complain').val(), dateHappen: $('#date_happen').val(), dateIn: $('#date_in').val()},
+                function(response){
+                    if (response > 0) {
+                        swal_info("แจ้งเตือน!", "ตรวจพบการยืนยันใช้สิทธ์ซ้ำ\nกรุณาตรวจสอบการทำรายการอีกครั้ง หรือติดต่อสอบถาม 1434", "ตกลง")
+                        $('#confirm').prop('disabled', false);
+                        return
+                    }
+                    else {
+                        if ($('#SSSProductId').val() == 'P30' && $('#InsuranceCompanyId').val() == '100000000041' ) {
+                            $.ajax({
+                                url: "@Url.Action("CheckPolicy", "PH")?productTypeId=" +
+                                    3 +
+                                    "&claimDate=" +
+                                    $('#date_in').val() +
+                                    "&applicationCode=" +
+                                    $('#appId').val(),
+                                success: function (response) {
+                                    if (response === false) {
+                                        swal_info("กรุณาติดต่อเจ้าหน้าที่ 1434 ค่ะ");
+                                        $('#confirm').prop('disabled', false);
+                                        return
+                                    }
+                                    validateHCI()
+                                    $('#confirm').prop('disabled',  false);
+                                }
+                            });
+                        } else {
+                            validateHCI()
+                        }
+                    }
+                })
+
+
+            });
+        });
+        function validateHCI() {
+            const txt = $('#cause').val();
+            // CLAIM ADMIT TYPE 5 = OPDทั่วไป / 7 = อุบัติเหตุ
+            if ($("#myForm").valid() == true) {
+                    var d0 = new Date(); //Current
+                    var d1 = $('#date_happen').datepicker('getDate'); //Date happen
+                    var d2 = $('#date_in').datepicker('getDate'); //Date in
+
+                    var st = $('#startcoverdate').val();
+                    var d = moment(st).toDate();
+                    var dStart = new Date(d.getFullYear() - 543, d.getMonth(), d.getDate());
+                    //DATE HAPPEN <= DATE IN
+                    if (d1 <= d0 && d2 <= d0 && d1 <= d2 && d1 >= dStart) { //Date happen <= Current AND Date in <= Current AND Date Happen <= Date in
+                        //CHECK ADMITTYPE
+                        if ($('#claim_admittype').val() == 5) {
+                            //VALIDATE OPD > 0
+                            if ($('#hidden_opd').val() > 0) {
+                                //CHECK EXCEPT
+                                if (txt != "") {
+                                    if (SearchExcept(txt) == 0) {
+                                        //CALL FUNCTION CREATE HCI
+                                        CreateHCI();
+                                    } else {
+                                        $('#modal-confirm').modal('show');
+                                    }
+                                } else {
+                                    CreateHCI();
+                                }
+                                $('#confirm').prop('disabled',false);
+                            } else {
+                                $('#confirm').prop('disabled',true);
+                                $('#div_blue').removeClass('bg-blue');
+                                $('#div_blue').addClass('bg-red');
+                                $('#error_text').text('จำนวน OPD โรคทั่วไป คงเหลือเท่ากับ 0 ไม่สามารถยืนยันใช้สิทธิ์ได้');
+                                //SCROLLTOP AND SHOW ALERT
+                                document.body.scrollTop = 0; // For Chrome, Safari and Opera
+                                document.documentElement.scrollTop = 0; // For IE and Firefox
+                                ShowAlert();
+                            }
+                        } else {
+                            if ($('#accident_priceperunit').val() > 0){
+                                $('#confirm').prop('disabled',false);
+                                //CHECK EXCEPT
+                                if (txt != "") {
+                                    if (SearchExcept(txt) == 0) {
+                                        //CALL FUNCTION CREATE HCI
+                                        CreateHCI();
+                                    } else {
+                                        $('#modal-confirm').modal('show');
+                                    }
+                                } else {
+                                    CreateHCI();
+                                }
+                                $('#confirm').prop('disabled', false);
+                            }else{
+                                $('#confirm').prop('disabled',true);
+                                $('#div_green').removeClass('bg-green');
+                                $('#div_green').addClass('bg-red');
+                                $('#confirm').prop('disabled', false);
+                            }
+                        }
+                    } else {
+                        //SCROLLTOP AND SHOW ALERT
+                        $('body,html').animate({
+                            scrollTop : 0 // Scroll to top of body
+                        }, 500);
+                        $('#error_text').text('กรุณาตรวจสอบวันที่เกิดเหตุ และ วันที่เข้ารักษา');
+                        ShowAlert();
+                        $('#confirm').prop('disabled', false);
+                    }
+                }
+            $('#confirm').prop('disabled', false);
+        }
+        //CREATE HCI
+        function CreateHCI() {
+            var dataObj = $('#myForm').serialize();
+            window.swal({
+                title: 'ยืนยันการใช้สิทธิ์หรือไม่?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#277020',
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                closeOnConfirm: false,
+                closeOnEsc: false,
+                closeOnCancel: true,
+                showLoaderOnConfirm: true
+            },
+                function() {
+                    $.ajax({
+                        type: "POST",
+                        url: $('#myForm').attr('action'),
+                        data: dataObj,
+                        success: function(response) {
+                            if (response != null && response != "") {
+                                if (response.success === false && response.duplicateClaim) {
+                                    // แสดง popup แจ้ง ClaimHeaderID ซ้ำ
+                                    swal_info("แจ้งเตือน!", response.message, "OK");
+                                    $('#confirm').prop('disabled', false);
+                                }
+                                else {
+                                    window.swal({
+                                    title: 'ดำเนินการเรียบร้อย!',
+                                    type: 'success',
+                                    showCancelButton: false,
+                                    confirmButtonColor: '#26A65B',
+                                    confirmButtonText: 'ตกลง',
+                                    closeOnEsc: false
+                                },
+                                    function() {
+                                        //ENCODE
+                                        var hciId = window.btoa(response);
+                                        window.open('@Url.Action("GetOPDAndGuaranteeReport", "HCI")?hciId=' + hciId +'&page4='+page4,
+                                            '_blank');
+                                        window.location = '@Url.Action("Index", "PH")';
+                                        $('#confirm').prop('disabled', false);
+                                    });
+                                }
+
+                            } else {
+                                window.swal({
+                                    title: 'เกิดข้อผิดพลาด!',
+                                    type: 'error',
+                                    text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                                    showCancelButton: false,
+                                    confirmButtonColor: '#ed2b09',
+                                    confirmButtonText: 'ตกลง',
+                                    closeOnEsc: false
+                                },
+                                    function() {
+                                        window.location = "@Url.Action("InternalServerError", "Error")";
+                                        $('#confirm').prop('disabled', false);
+                                    });
+                            }
+                        },
+                        error: function(xhr, error) {
+                            alert(xhr);
+                            $('#confirm').prop('disabled', false);
+                        }
+                    });
+                });
+        }
+
+        //GET CLAIM ADMIT
+        function GetClaimAdmit(pGroupId, claimtypeId, isActive) {
+            $.ajax({
+                type: "GET",
+                async:false,
+                url: "@Url.Action("GetClaimAdmitType", "DataMaster")?pGroupId=" +
+                pGroupId +
+                "&claimTypeId=" +
+                claimtypeId +
+                "&isActive=" +
+                isActive,
+                //async: false,
+                success: function(response) {
+                    if (response != "") {
+                        $('#claim_admittype').empty();
+                        for (var i = 0; i < response.length; i++) {
+                            if (IsCheckDate30) {
+                                if (response[i].ClaimAdmitTypeID == 7) {
+                                    $('#claim_admittype').append('<option value="' +
+                                        response[i].ClaimAdmitTypeID +
+                                        '">' +
+                                        response[i].ClaimAdmitTypeDetail +
+                                        '</option>');
+                                }
+                            } else {
+                                if (response[i].ClaimAdmitTypeID == 5 || response[i].ClaimAdmitTypeID == 7) {
+                                    $('#claim_admittype').append('<option value="' +
+                                        response[i].ClaimAdmitTypeID +
+                                        '">' +
+                                        response[i].ClaimAdmitTypeDetail +
+                                        '</option>');
+                                }
+                            }
+
+                            if ($('#SSSProductId').val() == 'P30') {
+                                $('#claim_admittype').val(7);
+                            }
+
+                            $('#claim_admittype').change();
+                        }
+                    } else {
+                        $('#claim_admittype').empty();
+                        $('#claim_admittype').append('<option value="-1">--โปรดระบุ--</option>');
+                        $('#claim_admittype').change();
+                    }
+                }
+            });
+        }
+
+        //GET CHIEF COMPLAIN
+        function GetChiefComplain(isActive) {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetChiefComplain", "DataMaster")?isActive=" + isActive,
+                async: false,
+                success: function(response) {
+                    $('#chief_complain').empty();
+                    $('#chief_complain').append('<option value="-1">--โปรดระบุ--</option>');
+                    for (var i = 0; i < response.length; i++) {
+                        if ( response[i].ChiefComplainID != 251 &&  response[i].ChiefComplainID != 252) {
+                            $('#chief_complain').append('<option value="' +
+                                                        response[i].ChiefComplainID +
+                                                        '">' +
+                                                        response[i].ChiefComplainDetail +
+                                                        '</option>');
+                        }
+                    }
+                }
+            });
+        }
+
+        //SEARCH EXCEPT
+        function SearchExcept(txt) {
+            var result; //RESULT
+            var separator  = txt;  //SET Separator
+            var appId = $('#appId').val(); //SET APP ID
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("SearchExcept", "HCI")?search=" + txt,
+                async: false,
+                success: function(response) {
+                    result = response.length; //LENGTH
+                    $('#table_except_detail > tbody:last-child').empty();
+                    if (response != null) {
+                        for (var i = 0; i < result; i++) {
+                            var str1 = response[i].ExceptDetail; //Str 1
+                            var arrayOfStrings = str1.split(separator); //Split to Array
+                            var str2 = arrayOfStrings.join("<mark>" + separator + "</mark>"); //Join String to Str 2
+                            $('#table_except_detail > tbody:last-child').append('<tr>' +
+                                '<td>' + response[i].Except_ID + '</td>' +
+                                '<td>' + str2 + '</td>' +
+                                '<td>' + response[i].ExceptTypeDetail + '</td>' +
+                                '</tr>');
+                        }
+                    }
+                    var result2 = SearchDeseaseExcept(appId, txt);
+                    result += result2;
+                }
+            });
+            return result;
+        }
+
+        //SEARCH DEASEASE EXCEPT
+        function SearchDeseaseExcept(appId, txt) {
+            var result;
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("SearchDeseaseExcept", "HCI")?appId=" + appId + "&search=" + txt,
+                async: false,
+                success: function(response) {
+                    result = response.length;
+                    if (result > 0) {
+                        $('#div_desease_except').show();
+                        $('#lbl_desease_except').empty();
+                        $('#lbl_desease_except').text(response[0].DeseaseExcept);
+                    } else {
+                        $('#div_desease_except').hide();
+                    }
+
+                }
+            });
+            return result;
+        }
+
+        //GET OPD REMAIN
+        function GetOPDRemain(appId, dtHappen) {
+            var encode = window.btoa(appId);
+            $.ajax({
+                type: "GET",
+                async:false,
+                url: "@Url.Action("GetOPDRemain")?appId=" + encode + "&dtHappen=" + dtHappen,
+                success: function (response) {
+                    if (response.OPD_Remain == 0 || response.OPD_Remain == null) {
+
+                        // $('#confirm').prop('disabled',true);
+                        if (!IsCheckDate30) {
+                            $('#sick_priceperunit').text(0);
+                            $('#sick_priceperunit').val(0);
+                            $('#sp_opd').text("คงเหลือ : OPD เต็มสิทธิ์");
+                            $('#div_blue').removeClass('bg-blue');
+                            $('#div_blue').addClass('bg-red');
+                        }
+
+                    } else {
+                        // $('#confirm').prop('disabled',false);
+                        if (!IsCheckDate30) {
+                            $('#sick_priceperunit').text(response.OPD_PricePerUnit);
+                            $('#sick_priceperunit').val(response.OPD_PricePerUnit);
+                            $('#sp_opd').text(`คงเหลือ : ${response.OPD_Remain} ครั้ง`);
+                            $('#div_blue').removeClass('bg-red');
+                            $('#div_blue').addClass('bg-blue');
+                        }
+
+                    }
+
+                    if (response.Accident_PricePerUnit == 0 || response.Accident_PricePerUnit == null ) {
+                        $('#accident_priceperunit').text(0);
+                        $('#accident_priceperunit').val(0);
+                        $('#div_green').removeClass('bg-green');
+                        $('#div_green').addClass('bg-red');
+                    } else {
+                        var Accident_PricePerUnitWithComma = response.Accident_PricePerUnit.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                        $('#accident_priceperunit').text(Accident_PricePerUnitWithComma);
+                        $('#accident_priceperunit').val(response.Accident_PricePerUnit);
+                        $('#div_green').removeClass('bg-red');
+                        $('#div_green').addClass('bg-green');
+                    }
+
+                    $('#hidden_opd').val(response.OPD_Remain);
+                    //$('#label_opd').text(response);
+
+                    //Check Claim Admit
+                    check_claimadmit(response.OPD_Remain,response.Accident_PricePerUnit);
+                }
+            });
+        }
+
+        //GET DATATABLES
+        function GetDatatables(DATATABLE_NAME) {
+            var table = $('#' + DATATABLE_NAME);
+            var t = $(table).DataTable({
+                processing: true,
+                searching: true,
+                mark: true,
+                lengthChange: false,
+                responsive: true,
+                scrollY: '300px',
+                scrollCollapse: true,
+                destroy: true,
+                paging: false,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                columnDefs: [ {
+                    searchable: false,
+                    orderable: false,
+                    targets: 0
+                } ],
+                order: [[ 1, 'asc' ]]
+            });
+            //RUN INDEX NUMBER
+            t.on( 'order.dt search.dt', function () {
+                t.column(0, {search:'applied', order:'applied'}).nodes().each( function (cell, i) {
+                    cell.innerHTML = i+1;
+                } );
+            } ).draw();
+        }
+
+        //SHOW ALERT
+        function ShowAlert() {
+            $("#error-alert").fadeTo(5000, 10).slideUp(1000,
+                function() {
+                    $("#error-alert").slideUp(1000);
+                });
+        }
+
+        //CHECK 30
+        function CheckDate() {
+            var st = $('#startcoverdate').val();
+            var d = moment(st).toDate();
+            var dStart = new Date(d.getFullYear() - 543, d.getMonth(), d.getDate());
+            var d30 = new Date(dStart);
+            d30.setDate((dStart.getDate()-1) + 30);
+
+            var dHappen = $('#date_happen').datepicker("getDate");
+
+            if (dHappen >= dStart && dHappen <= d30) {
+                IsCheckDate30 = true;
+                $('#sp_opd_parent1').text("ไม่คุ้มครอง OPD โรคทั่วไป เนื่องจากผู้เอาประกันอยู่ในระยะรอคอย 30 วัน").css('display', 'block');
+                $('#sp_opd_parent2').css('display', 'none');
+                $('#div_blue').removeClass('bg-blue');
+                $('#div_blue').addClass('bg-red');
+                $('#warning_2').text('*ผู้เอาประกันอยู่ในระยะรอคอยสำหรับโรคทั่วไป(30 วัน)');
+            } else {
+                IsCheckDate30 = false;
+                $('#sp_opd_parent1').css('display', 'none');
+                $('#sp_opd_parent2').css('display', 'block');
+                $('#warning_2').text('');
+                //GET OPD REMAIN
+                GetOPDRemain($('#appId').val(), $('#date_happen').val());
+            }
+            //ถ้าไม่อยู่ในระยะ30วัน ให้เช็คระยะ 120 วัน
+            if (!IsCheckDate30) CheckDate120();
+
+            //GET OPD REMAIN
+            GetOPDRemain($('#appId').val(), $('#date_happen').val());
+        }
+
+        //CHECK 120
+        function CheckDate120() {
+            var st = $('#startcoverdate').val();
+            var d = moment(st).toDate();
+            var dStart = new Date(d.getFullYear() - 543, d.getMonth(), d.getDate());
+            var d120 = new Date(dStart);
+            d120.setDate((dStart.getDate() - 1) + 120);
+
+            var dHappen = $('#date_happen').datepicker("getDate");
+
+            if (dHappen >= dStart && dHappen <= d120) {
+                page4 = true;
+                $('#warning_2').text('*ผู้เอาประกันอยู่ในระยะรอคอยสำหรับโรคทั่วไป(120 วัน)');
+            } else {
+                page4 = false;
+                $('#warning_2').text('');
+            }
+        }
+
+        //DATATABLE CLAIM HISTORY
+        function GetDatatablesClaimHistory() {
+            var appId = $('#appId').val();
+            $('#datatable_history').empty();
+            $('#datatable_history').DataTable({
+                pageLength: 5,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                lengthChange: false,
+                responsive: true,
+                destroy: true,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetDatatableClaimHistory")',
+                    method: "POST",
+                    data: function(d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.appId = appId;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'วันที่เข้ารับการรักษา',
+                        data: 'DateIssue',
+                        className: 'dt-center',
+                        render: function(data) {
+                            return DisplayJsonDateBE(data);
+                            //return moment(data).format('DD/MM/YYYY');
+                        }
+                    },
+                    {
+                        title: 'โรงพยาบาล',
+                        data: 'Hospital',
+                        className: 'dt-center'
+                    },
+                    {
+                        title: 'อาการ',
+                        data: 'ChiefComplain',
+                        className: 'dt-center'
+                    },
+                    {
+                        title: 'ยอดเบิก',
+                        data: 'AmountTotal',
+                        className: 'dt-right',
+                        //render: $.fn.dataTable.render.number(',')
+                        render: function(data) {
+                            if (data == 0) {
+                                return '<span class="label label-warning">' + 'รอยืนยันยอด' + '</span>';
+                            }
+                            var num = $.fn.dataTable.render.number(',').display(data);
+                            return num + ' บาท';
+                        }
+                    }
+                ]
+            });
+        };
+
+        /*set height*/
+        const setHeight = () => {
+            const h =  $('#box-body-benefit').height();
+            $('#box-body-customer').height(h);
+        };
+
+        /*check claim admit*/
+        const check_claimadmit = (opd,accident) => {
+            const type =  $('#claim_admittype').val();
+            switch (type) {
+                case "5": //ทั่วไป
+                    //check 901 902
+                    if ('@ViewBag.IsOPDByProductCode' == 'True') {
+                        if ((opd > 0)) {
+                            $('#confirm').prop('disabled',false);
+                        }else{
+                            $('#confirm').prop('disabled',true);
+                        }
+                    }else{
+                        $('#confirm').prop('disabled',true);
+                        $('#sp_opd').text("ไม่มีความคุ้มครอง OPD โรคทั่วไป");
+                    }
+                    break;
+                case "7" : //อุบัติเหตุ
+                    if ('@ViewBag.IsOPDByProductCode' == 'True') {
+                        //check 30
+                        if ((accident > 0)) {
+                            if ($('#SSSProductId').val() == 'P30') {
+                                $('#confirm').prop('disabled', false);
+                                $('#sp_opd').text("ไม่มีความคุ้มครอง OPD โรคทั่วไป");
+                            } else {
+                                $('#confirm').prop('disabled', false);
+                            }
+                        } else {
+                            $('#confirm').prop('disabled', true);
+                        }
+                    }else{
+                        $('#confirm').prop('disabled',false);
+                        $('#sp_opd').text("ไม่มีความคุ้มครอง OPD โรคทั่วไป");
+                    }
+                    break;
+                default:
+            }
+        }
+
+        //get memo
+        const getMemo=(Id) => {
+            $.get('@Url.Action("CustomerMemoByAppCode")', { appId: Id })
+                .done((data) => {
+                    if (data.length > 0) {
+                        $('#warning_1').css('display', 'block');
+                        $('#row_deseaseExcept').show();
+                        loadDatatables_Memo('datatable_deseaseExcept', data);
+                    } else {
+                        $('#warning_1').css('display', 'none');
+                        $('#row_deseaseExcept').hide();
+                    }
+                });
+        }
+
+        /*fn load datatables memo*/
+        const loadDatatables_Memo = (t, data) => {
+            $('#' + t).empty();
+            const table=  $('#' + t).DataTable({
+                pageLength: 5,
+                processing: true,
+                serverSide: false,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: false,
+                info: false,
+                paging: true,
+                data: data,
+                language: {
+                    url: "http://cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Thai.json"
+                },
+                columnDefs: [ {
+                    searchable: false,
+                    orderable: false,
+                    targets: 0
+                } ],
+                order: [[ 1, 'asc' ]],
+                columns: [
+                    {
+                        title: '#',
+                        data: null,
+                        orderable: false
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: 'MemoText',
+                        orderable: false
+
+                    }
+                ]
+            });
+
+            table.on( 'draw.dt', function () {
+                var PageInfo = table.page.info();
+                table.column(0, { page: 'current' }).nodes().each( function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                } );
+            } );
+        }
+
+        //CHECK APP PH REPEAT
+        const CountClaimPHRepeatedly = (appId,dateIssue) => {
+            $.get('@Url.Action("CountClaim")',{appId:appId, dateIssue : dateIssue },
+                function(response){
+                    if (response > 0) {
+                        //Count Claim
+                        swal_info("แจ้งเตือน! วันที่รักษาซ้ำ","โปรดตรวจสอบว่าเป็นเคลมเดียวกันหรือไม่","รับทราบ")
+
+                    }
+                })
+        }
+
+    </script>
+}

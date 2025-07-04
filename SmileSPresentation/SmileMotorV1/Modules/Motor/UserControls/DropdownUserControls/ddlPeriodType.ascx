@@ -1,0 +1,2 @@
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="ddlPeriodType.ascx.cs" Inherits="SmileMotorV1.Modules.Motor.UserControls.DropdownUserControls.ucPeriodType" %>
+<asp:DropDownList ID="ddlPeriodType" runat="server" OnSelectedIndexChanged="OnSelectChanged"></asp:DropDownList>

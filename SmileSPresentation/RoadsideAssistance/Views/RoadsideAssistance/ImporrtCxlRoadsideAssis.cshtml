@@ -1,0 +1,376 @@
+﻿@using RoadsideAssistance.Helper;
+@{
+    ViewBag.Title = "นำเข้ารายชื่อยกเลิกสิทธิ์";
+    var userDetail = RoadsideAssistance.Helper.OAuth2Helper.GetLoginDetail();
+
+    ViewBag.Fristname = userDetail.FirstName;
+    ViewBag.Lastname = userDetail.LastName;
+    ViewBag.EmpCode = userDetail.UserName;
+    ViewBag.Department = userDetail.DepartmentDetail;
+    ViewBag.BranchDetail = userDetail.BranchDetail;
+    ViewBag.EmpId = userDetail.User_ID;
+}
+
+<div class="box-default">
+    <div class="box-header" style="background: linear-gradient(to left, rgb(249, 123, 79), rgb(249, 123, 79));">
+        <div class="row">
+            <div class="form-group col-md-3">
+                <label for="SourceType">ประเภทลูกค้า</label>
+                <select class="form-control" id="SourceType" required>
+                    <option value="-1" selected disabled>เลือก</option>
+                    @foreach (var item in ViewBag.SourceType)
+                    {
+                        <option value="@item.SourceTypeId">@item.SourceType</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group col-md-2">
+                <button class="btn btn-block btn-default btn-sm" id="UploadFile" style="margin-top: 25px; background-color:rgb(97, 97, 97);color:white">เลือก</button>
+            </div>
+        </div>
+    </div>
+    <div class="box-body" style="min-height:340px" id="fromimport">
+
+        <div class="row">
+            @using (Html.BeginForm("UploadCxl", "RoadsideAssistance", FormMethod.Post, new { id = "upload_formCxl", enctype = "multipart/form-data" }))
+            {
+                <div class="col-md-3" id="typeC"></div>
+                <div class="col-md-5" id="filename"></div>
+                <input type="hidden" name="actionType" id="actionType" value="D" />
+            }
+        </div>
+        <button class="btn btn-primary col-md-offset-8" id="addCxlMember" style="display :none" disabled>ตกลง</button>
+    </div>
+</div>
+<input type="hidden" value="@ViewBag.tempCode" id="tempCode" />
+<input type="hidden" value="@ViewBag.sourceTypeID" id="sourceType" />
+<div class="row" hidden id="row_dim">
+    <div class="col-xs-12">
+        <div class="box box-success">
+            <div class="box-body">
+                <label class="form-label">จำนวน Error : <span id="lblErrorCount" style="font-weight:bold;color:red">-</span></label>
+                <button class="btn btn-default col-md-offset-6" type="button" id="editimport">อัพโหลดอีกครั้ง</button>
+                <button class="btn btn-primary" type="button" id="saveimportcxl">ยืนยันการอัพโหลด</button>
+                <button class="btn btn-warning" type="button" id="exportDetail">Export รายละเอียด</button>
+                <div id="example2_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+                    <div class="row"><div class="col-sm-6"></div><div class="col-sm-6"></div></div><div class="row">
+                        <div class="col-sm-12">
+                            <table id="table_valid" class="table table-bordered table-hover dataTable" role="grid">
+                                <thead>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+        <!-- /.box -->
+    </div>
+    <!-- /.col -->
+</div>
+<div class="box-footer" style="background: linear-gradient(to right, rgb(37, 80, 177), rgb(28, 176, 230));">
+    <p style="color:white">Copyright SIAMSMILE BROKER (THAILAND) CO., LTD.</p>
+</div>
+@section ViewSpecificJavascript {
+    <script>
+          var SourceTypeCheck = [];
+        $(function () {
+
+            history.pushState(null, null, location.href);
+            history.back();
+            history.forward();
+            window.onpopstate = function () {
+                history.go(1);
+            };
+
+        });//end on load
+
+        // add browse file and check sourcetype
+        $('#UploadFile').click(function () {
+            let sourctType = $('#SourceType').val();
+            if (sourctType == null) {
+                swal("แจ้งเตือน", "กรุณาเลือกประเภทลูกค้า !", "warning");
+                return false;
+            } else {
+                if (SourceTypeCheck.length == 0) {
+                    SourceTypeCheck.push(sourctType);
+
+                    $('#filename').append(`<input class="form-control" id="file" name="file" type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="margin-top: 15px;" />`);
+                    $('#typeC').append(`<input class="form-control" name="SourceType" type="text" value="${$("#SourceType option:selected").text()}" style="margin-top: 15px;" readonly /><input class="form-control" id="txtSourceTypeId" name="txtSourceTypeId" type="hidden" value="${$("#SourceType").val()}" />`);
+                    $('#addCxlMember').removeAttr('disabled');
+                    $('#addCxlMember').removeAttr('style', 'display: none');
+                } else {
+                    if (SourceTypeCheck[0] == sourctType) {
+                        $('#filename').append(`<input class="form-control" id="file" name="file" type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="margin-top: 15px;" />`);
+                        $('#typeC').append(`<input class="form-control" name="SourceType" type="text" value="${$("#SourceType option:selected").text()}" style="margin-top: 15px;" readonly /><input class="form-control" id="txtSourceTypeId" name="txtSourceTypeId" type="hidden" value="${$("#SourceType").val()}" />`);
+                    } else {
+                        //alert
+                        swal("แจ้งเตือน", "ประเภทลูกค้าไม่เหมือนกัน", "warning");
+                    }
+
+                }
+            }
+        });
+
+        //upload
+        $('#addCxlMember').click(function (e) {
+            loadingSpinner('fadeIn');
+            e.preventDefault();
+            $('#addCxlMember').attr('disabled', 'disabled');
+            if ($('#file').val() == null || $('#file').val() == "") {
+                loadingSpinner('fadeOut');
+                swal("แจ้งเตือน", "กรุณาเลือกไฟล์ !", "warning");
+                $('#addCxlMember').removeAttr('disabled', 'disabled');
+                return false;
+            } else {
+
+                //SourceTypeCheck = []; // clear array
+                var fileUpload = [];
+                var fileData = new FormData();
+                var file_length = $("input[type='file']").length;
+                var txtSourceTypeId = $('#txtSourceTypeId').val();
+                var actionType = $('#actionType').val();
+
+                for (var i = 0; i < file_length; i++) {
+                    fileUpload.push($("input[type='file']").get(i))
+                }
+
+                for (var j = 0; j < fileUpload.length; j++) {
+                    fileData.append(`file[${j}]`, fileUpload[j].files[0]);
+                    fileData.append('txtSourceTypeId', txtSourceTypeId);
+                    fileData.append('actionType', actionType);
+                }
+
+                $.ajax({
+                    url: "@Url.Action("UploadCxl", "RoadsideAssistance")",
+                    type: 'POST',
+                    datatype: 'json',
+                    processData: false,
+                    contentType: false,
+                    data: fileData,
+                    success: function (data) {
+                        loadingSpinner('fadeOut');
+                        if (data.IsResult) {
+                            swal({
+                                title: "กำลังอัพโหลดข้อมูล...",
+                                text: "...",
+                                type: "warning",
+                                showConfirmButton: false,
+                                timer: 2000,
+                            },
+                                function (e) {
+                                    swal_confirm2("แจ้งเตือน", "ตรวจสอบข้อมูลเรียบร้อย", function (e) {
+                                        swal.close();
+                                        $('#fromimport').hide();
+                                        $('#row_dim').show();
+                                        $('#tempCode').val(data.txttempCode);
+                                        $('#sourceType').val(data.sourceTypeID);
+                                        $('#SourceType').attr('disabled', 'disabled');
+                                        $('#UploadFile').attr('disabled', 'disabled');
+                                        previewcxlImport(data.txttempCode);
+                                    })
+                                })
+                        } else {
+                            swal("เกิดข้อผิดพลาด", data.Msg, "warning");
+                            $('#file').val("");
+                            $('#addCxlMember').removeAttr('disabled', 'disabled');
+                        }
+                    }
+                });
+            }
+        });
+
+        //button save import
+        $('#saveimportcxl').click(function (e) {
+            loadingSpinner('fadeIn');
+            e.preventDefault();
+            $('#saveimportcxl').attr('disabled','disabled')
+            saveimportcxl();
+        });
+
+       //save
+        function saveimportcxl() {
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("SaveUpload", "RoadsideAssistance")",
+                data: {
+                    tmpCode: $('#tempCode').val(),
+                    sourceTypeId: $('#sourceType').val(),
+                    createdByUserId:@ViewBag.EmpId,
+                },
+                dataType: 'json',
+                success: function (data) {
+                    loadingSpinner('fadeOut');
+                    if (data.IsResult) {
+                        swal({
+                            title: "กำลังบันทึกข้อมูล...",
+                            text: "...",
+                            type: "warning",
+                            showConfirmButton: false,
+                            timer: 3000,
+                        },
+                            function (e) {
+                                swal_confirm2("แจ้งเตือน", "บันทึกข้อมูลเรียบร้อย", function (e) {
+                                    window.location.replace("@Url.Action("ImporrtCxlRoadsideAssis", "RoadsideAssistance")");
+                                });
+                            });
+                    } else {
+                        swal("แจ้งเตือน", `${data.Msg}`, "warning");
+                    }
+                }
+            })
+        }
+
+        //upload Again
+        $('#editimport').click(function (e) {
+        e.preventDefault();
+            window.location.href = '@Url.Action("ImporrtCxlRoadsideAssis", "RoadsideAssistance")';
+        })
+
+        $('#exportDetail').click(function (e) {
+            e.preventDefault();
+            ExportReport();
+        })
+
+        function ExportReport() {
+            loadingSpinner('fadeIn');
+            $.ajax({
+                url: "@Url.Action("ExportReportValidate", "RoadsideAssistance")",
+                type: "GET",
+                data: {
+                    tempCode: $('#tempCode').val()
+                },
+                success: function (data) {
+                    loadingSpinner('fadeOut');
+                    if (data.IsResult == false) {
+                        swal("ผลการค้นหา", data.Msg, "warning", function (e) {
+                            swal.close();
+                            return false;
+                        });
+                    } else {
+                        window.location = "@Url.Action("DownloadValidateCxl", "RoadsideAssistance")";
+                        loadingSpinner('fadeOut');
+                    }
+
+                },
+                error: function (jqXHR, exception) {
+                    checkXHRStatus(jqXHR.status);
+                }
+            });
+        }
+
+        //previewImport
+        function previewcxlImport(tempCode) {
+            $("#table_valid").empty();
+            tableA = $("#table_valid").DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                autoWidth: false,
+                destroy: true,
+                searching: false,
+                lengthChange: false,
+                pageLength: 7,
+                ordering: false,
+                ajax: {
+                    url: "@Url.Action("Preview", "RoadsideAssistance")",
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.tempCode = tempCode;
+                    },
+                    dataSrc: function (json) {
+
+                        if (json.data.length == 0) {
+
+                            $("#lblErrorCount").text(json.errMsg);
+
+                            $('#saveimportcxl').attr('disabled', 'disabled');
+                            $('#exportDetail').attr('disabled', 'disabled');
+
+                            swal("แจ้งเตือน", `${json.errMsg}`, "warning");
+                        } else {
+                            $('#lblErrorCount').text(json.errorCountField);
+                        }
+
+                        return json.data;
+                    }
+                },
+                columns: [
+                    {
+                        "title": "หมายเลขอ้างอิง",
+                        orderable: false,
+                        "data": "ReferenceCode"
+                    },
+                    {
+                        "title": "คำนำหน้า",
+                        orderable: false,
+                        "data": "Title"
+                    },
+                    {
+                        "title": "ชื่อ",
+                        orderable: false,
+                        "data": "FirstName"
+                    },
+                    {
+                        "title": "นามสกุล",
+                        orderable: false,
+                        "data": "LastName"
+                    },
+                    {
+                        "title": "บัตรประชาชน/พาสปอร์ต",
+                        orderable: false,
+                        "data": "CardDetail"
+                    },
+                    {
+                        "title": "เบอร์ติดต่อ",
+                        orderable: false,
+                        "data": "MobileNumber"
+                    },
+                    {
+                        "title": "หน่วยงาน",
+                        orderable: false,
+                        "data": "BuildingName"
+                    },
+                    {
+                        "title": "วันคุ้มครอง",
+                        orderable: false,
+                        "data": "StartCoverDate",
+                          render: function (data) {
+                            if (data != null) {
+                                let date = moment(data);
+                                //date.add(543, 'years');
+                                return moment(date).format('DD/MM/YYYY')
+                            } else {
+                                return '-';
+                            }
+                        }
+                    },
+                    {
+                        "title": "วันสิ้นสุดคุ้มครอง",
+                        orderable: false,
+                        "data": "EndCoverDate",
+                          render: function (data) {
+                            if (data != null) {
+                                let date = moment(data);
+                                //date.add(543, 'years');
+                                return moment(date).format('DD/MM/YYYY')
+                            } else {
+                                return '-';
+                            }
+                        }
+                    },
+                    {
+                        "title": "Error Messages",
+                        orderable: false,
+                        "data": "ValidateDescription",
+                    }
+                ]
+            });
+        }
+    </script>
+
+}

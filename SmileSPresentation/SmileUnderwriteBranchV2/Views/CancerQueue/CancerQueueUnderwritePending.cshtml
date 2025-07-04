@@ -1,0 +1,851 @@
+﻿@{
+    ViewBag.Title = "รายละเอียดคิวงานที่ยังไม่ได้คัดกรอง";
+    Layout = "~/Views/Shared/_LayoutForTopIndexCancer.cshtml";
+}
+<style>
+    .table {
+        font-size: 14px;
+    }
+</style>
+
+<div class="box box-header box-warning bg-yellow">
+    <center><span style="font-size:large;">ประกันโรคร้ายแรง</span></center>
+</div>
+<form action="" method="post" id="Mainform">
+    <div class="row" style="margin-top: 25px">
+        <div class="col-sm-12 col-md-12">
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs nav-justified">
+                    <li @if (ViewBag.menu == "CancerqueueUnderwritePending" || ViewBag.menu == "" || ViewBag.menu == null) { <text> class="active" </text> }><a style="font-size: larger" href="#tab1" data-toggle="tab" aria-expanded="True">ยังไม่ได้มอบกรมธรรม์</a></li>
+                    <li @if (ViewBag.menu == "CancerqueueUnderwritePendingComplete") { <text> class="active" </text> }><a style="font-size: larger" href="#tab2" data-toggle="tab" aria-expanded="True">มอบกรมธรรม์เเล้ว</a></li>
+                    <li @if (ViewBag.menu == "CancerqueueUnderwriteCancelBeforDCR") { <text> class="active" </text> }><a style="font-size: larger" href="#tab3" data-toggle="tab" aria-expanded="True">ยกเลิกก่อน DCR</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane @if(ViewBag.menu == "CancerqueueUnderwritePending" || ViewBag.menu == "" || ViewBag.menu == null) { <text> active </text> }" id="tab1">
+                        @* DT form *@
+                        <div class="form-group">
+                            <div class="box box-danger">
+                                <br />
+                                <fieldset>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-block btn-success" onclick="downloadExcel()">
+                                            <i class="fa fa-file-excel-o"></i>
+                                        </button>
+                                    </div>
+                                    <legend style="text-align:center;background: #FF4128;color:white">รายละเอียดคิวงานที่ยังไม่ได้มอบกรมธรรม์</legend>
+                                    <div class="box-body">
+                                        <div class="form-group">
+                                            <div class="col-sm-12 col-md-2">
+                                                <label for="inputAppId" class="control-label">เลข App</label>
+                                                <input type="text" class="form-control" id="inputAppId" placeholder="เลข App">
+                                            </div>
+                                            <div class="col-sm-12  col-md-3">
+                                                <label for="inputInsuredName" class="control-label">ชื่อ-สกุล ผู้เอาประกัน</label>
+                                                <input type="text" class="form-control" id="inputInsuredName" placeholder="ชื่อ-สกุล ผู้เอาประกัน">
+                                            </div>
+                                            <div class="col-sm-12  col-md-3">
+                                                <label for="inputPayerName" class="control-label">ชื่อ-สกุล ผู้ชำระเบี้ย</label>
+                                                <input type="text" class="form-control" id="inputPayerName" placeholder="ชื่อ-สกุล ผู้ชำระเบี้ย">
+                                            </div>
+                                            <div class="col-sm-12  col-md-3">
+                                                <label for="selectStartCoverDate" class="col-sm-1 control-label txt-nowrap">วันเริ่มคุ้มครอง</label>
+                                                <select id="selectStartCoverDate" class="form-control">
+                                                    @if (ViewBag.PeriodList != null)
+                                                    {
+                                                        <option value="-1">ทั้งหมด</option>
+                                                        foreach (var i in ViewBag.PeriodList)
+                                                        {
+                                                            <option value="@i.Value.ToString("yyyy-MM-dd")"> @i.Display</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-12 col-md-1" style="margin-top: 25px;margin-bottom:15px">
+                                                <button class="btn btn-block btn-primary" type="button" id="btnSearch">ค้นหา</button>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <table id="tableCancerQueueUnderwritePendingDetail" class="table table-bordered table-striped display responsive" style="width:100%;">
+                                                <tbody>
+                                                    <tr style="text-align:center"><td>ไม่พบข้อมูล</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                            </div>
+                            @* end form *@
+                        </div>
+                        <div class="tab-pane @if(ViewBag.menu == "CancerqueueUnderwritePendingComplete") { <text> active </text> }" id="tab2">
+                            <div id="docReturn_form">
+                                <div class="box box-success">
+                                    <br />
+                                    <fieldset>
+                                        <legend style="text-align: center; background: #1AAF6B; color: white">รายละเอียดคิวงานที่มอบกรมธรรม์แล้ว</legend>
+                                        <div class="box-body">
+                                            <div class="form-group">
+                                                <div class="col-sm-12 col-md-2">
+                                                    <label for="inputAppIdComplete" class="control-label">เลข App</label>
+                                                    <input type="text" class="form-control" id="inputAppIdComplete" placeholder="เลข App">
+                                                </div>
+                                                <div class="col-sm-12  col-md-3">
+                                                    <label for="inputCustomerNameComplete" class="control-label">ชื่อ-สกุล ผู้เอาประกัน</label>
+                                                    <input type="text" class="form-control" id="inputCustomerNameComplete" placeholder="ชื่อ-สกุล ผู้เอาประกัน">
+                                                </div>
+                                                <div class="col-sm-12  col-md-3">
+                                                    <label for="inputPayerNameComplete" class="control-label">ชื่อ-สกุล ผู้ชำระเบี้ย</label>
+                                                    <input type="text" class="form-control" id="inputPayerNameComplete" placeholder="ชื่อ-สกุล ผู้ชำระเบี้ย">
+                                                </div>
+
+                                                <div class="col-sm-12  col-md-3">
+                                                    <label for="selectStartCoverDateComplete" class="col-sm-1 control-label txt-nowrap">วันเริ่มคุ้มครอง</label>
+                                                    <select id="selectStartCoverDateComplete" class="form-control">
+                                                        @if (ViewBag.PeriodList != null)
+                                                        {
+                                                            foreach (var i in ViewBag.PeriodList)
+                                                            {
+                                                                <option value="@i.Value.ToString("yyyy-MM-dd")"> @i.Display</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-12 col-md-1" style="margin-top: 25px">
+                                                    <button class="btn btn-block btn-primary" type="button" id="btnSearchComplete">ค้นหา</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" style="margin-top: 15px">
+                                            <table id="tableCancerQueueUnderwritePendingDetailComplete" class="table table-bordered table-striped display responsive " style="width:100%;">
+                                                <tbody>
+                                                    <tr style="text-align:center"><td>ไม่พบข้อมูล</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane @if(ViewBag.menu == "CancerqueueUnderwriteCancelBeforDCR") { <text> active </text> }" id="tab3">
+                            <div id="docReturn_form">
+                                <div class="box box-primary">
+                                    <br />
+                                    <fieldset>
+                                        <legend style="text-align: center; background: #587EA3; color: white">รายละเอียดคิวงานยกเลิกก่อน DCR</legend>
+                                        <div class="box-body">
+                                            <div class="form-group">
+                                                <div class="col-sm-12 col-md-2">
+                                                    <label for="inputAppIdCancel" class="control-label">เลข App</label>
+                                                    <input type="text" class="form-control" id="inputAppIdCancel" placeholder="เลข App">
+                                                </div>
+                                                <div class="col-sm-12  col-md-3">
+                                                    <label for="inputCustomerNameCancel" class="control-label">ชื่อ-สกุล ผู้เอาประกัน</label>
+                                                    <input type="text" class="form-control" id="inputCustomerNameCancel" placeholder="ชื่อ-สกุล ผู้เอาประกัน">
+                                                </div>
+                                                <div class="col-sm-12  col-md-3">
+                                                    <label for="inputPayerNameCancel" class="control-label">ชื่อ-สกุล ผู้ชำระเบี้ย</label>
+                                                    <input type="text" class="form-control" id="inputPayerNameCancel" placeholder="ชื่อ-สกุล ผู้ชำระเบี้ย">
+                                                </div>
+
+                                                <div class="col-sm-12  col-md-3">
+                                                    <label for="selectStartCoverDateCancel" class="col-sm-1 control-label txt-nowrap">วันเริ่มคุ้มครอง</label>
+                                                    <select id="selectStartCoverDateCancel" class="form-control">
+                                                        @if (ViewBag.PeriodList != null)
+                                                        {
+                                                            foreach (var i in ViewBag.PeriodList)
+                                                            {
+                                                                <option value="@i.Value.ToString("yyyy-MM-dd")"> @i.Display</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-12 col-md-1" style="margin-top: 25px">
+                                                    <button class="btn btn-block btn-primary" type="button" id="btnSearchCancel">ค้นหา</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" style="margin-top: 15px">
+                                            <table id="dtCancerQueueCancelBeforeDCR" class="table table-bordered table-striped display responsive" style="width:100%;">
+                                                <tbody>
+                                                    <tr style="text-align:center"><td>ไม่พบข้อมูล</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+    @* hidden *@
+    <input type="hidden" id="userId" value="@ViewBag.UserId" />
+    <input type="hidden" id="hd_branchId" value="@ViewBag.branchId" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+            /*start signalR*/
+            // Reference the auto-generated proxy for the hub.
+            var chat = $.connection.chatHub;
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                //join group
+                chat.server.joinGroup($('#userId').val());
+            });
+
+            //Show public message to client
+            chat.client.receiveGroupNotice = function (message) {
+                /*full msg*/
+                const fullMessage = message;
+                /*new date*/
+                const date = new Date();
+                /*set str*/
+                const str = date.getFullYear() +
+                    "-" +
+                    (date.getMonth() + 1).toString().padStart(2, "0") +
+                    "-" +
+                    date.getDate().toString().padStart(2, "0") +
+                    " " +
+                    date.getHours().toString().padStart(2, "0") +
+                    ":" +
+                    date.getMinutes().toString().padStart(2, "0") +
+                    ":" +
+                    date.getSeconds().toString().padStart(2, "0");
+                /*alert toastr*/
+                window.toastr["success"](`อัพเดตครั้งล่าสุด : ${str}`, fullMessage);
+                /*Load Datatables*/
+                GetCancerQueueUnderwritePending_DT();
+                GetCancerQueueUnderwritePendingComplete_DT($("#selectStartCoverDateComplete").val());
+                GetCancerQueueCancelBeforeDCR($("#selectStartCoverDateCancel").val());
+            };
+
+            window.toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": true,
+                "positionClass": "toast-top-center",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+            /*end signalR*/
+
+            // Select all tabs
+            $('.nav-tabs a').click(function () {
+                GetCancerQueueUnderwritePending_DT($("#selectStartCoverDate").val());
+                GetCancerQueueUnderwritePendingComplete_DT($("#selectStartCoverDateComplete").val());
+                GetCancerQueueCancelBeforeDCR($("#selectStartCoverDateCancel").val());
+            })
+
+            //declare new date
+            var date = new Date();
+            //set options datepicker
+            $('#DCR').datepicker({
+                format: 'dd/mm/yyyy',
+                startDate: new Date(date.getFullYear(), (date.getMonth() + 1) - 6, 1),
+                endDate: new Date(date.getFullYear(), (date.getMonth() + 1) + 1, 1),
+                viewMode: "months",
+                minViewMode: "months",
+                autoclose: true
+            }).datepicker('setDate', new Date(date.getFullYear(), date.getMonth(), 1));
+
+            //LOAD DEFAULT
+            GetCancerQueueUnderwritePending_DT($("#selectStartCoverDate").val());
+            GetCancerQueueUnderwritePendingComplete_DT($("#selectStartCoverDateComplete").val());
+            GetCancerQueueCancelBeforeDCR($("#selectStartCoverDateCancel").val());
+
+
+            //Event
+            $('#btnSearch').on('click', function (e) {
+                e.preventDefault();
+                //load datatable
+                let startCoverDate = $("#selectStartCoverDate").val();
+                GetCancerQueueUnderwritePending_DT(startCoverDate);
+            });
+            $('#btnSearchComplete').on('click', function (e) {
+                e.preventDefault();
+                //load datatable
+                let startCoverDate = $("#selectStartCoverDateComplete").val();
+                GetCancerQueueUnderwritePendingComplete_DT(startCoverDate);
+            });
+            $('#btnSearchCancel').on('click', function (e) {
+                e.preventDefault();
+                //load datatable
+                let startCoverDate = $("#selectStartCoverDateCancel").val();
+                GetCancerQueueCancelBeforeDCR(startCoverDate);
+            });
+
+        });
+
+
+
+        //ยังไม่ได้คัดกรอง
+        function GetCancerQueueUnderwritePending_DT(startCoverDate) {
+            $('#tableCancerQueueUnderwritePendingDetail').empty();
+            var table = $('#tableCancerQueueUnderwritePendingDetail').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                order: [[3, "asc"]],
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+
+                ajax: {
+                    url: '@Url.Action("CancerQueueUnderwritePendingDT", "CancerQueue")',
+
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.applicationCode = $('#inputAppId').val().trim();
+                        d.insuredName = $('#inputInsuredName').val().trim();
+                        d.payerName = $('#inputPayerName').val().trim();
+                        d.startCoverDate = startCoverDate;
+                        d.playerBranchId = null;
+                        d.payerDistricId = null;
+                        d.payerStudyAreaId = null;
+
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ',
+                        data: null,
+                        orderable: false,
+                        className: 'th-center td-center',
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+
+                        }
+                    },
+
+                    {
+                        title: 'เลข App',
+                        data: 'ApplicationCode',
+                        className: 'th-center',
+                    },
+                    {
+                        title: 'ชื่อผู้เอาประกัน',
+                        data: 'InsuredName',
+                        className: 'th-center',
+                    },
+                    {
+                        title: 'ชื่อผู้ชำระเบี้ย',
+                        data: 'PayerName',
+                        className: 'th-center',
+                    },
+                    {
+                        title: 'ชื่อหน่วยงาน',
+                        data: 'PayerOfficeName',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'ตำบล',
+                        data: 'SubDistrictDetail',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'อำเภอ',
+                        data: 'DistrictDetail',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'จังหวัด',
+                        data: 'ProvinceDetail',
+                        className: "th-center"
+                    }, {
+                        title: 'วันครบกำหนดคิวงาน 7วัน',
+                        data: 'QueueChallengeDate',
+                        className: 'th-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:ss", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'วันครบกำหนดคิวงาน',
+                        data: 'QueueExpireDate',
+                        className: 'th-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY HH:mm:ss", "LLLL");
+                        }
+                    },
+                    {
+                        title: 'แผน',
+                        data: 'ProductDetail',
+                        className: 'th-center',
+                    },
+
+                    {
+                        title: 'วันเริ่มคุ้มครอง',
+                        data: 'StartCoverDate',
+                        className: 'th-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY");
+                        }
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        orderable: false,
+                        className: 'th-center td-center',
+                         render: function (data) {
+                             return `<button type="button" onclick="OpenNewPage(${data.QueueId});" class="btn btn-info" style="width:100%"><i class="fa fa-search"></i> เปิด</button>`;
+                         }
+                    }
+                ],
+            });
+
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        const OpenNewPage = (queueId) => {
+            let encodeId = btoa(queueId);
+            window.open(`@Url.Action("CancerUnderwriteIndex", "CancerUnderwrite")?queueId=${encodeId}`,'_blank')
+        }
+
+         // คัดกรองแล้ว
+        const GetCancerQueueUnderwritePendingComplete_DT = (startCoverDate) => {
+            $('#tableCancerQueueUnderwritePendingDetailComplete').empty();
+            var table = $('#tableCancerQueueUnderwritePendingDetailComplete').DataTable({
+                  pageLength: 10,
+                  lengthChange: true,
+                  processing: true,
+                  serverSide: true,
+                  destroy: true,
+                  searching: false,
+                  ordering: true,
+                  info: true,
+                  paging: true,
+                  autoWidth: false,
+                  responsive: true,
+                    language: {
+                        url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                    },
+                    ajax: {
+                        url: '@Url.Action("QueueCancerUnderwritePendingComplete_DT")',
+                        method: 'POST',
+                        data: function (d) {
+                            d.draw = d.draw;
+                            d.pageSize = d.length;
+                            d.indexStart = d.start;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.applicationCode = $("#inputAppIdComplete").val();
+                            d.searchDetail1 = $("#inputCustomerNameComplete").val();
+                            d.searchDetail2 = $("#inputPayerNameComplete").val();
+                            d.startCoverDate = startCoverDate;
+                        }
+                    },
+                    columns: [
+                        {
+                            title: 'ลำดับ',
+                            data: null,
+                            orderable: false,
+                            className: "th-center td-center"
+                        },
+                        {
+                            title: 'เลข App',
+                            data: 'ApplicationCode',
+                            className: "th-center"
+                        },
+                        {
+                            title: 'ชื่อผู้เอาประกัน',
+                            data: 'InsuredName',
+                            className: "th-center"
+                        },
+                        {
+                            title: 'ชื่อผู้ชำระเบี้ย',
+                            data: 'PayerName',
+                            className: "th-center"
+                        },
+                        {
+                            title: 'ชื่อหน่วยงาน',
+                            data: 'PayerOfficeName',
+                            className: "th-center"
+                        },
+                        {
+                            title: 'วันเริ่มคุ้มครอง',
+                            data: 'StartCoverDate',
+                            className: "th-center",
+                            render: function (data) {
+                                moment.locale('th');
+                                return moment(data).add(543, 'years').format("DD/MM/YYYY");
+                            }
+                        },
+                        //{
+                        //    title: 'ผลการคัดกรอง',
+                        //    data: 'UnderwriteResult',
+                        //    orderable: false,
+                        //    className: "text-center",
+                        //    render: function (data) {
+                        //        switch (data) {
+                        //            case "n/a":
+                        //            case "รอพิจารณา":
+                        //                return '<span class="label label-default">' + data + '</span>';
+                        //                break;
+                        //            case "ผ่าน":
+                        //                return '<span class="label label-success">' + data + '</span>';
+                        //                break;
+                        //            case "ผ่านแบบติดเงื่อนไข":
+                        //                return '<span class="label label-warning">' + data + '</span>';
+                        //                break;
+                        //            case "ไม่ผ่าน":
+                        //                return '<span class="label label-danger">' + data + '</span>';
+                        //                break;
+                        //            default:
+                        //                return 'xx';
+                        //                break;
+                        //        }
+                        //    }
+                        //},
+                        {
+                            title: 'รายละเอียด',
+                            width: "200px",
+                            orderable: false,
+                            data: null,
+                            className: "th-center td-center",
+                            render: function (data) {
+                                console.log(data.QueueStatusId)
+
+                                var start = Date.now();
+                                var NowDay = moment(start).format("DD");
+
+                                var NowTime = moment(start).format("HH.mm");
+                                var FloatNowTime = parseFloat(NowTime);
+                                var IntNowDay = parseInt(NowDay);
+
+                                 var CloseEdit = (`@ViewBag.CancerCloseDate`).split(",");
+                                var CloseEditDay = parseInt(CloseEdit[0]);
+                                var CloseEditTime = parseFloat(CloseEdit[1]);
+
+                                var NowMonth = moment(start).format("MM");
+                                    var preiodMonth = moment(data.StartCoverDate).format("MM");
+                                var IntNowMonth = parseInt(NowMonth);
+                                var IntpreiodMonth = parseInt(preiodMonth)
+                                var divMonth = IntpreiodMonth - IntNowMonth
+                                if (data.QueueStatusId != 8) {
+                                    
+                                    if (divMonth == 1 && IntNowDay > CloseEditDay) {
+                                        if (FloatNowTime < CloseEditTime) {
+                                            return ` <button type="button" class="btn btn-info " onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>
+                                             <button type="button" class="btn btn-warning" onclick="OpenNewIndexPage(${data.QueueId});" ><i class="fa fa-edit" ></i>แก้ไข</button>
+                                            `;
+                                        } else {
+                                            return ` <button type="button" class="btn btn-info " onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>`;
+                                        }
+
+                                    } else if (divMonth == 0 && IntNowDay <= CloseEditDay) {
+                                        if (FloatNowTime < CloseEditTime) {
+                                            return ` <button type="button" class="btn btn-info " onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>
+                                             <button type="button" class="btn btn-warning" onclick="OpenNewIndexPage(${data.QueueId});" ><i class="fa fa-edit" ></i>แก้ไข</button>
+                                            `;
+                                        } else {
+                                            return ` <button type="button" class="btn btn-info " onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>`;
+                                        } 
+
+                                    } else {
+                                        return ` <button type="button" class="btn btn-info " onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>`;
+                                    }
+                                } else {
+                                    return ` <button type="button" class="btn btn-info " onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>`;
+                                }
+
+                            }
+
+
+
+                            @*render: function (data) {
+
+                                var start = Date.now();
+                                var NowDay = moment(start).format("DD");
+
+                                var NowTime = moment(start).format("HH.mm");
+                                var FloatNowTime = parseFloat(NowTime);
+                                var IntNowDay = parseInt(NowDay);
+                                var QueueResultCreatedDateDay = moment(data.QueueResultCreatedDate).format("DD");
+                                var IntQueueResultCreatedDateDay = parseInt(QueueResultCreatedDateDay)
+
+                                var CloseEdit = (`@ViewBag.CancerCloseDate`).split(",");
+                                var CloseEditDay = parseInt(CloseEdit[0]);
+                                var CloseEditTime = parseFloat(CloseEdit[1]);
+
+
+                                var NowMonth = moment(start).format("MM");
+                                var preiodMonth = moment(data.StartCoverDate).format("MM");
+                                var IntNowMonth = parseInt(NowMonth);
+                                var IntpreiodMonth = parseInt(preiodMonth)
+                                var divMonth = IntpreiodMonth - IntNowMonth
+
+
+                                if (divMonth == 0) {
+                                    if (IntNowDay <= CloseEditDay && FloatNowTime <= CloseEditTime) {
+                                        if (IntNowDay <= IntQueueResultCreatedDateDay + 3 && IntNowDay >= IntQueueResultCreatedDateDay) {
+                                            return ` <button type="button" class="btn btn-info " onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>
+                                             <button type="button" class="btn btn-warning" onclick="OpenNewIndexPage(${data.QueueId});" ><i class="fa fa-edit" ></i>แก้ไข</button>
+                                            `;
+                                        } else {
+                                            return ` <button type="button" class="btn btn-info " onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>`;
+                                        }
+                                    } else {
+                                        return ` <button type="button" class="btn btn-info " onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>`;
+                                    }
+
+                                } else if (divMonth == 1) {
+                                    if (IntNowDay <= IntQueueResultCreatedDateDay + 3 && IntNowDay >= IntQueueResultCreatedDateDay) {
+                                        return ` <button type="button" class="btn btn-info " onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>
+                                             <button type="button" class="btn btn-warning" onclick="OpenNewIndexPage(${data.QueueId});" ><i class="fa fa-edit" ></i>แก้ไข</button>
+                                            `;
+                                    } else {
+                                        return ` <button type="button" class="btn btn-info " onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>`;
+                                    }
+
+                                } else {
+                                    return ` <button type="button" class="btn btn-info " onclick="OpenNewViewPage(${data.QueueId});"><i class="fa fa-search"></i>ดูรายละเอียด</button>`;
+                                }
+
+                            }*@
+
+
+                        }
+                    ]
+            });
+                table.on('draw.dt', function () {
+                    var PageInfo = table.page.info();
+                    table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                        cell.innerHTML = i + 1 + PageInfo.start;
+                    });
+                });
+                window.onresize = function () {
+                    table.columns.adjust().responsive.recalc();
+                };
+        }
+        const OpenNewViewPage = (queueId) => {
+            let encodeId = btoa(queueId);
+            window.open(`@Url.Action("CancerUnderwriteDetail", "CancerUnderwrite")?queueId=${encodeId}`, '_blank')
+        }
+        const OpenNewIndexPage = (queueId) => {
+            let encodeId = btoa(queueId);
+            window.open(`@Url.Action("CancerUnderwriteEdit", "CancerUnderwrite")?queueId=${encodeId}`, '_blank')
+        }
+
+        //ยกเลิกก่อน DCR
+        function GetCancerQueueCancelBeforeDCR(startCoverDate) {
+            $('#dtCancerQueueCancelBeforeDCR').empty();
+            var table = $('#dtCancerQueueCancelBeforeDCR').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+
+                ajax: {
+                    url: '@Url.Action("QueueCancerUnderwriteCancelBeforeDCR_DT", "CancerQueue")',
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.applicationCode = $("#inputAppIdCancel").val();
+                        d.searchDetail1 = $("#inputCustomerNameCancel").val();
+                        d.searchDetail2 = $("#inputPayerNameCancel").val();
+                        d.startCoverDate = startCoverDate;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ',
+                        data: null,
+                        orderable: false,
+                        className: "th-center td-center"
+                    },
+                    {
+                        title: 'เลข App',
+                        data: 'ApplicationCodeQueueId',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'ชื่อผู้เอาประกัน',
+                        data: 'InsuredName',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'ชื่อผู้ชำระเบี้ย',
+                        data: 'PayerName',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'ชื่อหน่วยงาน',
+                        data: 'PayerOfficeName',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'วันเริ่มคุ้มครอง',
+                        data: 'AppStartCoverDate',
+                        className: "th-center",
+                        render: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY");
+                        }
+                    },
+                    //{
+                    //    title: 'ผลการคัดกรอง',
+                    //    data: 'UnderwriteResult',
+                    //    orderable: false,
+                    //    className: "text-center",
+                    //    render: function (data) {
+                    //        switch (data) {
+                    //            case "n/a":
+                    //                return '<span class="label label-default">' + "รอข้อมูล" + '</span>';
+                    //                break;
+                    //            case "รอพิจารณา":
+                    //                return '<span class="label label-default">' + data + '</span>';
+                    //                break;
+                    //            case "ผ่าน":
+                    //                return '<span class="label label-success">' + data + '</span>';
+                    //                break;
+                    //            case "ผ่านแบบติดเงื่อนไข":
+                    //                return '<span class="label label-warning">' + data + '</span>';
+                    //                break;
+                    //            case "ไม่ผ่าน":
+                    //                return '<span class="label label-danger">' + data + '</span>';
+                    //                break;
+                    //            default:
+                    //                return '<span class="label label-default">' + "รอข้อมูล" + '</span>';
+                    //                break;
+                    //        }
+                    //    }
+                    //},
+                    {
+                        title: 'รายละเอียด',
+                        orderable: false,
+                        data: null,
+                        className: "th-center td-center",
+                        render: function (data) {
+                            return `<button type="button" onclick="LoadDetail(${data.QueueId});" class="btn btn-info" style="width:100%"><i class="fa fa-search"></i> ดูรายละเอียด</button>`;
+                        }
+                    }
+                ],
+            });
+
+            table.on('draw.dt', function () {
+                var PageInfo = table.page.info();
+                table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                });
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+        const LoadDetail = (qId) => {
+            var encodeId = btoa(qId);
+
+
+
+            window.open(`@Url.Action("CancerUnderwriteDetail", "CancerUnderwrite")?queueId=${encodeId}`, '_blank')
+        }
+
+         function downloadExcel() {
+            loadingSpinner('fadeIn', 999999);
+            let search1 = null;
+            let search2 = null;
+            let startCoverDate = null;
+            if ($('#inputCustomerName').val() != "") {
+                search1 = $('#inputCustomerName').val();
+            }
+            if ($('#inputPayerName').val() != "") {
+                search2 = $('#inputPayerName').val();
+            }
+            if ($("#selectStartCoverDate").val() != -1) {
+                startCoverDate = $("#selectStartCoverDate").val();
+            }
+            $.ajax({
+                url: "@Url.Action("DownloadQueuePendingExcelReport")",
+                type: "POST",
+                data: {
+                    appId : $("#inputAppId").val(),
+                    search1 : search1,
+                    search2 : search2,
+                    startCoverDate : startCoverDate
+                },
+                success: function (data) {
+                    if (data.IsResult == false) {
+                        loadingSpinner('fadeOut');
+                        swal("ผลการค้นหา", data.Msg, "warning", function (e) {
+                            swal.close();
+                            return false;
+                        });
+                    } else {
+                        let reportName = "คิวงานยังไม่ได้มอบกรมธรรม์_ประกันโรคร้ายแรง";
+                        window.location = `@Url.Action("Download")?reportName=${reportName}`;
+                        loadingSpinner('fadeOut');
+                    }
+                },
+                error: function (jqXHR, exception) {
+                    checkXHRStatus(jqXHR.status);
+                    loadingSpinner('fadeOut');
+                }
+            });
+        }
+        function checkXHRStatus(xhrStatus) {
+            var msg = '';
+            if (xhrStatus === 0) {
+                msg = 'Not connect.\n Verify Network.';
+            } else if (jqXHR.status == 404) {
+                msg = 'Requested page not found. [404]';
+            } else if (jqXHR.status == 500) {
+                msg = 'Internal Server Error [500].';
+            } else if (exception === 'parsererror') {
+                msg = 'Requested JSON parse failed.';
+            } else if (exception === 'timeout') {
+                msg = 'Time out error.';
+            } else if (exception === 'abort') {
+                msg = 'Ajax request aborted.';
+            } else {
+                msg = 'Uncaught Error.\n' + jqXHR.responseText;
+            }
+            swal("ไม่สำเร็จ", msg, "error");
+        }
+    </script>
+}

@@ -1,0 +1,237 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutForSurvey.cshtml";
+}
+<style>
+    .img-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    h5 {
+        color: Highlight;
+    }
+
+    .star {
+        font-size: 5rem;
+        color: #ff9800;
+        background-color: unset;
+        border: none;
+    }
+
+        .star:hover {
+            cursor: pointer;
+            color: #ff9800;
+        }
+
+    .star_rating {
+        user-select: none;
+    }
+
+    .tr {
+        font-size: 12px;
+        color: dodgerblue;
+    }
+</style>
+<form id="formQuestion" method="post" action="@Url.Action("Question","SurveyResearch")" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div class="col-12" style="text-align:center">
+                <label style="font-size: 17px; color: DodgerBlue">รายละเอียด</label>
+            </div>
+
+
+            <div class="row">
+                <div class="col-xs-12">
+                    <table style="width:100%">
+                        <tr class="tr">
+                            <th style="width: 20%; text-align: left">วันที่</th>
+                            <th style="width: 60%; text-align: center;">ชื่อผู้เอาประกัน</th>
+                            <th style="width: 20%; text-align: right">จำนวนเงิน</th>
+                        </tr>
+                        @if (ViewBag.ClaimList != null)
+                        {
+                            <div>
+                                @for (int j = 0; j < ViewBag.ClaimList.Count; j++)
+                                {
+                                    <tr style="font-size: 12px">
+                                        <td style="text-align: left">@ViewBag.ClaimList[j].SendSMSDate.ToString("dd/MM/yyyy")</td>
+                                        <td style="text-align: center">@ViewBag.ClaimList[j].Name</td>
+                                        <td class="contribution" style="text-align: right">@ViewBag.ClaimList[j].Amount</td>
+                                    </tr>
+
+                            }
+                            </div>
+                            }
+                        </table>
+                        <table style="width:100%">
+                            <tr>
+                                @if (ViewBag.ClaimList != null)
+                                {
+                                    <td style="width: 20%;">&nbsp;</td>
+                                    <td style="font-weight: bold; text-align: center; font-size: 13px ;width: 60%">รวม</td>
+                                    <td class="contribution" style="font-weight: bold; text-align: right; font-size: 13px; width: 20%">@ViewBag.TotalAmount</td>
+                                }
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <br>
+                <br>
+                <br>
+
+
+                <div class="row" style="margin-top:9px">
+                    <div class="col-xs-12" style="text-align:center">
+                        @foreach (var item in ViewBag.SurveyQuestion)
+                        {
+                            <div class="box-header">
+                                <label style="font-size:17px">@item.QuestionDetail </label>
+                            </div>
+
+
+                            <div class="col-xs-12" style="text-align:center">
+                                <table style="margin-left:auto;margin-right:auto;">
+                                    <tr>
+                                        <th></th>
+                                        @for (int j = 0; j < ViewBag.SurveyAnswer.Count; j++)
+                                        {
+                                            <th class="text-center">@ViewBag.SurveyAnswer[j].AnswerDetail</th>
+                                        }
+                                        <th></th>
+                                    </tr>
+                                    <tr>
+                                        <td>น้อยที่สุด&nbsp;&nbsp;</td>
+                                        @for (int j = 0; j < ViewBag.SurveyAnswer.Count; j++)
+                                        {
+                                            <td>
+                                                <a style="padding-left:6px;padding-right:6px" class="star" value="@ViewBag.SurveyAnswer[j].AnswerId" id="@ViewBag.SurveyAnswer[j].AnswerDetail" name="@ViewBag.SurveyAnswer[j].SurveyQuestionId" onclick="MySurveyAnswerId('@ViewBag.SurveyAnswer[j].SurveyQuestionId','@ViewBag.SurveyAnswer[j].SurveyAnswerId','@ViewBag.SurveyAnswer[j].AnswerId')">&#9734;</a>
+                                            </td>
+                                        }
+                                        <td>&nbsp;&nbsp;มากที่สุด</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-xs-12" style="text-align:center">
+                                    <label style=" color: DodgerBlue">ผู้ให้บริการ: @ViewBag.ServiceName</label>
+                                </div>
+                            </div>
+                            <br>
+                            <br>
+                            <br>
+
+                            <div class="row">
+                                <div class="col-xs-12" style="text-align:left">
+                                    <label>ข้อเสนอแนะ</label>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <div class="form-group">
+                                        <textarea class="form-control" rows="3" style="overflow:auto;" type="text" name="suggest" placeholder="ข้อเสนอแนะอื่น ๆ (ถ้ามี)"></textarea>
+                                        <input type="hidden" name="suggest_surveyquestion_id" value="@item.SurveyQuestionId" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div id="surveyAnswer"></div>
+                                <div class="row text-center">
+                                    <button class="btn text-center" id="btnSubmit" style="width:100px;background-color:#047ed6;color:white">ส่ง</button>
+                                </div>
+                            </div>
+                        }
+
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <input type="hidden" name="survey_id" value="@ViewBag.Survey.SurveyId" />
+            <input type="hidden" name="viewlog_id" value="@ViewBag.ViewLog" />
+        </form>
+        <br />
+        <br />
+        <br />
+
+
+        @section ViewSpecificJavascript
+{
+            <script type="text/javascript">
+                var answers = 0;
+                var elmName = '';
+                var elmId = '';
+                var elmVal = '';
+
+                $(document).ready(function () {
+                    $("td.contribution").each(function () { $(this).html(parseFloat($(this).text()).toLocaleString(undefined, { minimumFractionDigits: 2 })); })
+                })
+
+                $(function () {
+
+                    $('#btnSubmit').click(function (e) {
+                        e.preventDefault()
+                        if (valid()) {
+
+                            //create element
+                            $('#surveyAnswer').append(`<input type="hidden" id="answer_${elmId}" name="answers" value="SQ${elmName}:SA${elmId}:A${elmVal}" />`);
+
+                            $('#btnSubmit').attr('disabled', true);
+                            $('form').submit();
+                        }
+                    });
+
+                    $('a.star').click(function (e) {
+                        e.preventDefault();
+                        console.log(e.delegateTarget.id);
+                        console.log(e);
+                        let e_id = parseInt(e.delegateTarget.id);
+
+                        answers = e_id;
+                        console.log("answers:", e_id);
+
+                        for (var i = 0; i < 5; i++) {
+                            var b = 1;
+                            var c = b + i;
+                            var a = ".star#" + c;
+                            $(a).html("&#9734");
+                        }
+
+
+                        for (var i = 0; i < e_id; i++) {
+                            var b = 1;
+                            var c = b + i;
+                            var a = ".star#" + c;
+                            $(a).html("&#9733");
+                        }
+
+                        console.log("name:", elmName, "id:", elmId, "value:", elmVal);
+
+                    });
+
+                    const allStars = document.querySelectorAll('.star');
+                    console.log(allStars);
+                });
+
+                function MySurveyAnswerId(_name, _id, _value) {
+                    elmName = _name;
+                    elmId = _id;
+                    elmVal = _value;
+                }
+
+                //Function Validate
+                function valid() {
+                    console.log("answers", answers);
+                    if (answers == 0) {
+                        swal("กรุณาให้คะแนนความพึงพอใจ", "", "warning");
+                        return false;
+                    }
+
+                    return true;
+                }
+
+            </script>
+        }

@@ -1,0 +1,184 @@
+﻿@{
+    ViewBag.Title = "ยืนยันส่งความคุ้มครอง";
+
+}
+<style>
+
+    .table {
+        font-size: 14px;
+    }
+
+    .toolbar {
+        float: left;
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* search form *@
+        <div class="col-sm-12 col-md-12" id="Search_form">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายการยืนยันส่งความคุ้มครอง - NewApp</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+
+                    <div class="form-group row">
+                        <div class="col-md-offset-1 col-sm-6 col-md-2">
+                            <label class="control-label" for="">ประเภทรายการ :</label>
+                            <select class="form-control" id="select_TypeList">
+                                <option value="1">NewApp</option>
+                                @*<option value="2">ต่ออายุ</option>*@
+                            </select>
+                        </div>
+                        <div class="col-sm-6 col-md-2">
+                            <label class="control-label" for="">วันที่คุ้มครอง :</label>
+                            <input type="text" class="form-control pull-right" name="startCoverDate" id="startCoverDate"
+                                   data-date-language="th-th" data-provide="datepicker">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end search *@
+        @* operate *@
+        <div class="col-sm-12 col-md-12" id="Operate_Form">
+            <div class="col-sm-6 col-md-2 pull-right">
+                <button type="button" id="btnSubmit" class="btn btn-block btn-warning">ส่งความคุ้มครอง</button>
+            </div>
+            <div class=" col-sm-6 col-md-2 pull-right">
+                <button type="button" id="btnExport" class="btn btn-block btn-info">Export</button>
+            </div>
+        </div>
+
+        @* end operate *@
+    </div>
+    <br />
+    <div class="row">
+        @* search form *@
+        <div class="col-sm-12 col-md-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายการยืนยันส่งความคุ้มครอง - ต่ออายุ </h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-md-offset-1 col-sm-6 col-md-2">
+                            <label class="control-label" for="">ประเภทรายการ :</label>
+                            <select class="form-control" id="select_TypeRenew">
+                                <option value="2">ต่ออายุ</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-6 col-md-2">
+                            <label class="control-label" for="">วันที่คุ้มครอง :</label>
+                            <input type="text" class="form-control pull-right" name="startCoverDateRenew" id="startCoverDateRenew"
+                                   data-date-language="th-th" data-provide="datepicker">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end search *@
+        @* operate *@
+        <div class="col-sm-12 col-md-12">
+            <div class=" col-sm-6 col-md-2 pull-right">
+                <button type="button" id="btnExportRenew" class="btn btn-block btn-info">Export</button>
+            </div>
+        </div>
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            //Set DatePicker Start Date
+            $('#startCoverDate').datepicker({
+                format: 'MM yyyy',
+                viewMode: "months",
+                minViewMode: "months",
+                autoclose: true
+            }).datepicker("setDate", new Date("@ViewBag.dcrDate"));
+
+            $('#startCoverDateRenew').datepicker({
+                format: 'MM yyyy',
+                viewMode: "months",
+                minViewMode: "months",
+                autoclose: true
+            }).datepicker("setDate", new Date("@ViewBag.dcrDate"));
+
+            $('#btnSubmit').prop('disabled', true);
+
+            $('#btnExport').click((e) => {
+                e.preventDefault();
+                ExportExcel();
+                $('#btnSubmit').prop('disabled', false);
+            });
+
+            $('#btnExportRenew').click((e) => {
+                e.preventDefault();
+                ExportExcelRenew();
+            });
+
+            $('#btnSubmit').click((e) => {
+                e.preventDefault();
+                swal_confirm("ยืนยันการส่งข้อมูล", "ต้องการนำส่งข้อมูลชุดนี้ใช่หรือไม่?", () => {
+                    SendReport();
+                });
+
+            });
+        });
+
+        const ExportExcel = () => {
+             //get datepicker fromDate value and convert
+            var startCoverDate = $('#startCoverDate').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker('getDate');
+            var addfirststartCoverDate = new Date(startCoverDate.getFullYear(), startCoverDate.getMonth(), 1);
+            var startCoverDateConvert = moment(addfirststartCoverDate).format('DD-MM-YYYY');
+            var enc = btoa(startCoverDateConvert);
+
+            window.open('@Url.Action("ExportExcel","ConfirmPolicy")?startCoverDate=' + enc);
+
+        }
+
+        const ExportExcelRenew = () => {
+             //get datepicker fromDate value and convert
+            var startCoverDate = $('#startCoverDateRenew').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker('getDate');
+            var addfirststartCoverDate = new Date(startCoverDate.getFullYear(), startCoverDate.getMonth(), 1);
+            var startCoverDateConvert = moment(addfirststartCoverDate).format('DD-MM-YYYY');
+            var enc = btoa(startCoverDateConvert);
+
+            window.open('@Url.Action("ExportExcelRenew","ConfirmPolicy")?period=' + enc);
+
+        }
+
+        const SendReport = () => {
+             //get datepicker fromDate value and convert
+            var startCoverDate = $('#startCoverDate').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker('getDate');
+            var addfirststartCoverDate = new Date(startCoverDate.getFullYear(), startCoverDate.getMonth(), 1);
+            var startCoverDateConvert = moment(addfirststartCoverDate).format('DD-MM-YYYY');
+            //loading
+             $.LoadingOverlay("show",
+                    {
+                        image: "/Content/img/Spinner-1s-200px.svg",
+                        imageAnimation: "",
+                        imageColor: "#00aeef"
+                });
+
+            $.post('@Url.Action("SendPolicyToTNI","ConfirmPolicy")', { startCoverDate: startCoverDateConvert }, (data) => {
+                if (data.IsResult) {
+                    $.LoadingOverlay("hide");
+                    swal_success(data.Msg);
+                    setTimeout(() => { window.location = '@Url.Action("ConfirmPolicy","ConfirmPolicy")'; }, 1500);
+                } else {
+                    $.LoadingOverlay("hide");
+                    swal_fail(data.Msg);
+                }
+
+            });
+        }
+    </script>
+}

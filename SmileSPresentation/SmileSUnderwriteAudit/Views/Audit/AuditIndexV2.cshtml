@@ -1,0 +1,2310 @@
+﻿@{
+    ViewBag.Title = "รายละเอียด";
+    Layout = "~/Views/Shared/_LayoutForTopPHIndex.cshtml";
+}
+<style>
+    strong {
+        color: red;
+    }
+
+    label.title {
+        font-family: Sarabun;
+        color: #3F8FBD
+    }
+
+    label.fonts-box {
+        font-family: Sarabun;
+        font-size: 14px;
+        font-weight: lighter;
+    }
+
+    h4.font-custom {
+        font-family: Sarabun;
+    }
+
+    h5.font-custom {
+        font-family: Sarabun;
+    }
+
+    .error {
+        color: black
+    }
+</style>
+<section class="content">
+    <div class="nav-tabs-custom">
+        <ul class="nav nav-tabs">
+            <li class="active"><a href="#tab_1" data-toggle="tab">บันทึกผลการทำงาน</a></li>
+            <li class=""><a href="#tab_2" data-toggle="tab">ผลการมอบบัตรสาขา</a></li>
+            <li class=""><a href="#tab_3" data-toggle="tab">เอกสาร</a></li>
+            <li class=""><a href="#tab_4" data-toggle="tab">ประวัติคิวงาน</a></li>
+        </ul>
+        @if (ViewBag.QueueFullDetail != null)
+        {
+            <div class="tab-content">
+                @* tab_1 *@
+                <div class="tab-pane active" id="tab_1">
+                    <div class="row ">
+                        <div class="col-sm-12 ">
+                            <div class="card" style="background-color: #E0F7FF; border-radius: 8px 8px; margin-left: 10px; margin-right: 10px ">
+                                <div class="box-header" style="color: #3F8FBD; border-bottom: 1px solid #D2D6DE">
+                                    <i class="fa fa-user"></i>
+                                    <h4 class="box-title font-custom">ข้อมูลผู้เอาประกัน </h4>
+                                </div>
+                                <div class="box-body" style="align-items: center;">
+                                    <div class="row">
+                                        <h5 class="font-custom col-md-3"><b>App ID</b> : <a id="openSSS" style="text-decoration: underline; color: #2833FF " onclick="OpenSSS(@ViewBag.QueueFullDetail.ApplicationCode)">@ViewBag.QueueFullDetail.ApplicationCode</a></h5>
+                                        <h5 class="font-custom col-md-3">
+                                            <b>วันเริ่มคุ้มครอง</b>  : @(String.Format("{0:dd MMM yyyy}", ViewBag.QueueFullDetail.AppStartCoverDate))
+                                        </h5>
+                                        <h5 class="font-custom col-md-3"><b>แผนประกัน</b> : @ViewBag.QueueFullDetail.Product</h5>
+                                        <h5 class="font-custom col-md-3"><b>เบี้ย</b> : @ViewBag.QueueFullDetail.Premium บาท</h5>
+                                    </div>
+                                    <div class="row">
+                                        <h5 class="font-custom col-md-3 "><b>ชื่อ</b> : @(String.Format("{0}", ViewBag.QueueFullDetail.InsuredName))</h5>
+                                        <h5 class="font-custom col-md-3"><b>วันเกิด</b> : @(String.Format("{0:dd MMM yyyy}", ViewBag.QueueFullDetail.InsuredBirthDate))</h5>
+                                        <h5 class="font-custom col-md-3"><b>อายุวันสมัคร</b> : @ViewBag.QueueFullDetail.AgesAtRegister</h5>
+                                        <h5 class="font-custom col-md-3"><b>อายุปัจจุบัน</b> :  @ViewBag.QueueFullDetail.AgesCurrent</h5>
+                                    </div>
+                                    <div class="row">
+                                        <h5 class="font-custom col-md-3"><b>เบอร์โทร</b> : @ViewBag.QueueFullDetail.InsuredPhone</h5>
+                                        <h5 class="font-custom col-md-3">
+                                            <b>สถานะ</b> : @ViewBag.QueueFullDetail.AppStatus
+                                        </h5>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-md-12" style="text-align:right">
+                                            <a href="#" id="btnPolicyOther" data-toggle="modal" data-target="#modal-warning-policy" style="text-decoration: underline; color: #2833FF; display: none "></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-12" style="margin-top:15px;margin-bottom :15px">
+                            <div class="card" style="background-color: #E0F7FF; border-radius: 8px 8px; margin-left: 10px; margin-right: 10px">
+
+                                <div class="box-header" style="color: #3F8FBD; border-bottom: 1px solid #D2D6DE">
+                                    <i class="fa fa-user"></i>
+                                    <h4 class="font-custom box-title">ข้อมูลผู้ชำระเบี้ย </h4>
+                                </div>
+                                <div class="box-body " style="align-items: center;">
+                                    <div class="row">
+                                        <h5 class="font-custom col-md-4 font-custom"><b>ชื่อผู้ชำระเบี้ย</b> : @(ViewBag.QueueFullDetail.PayerName != null ? String.Format("{0}", ViewBag.QueueFullDetail.PayerName) : "-")</h5>
+                                        <h5 class="font-custom col-md-4"><b>ความสัมพันธ์</b> : @(ViewBag.QueueFullDetail.PayerRelate != null ? ViewBag.QueueFullDetail.PayerRelate : "-")</h5>
+                                        <h5 class="font-custom col-md-4"><b>เลขบัตรประชาชน/Passport</b> : @(ViewBag.QueueFullDetail.CardNo != null ? ViewBag.QueueFullDetail.CardNo : "-") </h5>
+                                    </div>
+                                    <div class="row">
+                                        <h5 class="font-custom col-md-4"><b>อาชีพ</b> : @(ViewBag.QueueFullDetail.PayerOccupationLevel != null ? ViewBag.QueueFullDetail.PayerOccupationLevel : "-")</h5>
+                                        <h5 class="font-custom col-md-4"><b>เบอร์โทร</b> : @(ViewBag.QueueFullDetail.PayerPhone != null ? ViewBag.QueueFullDetail.PayerPhone : "-")</h5>
+                                        <h5 class="font-custom col-md-4"><b>เบอร์โทรที่ทำงาน</b> : @(ViewBag.QueueFullDetail.PayerBuildingPhone != null ? ViewBag.QueueFullDetail.PayerBuildingPhone : "-")</h5>
+                                    </div>
+
+                                    <div class="row">
+                                        <h5 class="font-custom col-md-4"><b>ชื่อหน่วยงาน</b> : @(ViewBag.QueueFullDetail.PayerBuildingName != null ? ViewBag.QueueFullDetail.PayerBuildingName : "-")</h5>
+                                        <h5 class="font-custom col-md-4"><b>การชำระ</b> : @(ViewBag.QueueFullDetail.PayMethodType != null ? ViewBag.QueueFullDetail.PayMethodType : "-")</h5>
+                                        <h5 class="font-custom col-md-4"><b>ธนาคาร</b> : @(ViewBag.QueueFullDetail.PayerBankName != null ? ViewBag.QueueFullDetail.PayerBankName : "-")</h5>
+                                    </div>
+                                    <div class="row">
+                                        <h5 class="font-custom col-md-4"><b>เลขบัญชี</b> : @(ViewBag.QueueFullDetail.PayerBankAccountNo != null ? ViewBag.QueueFullDetail.PayerBankAccountNo : "-")</h5>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-md-12" style="text-align:right">
+                                            <a href="#" id="btnPayerOther" data-toggle="modal" data-target="#modal-warning" style="text-decoration: underline; color: #2833FF; display: none "></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row ">
+                        <div class="col-sm-12">
+                            @if (ViewBag.QueueFullDetail.IsBeware == true)
+                            {
+                                <div class="box-header" style="background-color: #F12D15; color: #edfcfc; border-radius: 8px 8px; margin-left: 10px; margin-right: 10px ">
+                                    <h4 class="font-custom col-md-5 box-title "><i class=" fa fa-exclamation-circle" aria-hidden="true"></i> ข้อมูลเฝ้าระวัง : @(ViewBag.QueueFullDetail.IsBeware != true ? "ไม่มี" : "มี") </h4>
+                                    <h4 class="font-custom col-md-7 box-title">หมายเหตุ : @(ViewBag.QueueFullDetail.BewareRemark != null ? ViewBag.QueueFullDetail.BewareRemark : "-") </h4>
+                                </div>
+                            }
+                            <div class="box-header" style="background-color: #B3EEFF; border-radius: 8px 8px; margin-top:15px ;margin-left:10px;margin-right:10px ">
+                                <h4 class="font-custom box-title col-md-5 ">ผลการตรวจสอบของฝ่าย QC </h4>
+                            </div>
+                            <form id="QuestionAuditUpdateV2" class="bodyQuestion" action="@Url.Action("QuestionAuditUpdateV2")" method="post" enctype="multipart/form-data">
+                                <input type="hidden" id="queueAuditId" name="queueAuditId" value="@ViewBag.QueueFullDetail.QueueAuditId" />
+                                <div class="box-body shadow  bodyQuestion" style="height: auto;width: auto;margin-top:15px">
+                                    <div class="form-group text col-md-12 radio-check status-checked">
+                                        <label class="col-md-2 control-label title ">สถานะการตรวจสอบ : </label>
+                                        @foreach (var item in ViewBag.QueueAuditStatus)
+                                        {
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="queueAuditStatusId" value="@item.QueueAuditStatusId" id="queueAuditStatusId_@item.QueueAuditStatusId" @((item.QueueAuditStatusId == ViewBag.QueueFullDetail.QueueAuditStatusId) ? "checked" : "")> @item.AuditStatusDetail
+                                            </label>
+                                            <input type="hidden" name="queueAuditStatusId_checked" value="@ViewBag.QueueFullDetail.QueueAuditStatusId" id="queueAuditStatusId_checked">
+
+                                        }
+                                    </div>
+                                </div>
+                                <div id="audit_wait" class="box-body shadow audit_wait" style="height: auto;width: auto;margin-top:15px ;display:none">
+                                    <div class="form-group text col-md-12">
+                                        <label class="col-md-2 control-label title">สถานะการโทร : </label>
+                                        <div class="col-md-4">
+                                            <select class="form-control error" id="callStatusId" name="callStatusId" required>
+                                                <option value="-1">กรุณาเลือก</option>
+                                                @foreach (var item in ViewBag.CallStatusList)
+                                                {
+                                                    <option value="@item.CallStatusId" @(item.CallStatusId == ViewBag.QueueFullDetail.AuditCallStatusId ? "selected" : "")>@item.CallStatusDetail</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group text col-md-12">
+                                        <label class="col-md-2 control-label title">หมายเหตุ : </label>
+                                        <div class="col-md-10">
+                                            <textarea name="auditRemarkCallStatusId" id="auditRemarkCallStatusId" style="display: block;border-radius: 5px;width: 80%;height: 80px">@(ViewBag.QueueFullDetail.AuditRemark)</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="audit_NotAudit" class="box-body shadow audit_NotAudit" style="height: auto;width: auto;margin-top:15px ;display:none">
+                                    <div class="form-group text col-md-12">
+                                        <label class="col-md-2 control-label title">สาเหตุ : </label>
+                                        <div class="col-md-4">
+                                            <select class="form-control error" id="notAuditedCause" name="notAuditedCause" required>
+                                                <option value="-1">กรุณาเลือก</option>
+                                                @foreach (var item in ViewBag.NotAuditedCause)
+                                                {
+                                                    <option value="@item.NotAuditedCauseId" @(item.NotAuditedCauseId == ViewBag.QueueFullDetail.NotAuditedCauseId ? "selected" : "")>@item.NotAuditedCauseDetail</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group text col-md-12">
+                                        <label class="col-md-2 control-label title">หมายเหตุ : </label>
+                                        <div class="col-md-10">
+                                            <textarea name="auditRemarkNotAuditedCause" id="auditRemarkNotAuditedCause" style="display: block;border-radius: 5px;width: 80%;height: 80px">@(ViewBag.QueueFullDetail.AuditRemark)</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="audit_complete" class="box-body shadow bodyQuestionForm" style="height: auto; width: auto; display: none">
+                                    @* ----------------1. การนำเสนอขาย และบริการหลังการขาย---------------- *@
+                                    <div class="box-header" style="background-color: #F39C12; color:azure; border-radius: 8px 8px">
+                                        <h4 class="font-custom box-title col-md-5 ">1. การนำเสนอขาย และบริการหลังการขาย </h4>
+                                    </div>
+                                    <div class="box-body">
+                                        <div class="form-group text col-md-12 radio-check bodyQuestion" style="margin-top:15px">
+                                            <label class="col-md-12 control-label title">1.1 วิธีการขาย : </label>
+                                            @foreach (var item in ViewBag.SaleMethodType)
+                                            {
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="saleMethodType" value="@item.SaleMethodTypeId" id="saleMethod_@item.SaleMethodTypeId" @(item.SaleMethodTypeId == ViewBag.QueueFullDetail.SaleMethodTypeId ? "checked" : "")> @item.SaleMethodTypeDetail
+                                                </label>
+                                            }
+                                            <label class="saleMethodTypeRemarkLabel col-md-4 fonts-box " id="saleMethodTypeRemarkLabel" style="">
+                                                <input class="form-control" id="saleMethodTypeRemark" name="saleMethodTypeRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.SaleMethodTypeRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                            <label class="col-md-12 control-label title">1.2 บริการหลังการขาย : </label>
+                                            @foreach (var item in ViewBag.SaleServiceType)
+                                            {
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="saleServiceType" value="@item.SaleServiceTypeId" id="saleServiceType_@item.SaleServiceTypeId" @(item.SaleServiceTypeId == ViewBag.QueueFullDetail.SaleServiceTypeId ? "checked" : "")> @item.SaleServiceTypeDetail
+
+                                                </label>
+                                            }
+
+                                            <label class="saleServiceTypeRemarkLabel col-md-4 fonts-box " id="saleServiceTypeRemarkLabel" style="">
+                                                <input class="form-control" id="saleServiceTypeRemark" name="saleServiceTypeRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.SaleServiceTypeRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                            <label class="col-md-12 control-label title">
+                                                1.3 มอบบัตรให้กับ :  <text style="color:black;font-weight:100">@(ViewBag.QueueFullDetail.IsUnderwriteCust == "ผู้เอาประกัน" ? ViewBag.QueueFullDetail.IsUnderwriteCust : "-")/@(ViewBag.QueueFullDetail.IsUnderwritePayer == "ผู้ชำระเบี้ย" ? ViewBag.QueueFullDetail.IsUnderwritePayer : "-")</text>
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="cobrandInsuredIsValid" value="1" id="cobrandInsuredIsValid_1" @(ViewBag.QueueFullDetail.CobrandInsuredIsValid == true ? "checked" : "")> ถูกต้อง
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="cobrandInsuredIsValid" value="0" id="cobrandInsuredIsValid_2" @(ViewBag.QueueFullDetail.CobrandInsuredIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                            </label>
+                                            <label class="cobrandInsuredRemarkLabel col-md-4 fonts-box " id="cobrandInsuredRemarkLabel" style="">
+                                                <input class="form-control" id="cobrandInsuredRemark" name="cobrandInsuredRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.CobrandInsuredRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                            <label class="col-md-12 control-label title">1.4 ประเภทบัตร : <text style="color:black;font-weight:100">@ViewBag.QueueFullDetail.IsLineOADetail </text></label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="lineOAIsValid" value="1" id="lineOAIsValid_1" @(ViewBag.QueueFullDetail.LINEOAIsValid == true ? "checked" : "")> ถูกต้อง
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="lineOAIsValid" value="0" id="lineOAIsValid_2" @(ViewBag.QueueFullDetail.LINEOAIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                            </label>
+                                            <label class="lineOARemarkLabel col-md-4 fonts-box bodyQuestion" id="lineOARemarkLabel" style="">
+                                                <input class="form-control" id="lineOARemark" name="lineOARemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.LINEOARemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                            <label class="col-md-12 control-label title">หมายเหตุการมอบบัตร : <text style="color:black;font-weight:100"> @(ViewBag.QueueFullDetail.GiveRemark == null ? "-" : ViewBag.QueueFullDetail.GiveRemark) </text></label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                            <label class="col-md-4 control-label title">1.5 ข้อมูล ผอ.บล : <text style="color:black;font-weight:100">@ViewBag.QueueFullDetail.UnderwriteByUserPersonName </text> </label>
+                                            <input type="hidden" class="form-control" id="underwriteByUserId" name="underwriteByUserId" value="@ViewBag.QueueFullDetail.UnderwriteByUserId" placeholder="รายละเอียดเพิ่มเติม" />
+                                            <label class="underwriteByUserRemarkLabel col-md-4 fonts-box " id="underwriteByUserRemarkLabel" style="">
+                                                <input class="form-control" id="underwriteByUserRemark" name="underwriteByUserRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.UnderwriteByUserRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                            <label class="col-md-12 control-label title">1.6 เพิ่มเพื่อนกับสยามสไมล์ทาง line OA :</label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="addLINEIsSuccess" value="1" id="addLINEIsSuccess_1" @(ViewBag.QueueFullDetail.AddLINEIsSuccess == true ? "checked" : "")> เรียบร้อย
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="addLINEIsSuccess" value="0" id="addLINEIsSuccess_2" @(ViewBag.QueueFullDetail.AddLINEIsSuccess == false ? "checked" : "")> ไม่เรียบร้อย
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                            <label class="col-md-12 control-label title">1.7 รูปแบบบัตรประกัน :</label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="insuranceCardType" value="1" id="insuranceCardType_1" @(ViewBag.QueueFullDetail.InsuranceCardTypeId == 1 ? "checked" : "")> Line OA
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="insuranceCardType" value="2" id="insuranceCardType_2" @(ViewBag.QueueFullDetail.InsuranceCardTypeId == 2 ? "checked" : "")> Co-brand
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="insuranceCardType" value="3" id="insuranceCardType_3" @(ViewBag.QueueFullDetail.InsuranceCardTypeId == 3 ? "checked" : "")> ไม่ได้รับ
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                            <label class="col-md-12 control-label title">1.8 คู่มือ :</label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isReceivedManual" value="1" id="isReceivedManual_1" @(ViewBag.QueueFullDetail.IsReceivedManual == true ? "checked" : "")> ได้รับ
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isReceivedManual" value="0" id="isReceivedManual_2" @(ViewBag.QueueFullDetail.IsReceivedManual == false ? "checked" : "")> ไม่ได้รับ
+                                            </label>
+                                            <div class="col-md-4 receivingManual" id="receivingManual" style="display:@(ViewBag.QueueFullDetail.IsReceivedManual == true ? "block" : "none")">
+                                                <select class="form-control" id="receivingManualTypeId" name="receivingManualTypeId">
+                                                    <option value="-1">กรุณาเลือก</option>
+                                                    @foreach (var item in ViewBag.ReceivingManualType)
+                                                    {
+                                                        <option value="@item.ReceivingManualTypeId" @(item.ReceivingManualTypeId == ViewBag.QueueFullDetail.ReceivingManualTypeId ? "selected" : "")>@item.ReceivingManualTypeDetail</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group text col-md-12 bodyQuestion">
+                                            <label class="col-md-12 control-label title">1.9 คะแนนความพึงพอใจ :</label>
+                                            <div class="col-md-4">
+                                                <select name="feedbackRate" id="feedbackRate" class="form-control error">
+                                                    <option value="-1" id="0">เลือกคะแนน</option>
+                                                    <option value="1" id="1" @(1 == ViewBag.QueueFullDetail.FeedbackRate ? "selected" : "")>1</option>
+                                                    <option value="2" id="2" @(2 == ViewBag.QueueFullDetail.FeedbackRate ? "selected" : "")>2</option>
+                                                    <option value="3" id="3" @(3 == ViewBag.QueueFullDetail.FeedbackRate ? "selected" : "")>3</option>
+                                                    <option value="4" id="4" @(4 == ViewBag.QueueFullDetail.FeedbackRate ? "selected" : "")>4</option>
+                                                    <option value="5" id="5" @(5 == ViewBag.QueueFullDetail.FeedbackRate ? "selected" : "")>5</option>
+                                                    <option value="6" id="6" @(0 == ViewBag.QueueFullDetail.FeedbackRate ? "selected" : "")>ไม่ประเมิน</option>
+                                                </select>
+                                            </div>
+                                            <label class="feedbackRemarkLabel col-md-4  fonts-box " id="feedbackRemarkLabel" style="">
+                                                <input class="form-control" id="feedbackRemark" name="feedbackRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.FeedbackRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check bodyQuestion">
+                                            <label class="col-md-12 control-label title">1.10 ผลด้านบริการ : </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="serviceResultIsIssue" value="0" id="serviceResultIsIssue_2" @(ViewBag.QueueFullDetail.ServiceResultIsIssue == false ? "checked" : "")> ไม่มีประเด็น
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="serviceResultIsIssue" value="1" id="serviceResultIsIssue_1" @(ViewBag.QueueFullDetail.ServiceResultIsIssue == true ? "checked" : "")> มีประเด็น
+                                            </label>
+
+                                            <label class="serviceResultRemarkLabel col-md-4 fonts-box" id="serviceResultRemarkLabel" style="">
+                                                <input class="form-control" id="serviceResultRemark" name="serviceResultRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.ServiceResultRemark)" />
+                                            </label>
+                                        </div>
+
+                                    </div>
+                                    @* ----------------2. ยืนยันข้อมูลส่วนบุคคล---------------- *@
+                                    <div class="box-header" style="background-color: #FFF38F; border-radius: 8px 8px">
+                                        <h4 class="font-custom box-title col-md-5 ">2. ยืนยันข้อมูลส่วนบุคคล </h4>
+                                    </div>
+                                    <div class="box-body">
+                                        <div class="form-group text col-md-12 radio-check" style="margin-top:15px">
+                                            <label class="col-md-12 control-label title ">
+                                                2.1 ชื่อ-สกุล ผู้เอาประกัน : <text style="color:black;font-weight:100"> @(ViewBag.QueueFullDetail.InsuredName )</text>
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="insuredNameIsValid" value="1" id="insuredNameIsValid_1" @(ViewBag.QueueFullDetail.InsuredNameIsValid == true ? "checked" : "")> ถูกต้อง
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="insuredNameIsValid" value="0" id="insuredNameIsValid_2" @(ViewBag.QueueFullDetail.InsuredNameIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                            </label>
+                                            <label class="insuredNameRemarkLabel col-md-4 fonts-box" id="insuredNameRemarkLabel" style="">
+                                                <input class="form-control" id="insuredNameRemark" name="insuredNameRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.InsuredNameRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">2.2 ชื่อ-สกุล ผู้ชำระเบี้ย : <text style="color:black;font-weight:100">@(ViewBag.QueueFullDetail.PayerName )</text> </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="payerNameIsValid" value="1" id="payerNameIsValid_1" @(ViewBag.QueueFullDetail.PayerNameIsValid == true ? "checked" : "")> ถูกต้อง
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="payerNameIsValid" value="0" id="ipayerNameIsValid_2" @(ViewBag.QueueFullDetail.PayerNameIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                            </label>
+                                            <label class="payerNameRemarkLabel col-md-4 fonts-box" id="payerNameRemarkLabel" style="">
+                                                <input class="form-control" id="payerNameRemark" name="payerNameRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.PayerNameRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">2.3 วันเดือนปีเกิด : <text style="color:black;font-weight:100"> @(String.Format("{0:dd MMM yyyy}", ViewBag.QueueFullDetail.InsuredBirthDate))</text></label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="birthDateIsValid" value="1" id="birthDateIsValid_1" @(ViewBag.QueueFullDetail.BirthDateIsValid == true ? "checked" : "")> ถูกต้อง
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="birthDateIsValid" value="0" id="birthDateIsValid_2" @(ViewBag.QueueFullDetail.BirthDateIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                            </label>
+                                            <label class="birthDateRemarkLabel col-md-4 fonts-box" id="birthDateRemarkLabel" style="">
+                                                <input class="form-control" id="birthDateRemark" name="birthDateRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.BirthDateRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">2.4 น้ำหนักส่วนสูง : <text style="color:black;font-weight:100">@(ViewBag.QueueFullDetail.InsuredWeightHeight )</text> </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="weightHeightIsValid" value="1" id="weightHeightIsValid_1" @(ViewBag.QueueFullDetail.WeightHeightIsValid == true ? "checked" : "")> ถูกต้อง
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="weightHeightIsValid" value="0" id="weightHeightIsValid_2" @(ViewBag.QueueFullDetail.WeightHeightIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                            </label>
+                                            <label class="weightHeightRemarkLabel col-md-4 fonts-box" id="weightHeightRemarkLabel" style="">
+                                                <input class="form-control" id="weightHeightRemark" name="weightHeightRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.WeightHeightRemark)" />
+                                            </label>
+                                        </div>
+                                    </div>
+                                    @* ----------------3. ประวัติสุขภาพ---------------- *@
+                                    <div class="box-header" style="background-color: #C2F8C5; border-radius: 8px 8px">
+                                        <h4 class="font-custom box-title col-md-5 ">3. ประวัติสุขภาพ </h4>
+                                    </div>
+                                    <div class="box-body">
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">3.1 ประวัติการแพ้ : แพ้ยา แพ้อาหาร แพ้อากาศ หรือประวัติการแพ้อื่นๆ : </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isAllergyHistory" value="1" id="isAllergyHistory_1" @(ViewBag.QueueFullDetail.IsAllergyHistory == true ? "checked" : "")> มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isAllergyHistory" value="0" id="isAllergyHistory_2" @(ViewBag.QueueFullDetail.IsAllergyHistory == false ? "checked" : "")> ไม่มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isAllergyHistory" value="2" id="isAllergyHistory_3" @(ViewBag.QueueFullDetail.IsAllergyHistory == null ? "checked" : "")> จำไม่ได้
+                                            </label>
+                                            <label class="allergyHistoryRemarkLabel col-md-4 fonts-box" id="allergyHistoryRemarkLabel" style="">
+                                                <input class="form-control" id="allergyHistoryRemark" name="allergyHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.AllergyHistoryRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">3.2 ประวัติการรักษาทั่วไป เช่น หอบหืด ภูมิแพ้ ทอนซิล ไทรอยด์ ไซนัส การเคย พ่นยาขยายหลอดลม โรคเกี่ยวกับกระเพาะอาหาร โรคตับ โรคไต โรคหัวใจ โรคประจำตัวอื่นๆ หรือต้องทานยาเป็นประจำ : </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isMedicalHistory" value="1" id="isMedicalHistory_1" @(ViewBag.QueueFullDetail.IsMedicalHistory == true ? "checked" : "")> มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isMedicalHistory" value="0" id="isMedicalHistory_2" @(ViewBag.QueueFullDetail.IsMedicalHistory == false ? "checked" : "")> ไม่มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isMedicalHistory" value="2" id="isMedicalHistory_3" @(ViewBag.QueueFullDetail.IsMedicalHistory == null ? "checked" : "")> จำไม่ได้
+                                            </label>
+                                            <label class="medicalHistoryRemarkLabel col-md-4 fonts-box" id="medicalHistoryRemarkLabel" style="">
+                                                <input class="form-control" id="medicalHistoryRemark" name="medicalHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.MedicalHistoryRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">3.3 ประวัติอุบัติเหตุ : กระดูกแตก/หัก/ร้าว/เข้าเฝือก/ดามเหล็ก : </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isAccidentHistory" value="1" id="isAccidentHistory_1" @(ViewBag.QueueFullDetail.IsAccidentHistory == true ? "checked" : "")> มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isAccidentHistory" value="0" id="isAccidentHistory_2" @(ViewBag.QueueFullDetail.IsAccidentHistory == false ? "checked" : "")> ไม่มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isAccidentHistory" value="2" id="isAccidentHistory_3" @(ViewBag.QueueFullDetail.IsAccidentHistory == null ? "checked" : "")> จำไม่ได้
+                                            </label>
+                                            <label class="accidentHistoryRemarkLabel col-md-4 fonts-box" id="accidentHistoryRemarkLabel" style="">
+                                                <input class="form-control" id="accidentHistoryRemark" name="accidentHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.AccidentHistoryRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">3.4 ประวัติการผ่าตัด : ฝี/ซีสต์/ถุงน้ำ/ก้อนเนื้อ/ก้อนไขมัน/ไส้ติ่ง/ไส้เลื่อน หรือการผ่าตัดอื่นๆ  : </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isSurgeryHistory" value="1" id="isSurgeryHistory_1" @(ViewBag.QueueFullDetail.IsSurgeryHistory == true ? "checked" : "")> มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isSurgeryHistory" value="0" id="isSurgeryHistory_2" @(ViewBag.QueueFullDetail.IsSurgeryHistory == false ? "checked" : "")> ไม่มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isSurgeryHistory" value="2" id="isSurgeryHistory_3" @(ViewBag.QueueFullDetail.IsSurgeryHistory == null ? "checked" : "")> จำไม่ได้
+                                            </label>
+                                            <label class="surgeryHistoryRemarkLabel col-md-4 fonts-box" id="surgeryHistoryRemarkLabel" style="">
+                                                <input class="form-control" id="surgeryHistoryRemark" name="surgeryHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.SurgeryHistoryRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">3.5 ประวัติการตรวจสุขภาพประจำปี : </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isHealthCheckHistory" value="1" id="isHealthCheckHistory_1" @(ViewBag.QueueFullDetail.IsHealthCheckHistory == true ? "checked" : "")> มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isHealthCheckHistory" value="0" id="isHealthCheckHistory_2" @(ViewBag.QueueFullDetail.IsHealthCheckHistory == false ? "checked" : "")> ไม่มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isHealthCheckHistory" value="2" id="isHealthCheckHistory_3" @(ViewBag.QueueFullDetail.IsHealthCheckHistory == null ? "checked" : "")> จำไม่ได้
+                                            </label>
+                                            <label class="healthCheckHistoryRemarkLabel col-md-4 fonts-box" id="healthCheckHistoryRemarkLabel" style="">
+                                                <input class="form-control" id="healthCheckHistoryRemark" name="healthCheckHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.HealthCheckHistoryRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">3.6 ประวัติโรคเรื้อรัง : ความดันโลหิตสูง ไขมัน ไตรกลีเซอไรด์ น้ำตาลในเลือด กรดยูริค หรือค่าอื่นๆ  : </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isChronicDiseaseHistory" value="1" id="isChronicDiseaseHistory_1" @(ViewBag.QueueFullDetail.IsChronicDiseaseHistory == true ? "checked" : "")> มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isChronicDiseaseHistory" value="0" id="isChronicDiseaseHistory_2" @(ViewBag.QueueFullDetail.IsChronicDiseaseHistory == false ? "checked" : "")> ไม่มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isChronicDiseaseHistory" value="2" id="isChronicDiseaseHistory_3" @(ViewBag.QueueFullDetail.IsChronicDiseaseHistory == null ? "checked" : "")> จำไม่ได้
+                                            </label>
+                                            <label class="chronicDiseaseHistoryRemarkLabel col-md-4 fonts-box" id="chronicDiseaseHistoryRemarkLabel" style="">
+                                                <input class="form-control" id="chronicDiseaseHistoryRemark" name="chronicDiseaseHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.ChronicDiseaseHistoryRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">3.7 ประวัติการรักษาครั้งล่าสุด : </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isMedicalLatestHistory" value="1" id="isMedicalLatestHistory_1" @(ViewBag.QueueFullDetail.IsMedicalLatestHistory == true ? "checked" : "")> มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isMedicalLatestHistory" value="0" id="isMedicalLatestHistory_2" @(ViewBag.QueueFullDetail.IsMedicalLatestHistory == false ? "checked" : "")> ไม่มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isMedicalLatestHistory" value="2" id="isMedicalLatestHistory_3" @(ViewBag.QueueFullDetail.IsMedicalLatestHistory == null ? "checked" : "")> จำไม่ได้
+                                            </label>
+                                            <label class="medicalLatestHistoryRemarkLabel col-md-4 fonts-box" id="medicalLatestHistoryRemarkLabel" style="">
+                                                <input class="form-control" id="medicalLatestHistoryRemark" name="medicalLatestHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.MedicalLatestHistoryRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">3.8 ประวัติสูบบุหรี่ : </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isSmokingHistory" value="1" id="isSmokingHistory_1" @(ViewBag.QueueFullDetail.IsSmokingHistory == true ? "checked" : "")> สูบ
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isSmokingHistory" value="0" id="isSmokingHistory_2" @(ViewBag.QueueFullDetail.IsSmokingHistory == false ? "checked" : "")> ไม่สูบ
+                                            </label>
+                                            <label class="smokingHistoryRemarkLabel col-md-4 fonts-box" id="smokingHistoryRemarkLabel" style="">
+                                                <input class="form-control" id="smokingHistoryRemark" name="smokingHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.SmokingHistoryRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">3.9 ประวัติดื่มสุรา : </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isDrinkingHistory" value="1" id="isDrinkingHistory_1" @(ViewBag.QueueFullDetail.IsDrinkingHistory == true ? "checked" : "")> ดื่ม
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isDrinkingHistory" value="0" id="isDrinkingHistory_2" @(ViewBag.QueueFullDetail.IsDrinkingHistory == false ? "checked" : "")> ไม่ดื่ม
+                                            </label>
+
+                                            <label class="drinkingHistoryRemarkLabel col-md-4 fonts-box" id="drinkingHistoryRemarkLabel" style="">
+                                                <input class="form-control" id="drinkingHistoryRemark" name="drinkingHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.DrinkingHistoryRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">3.10 ประวัติการตั้งครรภ์(เพศหญิง)  : </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isPregnantHistory" value="1" id="isPregnantHistory_1" @(ViewBag.QueueFullDetail.IsPregnantHistory == true ? "checked" : "")> ตั้งครรภ์
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isPregnantHistory" value="0" id="isPregnantHistory_2" @(ViewBag.QueueFullDetail.IsPregnantHistory == false ? "checked" : "")> ไม่ตั้งครรภ์
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isPregnantHistory" value="2" id="isPregnantHistory_3" @(ViewBag.QueueFullDetail.IsPregnantHistory == null ? "checked" : "")> อื่นๆ
+                                            </label>
+                                            <label class="pregnantHistoryRemarkLabel col-md-4 fonts-box" id="pregnantHistoryRemarkLabel" style="">
+                                                <input class="form-control" id="pregnantHistoryRemark" name="pregnantHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.PregnantHistoryRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">3.11 ประวัติสุขภาพอื่นๆ(เพิ่มเติม) : </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isOtherHealthHistory" value="1" id="isOtherHealthHistory_1" @(ViewBag.QueueFullDetail.IsOtherHealthHistory == true ? "checked" : "")> มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isOtherHealthHistory" value="0" id="isOtherHealthHistory_2" @(ViewBag.QueueFullDetail.IsOtherHealthHistory == false ? "checked" : "")> ไม่มี
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="isOtherHealthHistory" value="2" id="isOtherHealthHistory_3" @(ViewBag.QueueFullDetail.IsOtherHealthHistory == null ? "checked" : "")> จำไม่ได้
+                                            </label>
+                                            <label class="otherHealthHistoryRemarkLabel col-md-4 fonts-box" id="otherHealthHistoryRemarkLabel" style="">
+                                                <input class="form-control" id="otherHealthHistoryRemark" name="otherHealthHistoryRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.OtherHealthHistoryRemark)" />
+                                            </label>
+                                        </div>
+                                    </div>
+                                    @* ----------------4. ข้อมูลการชำระเบี้ยประกัน---------------- *@
+                                    <div class="box-header" style="background-color: #FFF38F; border-radius: 8px 8px">
+                                        <h4 class="font-custom box-title col-md-5 ">4. ข้อมูลการชำระเบี้ยประกัน </h4>
+                                    </div>
+                                    <div class="box-body">
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">4.1 อาชีพผู้ชำระเบี้ยประกัน : <text style="color:black;font-weight:100"> @(ViewBag.QueueFullDetail.PayerOccupationLevel) </text></label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="payerOccupationIsValid" value="1" id="payerOccupationIsValid_1" @(ViewBag.QueueFullDetail.PayerOccupationIsValid == true ? "checked" : "")> ถูกต้อง
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="payerOccupationIsValid" value="0" id="payerOccupationIsValid_2" @(ViewBag.QueueFullDetail.PayerOccupationIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                            </label>
+                                            <label class="payerOccupationRemarkLabel col-md-4 fonts-box" id="payerOccupationRemarkLabel" style="">
+                                                <input class="form-control" id="payerOccupationRemark" name="payerOccupationRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.PayerOccupationRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">4.2 หน่วยงานผู้ชำระเบี้ย : <text style="color:black;font-weight:100"> @(ViewBag.QueueFullDetail.PayerBuildingName != null ? ViewBag.QueueFullDetail.PayerBuildingName : "-") </text></label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="payerBuildingNameIsValid" value="1" id="payerBuildingNameIsValid_1" @(ViewBag.QueueFullDetail.PayerBuildingNameIsValid == true ? "checked" : "")> ถูกต้อง
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="payerBuildingNameIsValid" value="0" id="payerBuildingNameIsValid_2" @(ViewBag.QueueFullDetail.PayerBuildingNameIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                            </label>
+                                            <label class="payerBuildingNameRemarkLabel col-md-4 fonts-box" id="payerBuildingNameRemarkLabel" style="">
+                                                <input class="form-control" id="payerBuildingNameRemark" name="payerBuildingNameRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.PayerBuildingNameRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">4.3 แผนประกัน : <text style="color:black;font-weight:100"> @(ViewBag.QueueFullDetail.Product) </text></label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="productIsValid" value="1" id="productIsValid_1" @(ViewBag.QueueFullDetail.ProductIsValid == true ? "checked" : "")> ถูกต้อง
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="productIsValid" value="0" id="productIsValid_2" @(ViewBag.QueueFullDetail.ProductIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                            </label>
+                                            <label class="productRemarkLabel col-md-4 fonts-box" id="productRemarkLabel" style="">
+                                                <input class="form-control" id="productRemark" name="productRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.ProductRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">4.4 เบี้ยประกัน  :  <text style="color:black;font-weight:100"> @ViewBag.QueueFullDetail.Premium </text> บาท</label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="premiumIsValid" value="1" id="premiumIsValid_1" @(ViewBag.QueueFullDetail.PremiumIsValid == true ? "checked" : "")> ถูกต้อง
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="premiumIsValid" value="0" id="premiumIsValid_2" @(ViewBag.QueueFullDetail.PremiumIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                            </label>
+                                            <label class="premiumRemarkLabel col-md-4 fonts-box" id="premiumRemarkLabel" style="">
+                                                <input class="form-control" id="premiumRemark" name="premiumRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.PremiumRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">4.5 ประเภทการชำระเบี้ยประกัน : - </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="periodTypeIsValid" value="1" id="periodTypeIsValid_1" @(ViewBag.QueueFullDetail.PeriodTypeIsValid == true ? "checked" : "")> ถูกต้อง
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="periodTypeIsValid" value="0" id="periodTypeIsValid_2" @(ViewBag.QueueFullDetail.PeriodTypeIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                            </label>
+                                            <label class="PeriodTypeRemarkLabel col-md-4 fonts-box" id="PeriodTypeRemarkLabel" style="">
+                                                <input class="form-control" id="PeriodTypeRemark" name="PeriodTypeRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.PeriodTypeRemark)" />
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">4.6 ช่องทางการชำระเบี้ยประกัน :<text style="color:black;font-weight:100"> @ViewBag.QueueFullDetail.PayMethodType</text>  </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="payMethodTypeIsValid" value="1" id="payMethodTypeIsValid_1" @(ViewBag.QueueFullDetail.PayMethodTypeIsValid == true ? "checked" : "")> ถูกต้อง
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="payMethodTypeIsValid" value="0" id="payMethodTypeIsValid_2" @(ViewBag.QueueFullDetail.PayMethodTypeIsValid == false ? "checked" : "")> ไม่ถูกต้อง
+                                            </label>
+                                            <label class="payMethodTypeRemarkLabel col-md-4 fonts-box" id="payMethodTypeRemarkLabel" style="">
+                                                <input class="form-control" id="payMethodTypeRemark" name="payMethodTypeRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.PayMethodTypeRemark)" />
+                                            </label>
+                                        </div>
+                                    </div>
+                                    @* ----------------5. การตรวจสอบด้านสุขภาพ---------------- *@
+                                    <div class="box-header" style="background-color: #B3EEFF; border-radius: 8px 8px">
+                                        <h4 class=" font-custom box-title col-md-5 ">5. การตรวจสอบด้านสุขภาพ </h4>
+                                    </div>
+                                    <div class="box-body">
+                                        <div class="form-group text col-md-12 radio-check">
+                                            <label class="col-md-12 control-label title">5.1 ผลการตรวจสอบ : </label>
+                                            <input type="hidden" name="auditHealthStatusIdChecked" value="2" id="auditHealthStatusIdChecked">
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="auditHealthStatusId" value="2" id="auditHealthStatusId_1" @(ViewBag.QueueFullDetail.AuditHealthStatusId == 2 ? "checked" : "")> ผ่าน
+                                            </label>
+                                            <label class="col-md-2 fonts-box">
+                                                <input type="radio" name="auditHealthStatusId" value="3" id="auditHealthStatusId_2" @(ViewBag.QueueFullDetail.AuditHealthStatusId == 3 ? "checked" : "")> รอพิจารณา
+                                            </label>
+                                            <div class="col-md-offset-3 audit-Specify radio-check" id="auditHealthSpecifyStatusLabel" style="display:none">
+
+                                                @foreach (var item in ViewBag.AuditHealthSpecifyStatus)
+                                                {
+                                                    <label class="col-md-12 fonts-box">
+                                                        <input type="radio" name="auditHealthSpecifyStatusId" value="@item.AuditHealthSpecifyStatusId" id="auditHealthSpecifyStatusId_@item.AuditHealthSpecifyStatusId" @(item.AuditHealthSpecifyStatusId == ViewBag.QueueFullDetail.AuditHealthSpecifyStatusId ? "checked" : "")> @item.AuditHealthSpecifyStatusDetail
+                                                    </label>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="box-body">
+                                        <div class="form-group text col-md-12">
+                                            <label class="col-md-12 control-label fonts-box ">หมายเหตุประวัติคัดกรอง  </label>
+                                            <label class="auditHealthRemarkLabel col-md-12 fonts-box" id="auditHealthRemarkLabel" style="">
+                                                <textarea name="auditHealthRemark" id="auditHealthRemark" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px" value="@(ViewBag.QueueFullDetail.AuditHealthRemark)">@(ViewBag.QueueFullDetail.AuditHealthRemark)</textarea>
+                                            </label>
+                                        </div>
+                                        <div class="form-group text col-md-12">
+                                            <label class="col-md-12 control-label title">5.2  : พฤติกรรมการคัดกรอง(MA) : </label>
+
+                                            <div class="col-md-4">
+                                                <select class="col-md-4 form-control" id="underwritingBehaviorTypeId" name="underwritingBehaviorTypeId">
+                                                    <option value="0">กรุณาเลือก</option>
+                                                    @foreach (var item in ViewBag.UnderwritingBehaviorType)
+                                                    {
+                                                        <option value="@item.UnderwritingBehaviorTypeId" @(item.UnderwritingBehaviorTypeId == ViewBag.QueueFullDetail.UnderwritingBehaviorTypeId ? "selected" : "")>@item.UnderwritingBehaviorTypeDetail</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                            <label class="underwritingBehaviorRemarkLabel col-md-4 fonts-box" id="underwritingBehaviorRemarkLabel" style="">
+                                                <input class="form-control" id="underwritingBehaviorRemark" name="underwritingBehaviorRemark" type="text" placeholder="รายละเอียดเพิ่มเติม" value="@(ViewBag.QueueFullDetail.UnderwritingBehaviorRemark)" />
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="box-header" style="background-color: #D8FFDE; border-radius: 8px 8px">
+                                        <h4 class=" font-custom box-title col-md-5 ">หมายเหตุอื่นๆ </h4>
+                                    </div>
+                                    <div class="box-body">
+                                        <div class="form-group text col-md-12">
+                                            <label class="col-md-12 control-label fonts-box">หมายเหตุอื่นๆ  </label>
+                                            <label class="auditOtherHealthRemarkLabel col-md-12 fonts-box" id="auditOtherHealthRemarkLabel" style="">
+                                                <textarea name="auditOtherHealthRemark" id="auditOtherHealthRemark" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px" value="@(ViewBag.QueueFullDetail.AuditOtherHealthRemark)">@(ViewBag.QueueFullDetail.AuditOtherHealthRemark)</textarea>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        @* form ผลการตพิจารณาของฝ่ายรับประกัน //ต้องตรวจสอบแล้ว 3 //การตรวจสอบด้านสุขภาพ รอพิจารณา 3 จะแสดง/ส่งไปรับประกัน1พิจารณา *@
+                        @if ((ViewBag.QueueAuditStatusId == 3 || ViewBag.QueueAuditStatusId == 4) && (ViewBag.AccessRole == "AUDIT_DEV" || ViewBag.AccessRole == "AUDIT_INSURE" || ViewBag.AccessRole == "AUDIT_AdminINSURE" || ViewBag.AccessRole == "AUDIT_ConditionINSURE"))
+                        {
+                            <form id="formAuditInsure" action="@Url.Action("QuestionAuditInsureUpdateV2")" method="post" enctype="multipart/form-data">
+                                <input type="hidden" id="QueueAuditId_formInsure" name="QueueAuditId_formInsure" value="@ViewBag.QueueFullDetail.QueueAuditId" />
+                                <input type="hidden" id="insuredChack" name="insuredChack" value="0" />
+                                <div id="box-audit-insure-1" class="col-sm-12">
+                                    <div id="bodyAuditInsure" class="">
+                                        <div class="box-header" style="background-color: #B3EEFF; border-radius: 8px 8px; margin-top: 15px; margin-left: 10px; margin-right: 10px ">
+                                            <h4 class="font-custom box-title col-md-5 ">ผลการพิจารณาของฝ่ายรับประกัน </h4>
+                                        </div>
+                                        <div class="box-body">
+
+                                            <div class="form-group text col-md-12">
+
+                                                @if (ViewBag.AuditInsureStatus != null)
+                                                {
+                                                    foreach (var i in ViewBag.AuditInsureStatus)
+                                                    {
+                                                        <label class="col-md-2 fonts-box">
+                                                            <input type="radio" name="AuditInsureStatus" value="@i.AuditInsureStatusId" id="AuditInsureStatus_@(i.AuditInsureStatusId)" @(i.AuditInsureStatusId == ViewBag.QueueFullDetail.AuditInsureStatusId ? "checked" : "")> @i.AuditInsureStatusDetail
+                                                        </label>
+                                                    }
+                                                }
+
+                                                <br />
+                                                <div class="col-md-offset-3 audit-insure-Specify radio-check" id="AuditInsureConsiderStatusLabel" style="padding-left:30px;display:@(ViewBag.QueueFullDetail.AuditInsureStatusId == 3 ? "block" : "none")">
+                                                    @foreach (var j in ViewBag.AuditInsureConsiderStatus)
+                                                    {
+                                                        if (j.AuditInsureConsiderStatusId != 1)
+                                                        {
+                                                            <label class="col-md-12 fonts-box">
+                                                                <input type="radio" name="AuditInsureConsiderStatus" value="@j.AuditInsureConsiderStatusId" id="AuditInsureConsiderStatus_@(j.AuditInsureConsiderStatusId)" @(j.AuditInsureConsiderStatusId == ViewBag.QueueFullDetail.AuditInsureConsiderStatusId ? "checked" : "")> @j.AuditInsureConsiderStatusDetail
+                                                            </label>
+                                                        }
+                                                    }
+                                                </div>
+
+                                            </div>
+                                            <div class="form-group text col-md-12">
+
+                                                <label class="col-md-12 control-label fonts-box " style="margin-left:18px;margin-top:10px">หมายเหตุ<span class="" style="color:red">*</span></label>
+                                                <label class="AuditInsureConsiderStatusRemarkLabel col-md-12 fonts-box" id="AuditInsureConsiderStatusRemarkLabel" style="margin-left:16px">
+                                                    <textarea name="AuditInsureConsiderStatusRemark" id="AuditInsureConsiderStatusRemark" style="display: block; border-radius: 5px; margin: 10px; width: 80%; height: 80px; resize: none;">@ViewBag.QueueFullDetail.AuditInsureConsiderRemark</textarea>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="box-audit-insure-2" class="col-sm-12 audit-insure-2" style="display:@(ViewBag.insuredChack == true ? "block" : "none")">
+                                    <div id="bodyAuditInsureRespond" class="">
+                                        <div class="box-header" style="background-color: #FCD5D5; border-radius: 8px 8px; margin-top: 15px; margin-left: 10px; margin-right: 10px ">
+                                            <h4 class="font-custom box-title col-md-5 ">ผลการติดตามลูกค้า </h4>
+                                        </div>
+                                        <div class="box-body">
+                                            <div class="form-group text col-md-12">
+                                                @if (ViewBag.QueueFullDetail.AuditInsureConsiderStatusId == 4)
+                                                {
+                                                    <div class="form-group text col-md-12">
+                                                        <label class="col-md-2 fonts-box">ผลการติดตาม : </label>
+                                                        @if (ViewBag.AuditInsureNotConsideredResultStatus != null)
+                                                        {
+                                                            <div class="radio-check">
+                                                                @foreach (var i in ViewBag.AuditInsureNotConsideredResultStatus)
+                                                                {
+                                                                    <label class="col-md-2 fonts-box" id="inputAuditInsureNotConsideredResultStatus">
+                                                                        <input type="radio" name="AuditInsureNotConsideredResultStatusId" value="@i.AuditInsureNotConsideredResultStatusId" id="AuditInsureNotConsidered_@(i.AuditInsureNotConsideredResultStatusId)" @(i.AuditInsureNotConsideredResultStatusId == ViewBag.QueueFullDetail.AuditInsureNotConsideredResultStatusId ? "checked" : "")> @i.AuditInsureNotConsideredResultStatusDetail
+                                                                    </label>
+                                                                }
+                                                            </div>
+
+                                                        }
+                                                        <br />
+                                                        <div class="col-md-offset-5 audit-insure-VerifiedType radio-check" id="AuditInsureNotConsideredVerifiedTypeIdLabel" style="padding-left:30px;display:@(ViewBag.QueueFullDetail.AuditInsureNotConsideredResultStatusId == 3 ? "block" : "none")">
+                                                            @foreach (var j in ViewBag.AuditInsureNotConsideredVerifiedType)
+                                                            {
+                                                                <label class="col-md-12 fonts-box">
+                                                                    <input type="radio" name="AuditInsureNotConsideredVerifiedTypeId" value="@j.AuditInsureNotConsideredVerifiedTypeId" id="AuditInsureNotConsideredVerified_@(j.AuditInsureNotConsideredVerifiedTypeId)" @(j.AuditInsureNotConsideredVerifiedTypeId == ViewBag.QueueFullDetail.AuditInsureNotConsideredVerifiedTypeId ? "checked" : "")> @j.AuditInsureNotConsideredVerifiedTypeDetail
+                                                                </label>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                }
+
+                                                <label class="col-md-12 control-label fonts-box " style="margin-left:30px;margin-top:10px">หมายเหตุ<span class="" style="color:red">*</span></label>
+                                                <input type="hidden" id="AuditInsureClose" name="AuditInsureClose" value="0" />
+
+                                                <input type="hidden" name="AuditInsureStatus2" value="@ViewBag.QueueFullDetail.AuditInsureStatusId">
+                                                <input type="hidden" name="AuditInsureConsiderStatus2" value="@ViewBag.QueueFullDetail.AuditInsureConsiderStatusId">
+                                                <input type="hidden" name="AuditInsureConsiderStatusRemark2" value="@ViewBag.QueueFullDetail.AuditInsureConsiderRemark">
+                                                <label class="AuditInsureCloseRemarkLabel col-md-12 fonts-box" id="AuditInsureCloseRemarkLabel" style="margin-left:16px">
+                                                    <textarea name="AuditInsureCloseRemark" id="AuditInsureCloseRemark" style="display: block; border-radius: 5px; margin: 10px; width: 80%; height: 80px; resize: none;">@(ViewBag.QueueFullDetail.AuditInsureCloseRemark )</textarea>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        }
+
+                        @if ((ViewBag.AccessRole == "AUDIT_BPT") && (ViewBag.ViewMode != true))
+                        {
+                            <div style="text-align:center;padding-bottom: 10px;">
+                                <button id="btnSubmit" class="form-control btn @(ViewBag.QueueAuditStatusId == 2 ? "btn-success" : "btn-warning")" style="width:150px">@(ViewBag.QueueAuditStatusId == 2 ? "บันทึกข้อมูล" : "บันทึกการแก้ไข")</button>
+                            </div>
+                        }
+                        @* ต้องเป็นสถานะ ตรวจสอบแล้ว 3 // ตรวจถ้านสุขภาพ รอพิจารณา 3  *@
+
+                        @if ((ViewBag.QueueAuditStatusId == 3 || ViewBag.QueueAuditStatusId == 4) && (ViewBag.insuredChack != true) && (ViewBag.AccessRole == "AUDIT_INSURE" || ViewBag.AccessRole == "AUDIT_AdminINSURE" || ViewBag.AccessRole == "AUDIT_ConditionINSURE"))
+                        {
+                            <div style="text-align:center;padding-bottom: 10px;" id="btnSubmit4label">
+                                <button id="btnSubmit4" class="form-control btn @(ViewBag.AuditInsureStatusId == 2 ? "btn-success" : "btn-warning")" style="width:150px">@(ViewBag.AuditInsureStatusId == 2 ? "บันทึกข้อมูล" : "บันทึกการแก้ไข")</button>
+                            </div>
+                        }
+                        @* ต้องเป็นสถานะ ตรวจสอบแล้ว 3 // ตรวจถ้านสุขภาพ รอพิจารณา 3  // มีผลการติดตามลูกค้า  *@
+                        @if ((ViewBag.QueueAuditStatusId == 3 || ViewBag.QueueAuditStatusId == 4) && (ViewBag.insuredChack == true) && (ViewBag.AccessRole == "AUDIT_INSURE" || ViewBag.AccessRole == "AUDIT_AdminINSURE" || ViewBag.AccessRole == "AUDIT_ConditionINSURE"))
+                        {
+                            <div class="row col-lg-12 col-lg-offset-4 " style="text-align:center;padding-bottom: 10px;">
+                                <div class="row  col-md-2 " id="btnSubmit2label">
+                                    <button id="btnSubmit2" class=" form-control btn btn-info">บันทึก</button>
+                                </div>
+                                <div class="row col-md-2" id="btnSubmit3label" style="margin-left:5px;display:@(ViewBag.QueueFullDetail.AuditInsureConsiderStatusId == 3 ? "block" : "none")">
+                                    <button id="btnSubmit3" class=" form-control btn btn-success" style="align-items:center">บันทึกและปิดคิวงาน</button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                @* tab_2 *@
+                <div class="tab-pane" id="tab_2" style="padding:0px 20px 0px 20px">
+                    <div class="row form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="card" style="background-color: #E0F7FF; border-radius: 8px 8px; ">
+                                    <div class="box-header" style="color: #3F8FBD; border-bottom: 1px solid #D2D6DE">
+                                        <i class="fa fa-user"></i>
+                                        <h4 class="box-title">ข้อมูลผู้เอาประกัน </h4>
+                                    </div>
+                                    <div class="box-body" style="align-items: center;">
+                                        <div class="row">
+                                            <h5 class=" col-md-3"><b>App ID</b> : <a href="#" target="_blank" id="openSSS" style="text-decoration: underline; color: #2833FF " onclick="OpenSSS(@ViewBag.QueueFullDetail.ApplicationCode)">@ViewBag.QueueFullDetail.ApplicationCode</a></h5>
+                                            <h5 class=" col-md-3">
+                                                <b>วันเริ่มคุ้มครอง</b>  : @(String.Format("{0:dd MMM yyyy}", ViewBag.QueueFullDetail.AppStartCoverDate))
+                                            </h5>
+                                            <h5 class=" col-md-3"><b>แผนประกัน</b> : @ViewBag.QueueFullDetail.Product</h5>
+                                            <h5 class=" col-md-3"><b>เบี้ย</b> : @ViewBag.QueueFullDetail.Premium บาท</h5>
+                                        </div>
+                                        <div class="row">
+                                            <h5 class=" col-md-3 "><b>ชื่อ</b> : @(String.Format("{0}", ViewBag.QueueFullDetail.InsuredName))</h5>
+                                            <h5 class="col-md-3"><b>วันเกิด</b> : @(String.Format("{0:dd MMM yyyy}", ViewBag.QueueFullDetail.InsuredBirthDate))</h5>
+                                            <h5 class="col-md-3"><b>อายุวันสมัคร</b> : @ViewBag.QueueFullDetail.AgesAtRegister ปี</h5>
+                                            <h5 class="col-md-3"><b>อายุปัจจุบัน</b> : @ViewBag.QueueFullDetail.AgesCurrent ปี</h5>
+                                        </div>
+                                        <div class="row">
+                                            <h5 class="col-md-3"><b>เบอร์โทร</b> : @ViewBag.QueueFullDetail.InsuredPhone</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12" style="margin-top:15px;margin-bottom :15px">
+                                <div class="card" style="background-color: #E0F7FF; border-radius: 8px 8px">
+                                    <div class="box-header" style="color: #3F8FBD; border-bottom: 1px solid #D2D6DE">
+                                        <i class="fa fa-user"></i>
+                                        <h4 class="box-title">ข้อมูลผู้ชำระเบี้ย </h4>
+                                    </div>
+                                    <div class="box-body" style="align-items: center;">
+                                        <div class="row">
+                                            <h5 class=" col-md-4"><b>ชื่อผู้ชำระเบี้ย</b> : @(ViewBag.QueueFullDetail.PayerName != null ? String.Format("{0}", ViewBag.QueueFullDetail.PayerName) : "-")</h5>
+                                            <h5 class=" col-md-4"><b>ความสัมพันธ์</b> : @(ViewBag.QueueFullDetail.PayerRelate != null ? ViewBag.QueueFullDetail.PayerRelate : "-")</h5>
+                                            <h5 class=" col-md-4"><b>เบอร์โทร</b> : @(ViewBag.QueueFullDetail.PayerPhone != null ? ViewBag.QueueFullDetail.PayerPhone : "-")</h5>
+                                        </div>
+                                        <div class="row">
+                                            <h5 class=" col-md-4"><b>อาชีพ</b> : @(ViewBag.QueueFullDetail.PayerOccupationLevel != null ? ViewBag.QueueFullDetail.PayerOccupationLevel : "-")</h5>
+                                            <h5 class=" col-md-4"><b>ชื่อหน่วยงาน</b> : @(ViewBag.QueueFullDetail.PayerBuildingName != null ? ViewBag.QueueFullDetail.PayerBuildingName : "-")</h5>
+                                            <h5 class=" col-md-4"><b>เบอร์โทรที่ทำงาน</b> : @(ViewBag.QueueFullDetail.PayerBuildingPhone != null ? ViewBag.QueueFullDetail.PayerBuildingPhone : "-")</h5>
+                                        </div>
+                                        <div class="row">
+                                            <h5 class=" col-md-4"><b>การชำระ</b> : @(ViewBag.QueueFullDetail.PayMethodType != null ? ViewBag.QueueFullDetail.PayMethodType : "-")</h5>
+                                            <h5 class=" col-md-4"><b>ธนาคาร</b> : @(ViewBag.QueueFullDetail.PayerBankName != null ? ViewBag.QueueFullDetail.PayerBankName : "-")</h5>
+                                            <h5 class=" col-md-4"><b>เลขบัญชี</b> : @(ViewBag.QueueFullDetail.PayerBankAccountNo != null ? ViewBag.QueueFullDetail.PayerBankAccountNo : "-")</h5>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-md-12" style="text-align:right">
+                                                <a href="#" id="btnPayerOther" data-toggle="modal" data-target="#modal-warning" style="text-decoration: underline; color: #2833FF; display: none "></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <form id="sectionGiveCardFrom">
+                                <div class=" col-sm-12">
+                                    <div class="box box-info bg-info " style="border-radius: 8px 8px 0px 0px ">
+                                        <div class="box-header" style="background-color: #00C0EF; color: azure; border-radius: 8px 8px 0px 0px ">
+                                            <h4 class="box-title">รายละเอียดการมอบบัตร</h4>
+                                        </div>
+                                        <div class=" box-body" style="height: auto;width: auto;margin-top:15px">
+                                            <div class="typeSelectChildxx form-group col-md-12">
+                                                <label class="col-md-2 control-label title">มอบบัตรให้กับ</label>
+                                                <label class="col-md-2  fonts-box"><input type="checkbox" name="typeSelectChild" id="typeSelectChildPayer" value=@(ViewBag.QueueFullDetail.IsUnderwritePayer == "ผู้ชำระเบี้ย" ? "payer" : "" ) @(ViewBag.QueueFullDetail.IsUnderwritePayer == "ผู้ชำระเบี้ย" ? "checked" : "" )> ผู้ชำระเบี้ย </label>
+                                                <label class="col-md-2  fonts-box"><input type="checkbox" name="typeSelectChild" id="typeSelectChildCustomer" value=@(ViewBag.QueueFullDetail.IsUnderwriteCust == "ผู้เอาประกัน" ? "customer" : "") @(ViewBag.QueueFullDetail.IsUnderwriteCust == "ผู้เอาประกัน" ? "checked" : "")> ผู้เอาประกัน</label>
+                                            </div>
+                                            <div class="  form-group col-md-12">
+                                                <label class="col-md-2 control-label title">ประเภทบัตร</label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isLineOA" value="1" id="IsSpecify_1" @(ViewBag.QueueFullDetail.IsLineOADetail == "Cobrand" ? "" : "checked" )> Line OA
+                                                </label>
+                                                <label class="col-md-2 fonts-box">
+                                                    <input type="radio" name="isLineOA" value="0" id="IsSpecify_2" @(ViewBag.QueueFullDetail.IsLineOADetail == "Cobrand" ? "checked" : "" )> Cobrand
+                                                </label>
+                                                <label class="col-md-4 fonts-box" id="formCobrand" style="display:none">
+                                                    <input class="form-control" id="txtCoBrand" name="txtCoBrand" type="text" checkOnlyNum="checkOnlyNum" placeholder="ระบุเลข Cobrand" value="@ViewBag.QueueFullDetail.CoBrandNo" disabled />
+                                                </label>
+                                            </div>
+                                            <div class="form-group col-md-12" id="remarkisLineOAFrom">
+                                                <label class="col-md-2 control-label title">
+                                                    หมายเหตุการมอบบัตร
+                                                </label>
+                                                <div class="col-md-8">
+                                                    <input class="form-control" type="text" name="remarkisLineOA" id="remarkisLineOA" value="@ViewBag.QueueFullDetail.GiveRemark" disabled>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group col-md-12">
+                                                <label class="col-md-2 control-label title">
+                                                    แนบรูปการมอบบัตร
+                                                </label>
+                                                <div class="col-md-8" id="editDropzone">
+                                                    <a href="javascript:void();" class="pop">
+                                                        <img id="myImg" src="@ViewBag.QueueFullDetail.URLPath" alt="@ViewBag.QueueFullDetail.FileName" style="width:100%;max-width:100px">
+                                                    </a>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                                @if (ViewBag.QueueFullDetail.QueueStatusId != 8)
+                                {
+                                    if (ViewBag.QueueFullDetail.IsBeware != null)
+                                    {
+                                        <div class="col-sm-12">
+                                            <div class="box box-info bg-info " style="border-radius: 8px 8px 0px 0px ">
+                                                <div class="box-header" style="background-color: #00C0EF; color: azure; border-radius: 8px 8px 0px 0px ">
+                                                    <h4 class="box-title">ข้อมูลการเฝ้าระวัง</h4>
+                                                </div>
+                                                <div class="box-body shadow" style="height: auto;width: auto;margin-top:15px">
+                                                    <div class="form-group text col-md-12">
+                                                        <label class="col-md-12 control-label title">ข้อมูลการเฝ้าระวัง</label>
+                                                        <label class="col-md-2 fonts-box">
+                                                            <input type="radio" name="isBeware" value="0" id="isBeware_1" @(ViewBag.QueueFullDetail.IsBeware == false ? "checked" : "")> ไม่มี
+                                                        </label>
+                                                        <label class="col-md-2 fonts-box">
+                                                            <input type="radio" name="isBeware" value="1" id="isBeware_2" @(ViewBag.QueueFullDetail.IsBeware == true ? "checked" : "")> มี
+                                                        </label>
+                                                        <label class="bewareRemarkLabel col-md-6 fonts-box" id="bewareRemarkLabel" style="display:none">
+                                                            <input class="form-control" id="bewareRemark" name="bewareRemark" disabled type="text" placeholder="รายละเอียดเพิ่มเติม" value="" />
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    <div class="col-sm-12">
+                                        <div class="box box-info bg-info " style="border-radius: 8px 8px 0px 0px ">
+                                            <div class="box-header" style="background-color: #00C0EF; color: azure; border-radius: 8px 8px 0px 0px ">
+                                                <h4 class="box-title">รายละเอียดเพิ่มเติม</h4>
+                                            </div>
+                                            <div class="box-body" style="height: auto;width: auto;margin-top:15px">
+                                                <div class="form-group col-md-12">
+                                                    <label class="col-md-12 control-label title">รายละเอียดเพิ่มเติม</label>
+                                                    <textarea name="remarkFrom" id="remarkFrom" style="display: block;border-radius: 5px; margin: 10px;width: 80%;height: 80px" value="@ViewBag.QueueFullDetail.QueueResultRemark" disabled>@ViewBag.QueueFullDetail.QueueResultRemark</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+
+                                <input class="form-control" id="txtCoBrandDate" name="txtCoBrandDate" type="hidden" />
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                @* tab_3 *@
+                <div class="tab-pane" id="tab_3">
+                    <div id="Document_form" class="form-horizontal">
+                        @if (ViewBag.FirstDoc == null)
+                        {
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div id="form1_msg" class="alert alert-warning alert-dismissible">
+                                        <h4><i class="icon fa fa-ban"></i> แจ้งเตือน!</h4>
+                                        ไม่พบเอกสาร
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <br />
+                            <div class="form-group">
+                                @if (ViewBag.DocLink != null)
+                                {
+                                    foreach (var itm in ViewBag.DocLink)
+                                    {
+                                        <div class="col-sm-6 col-xs-12">
+                                            <button type="button" class="btn btn-block btn-info" id="btn_@itm.DocumentFileId" onclick="SeeDoc('@itm.PathFullDoc')"><i class="fa fa-fw fa-search"></i>@itm.DocumentTypeName:@itm.DocumentId</button>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <div class="row" id="DocDetail_form">
+                                <div class="col-sm-12" style="height: 950px">
+                                    <iframe class="SeeDoc" style="width: 100%; height: 100%;overflow:auto !important" src="@ViewBag.FirstDoc"></iframe>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                @* tab_4 *@
+                <div id="tab_4" class="tab-pane">
+                    <div class="form-horizontal">
+                        <table id="tableLog" name="tableLog" class="table table-bordered table-striped display responsive" style="width: 100%">
+                            <tbody>
+                                <tr style="text-align:center"><td>ไม่พบข้อมูล</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <!--Modal Img-->
+    <div class="modal fade" id="imagemodal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <img src="" class="imagepreview" style="width: 100%;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--.modal -->
+    <div class="modal fade" id="modal-warning">
+        <!--.modal-dialog -->
+        <div class="modal-dialog">
+            <!--.modal-content -->
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #ffd243;border-color: #ffeeba;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true" style="color: black;">×</span>
+                    </button>
+                    <h4 class="modal-title">รายละเอียด</h4>
+                </div>
+                <div class="modal-body">
+                    <table id="tablePayerOther" class="table table-bordered table-striped display responsive" style="width: 100%"></table>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!--/.modal -->
+    <!--.modal -->
+    <div class="modal fade" id="modal-warning-policy">
+        <!--.modal-dialog -->
+        <div class="modal-dialog">
+            <!--.modal-content -->
+            <div class="modal-content">
+                <div class="modal-header" style="color: aliceblue ;background-color: #68AAFF; border-color: #ffeeba;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true" style="color: black;">×</span>
+                    </button>
+                    <h4 class="modal-title">รายละเอียด</h4>
+                </div>
+                <div class="modal-body">
+                    <table id="tablePolicyOther" class="table table-bordered table-striped display responsive" style="width: 100%"></table>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!--/.modal -->
+</section>
+
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+            /*start signalR*/
+            // Reference the auto-generated proxy for the hub.
+            chat = $.connection.chatHub;
+            //Start Connection
+            $.connection.hub.start().done();
+
+            //load dt payer other
+            getPayerOther('@ViewBag.AppCode');
+            getPolicyOther('@ViewBag.AppCode');
+
+            $('#auditHealthStatusIdChecked').val(`@ViewBag.QueueFullDetail.AuditHealthStatusId`);
+
+            //disable tab ผลคัดกรอง ผอบล
+            $("#sectionGiveCardFrom :input").prop("disabled", true);
+            $("#sectionGiveCardFrom label").css("cursor", "not-allowed");
+
+            /*tab change*/
+            $('a[data-toggle="tab"]').on('shown.bs.tab',
+                function (e) {
+                    e.preventDefault();
+                    loadingSpinner('fadeIn', 200);
+                    const target = $(e.target).attr("href");
+                    switch (target) {
+                        case "#tab_4":
+                            //Log
+                            GetQueueAuditLog_DT();
+                            break;
+                        default:
+                    }
+                });
+
+                       //check role
+            switch ('@ViewBag.AccessRole') {
+                case 'AUDIT_DEV':
+                   $("#bodyAuditInsure :input").prop("disabled", true);
+                    $("#bodyAuditInsure label").css("cursor", "not-allowed");
+                    $(".bodyQuestion :input").prop("disabled", true);
+                    $(".bodyQuestion label").css("cursor", "not-allowed");
+                    $(".bodyQuestionForm :input").prop("disabled", true);
+                    $(".bodyQuestionForm label").css("cursor", "not-allowed");
+                    $(".audit-insure-2 label").css("cursor", "not-allowed");
+                    $(".audit-insure-2 :input").prop("disabled", true);
+                    break;
+                case 'AUDIT_BPT':
+                    $("#bodyAuditInsure :input").prop("disabled", true);
+                    $("#bodyAuditInsure label").css("cursor", "not-allowed");
+                    break;
+                case 'AUDIT_INSURE':
+                    $(".bodyQuestion :input").prop("disabled", true);
+                    $(".bodyQuestion label").css("cursor", "not-allowed");
+                    $(".bodyQuestionForm :input").prop("disabled", true);
+                    $(".bodyQuestionForm label").css("cursor", "not-allowed");
+
+                    break;
+                case 'AUDIT_AdminINSURE':
+                    $(".bodyQuestion :input").prop("disabled", true);
+                    $(".bodyQuestion label").css("cursor", "not-allowed");
+                    $(".bodyQuestionForm :input").prop("disabled", true);
+                    $(".bodyQuestionForm label").css("cursor", "not-allowed");
+
+                    break;
+                case 'AUDIT_ConditionINSURE':
+                    $(".bodyQuestion :input").prop("disabled", true);
+                    $(".bodyQuestion label").css("cursor", "not-allowed");
+                    $(".bodyQuestionForm :input").prop("disabled", true);
+                    $(".bodyQuestionForm label").css("cursor", "not-allowed");
+
+                    break;
+                case 'GUEST':
+                    $(".readonly :input").prop("disabled", true);
+                    $(".readonly label").css("cursor", "not-allowed");
+                    break;
+                default:
+                    window.location.href = "@Url.Action("UnAuthorize", "Auth")";
+                    break;
+            }
+
+            if (`@ViewBag.insuredChack`== `True`) {
+
+                $("#bodyAuditInsure :input").prop("disabled", true);
+                $("#bodyAuditInsure label").css("cursor", "not-allowed");
+            }
+
+            if (`@ViewBag.QueueFullDetail.AuditInsureNotConsideredResultStatusId` == "3" && `@ViewBag.QueueFullDetail.AuditInsureNotConsideredVerifiedTypeId` == "4" ) {
+                $("#inputAuditInsureNotConsideredResultStatus :input").prop("disabled", true);
+                $("#inputAuditInsureNotConsideredResultStatus label").css("cursor", "not-allowed");
+                $("#bodyAuditInsure :input").prop("disabled", true);
+                $("#bodyAuditInsure label").css("cursor", "not-allowed");
+                $('#btnSubmit4label').hide();
+
+            } else {
+
+                $('#btnSubmit4label').show();
+
+            }
+
+            switch (`@ViewBag.QueueFullDetail.QueueAuditStatusId`) {
+                case '2':
+                    break;
+                case '3':
+                    $("#queueAuditStatusId_2").prop("disabled", true);
+                    $("#queueAuditStatusId_4").prop("disabled", true);
+                    $('#queueAuditStatusId').val(`@ViewBag.QueueFullDetail.QueueAuditStatusId`)
+                    break;
+                case '4':
+
+                default:
+                    break;
+            }
+
+
+
+            //FORM SUBMIT
+            $('#btnSubmit').click(function (e) {
+                e.preventDefault();
+                if (ValidateFormSelect()) {
+                    if ($('#QuestionAuditUpdateV2').valid()) {
+                        swal_confirm("ยืนยันบันทึกข้อมูล", "", function (e) {
+                            debugger
+                            SubmitformQuestionAuditUpdateV2();
+                            $('#btnSubmit').prop("disabled", true);
+                        });
+                    }
+                } else {
+                    swal({
+                        title: "กรุณาตรวจสอบข้อมูล",
+                        text: "",
+                        type: "error",
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        allowEscapeKey: false,
+                        allowOutsideClick: false,
+                        html: false
+                    }, function (e) {
+                        if ($('#feedbackRate').val() <= 2 || $('#feedbackRate').val()>5) {
+                            $("#feedbackRemark").prop("required", true);
+
+                        } else {
+                            $("#feedbackRemark").prop("required", false);
+                        }
+                        $('#QuestionAuditUpdateV2').valid()
+                    });
+                }
+            });
+
+            //FORM SUBMIT 2
+            $('#btnSubmit2').click(function (e) {
+                e.preventDefault();
+                $('#AuditInsureClose').val(0);
+                $('#AuditInsureStatus').val(`@ViewBag.QueueFullDetail.AuditInsureStatusId`);
+                $('#insuredChack').val(1);
+
+
+                if ($('#formAuditInsure').valid()) {
+                    swal_confirm("ยืนยันบันทึกข้อมูล", "", function (e) {
+                        SubmitformAuditInsureV2();
+
+                    });
+                }
+            });
+
+            //FORM SUBMIT 3
+            $('#btnSubmit3').click(function (e) {
+                e.preventDefault();
+                $('#AuditInsureClose').val(1);
+                $('#AuditInsureStatus').val(`@ViewBag.QueueFullDetail.AuditInsureStatusId`);
+                $('#insuredChack').val(1);
+                if ($('#formAuditInsure').valid()) {
+                    swal_confirm("ยืนยันบันทึกข้อมูลและปิดคิวงาน", "", function (e) {
+                        SubmitformAuditInsureV2();
+
+                    });
+                }
+            });
+
+            //FORM SUBMIT 4
+            $('#btnSubmit4').click(function (e) {
+                e.preventDefault();
+                $('#AuditInsureClose').val(0)
+                if ($('#formAuditInsure').valid()) {
+                    swal_confirm("ยืนยันบันทึกข้อมูล", "", function (e) {
+                        SubmitformAuditInsureV2();
+
+                    });
+                }
+            });
+            //สถานะการตรวจสอบ
+            $('#audit_wait').show();
+            if (`@ViewBag.QueueFullDetail.QueueAuditStatusId` != '') {
+                if (`@ViewBag.QueueFullDetail.QueueAuditStatusId` == '2') {
+                    $('#audit_wait').show();
+                    $('#audit_NotAudit').hide();
+                    $('#audit_complete').hide();
+                } else if (`@ViewBag.QueueFullDetail.QueueAuditStatusId` == '4') {
+                    $('#audit_wait').hide();
+                    $('#audit_complete').hide();
+                    $('#audit_NotAudit').show();
+                } else {
+                    $('#audit_wait').hide();
+                    $('#audit_NotAudit').hide();
+                    $('#audit_complete').show();
+                }
+            } else {
+                if ($('#queueAuditStatusId').val() == 2) {
+                    $('#audit_wait').show();
+                    $('#audit_NotAudit').hide();
+                    $('#audit_complete').hide();
+                } else if ($('#queueAuditStatusId').val() == 4) {
+                    $('#audit_wait').hide();
+                    $('#audit_complete').hide();
+                    $('#audit_NotAudit').show();
+                } else {
+                    $('#audit_wait').hide();
+                    $('#audit_NotAudit').hide();
+                    $('#audit_complete').show();
+                }
+            }
+
+
+
+
+            $('input[name=queueAuditStatusId]').on('ifChecked',
+                function (e) {
+                    e.preventDefault();
+                    if ($(this).valid()) {
+                        $('.bodyQuestionForm').find("input").iCheck('uncheck');
+                        $('.bodyQuestionForm').find("input[type='text']").val('');
+                        $('.bodyQuestionForm').find("textarea").val('');
+                        switch ($(this).val()) {
+                            case '2':
+                                $('#audit_wait').show();
+                                $('#audit_NotAudit').hide();
+                                $('#audit_complete').hide();
+                                $('#notAuditedCause').val(-1);
+                                $('#auditRemarkNotAuditedCause').val("");
+                                $('.bodyQuestionForm').find("input").iCheck('uncheck');
+                                $('.bodyQuestionForm').find("input[type='text']").val('');
+                                $('.bodyQuestionForm').find("textarea").val('');
+                                break;
+                            case '3':
+                                $('#audit_wait').hide();
+                                $('#audit_NotAudit').hide();
+                                $('#audit_complete').show();
+                                $('#callStatusId').val(-1);
+                                $('#notAuditedCause').val(-1);
+                                $('#auditRemarkNotAuditedCause').val("");
+                                $('#auditRemarkCallStatusId').val("");
+                                $('#auditHealthSpecifyStatusLabel').hide();
+                                break;
+                            case '4':
+                                $('#audit_wait').hide();
+                                $('#audit_complete').hide();
+                                $('#audit_NotAudit').show();
+                                $('#callStatusId').val(-1);
+                                $('#auditRemarkCallStatusId').val("");
+                                $('.bodyQuestionForm').find("input").iCheck('uncheck');
+                                $('.bodyQuestionForm').find("input[type='text']").val('');
+                                $('.bodyQuestionForm').find("textarea").val('');
+                                break;
+                            default:
+
+                        }
+                    }
+                });
+
+
+            $('input[name=notAuditedCause]').on('change',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+
+            $('input[name=AuditInsureNotConsideredVerifiedTypeId]').on('ifChecked', function (e) {
+                if ($(this).val() == 4) {
+                    $('#btnSubmit2label').hide();
+                    $('#btnSubmit3label').show();
+                } else {
+                    $('#btnSubmit2label').show();
+                    $('#btnSubmit3label').hide();
+                }
+            });
+
+            $('input[name=saleMethodType]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=saleServiceType]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=cobrandInsuredIsValid]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                    $('input[name=cobrandInsuredRemark]').valid();
+                }
+            )
+            $('input[name=lineOAIsValid]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                    $('input[name=lineOARemark]').valid();
+                }
+            )
+            $('input[name=addLINEIsSuccess]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=insuranceCardType]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+
+            $('input[name=isReceivedManual]').on('ifChecked',
+                function (e) {
+                    e.preventDefault();
+                    if ($(this).valid()) {
+                        switch ($(this).val()) {
+                            case '1':
+                                $('#receivingManual').show();
+                                break;
+                            case '0':
+                                $('#receivingManual').hide();
+                                $('#receivingManualTypeId').val(-1)
+                                break;
+                            default:
+                        }
+                    }
+                }
+            )
+            $('input[name=serviceResultIsIssue]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=insuredNameIsValid]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                    $('input[name=insuredNameRemark]').valid();
+                }
+            )
+            $('input[name=payerNameIsValid]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                    $('input[name=payerNameRemark]').valid();
+                }
+            )
+            $('input[name=birthDateIsValid]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                    $('input[name=birthDateRemark]').valid();
+                }
+            )
+            $('input[name=weightHeightIsValid]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                    $('input[name=weightHeightRemark]').valid();
+                }
+            )
+            $('input[name=isAllergyHistory]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=isMedicalHistory]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=isAccidentHistory]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=isSurgeryHistory]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=isHealthCheckHistory]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=auditHealthSpecifyStatusId]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=isChronicDiseaseHistory]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=isMedicalLatestHistory]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=isSmokingHistory]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=isDrinkingHistory]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=isPregnantHistory]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=isOtherHealthHistory]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=payerOccupationIsValid]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                    $('input[name=payerOccupationRemark]').valid();
+                }
+            )
+            $('input[name=payerBuildingNameIsValid]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                    $('input[name=payerBuildingNameRemark]').valid();
+                }
+            )
+            $('input[name=productIsValid]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                    $('input[name=productRemark]').valid();
+                }
+            )
+            $('input[name=premiumIsValid]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                    $('input[name=premiumRemark]').valid();
+                }
+            )
+            $('input[name=underwritingBehaviorTypeId]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('input[name=payMethodTypeIsValid]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                    $('input[name=payMethodTypeRemark]').valid();
+                }
+            )
+            $('input[name=periodTypeIsValid]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                    $('input[name=PeriodTypeRemark]').valid();
+                }
+            )
+
+            $('input[name=AuditInsureNotConsideredVerifiedTypeId]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                    $('input[name=AuditInsureNotConsideredVerifiedTypeId]').valid();
+                }
+            )
+
+            if ($('#auditHealthStatusIdChecked').val() == "2" || $('#auditHealthStatusIdChecked').val() == "") {
+                $('#auditHealthSpecifyStatusLabel').hide();
+            } else {
+                $('#auditHealthSpecifyStatusLabel').show();
+            }
+
+            $('input[name=auditHealthStatusId]').on('ifChecked',
+                function (e) {
+                    e.preventDefault();
+                    $('#auditHealthStatusIdChecked').val("")
+                    var allRemark =
+                        $('#allergyHistoryRemark').val() +
+                        ($('#allergyHistoryRemark').val() == "" ? "" : "/ ") + $('#medicalHistoryRemark').val() +
+                        ($('#accidentHistoryRemark').val() == "" ? "" : "/ ") + $('#accidentHistoryRemark').val() +
+                        ($('#surgeryHistoryRemark').val() == "" ? "" : "/ ") + $('#surgeryHistoryRemark').val() +
+                        ($('#healthCheckHistoryRemark').val() == "" ? "" : "/ ") + $('#healthCheckHistoryRemark').val() +
+                        ($('#chronicDiseaseHistoryRemark').val() == "" ? "" : "/ ") + $('#chronicDiseaseHistoryRemark').val() +
+                        ($('#medicalLatestHistoryRemark').val() == "" ? "" : "/ ") + $('#medicalLatestHistoryRemark').val() +
+                        ($('#smokingHistoryRemark').val() == "" ? "" : "/ ") + $('#smokingHistoryRemark').val() +
+                        ($('#drinkingHistoryRemark').val() == "" ? "" : "/ ") + $('#drinkingHistoryRemark').val() +
+                        ($('#pregnantHistoryRemark').val() == "" ? "" : "/ ") + $('#pregnantHistoryRemark').val() +
+                        ($('#otherHealthHistoryRemark').val() == "" ? "" : "/ ") + $('#otherHealthHistoryRemark').val() +
+                        ($('#payerOccupationRemark').val() == "" ? "" : "/ ") + $('#payerOccupationRemark').val() +
+                        ($('#payerBuildingNameRemark').val() == "" ? "" : "/ ") + $('#payerBuildingNameRemark').val() +
+                        ($('#productRemark').val() == "" ? "" : "/ ") + $('#productRemark').val() +
+                        ($('#premiumRemark').val() == "" ? "" : "/ ") + $('#premiumRemark').val() +
+                        ($('#PeriodTypeRemark').val() == "" ? "" : "/ ") + $('#PeriodTypeRemark').val() +
+                        ($('#payMethodTypeRemark').val() == "" ? "" : "/ ") + $('#payMethodTypeRemark').val();
+                    $('#auditHealthRemark').val(allRemark)
+
+                    if ($(this).valid()) {
+                        switch ($(this).val()) {
+                            case '2':
+                                $('#auditHealthSpecifyStatusLabel').hide();
+                                $('.audit-Specify').find("input").iCheck('uncheck');
+                                break;
+                            case '3':
+                                $('#auditHealthSpecifyStatusLabel').show();
+                                break;
+                            default:
+                        }
+                    }
+                    $("#auditHealthRemark").valid();
+                }
+            )
+            $('input[name=periodTypeIsValid]').on('ifChecked',
+                function (e) {
+                    $(this).valid();
+                }
+            )
+            $('#feedbackRate').on('change', function (e) {
+
+                e.preventDefault();
+                if ($('#feedbackRate').val() <= 2 || $('#feedbackRate').val()>5) {
+                    $("#feedbackRemark").prop("required", true);
+
+                } else {
+                    $("#feedbackRemark").prop("required", false);
+                }
+                $("#feedbackRemark").valid();
+            });
+        });
+
+
+        //รับประกัน 3
+          //สถานะพิจารณา
+        $('input[name=AuditInsureStatus]').on('ifChecked',
+            function (e) {
+                e.preventDefault();
+                if ($(this).valid()) {
+                    switch ($(this).val()) {
+                        case '2':
+                            $('#AuditInsureConsiderStatusLabel').hide();
+                            $('.audit-insure-Specify').find("input").iCheck('uncheck');
+                            break;
+                        case '3':
+                            $('#AuditInsureConsiderStatusLabel').show();
+                            break;
+                        default:
+                    }
+                }
+            }
+        )
+
+
+        //รับประกัน 3
+        //ผลการติดตามลูกค้า
+
+        $('input[name=AuditInsureNotConsideredResultStatusId]').on('ifChecked',
+            function (e) {
+                e.preventDefault();
+                if ($(this).valid()) {
+                    switch ($(this).val()) {
+                        case '2':
+                            $('#AuditInsureNotConsideredVerifiedTypeIdLabel').hide();
+                            $('.audit-insure-VerifiedType').find("input").iCheck('uncheck');
+
+                            break;
+                        case '3':
+                            $('#AuditInsureNotConsideredVerifiedTypeIdLabel').show();
+                            break;
+                        default:
+                            $('#AuditInsureNotConsideredVerifiedTypeIdLabel').hide();
+                    }
+                }
+                $('#btnSubmit3label').hide();
+                $('#btnSubmit2label').show();
+            }
+        )
+
+        //พิจารณาแล้ว -ผ่าน -ไม่ผ่าน -ติดเงื่อนไข
+        $('input[name=AuditInsureConsiderStatus]').on('ifChecked',
+            function (e) {
+                $(this).valid();
+            });
+
+        const ValidateFormSelect = () => {
+            //todo
+            return true;
+        }
+
+        //กด  link ไป sss
+        const OpenSSS = (app) => {
+            var encoded = btoa(app);
+            window.open(`@ViewBag.OpenSSS?app=`+encoded,'_blank');
+        }
+
+        const OpenSSSElement = (app) => {
+             var url = `@ViewBag.OpenSSS?app=`+btoa(app);
+             return `<a href="${url}" target="_blank" id="openSSS" style="text-decoration: underline; color: #2833FF ">${app}</a>`
+        }
+
+            const SubmitformQuestionAuditUpdateV2 = () => {
+                $.ajax({
+                    url: $('#QuestionAuditUpdateV2').attr('action'),
+                    method: 'POST',
+                    data: $('#QuestionAuditUpdateV2').serialize(),
+                    success: function (response) {
+                        if (response != null && response.IsResult === true) {
+                            swal({
+                                title: "บันทึกข้อมูลเรียบร้อย",
+                                text: "",
+                                type: "success",
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                allowEscapeKey: false,
+                                allowOutsideClick: false,
+                                html: false
+                            }, function (e) {
+                                window.close();
+                            });
+                        }
+                        else {
+                            swal("บันทึกรายการไม่สำเร็จ กรุณาตรวจสอบข้อมูล", response.Msg, "error");
+                            $('#btnSubmit').prop("disabled", false);
+                        }
+                    },
+                    error: function (errorThrown) {
+                        swal("บันทึกรายการไม่สำเร็จ กรุณาตรวจสอบข้อมูล", errorThrown, "error");
+                        $('#btnSubmit').prop("disabled", false);
+                    }
+                });
+        }
+
+        /***Document**/
+        const SeeDoc = (path) => {
+            if (isMobileTablet()) {
+                window.location.href = path;
+            } else {
+                $('#DocDetail_form').children().show();
+                //const extension = path.substr(path.length - 4);
+                let extension = '';
+                const indexPDF = path.indexOf('.pdf');
+                const indexJPG = path.indexOf('.jpg');
+
+                if (indexPDF >= 0) extension = '.pdf';
+                if (indexJPG >= 0) extension = '.jpg';
+
+                switch (extension) {
+                    case '.pdf':
+                        $('.SeeDoc').attr('src', path);
+                        break;
+                    case '.jpg':
+                        $('.SeeDoc').attr('src', path);
+                        break;
+                    default:
+                }
+            }
+        }
+
+        //submit form 2
+        const SubmitformAuditInsureV2 = () => {
+            $.ajax({
+                url: $('#formAuditInsure').attr('action'),
+                type: 'POST',
+                data: $('#formAuditInsure').serialize(),
+                success: function (response) {
+                    if (response != null && response.IsResult === true) {
+                        swal({
+                            title: "บันทึกข้อมูลเรียบร้อย",
+                            text: "",
+                            type: "success",
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            allowEscapeKey: false,
+                            allowOutsideClick: false,
+                            html: false
+                        }, function (e) {
+                            window.close();
+                        });
+                    }
+                    else {
+                        swal("บันทึกรายการไม่สำเร็จ กรุณาตรวจสอบข้อมูล", response.Msg, "error");
+
+                    }
+                }
+            });
+        }
+
+        //submit and close
+        const SubmitformAuditInsureAndCloseV2 = () => {
+            $.ajax({
+                url: $('#formAuditInsure').attr('@Url.Action("QuestionAuditInsureUpdateAndCloseV2")'),
+                type: 'POST',
+                data: $('#formAuditInsure').serialize(),
+                success: function (response) {
+                    if (response != null && response.IsResult === true) {
+                        swal({
+                            title: "บันทึกข้อมูลเรียบร้อย",
+                            text: "",
+                            type: "success",
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            allowEscapeKey: false,
+                            allowOutsideClick: false,
+                            html: false
+                        }, function (e) {
+                            window.close();
+                        });
+                    }
+                    else {
+                        swal("บันทึกรายการไม่สำเร็จ กรุณาตรวจสอบข้อมูล", response.Msg, "error");
+                    }
+                }
+            });
+        }
+
+       const GetQueueAuditLog_DT = () => {
+            $('#tableLog').empty();
+            var table = $('#tableLog').DataTable({
+                pageLength: 10,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("QueueAuditLog")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.queueAuditId = "@ViewBag.QueueFullDetail.QueueAuditId";
+                    }
+                },
+                columns: [
+                    {
+                        title: 'วันที่ได้รับคิวงาน',
+                        data: 'CreatedDate',
+                        render: function (data) {
+                            return moment(data).format("DD/MM/YYYY HH:mm:ss");
+                        }
+                    },
+                    {
+                        title: 'ผู้มอบหมายคิวงาน',
+                        data: 'FromFullName'
+                    },
+                    {
+                        title: 'ผู้รับคิวงาน',
+                        data: 'ToFullName'
+                    },
+                ]
+            });
+
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+       }
+
+        /*fn get payer other*/
+        const getPayerOther = (appCode) => {
+            $.get('@Url.Action("GetPayerOtherApp")',
+                { appCode: appCode },
+                function (data) {
+                    if (data.length > 0) {
+                        /*declare str*/
+                        const str = `ชำระเบี้ยให้อีก ${data.length} คน`;
+                        /*show button*/
+                        $('#btnPayerOther').show();
+                        /*set str to text button*/
+                        $('#btnPayerOther').text(str);
+                        /*load datatables*/
+                        loadDatatablesPayerOther(data);
+                    }
+                });
+        }
+
+        const getPolicyOther = (appCode) => {
+            $.get('@Url.Action("ApplicationInsuredRelateByApplicationCodeSelect")',
+                { applicationCode: appCode },
+                function (data) {
+                    if (data.recordsTotal > 0) {
+                        /*declare str*/
+                        const str = `มีอีก ${data.recordsTotal} กรมธรรม์`;
+                        /*show button*/
+                        $('#btnPolicyOther').show();
+                        /*set str to text button*/
+                        $('#btnPolicyOther').text(str);
+                        /*load datatables*/
+                        loadDatatablesPolicyOther(data.data);
+                    }
+                });
+        }
+
+        /*load datatables payer other*/
+        const loadDatatablesPayerOther = (data) => {
+            $(`#tablePayerOther`).empty();
+            $(`#tablePayerOther`).DataTable({
+                pageLength: 100,
+                processing: true,
+                serverSide: false,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: false,
+                info: true,
+                paging: true,
+                data: data,
+                language: {
+                    url: "http://cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Thai.json"
+                },
+                columns: [
+                    {
+                        title: 'AppId',
+                        data: 'app_Id',
+                        orderable: false,
+                        render: (data) => OpenSSSElement(data)
+                    },
+                    {
+                        title: 'ชื่อ-สกุลผู้เอาประกัน',
+                        data: null,
+                        orderable: false,
+                        render: (d) => {
+                            return `${d.customerFirstName} ${d.customerLastName}`;
+                        }
+                    },
+                    {
+                        title: 'วันเริ่มคุ้มครอง',
+                        data: 'startCoverDate',
+                        orderable: false,
+                        render: (d) => {
+                            return moment(d).format("DD/MM/YYYY");
+                        }
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: 'status',
+                        orderable: false
+                    }
+                ]
+            });
+        }
+
+        /*load datatables Policy other*/
+        const loadDatatablesPolicyOther = (data) => {
+            $(`#tablePolicyOther`).empty();
+            $(`#tablePolicyOther`).DataTable({
+                pageLength: 100,
+                processing: true,
+                serverSide: false,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: false,
+                info: true,
+                paging: true,
+                data: data,
+                language: {
+                    url: "http://cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Thai.json"
+                },
+                columns: [
+                    {
+                        title: 'AppId',
+                        data: 'ApplicationCode',
+                        orderable: false,
+                        render: (data) => OpenSSSElement(data)
+                    },
+                    {
+                        title: 'ชื่อ-สกุลผู้เอาประกัน',
+                        data: 'InsuredName',
+                        orderable: false,
+
+                    },
+                    {
+                        title: 'วันเริ่มคุ้มครอง',
+                        data: 'StartCoverDate',
+                        orderable: false,
+                        render: (d) => {
+                            return moment(d).format("DD/MM/YYYY");
+                        }
+                    },
+                    {
+                        title: 'สถานะ',
+                        data: 'ApplicationStatus',
+                        orderable: false
+                    }
+                ]
+            });
+        }
+    </script>
+    <script type="text/javascript">
+        $.validator.addMethod("notEmpty", function (value, element) {
+            return $.trim(value) !== "";
+        }, "โปรดระบุ..");
+        $("#formAuditInsure").validate({
+            rules:
+            {
+                AuditInsureConsiderStatus: { required: true, min: 0 },
+                AuditInsureConsiderStatusRemark: { required: true, },
+                AuditInsureCloseRemark: { required: true, notEmpty: true },
+                AuditInsureNotConsideredResultStatusId: { required: true, },
+                AuditInsureNotConsideredVerifiedTypeId: { required: true, },
+            },
+            messages:
+            {
+                AuditInsureConsiderStatus: {
+                    required: "กรุณาเลือก...",
+                    min: "กรุณาเลือก...",
+                },
+                AuditInsureConsiderStatusRemark: { required: "โปรดระบุ.." },
+                AuditInsureCloseRemark: { required: "โปรดระบุ.." },
+                AuditInsureNotConsideredResultStatusId: { required: "กรุณาเลือก..." },
+                AuditInsureNotConsideredVerifiedTypeId: { required: "กรุณาเลือก..." },
+            },
+            errorPlacement: function (error, element) {
+                if (element.is(":radio")) {
+                    error.prependTo(element.parents('.radio-check'));
+                }
+                else { // This is the default behavior
+                    error.insertAfter(element);
+                }
+            }
+        })
+
+        $("#QuestionAuditUpdateV2").validate({
+            rules:
+            {
+                queueAuditStatusId: { required: true },
+                saleMethodType: { required: true },
+                saleServiceType: { required: true },
+                cobrandInsuredIsValid: { required: true },
+                lineOAIsValid: { required: true },
+                addLINEIsSuccess: { required: true },
+                insuranceCardType: { required: true },
+                isReceivedManual: { required: true },
+                feedbackRate: { required: true, min: 0 },
+                serviceResultIsIssue: { required: true },
+                insuredNameIsValid: { required: true },
+                insuredNameRemark: {
+                    required: function (element) {
+                        return $('input[name="insuredNameIsValid"]:checked').val() == "0";
+                    }
+                },
+                payerNameIsValid: { required: true },
+                payerNameRemark: {
+                    required: function (element) {
+                        return $('input[name="payerNameIsValid"]:checked').val() == "0";
+                    }
+                },
+                birthDateIsValid: { required: true },
+                birthDateRemark: {
+                    required: function (element) {
+                        return $('input[name="birthDateIsValid"]:checked').val() == "0";
+                    }
+                },
+                weightHeightIsValid: { required: true },
+                weightHeightRemark: {
+                    required: function (element) {
+                        return $('input[name="weightHeightIsValid"]:checked').val() == "0";
+                    }
+                },
+                isAllergyHistory: { required: true },
+                isMedicalHistory: { required: true },
+                isAccidentHistory: { required: true },
+                isSurgeryHistory: { required: true },
+                isHealthCheckHistory: { required: true },
+                isChronicDiseaseHistory: { required: true },
+                isMedicalLatestHistory: { required: true },
+                isSmokingHistory: { required: true },
+                isDrinkingHistory: { required: true },
+                isPregnantHistory: { required: true },
+                isOtherHealthHistory: { required: true },
+                payerOccupationIsValid: { required: true },
+                payerBuildingNameIsValid: { required: true },
+                productIsValid: { required: true },
+                premiumIsValid: { required: true },
+                underwritingBehaviorTypeId: { required: true },
+                payMethodTypeIsValid: { required: true },
+                periodTypeIsValid: { required: true },
+                callStatusId: { required: true, min: 0 },
+                notAuditedCause: { required: true, min: 0 },
+                auditHealthSpecifyStatusId: { required: true },
+                auditHealthStatusId: { required: true, min: 2, max: 3 },
+                payerOccupationRemark: {
+                    required: function (element) {
+                        return ($('input[name="payerOccupationIsValid"]:checked').val() == "0");
+                    }
+                },
+                payerBuildingNameRemark: {
+                    required: function (element) {
+                        return $('input[name="payerBuildingNameIsValid"]:checked').val() == "0";
+                    }
+                },
+                productRemark: {
+                    required: function (element) {
+                        return $('input[name="productIsValid"]:checked').val() == "0";
+                    }
+                },
+                premiumRemark: {
+                    required: function (element) {
+                        return $('input[name="premiumIsValid"]:checked').val() == "0";
+                    }
+                },
+                PeriodTypeRemark: {
+                    required: function (element) {
+                        return $('input[name="periodTypeIsValid"]:checked').val() == "0";
+                    }
+                },
+                payMethodTypeRemark: {
+                    required: function (element) {
+                        return $('input[name="payMethodTypeIsValid"]:checked').val() == "0";
+                    }
+                },
+                serviceResultRemark:
+                {
+                    required: function (element) {
+                        return $('input[name="serviceResultIsIssue"]:checked').val() == "1";
+                    }
+                },
+                cobrandInsuredRemark: {
+                    required: function (element) {
+                        return $('input[name="cobrandInsuredIsValid"]:checked').val() == "0";
+                    }
+                },
+                lineOARemark: {
+                    required: function (element) {
+                        return $('input[name="lineOAIsValid"]:checked').val() == "0";
+                    }
+                },
+                receivingManualTypeId: { required: true, min: 0 },
+                auditHealthRemark: {
+                    required: function (element) {
+                        return $('input[name="auditHealthStatusId"]:checked').val() == "3";
+                    }
+                }
+            },
+            messages:
+            {
+                saleMethodType: {
+                    required: "โปรดระบุ.."
+                },
+                saleServiceType: {
+                    required: "โปรดระบุ.."
+                },
+                cobrandInsuredIsValid: {
+                    required: "โปรดระบุ.."
+                },
+                lineOAIsValid: {
+                    required: "โปรดระบุ.."
+                },
+                addLINEIsSuccess: {
+                    required: "โปรดระบุ.."
+                },
+                insuranceCardType: {
+                    required: "โปรดระบุ.."
+                },
+                isReceivedManual: {
+                    required: "โปรดระบุ.."
+                },
+                feedbackRate: {
+                    required: "โปรดระบุ..",
+                    min: "กรุณาเลือก..."
+                },
+                serviceResultIsIssue: {
+                    required: "โปรดระบุ.."
+                },
+                insuredNameIsValid: {
+                    required: "โปรดระบุ.."
+                },
+                payerNameIsValid: {
+                    required: "โปรดระบุ.."
+                },
+                birthDateIsValid: {
+                    required: "โปรดระบุ.."
+                },
+                weightHeightIsValid: {
+                    required: "โปรดระบุ.."
+                },
+                isAllergyHistory: {
+                    required: "โปรดระบุ.."
+                },
+                isMedicalHistory: {
+                    required: "โปรดระบุ.."
+                },
+                isAccidentHistory: {
+                    required: "โปรดระบุ.."
+                },
+                isSurgeryHistory: {
+                    required: "โปรดระบุ.."
+                },
+                isHealthCheckHistory: {
+                    required: "โปรดระบุ.."
+                },
+                isChronicDiseaseHistory: {
+                    required: "โปรดระบุ.."
+                },
+                isMedicalLatestHistory: {
+                    required: "โปรดระบุ.."
+                },
+                isSmokingHistory: {
+                    required: "โปรดระบุ.."
+                },
+                isDrinkingHistory: {
+                    required: "โปรดระบุ.."
+                },
+                isPregnantHistory: {
+                    required: "โปรดระบุ.."
+                },
+                isOtherHealthHistory: {
+                    required: "โปรดระบุ.."
+                },
+                payerOccupationIsValid: {
+                    required: "โปรดระบุ.."
+                },
+                productIsValid: {
+                    required: "โปรดระบุ.."
+                },
+                underwritingBehaviorTypeId: {
+                    required: "โปรดระบุ.."
+                },
+                payMethodTypeIsValid: {
+                    required: "โปรดระบุ.."
+                },
+                premiumIsValid: {
+                    required: "โปรดระบุ.."
+                },
+                periodTypeIsValid: {
+                    required: "โปรดระบุ.."
+                },
+                queueAuditStatusId: {
+                    required: "โปรดระบุ.."
+                },
+                feedbackRemark: {
+                    required: "หมายเหตุ.."
+                },
+                callStatusId: {
+                    required: "กรุณาเลือก...",
+                    min: "กรุณาเลือก..."
+                },
+                notAuditedCause: {
+                    required: "กรุณาเลือก...",
+                    min: "กรุณาเลือก..."
+                },
+                auditHealthSpecifyStatusId: {
+                    required: "กรุณาเลือก..."
+                },
+                auditHealthStatusId: {
+                    required: "กรุณาเลือก...",
+                    min: "กรุณาเลือก...",
+                    max: "กรุณาเลือก...",
+                },
+                insuredNameRemark: {
+                    required: "โปรดระบุ.."
+                },
+                payerNameRemark: {
+                    required: "โปรดระบุ.."
+                },
+                birthDateRemark: {
+                    required: "โปรดระบุ.."
+                },
+                weightHeightRemark: {
+                    required: "โปรดระบุ.."
+                },
+                payerOccupationRemark: {
+                    required: "โปรดระบุ.."
+                },
+                payerBuildingNameRemark: {
+                    required: "โปรดระบุ.."
+                },
+                productRemark: {
+                    required: "โปรดระบุ.."
+                },
+                premiumRemark: {
+                    required: "โปรดระบุ.."
+                },
+                PeriodTypeRemark: {
+                    required: "โปรดระบุ.."
+                },
+                payMethodTypeRemark: {
+                    required: "โปรดระบุ.."
+                },
+                serviceResultRemark: {
+                    required: "โปรดระบุ.."
+                },
+                cobrandInsuredRemark: {
+                    required: "โปรดระบุ.."
+                },
+                lineOARemark: {
+                    required: "โปรดระบุ.."
+                },
+                receivingManualTypeId: {
+                    required: "กรุณาเลือก...",
+                    min: "กรุณาเลือก..."
+                },
+                payerBuildingNameIsValid: {
+                    required: "โปรดระบุ.."
+                },
+                auditHealthRemark: {
+                    required: "โปรดระบุ.."
+                },
+            },
+            errorPlacement: function (error, element) {
+                if (element.is(":radio")) {
+                    error.prependTo(element.parents('.radio-check'));
+                }
+                else { // This is the default behavior
+                    error.insertAfter(element);
+                }
+            }
+        });
+
+    </script>
+}
+

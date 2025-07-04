@@ -1,0 +1,246 @@
+﻿
+@{
+    ViewBag.Title = "รายงานการวางบิลบริษัทประกัน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายงาน</h3>
+                    <!-- /.box-tools -->
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <label>ค้นหาจาก :</label>
+                            <select class="form-control select2" id="ddlSearchType">
+                                <option value="-1">---โปรดระบุ---</option>
+                                <option value="1">วันที่นำเข้า</option>
+                                <option value="2">วันที่วางบิล</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-3">
+                            <label>วันที่ :</label>
+
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right" id="dtpDateFrom" data-date-language="th-th">
+                            </div>
+                            <!-- /.input group -->
+                        </div>
+                        <div class="col-sm-3">
+                            <label>ถึงวันที่ :</label>
+
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right" id="dtpDateTo" data-date-language="th-th">
+                            </div>
+
+                        </div>
+                        <div class="col-sm-3">
+                            <label>บริษัทประกัน :</label>
+                            <select class="form-control select2" id="ddlInsuranceCompany">
+                                <option value="">---ทั้งหมด---</option>
+                                @{
+                                    foreach (var item in ViewBag.InsuranceCompany)
+                                    {
+                                        <option value="@item.OrganizeId">@item.OrganizeDetail</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                    </div>
+                    <div class="row" style="padding-top:5px">
+                        <div class="col-sm-3">
+                            <label>ประเภทการเคลม :</label>
+                            <select class="form-control select2" id="ddlProductType">
+                                <option value="-1">---ทั้งหมด---</option>
+                                <option value="1">เคลมโรงพยาบาล</option>
+                                <option value="2">เคลมสาขา</option>
+                                @*@{
+                                        foreach (var item in ViewBag.ProductGroupId)
+                                        {
+                                            <option value="@item.ProductGroup_ID">@item.ProductGroupDetail</option>
+                                        }
+                                    }*@
+                            </select>
+                        </div>
+                        <div class="col-sm-4">
+                            <label>กลุ่มเคลม :</label>
+                            <select class="form-control select2" id="ddlClaimHeaderGroupType" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true" required="required">
+                                <option value="-1">---ทั้งหมด---</option>
+                                @{
+                                    foreach (var item in ViewBag.ClaimHeaderGroupTypeId)
+                                    {
+                                        <option value="@item.ClaimHeaderGroupTypeId">@item.ClaimHeaderGroupTypeName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-2" style="padding-top:26px;">
+                            <button type="button" class="btn btn-block btn-success" id="btnExportExcel"><i class="fa fa-file-excel-o"></i>  Export To Excel </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var date = new Date();
+        var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+        $(function () {
+
+
+            $('.select2').select2();
+
+            //Date picker
+            $('#dtpDateFrom').datepicker({
+                format: 'dd/mm/yyyy',
+                autoclose: true
+            }).datepicker('setDate', today)
+
+            $('#dtpDateTo').datepicker({
+                format: 'dd/mm/yyyy',
+                autoclose: true
+            }).datepicker('setDate', today)
+
+            $("#dtpDateFrom").on("change", function () {
+                if ($('#dtpDateTo').val() < $('#dtpDateFrom').val()) {
+                    $('#dtpDateTo').val($('#dtpDateFrom').val());
+                }
+            });
+
+            //Button Export
+            $('#btnExportExcel').click(function (e) {
+                e.preventDefault();
+                //Validate
+                if (Isvalidate()) {
+                    //Export
+                    ExportToExcel();
+                }
+            });
+
+            $("#dtpDateFrom").on("change", function () {
+                var dateEndString = $('#dtpDateTo').val();
+                var [day, month, year] = dateEndString.split("/");
+                var dateEnd = new Date(`${year}-${month}-${day}`);
+
+                var dateStartString = $('#dtpDateFrom').val();
+                var [day, month, year] = dateStartString.split("/");
+                var dateStart = new Date(`${year}-${month}-${day}`);
+
+                if (dateEnd < dateStart) {
+                    debugger;
+                    $('#dtpDateTo').val($('#dtpDateFrom').val());
+                }
+            });
+        });
+
+        const Isvalidate = () => {
+
+            if ($('#ddlSearchType').val() == '-1') {
+                swal_info("กรุณาเลือก การค้นหา");
+                return false;
+            }
+            //if ($('#ddlInsuranceCompany').val() == '-1') {
+            //    swal_info("กรุณาเลือก บริษัทประกัน");
+            //    return false;
+            //}
+            //if ($('#ddlProductType').val() == '-1') {
+            //    swal_info("กรุณาเลือก ประเภทการเคลม");
+            //    return false;
+            //}
+            //if ($('#ddlClaimHeaderGroupType').val() == '-1') {
+            //    swal_info("กรุณาเลือก กลุ่มเคลม");
+            //    return false;
+            //}
+
+            //Chk Datefrom & DateTo Is Null
+            if ($('#dtpDateFrom').val() == "" || $('#dtpDateTo').val() == "") {
+                swal_info("กรุณาเลือก ช่วงวันที่");
+                return false;
+            }
+
+            //var d_datefrom = moment($('#dtpDateFrom').val())._i;
+            //let nowDateStr = moment(new Date()).add(543, 'years').format('DD/MM/YYYY HH:mm:ss');
+
+            //let d_dateto = moment($('#dtpDateTo').val())._i;
+
+
+            //let arrDateToDate = d_dateto.split(" ");
+            //let arrDateToDate2 = arrDateToDate[0].split("/");
+
+
+            //let arrNowDate = nowDateStr.split(" ");
+            //let arrNowDate2 = arrNowDate[0].split("/");
+
+            //let arrDatefromDate = d_datefrom.split(" ");
+            //let arrDatefromDate2 = arrDatefromDate[0].split("/");
+
+            //let nowDate = new Date(parseInt(arrNowDate2[2]) - 543, parseInt(arrNowDate2[1]) - 1, parseInt(arrNowDate2[0]));
+            //let datefromDate = new Date(parseInt(arrDatefromDate2[2]) - 543, parseInt(arrDatefromDate2[1]) - 1, parseInt(arrDatefromDate2[0]));
+
+            //let dateToDate = new Date(parseInt(arrDateToDate2[2]) - 543, parseInt(arrDateToDate2[1]) - 1, parseInt(arrDateToDate2[0]));
+
+
+            ////Chk Datefrom > DateTime Now
+            //if (datefromDate > nowDate) {
+            //    swal_info("กรุณาตรวจสอบ ช่วงวันที่");
+            //    return false;
+            //}
+
+
+            //if (datefromDate > dateToDate) {
+            //    swal_info("กรุณาตรวจสอบ ช่วงวันที่ ");
+            //    return false;
+            //}
+
+
+            return true;
+        }        
+
+        function ExportToExcel() {
+            loadingSpinner('fadeIn', 999999);
+            $.ajax({
+                url: "@Url.Action("ExportBilling")",
+                type: "POST",
+                data: {
+                    searchTypeId: $('#ddlSearchType').val(),
+                    claimHeaderGroupTypeId: $('#ddlClaimHeaderGroupType').val(),                    
+                    dateFrom: $('#dtpDateFrom').val(),
+                    dateTo: $('#dtpDateTo').val(),                    
+                    productTypeId: $('#ddlProductType').val(),
+                    insuranceCompanyId: $('#ddlInsuranceCompany').val(),                    
+                },
+                success: function (response) {
+                    if (!response.isError) {
+                        window.location = "@Url.Action("ExportBillingDownload")";
+                        loadingSpinner('fadeOut');
+                    }
+                    else {
+                        swal('เกิดข้อผิดพลาด !', response.Msg, 'error');
+                        loadingSpinner('fadeOut');
+                    }
+                }
+            });
+        }
+
+    </script>
+}
+

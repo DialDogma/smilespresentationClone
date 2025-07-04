@@ -1,0 +1,133 @@
+﻿@using SmileSUnderwrite.Helper
+@using SmileSUnderwrite.SmileSPAService;
+@using SmileSGlobalClassLibrary.Class;
+
+@{
+    //request app id
+    var client = new ApplicationServiceClient();
+
+    var obj = client.GetApplicationDetailForPAUnderwrite(ViewBag.AppId);
+
+    ViewBag.Product = obj.Product; //"100E-เลือกสิทธิ์";
+    ViewBag.CoverDate = obj.StartCoverDate.ToString("dd/MM/yyyy") + " - " + obj.EndCoverDate.ToString("dd/MM/yyyy"); //"16/05/2017 - 16/05/2018";
+    ViewBag.SchoolName = obj.School; //"โรงเรียนสวนกุหลาบวิทยาลัย นนทบุรี";
+    ViewBag.Province = obj.Province; //"นนทบุรี";
+    ViewBag.District = obj.District; //"ปากเกร็ด";
+    ViewBag.CoordinateName = obj.ContactName; //"ณัฐวัฒน์ เกตุวิชิต";
+    ViewBag.CoordinateMobileNo = obj.ContactPhoneNo; //"0814142623";
+    ViewBag.DirectorName = obj.DirectorName; //"ประยุทธ์ จันทร์โอชา";
+    ViewBag.DirectorMobileNo = obj.DirectorPhoneNo;//"08XXXXXXX";
+    ViewBag.SchoolId = obj.School_id;
+    ViewBag.StatusApp = obj.Status;
+    //encrypt appid
+    var fn = new FunctionManager();
+    string appIdBase64 = fn.Base64Encrypt(ViewBag.AppId);
+
+    var ssspaurl = @System.Configuration.ConfigurationManager.AppSettings["SSSPAUrl"].ToString() + appIdBase64; //call path to SSSPA
+    var udHistoryLink = @ViewBag.SchoolId;
+
+}
+
+<div class="container-fluid">
+    <div class="box box-warning">
+        <div class="box-header with-border">
+            <h3 class="box-title">
+                ข้อมูล Application - <a target="_blank" href="@ssspaurl">@ViewBag.AppId</a> - <font style="color:red">สถานะ @ViewBag.StatusApp </font>
+                @*<a href="@Url.Action("UnderwriteHistory","PAUnderwriteCall",new { schoolId = udHistoryLink })">ประวัติการโทรคัดกรองโรงเรียน</a>*@
+            </h3>
+
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                @*<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>*@
+            </div>
+        </div>
+        <!-- /.box-header -->
+
+        <div class="box-body">
+            <form role="form">
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 col-xs-12">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-aqua"><i class="fa fa-file"></i></span>
+
+                            <div class="info-box-content">
+                                <span class="info-box-text">ข้อมูลทั่วไป</span>
+                                <span class="info-box-number"><small>@ViewBag.Product</small></span>
+                                <span class="info-box-number"><small>@ViewBag.CoverDate</small></span>
+                            </div>
+                            <!-- /.info-box-content -->
+                        </div>
+                        <!-- /.info-box -->
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-md-3 col-sm-6 col-xs-12">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-red"><i class="fa fa-building"></i></span>
+
+                            <div class="info-box-content">
+                                <span class="info-box-text">สถานศึกษา</span>
+                                <span class="info-box-number"><small>@ViewBag.SchoolName</small></span>
+                                <span class="info-box-number"><small>@ViewBag.Province/@ViewBag.District</small></span>
+                            </div>
+                            <!-- /.info-box-content -->
+                        </div>
+                        <!-- /.info-box -->
+                    </div>
+                    <!-- /.col -->
+                    <!-- fix for small devices only -->
+                    <div class="clearfix visible-sm-block"></div>
+
+                    <div class="col-md-3 col-sm-6 col-xs-12">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-green"><i class="fa fa-user"></i></span>
+
+                            <div class="info-box-content">
+                                <span class="info-box-text">ผู้ประสานงาน</span>
+                                <span class="info-box-number"><small>@ViewBag.CoordinateName</small></span>
+                                <span class="info-box-number"><small>@ViewBag.CoordinateMobileNo</small></span>
+                            </div>
+                            <!-- /.info-box-content -->
+                        </div>
+                        <!-- /.info-box -->
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-md-3 col-sm-6 col-xs-12">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-yellow"><i class="fa fa-user"></i></span>
+
+                            <div class="info-box-content">
+                                <span class="info-box-text">ผู้อำนวยการ</span>
+                                <span class="info-box-number"><small>@ViewBag.DirectorName</small></span>
+                                <span class="info-box-number"><small>@ViewBag.DirectorMobileNo</small></span>
+                            </div>
+                            <!-- /.info-box-content -->
+                        </div>
+                        <!-- /.info-box -->
+                    </div>
+                    <!-- /.col -->
+                </div>
+            </form>
+        </div>
+        <!-- /.box-body -->
+    </div>
+</div>
+
+@*<div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                @Html.ActionLink("Partial View Test", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li>@Html.ActionLink("Home", "Index", "Home")</li>
+                    <li>@Html.ActionLink("About", "About", "Home")</li>
+                    <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
+                </ul>
+            </div>
+        </div>
+    </div>*@

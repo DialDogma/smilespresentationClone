@@ -1,0 +1,172 @@
+﻿﻿@{
+    ViewBag.Title = "Cancel List from insurance";
+    ViewBag.Description = "รายการที่บริษัทประกันปฎิเสธ";
+}
+<style>
+    /*TODO:edit color*/
+    .nav-tabs-custom > .nav-tabs > li.active > a {
+        border-right-color: #f4f4f4 !important;
+        background-color: #3c8dbc !important;
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @* search form *@
+        <div class="col-sm-12 col-md-12" id="Search_form">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-6 col-md-offset-1 col-md-3">
+                            <label class="control-label" for="">DCR :</label>
+                            <input type="text" class="form-control pull-right" name="DCRDate" id="DCRDate"
+                                   data-date-language="th-th" data-provide="datepicker">
+                        </div>
+                        <div class="col-sm-6 col-md-2" style="margin-top: 25px">
+                            <button class="btn btn-block btn-info" type="button" id="btnSearch" onclick=""><i class="fa fa-search"></i> ค้นหา</button>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end search *@
+        @* DT form *@
+        <div id="dt_form" class="col-sm-12 col-md-12">
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtCancelApplication" name="dtCancelApplication" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end form *@
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            //select datepicker from dcr
+            $('#DCRDate').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months", autoclose: true }).datepicker("setDate", new Date("@ViewBag.dcrDate"));
+
+            $('#btnSearch').click((e) => {
+                e.preventDefault();
+                GetMonitorApplication();
+            });
+        });
+
+        const CancelBDCR = (appId) => {
+            swal_confirm("ต้องการยกเลิกรายการ", "ยกเลิกApplicationนี้ก่อนDCRหรือไม่?", () => {
+                $.post('@Url.Action("CancelBDCR","ConfirmPolicy")', { applicationId: appId }, (data) => {
+                    if (data.IsResult) {
+                        swal_success(data.Msg);
+                        setTimeout(() => { window.location = '@Url.Action("CancelFromInsurance","ConfirmPolicy")' },1500);
+                    } else {
+                        swal_fail(data.Msg);
+                    }
+                });
+            });
+        }
+
+        const Edit = (appId) => {
+             var enc = btoa(appId);
+            window.open('@Url.Action("Underwrite","Monitor")?appCode=' + enc);
+        }
+
+        const GetMonitorApplication = () => {
+            //get datepicker fromDate value and convert
+            var DCRDate = $('#DCRDate').datepicker({ format: 'MM yyyy', viewMode: "months", minViewMode: "months" }).datepicker('getDate');
+            var addfirstDCRDate = new Date(DCRDate.getFullYear(), DCRDate.getMonth(), 1);
+            var DCRDateConvert = moment(addfirstDCRDate).format('DD-MM-YYYY');
+
+            //get search value
+            var search = $('#txtSearch').val();
+
+            //call api
+            $('#dtCancelApplication').empty();
+            var appTable = $('#dtCancelApplication').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetMonitorApplication","Monitor")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchDetail = search;
+                        d.branchId = null;
+                        d.startCoverDate = DCRDateConvert;
+                        d.cancelDate = null;
+                        d.endCoverDate = null;
+                        d.appStatusIdList = '9';
+                        d.appUdwStatusIdList = null;
+                        d.userId = null;
+                        d.appCode = null;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'วันที่คุ้มครอง', data: 'StartCoverDate',
+                        render: function (data) {
+                            if (data != null) {
+                                let startCoverDate = moment(data)._d;
+                                let yearBE = startCoverDate.getFullYear() + 543;
+                                let startCoverDateBE = moment(startCoverDate.setFullYear(yearBE)).format("DD/MM/YYYY");
+                                return startCoverDateBE;
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    { title: 'TNI ApplicationCode', data: 'TNIAppNo' },
+                    { title: 'สถานะกรมธรรม์', data: 'ApplicationStatus' },
+                    { title: 'ผลจากบริษัทประกัน', data: 'WsMessageDesc' },
+                    {
+                        title: 'วันเวลาที่บริษัทประกันส่งผล', data: 'WsInvokeDateTime',
+                         render: function (data) {
+                            if (data != null) {
+                                let startCoverDate = moment(data)._d;
+                                let yearBE = startCoverDate.getFullYear() + 543;
+                                let startCoverDateBE = moment(startCoverDate.setFullYear(yearBE)).format("DD/MM/YYYY");
+                                return startCoverDateBE;
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    {
+                        title: 'จัดการ',
+                        data: null,
+                        searchable: false,
+                        orderable: false,
+                        mRender: function (data) {
+
+                                 return '<a type="button" class="btn btn-block btn-danger" id="btnCancel_' + data.ApplicationId
+                                    + '" onclick="CancelBDCR(' + data.ApplicationId + ')" ><i class="fa fa-edit"></i>ยกเลิกก่อนDCR</a>' +
+                                    '<a type="button" class="btn btn-block btn-warning" id="btnEdit_' + data.ApplicationId
+                                    + '" onclick="Edit(\'' + data.ApplicationCode + '\')">ตรวจสอบ <i class="fa fa-arrow-right"></i></a>';
+
+                        }
+                    }
+                ]
+            });
+        }
+    </script>
+}

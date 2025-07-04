@@ -1,0 +1,410 @@
+﻿@{
+    ViewBag.Title = "รายการที่ผ่านการตรวจอนุมัติ";
+
+}
+<style>
+    .table {
+        font-size: 14px;
+    }
+
+    .modal.fade .modal-dialog {
+        transform: translate(0, -100%);
+    }
+
+    .modal.in .modal-dialog {
+        transform: translate(0, 0);
+    }
+</style>
+<form id="Mainform" action="" method="post">
+    <div class="row">
+        @* DT Row *@
+        <div class="col-sm-12" id="Detail_form">
+            <div class="box-header">
+                <h4>เอกสารรอการสแกนใบปะหน้า</h4>
+            </div>
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtPassWaitScan" name="dtPassWaitScan" class="table table-bordered table-striped"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* dt wait  *@
+        <div class="col-sm-12" id="Detailwait_form">
+            <div class="box-header">
+                <h4>รายการรอแจ้งโอนเงิน</h4>
+            </div>
+            <div class="box box-default">
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtPassWaitSubmit" name="dtPassWaitSubmit" class="table table-bordered table-striped"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end form *@
+    </div>
+    @* detail modal *@
+    <div class="modal fade bd-check-modal-lg" id="checkModal" tabindex="-1" role="dialog" aria-labelledby="checkModal" aria-hidden="true">
+        <div class="modal-dialog  modal-lg " role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="checkModalHeader">รายละเอียด<label id="txtCompany"></label></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-sm-4">
+                            <label class="control-label">ธนาคาร :</label>
+                            <input type="text" id="txtBank" value="" disabled="disabled" />
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="control-label">ชื่อบัญชี :</label>
+                            <input type="text" id="txtBankName" value="" disabled="disabled" />
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="control-label">เลขที่บัญชี :</label>
+                            <input type="text" id="txtBankNo" value="" disabled="disabled" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <table id="dtDetailTransaction" name="dtDetailTransaction" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-offset-8 col-sm-2">
+                            <a class="btn btn-block btn-default" id="btnScanDoc">เอกสาร:<label id="docCount">0</label></a>
+                            <input type="hidden" id="hd_docCode" value="" />
+                        </div>
+                        <div class="col-sm-2">
+                            <a class="btn btn-block btn-success" id="btnPrint">Print ใบปะหน้า</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-sm-offset-2 col-sm-3">
+                        <button type="button" class="btn btn-block btn-danger" data-dismiss="modal">ปิด</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end modal *@
+    @* hidden *@
+    <input type="hidden" id="hd_branch" name="hd_branch" value="@ViewBag.branch" />
+    <input type="hidden" id="hd_transferId" value="" />
+    @* end hidden *@
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            GetPassTable();
+            GetDocCount();
+            GetWaitSubmit();
+
+            $('#checkModal').on('hidden.bs.modal', () => {
+                $.post('@Url.Action("UpdateScanDoc","PettyCash")', { transferId: $('#hd_transferId').val() }, (data) => {
+                    if (data.IsResult) {
+                        console.log("true");
+                    } else {
+                        console.log("false");
+                    }
+                    GetPassTable();
+                    GetWaitSubmit();
+                });
+            });
+
+        });
+
+        const GetPassTable = () => {
+             $('#dtPassWaitScan').empty();
+             var table = $('#dtPassWaitScan').DataTable({
+                paging: false,
+                searching: false,
+                processing: true,
+                ordering: false,
+                serverSide: true,
+                responsive: false,
+                lengthChange: false,
+                destroy: true,
+                scrollX: true,
+                ajax: {
+                    url: '@Url.Action("GetTransfer_DT","PettyCash")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = 1;
+                        d.pageSize = 999999;
+                        d.indexStart = null;
+                        d.sortField = null;
+                        d.orderType = null;
+                        d.search = d.search.value;
+                        d.branchId = $('#hd_branch').val();
+                        d.isScanDoc = false;
+                        d.isTransfer = false;
+                    }
+                },
+                columns: [
+                {
+                    title: 'วันที่ส่งเบิก',
+                    data: 'CreatedDate',
+                    width: "180px",
+                    className: "h-dt-center d-dt-center",
+                    render: function (data) {
+                        if (data != null) {
+                            return moment(data).format('DD/MM/YYYY HH:mm') + 'น.';
+                        } else {
+                            return '-';
+                        }
+                    }
+                    },
+                {
+                    title: 'Transfer Code',
+                    data: 'TransferCode',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                {
+                    title: 'สาขา',
+                    data: 'Branch',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                {
+                    title: 'บริษัท',
+                    data: 'Organize',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                {
+                    title: 'จำนวนเงิน',
+                    data: 'Amount',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                 {
+                     title: 'บัญชีที่โอน',
+                     data: 'BankAccountName',
+                     width: "250px",
+                     className: "h-dt-center"
+                 },
+                {
+                    title: 'เลขที่บัญชี',
+                    data: 'BankAccountNo',
+                    width: '250px',
+                    className: 'h-dt-center'
+                },
+                {
+                    title: 'รายละเอียด',
+                    data: null,
+                    width: '250px',
+                    className: 'h-dt-center',
+                    render: function (data) {
+                        return '<button type="button" class="btn btn-block btn-default" id="btnShow_' + data.TransferId + '" ' +
+                            'data-toggle="modal" data-target=".bd-check-modal-lg" ' +
+                            'onclick=GetPaymentDetail("' + data.TransferId + '") >แสดงรายการ</button>';
+                    }
+                }
+
+                ]
+
+            });
+        }
+
+         const GetWaitSubmit = () => {
+             $('#dtPassWaitSubmit').empty();
+             var table = $('#dtPassWaitSubmit').DataTable({
+                paging: false,
+                searching: false,
+                processing: true,
+                ordering: false,
+                serverSide: true,
+                responsive: false,
+                lengthChange: false,
+                destroy: true,
+                scrollX: true,
+                ajax: {
+                    url: '@Url.Action("GetTransfer_DT","PettyCash")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = 1;
+                        d.pageSize = 999999;
+                        d.indexStart = null;
+                        d.sortField = null;
+                        d.orderType = null;
+                        d.search = d.search.value;
+                        d.branchId = $('#hd_branch').val();
+                        d.isScanDoc = true;
+                        d.isTransfer = false;
+                    }
+                },
+                columns: [
+                {
+                    title: 'วันที่ส่งเบิก',
+                    data: 'CreatedDate',
+                    width: "180px",
+                    className: "h-dt-center d-dt-center",
+                    render: function (data) {
+                        if (data != null) {
+                            return moment(data).format('DD/MM/YYYY HH:mm') + 'น.';
+                        } else {
+                            return '-';
+                        }
+                    }
+                    },
+                 {
+                    title: 'Transfer Code',
+                    data: 'TransferCode',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                {
+                    title: 'สาขา',
+                    data: 'Branch',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                {
+                    title: 'บริษัท',
+                    data: 'Organize',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                {
+                    title: 'จำนวนเงิน',
+                    data: 'Amount',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                 {
+                     title: 'บัญชีที่โอน',
+                     data: 'BankAccountName',
+                     width: "250px",
+                     className: "h-dt-center"
+                 },
+                {
+                    title: 'เลขที่บัญชี',
+                    data: 'BankAccountNo',
+                    width: '250px',
+                    className: 'h-dt-center'
+                },
+
+                {
+                    title: 'รายละเอียด',
+                    data: null,
+                    width: '250px',
+                    className: 'h-dt-center',
+                    render: function (data) {
+                        return '<button type="button" class="btn btn-block btn-default" id="btnShow_' + data.TransferId + '" ' +
+                            'data-toggle="modal" data-target=".bd-check-modal-lg" ' +
+                            'onclick=GetPaymentDetail("' + data.TransferId + '") >แสดงรายการ</button>';
+                    }
+                }
+
+                ]
+
+            });
+        }
+
+        const GetPaymentDetail = (transferId) => {
+            GetPaymentDT(transferId);
+            $.get('@Url.Action("GetTransferDetailById","PettyCash")', { transferId: transferId }, (data) => {
+                $('#hd_transferId').val(data.TransferId);
+                $('#docCount').text(data.R_DocumentFileCount);
+                $('#btnScanDoc').attr('href', data.R_UrlLinkOpenSSSDoc).attr('target', '_blank');
+                $('#hd_docCode').val(data.R_DocumentCode);
+                $('#btnPrint').attr('href', '@Url.Action("CashWithdraw","PettyCash")?transferId=' + transferId).attr('target', '_blank');
+                //header detail
+                $('#txtBank').val(data.BankName);
+                $('#txtBankName').val(data.BankAccountName);
+                $('#txtBankNo').val(data.BankAccountNo);
+            });
+        }
+
+          const GetPaymentDT = (transferId) => {
+            $('#dtDetailTransaction').empty();
+            var table = $('#dtDetailTransaction').DataTable({
+                dom: '<"toolbar">frtip<"footer">',
+                paging: false,
+                info: false,
+                ordering: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                lengthChange: false,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetTransferDetail_DT","PettyCash")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = 1;
+                        d.pageSize = 999999;
+                        d.indexStart = null;
+                        d.sortField = null;
+                        d.orderType = null;
+                        d.search = d.search.value;
+                        d.transferId = transferId;
+                    }
+                },
+                columns: [
+                 {
+                    title: 'PettyCash Code',
+                    data: 'PettyCashTransactionCode',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                {
+                    title: 'ประเภทค่าใช้จ่าย',
+                    data: 'PettyCashTransactionType',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                {
+                    title: 'รายละเอียดเพิ่มเติม',
+                    data: 'PettyCashTransactionTypeDescription',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                {
+                    title: 'จำนวนเงิน',
+                    data: 'Amount',
+                    width: "250px",
+                    className: "h-dt-center"
+                },
+                 {
+                     title: 'ยอดโอน',
+                     data: 'PaymentAmount',
+                     width: "250px",
+                     className: "h-dt-center"
+                 }
+
+                ], drawCallback: function (d) {
+                    var api = this.api();
+                    var sum = 0;
+                    var d = api.rows({ page: 'current' }).data();
+                    for (var i = 0; i < d.length; i++) {
+                        sum += d[i].Amount;
+                    }
+                    $("div.footer").html(`<h4 style="float: right" class="text-bold">จำนวนเงินทั้งหมด &nbsp&nbsp : <span style="color:${negative(sum) ? "#d10000;" : "#007c16;"}">${formatNumber(sum)}</span> บาท</h4>`);
+                }
+
+            });
+        }
+
+         //GET DOC COUNT
+        const GetDocCount = () => {
+
+            $.get('@Url.Action("GetDocCount","PettyCash")', { docCode: $('#hd_docCode').val() },
+                function (data) {
+                    $('#docCount').text(data);
+                });
+            setTimeout(GetDocCount, 2000);
+        }
+    </script>
+}

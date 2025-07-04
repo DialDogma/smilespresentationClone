@@ -1,0 +1,828 @@
+﻿@{
+    ViewBag.Title = "เคลมปฏิเสธ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+
+    .boxSumAmount {
+        border-radius: 5px;
+        box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+    }
+
+    .colorSpan {
+        color: white;
+        border-radius: 4px;
+        display: inline-block;
+        width: 75px;
+    }
+
+    .box {
+        border-color: #65aadb;
+    }
+
+    .position-chart {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+</style>
+
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title" style="color: #2B7ABA ">
+            <i class="glyphicon glyphicon-filter"></i> ค้นหาข้อมูล
+        </h3>
+    </div>
+    <div class="box-body">
+        <div class="col-sm-12">
+            <div class="row">
+                <div class="form-group">
+                    <div class="col-xs-12 col-sm-6 col-md-2">
+                        <div class="form-group">
+                            <label>วันที่ส่งวางบิล :</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input class="form-control" id="dtpDateFrom" data-date-language="th-th" type="text" data-provide="datepicker" placeholder="dd/mm/yyyy" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-6 col-md-2">
+                        <div class="form-group">
+                            <label>ถึงวันที่ :</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input class="form-control" id="dtpDateTo" data-date-language="th-th" type="text" data-provide="datepicker" placeholder="dd/mm/yyyy" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-6 col-md-2">
+                        <div class="form-group">
+                            <label>ประเภทเคลม :</label>
+                            <select class="form-control select2" id="ddlClaimType">
+                                <option value="-1">---ทั้งหมด---</option>
+                                @foreach (var item in ViewBag.ClaimType)
+                                {
+                                    <option value="@item.Code">@item.Detail</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-6 col-md-2">
+                        <div class="form-group">
+                            <label>กลุ่มเคลม : </label>
+                            <select class="form-control select2" id="ddlProductType">
+                                <option value="-1">---ทั้งหมด---</option>
+                                @{
+                                    foreach (var item in ViewBag.ClaimHeaderGroupTypeId)
+                                    {
+                                        <option value="@item.ClaimHeaderGroupTypeId">@item.ClaimHeaderGroupTypeName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-6 col-md-2">
+                        <div class="form-group">
+                            <label>บริษัทประกัน :</label>
+                            <select class="form-control select2" id="ddlOrganizeId">
+                                <option value="-1">---ทั้งหมด---</option>
+                                @{
+                                    foreach (var item in ViewBag.InsuranceCompany)
+                                    {
+                                        <option value="@item.OrganizeId">@item.OrganizeDetail</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-6 col-md-2">
+                        <label>&nbsp;</label>
+                        <button id="btnSearch" class="btn btn-block btn-dropbox"><i class="fa fa-search"> ค้นหา</i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-3 ">
+                    <span><b style="color:red">*</b> ย้อนหลังไม่เกิน 12 เดือน</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="box">
+    <div class="box-body" style="padding: 20px !important;">
+        <div class="row">
+            <div class="col-xs-12 col-md-6 col-lg-4">
+                <div class="info-box bg-light-blue boxSumAmount">
+                    <span class="info-box-icon"><i class="fa fa-send-o"></i></span>
+                    <div class="info-box-content">
+                        <div class="inner">
+                            <h5>ยอดตั้งเบิกบริษัทประกันทั้งหมด</h5>
+                            <span class="info-box-number" id="spanBillingResultTotal"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-md-6 col-lg-4">
+                <div class="info-box bg-yellow boxSumAmount">
+                    <span class="info-box-icon"><i class="fa fa-warning"></i></span>
+                    <div class="info-box-content">
+                        <div class="inner">
+                            <h5>จำนวนรายการปฏิเสธเคลมทั้งหมด</h5>
+                            <span class="info-box-number" id="spanCountRejectClaimTotal"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-md-6 col-lg-4">
+                <div class="info-box bg-red-active boxSumAmount">
+                    <span class="info-box-icon"><i class="fa fa-times"></i></span>
+                    <div class="info-box-content">
+                        <div class="inner">
+                            <h5>จำนวนเงินที่ถูกปฏิเสธเคลมทั้งหมด</h5>
+                            <span class="info-box-number" id="spanAmountRejectTotal"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row"  id="Chart" style="display: none;">
+    <div class="col-xs-12 col-md-6 col-lg-4">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title" style="color: #2B7ABA; font-size:16px">ยอดตั้งเบิกบริษัทประกันทั้งหมด</h3>
+            </div>
+            <div class="box-body">
+                <label id="lblAllTotal" style="color: #2B7ABA; font-size:14px"></label>
+                <div class="row">
+                    <div class="box-body">
+                        <div class="col-xs-12 col-md-12 col-lg-12">
+                            <div class="chart-responsive">
+                                <canvas id="pieChart" height="155" width="191" style="width: 50px; height: 50px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-12 col-md-6 col-lg-4">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title" style="color: #2B7ABA; font-size: 16px">จำนวนรายการปฏิเสธเคลมทั้งหมด</h3>
+            </div>
+            <div class="box-body">
+                <label id="lblRejectCount" style="color: #2B7ABA; font-size:14px"></label>
+                <div class="chart-responsive">
+                    <canvas id="barChart_1"></canvas>
+                </div>
+                <br />
+                <br />
+                <br />
+                <label id="lblPartiallyRejectCount" style="color: #2B7ABA; font-size:14px"></label>
+                <div class="chart-responsive">
+                    <canvas id="barChart_2"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-12 col-md-6 col-lg-4">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title" style="color: #2B7ABA; font-size: 16px">จำนวนเงินที่ถูกปฏิเสธทั้งหมด</h3>
+            </div>
+            <div class="box-body">
+                <label id="lblRejectAmountTotal" style="color: #2B7ABA; font-size:14px"></label>
+                <div class="chart-responsive">
+                    <canvas id="barChart_3"></canvas>
+                </div>
+                <br />
+                <br />
+                <br />
+                <label id="lblPartiallyRejectAmountTotal"style="color: #2B7ABA; font-size:14px"></label>
+                <div class="chart-responsive">
+                    <canvas id="barChart_4"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        let pieChart = null;
+        let barChart = null;
+        let bar2Chart = null;
+        let bar3Chart = null;
+        let bar4Chart = null;
+        let maxV1 = 0;
+        let maxV2 = 0;
+        let color = ['#E98A7E', '#59C594', '#81DBF1', '#F7BE65', '#3C8DBC', '#932AB6', '#001F3F', '#646464', '#FF851B'];
+
+        $(function () {
+            $('.select2').select2();
+
+            //--------------------------------- Date -----------------------------------//
+            var date = new Date();
+            var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            dateTimeToday = new Date().toLocaleDateString('en-CA');
+            date.setDate(date.getDate() - 365); 
+
+            var dateDefault = {
+                format: 'dd/mm/yyyy',
+                autoclose: true,
+                startDate: date,
+            }
+
+            $('#dtpDateFrom,#dtpDateTo').datepicker(dateDefault);
+            $('#dtpDateFrom,#dtpDateTo').datepicker('setDate', today);
+
+            GetDashboardRejectTotal();
+        });
+
+        //--------------------------------- Event -----------------------------------//
+        $("#dtpDateFrom").on("change", function () {
+            var dateEndString = $('#dtpDateTo').val();
+            var [day, month, year] = dateEndString.split("/");
+            var dateEnd = new Date(`${year}-${month}-${day}`);
+
+            var dateStartString = $('#dtpDateFrom').val();
+            var [day, month, year] = dateStartString.split("/");
+            var dateStart = new Date(`${year}-${month}-${day}`);
+
+            if (dateEnd < dateStart) {
+                $('#dtpDateTo').val($('#dtpDateFrom').val());
+            }
+        });
+
+
+        $("#btnSearch").click(function (e) {
+            e.preventDefault();
+            GetDashboardRejectTotal();
+            ClearChart();
+            GetLabelTotal();
+            DoLoadDoughnutChart();
+            DoLoadChartCountRejectClaim_1();
+            DoLoadChartCountRejectClaim_2();
+            DoLoadChartAmountRejectClaim_1();
+            DoLoadChartAmountRejectClaim_2();
+        });
+
+        //--------------------------------- Method -----------------------------------//
+        //All
+        function GetDashboardRejectTotal() {
+            loadingSpinner('fadeIn', 999999);
+            $.ajax({
+                async: false,
+                url: "@Url.Action("GetDashboardClaimRejectTotal", "ClaimPayBack")",
+                type: "POST",
+                data:{
+                    billingDateFrom: $('#dtpDateFrom').val(),
+                    billingDateTo: $('#dtpDateTo').val(),
+                    claimTypeId: $('#ddlClaimType').val(),
+                    claimHeaderGroupType: $('#ddlProductType').val(),
+                    organizeId: $('#ddlOrganizeId').val()
+                },
+                success: function (response) {
+                    // assuming the response is an array of objects
+                    //ยอดตั้งเบิกทั้งหมด
+                    if (response.BillingAmountTotal == null) {
+                        response.BillingAmountTotal = 0
+                    }
+                    $("#spanBillingResultTotal").html(`${numberWithCommas(response.BillingAmountTotal.toFixed(2))} บาท`);
+
+                    //จำนวนรายการปฏิเสธ
+                    if (response.RejectCount == null) {
+                        response.RejectCount = 0
+                    }
+                    $("#spanCountRejectClaimTotal").html(`${numberWithCommas(response.RejectCount)} ราย`);
+
+                    //จำนวนเงินที่ถูกปฏิเสธ
+                    if (response.RejectAmountTotal == null) {
+                        response.RejectAmountTotal = 0
+                    }
+                    $("#spanAmountRejectTotal").html(`${numberWithCommas(response.RejectAmountTotal.toFixed(2))} บาท`);
+
+                    loadingSpinner('fadeOut', 999999);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    if (textStatus === 'timeout') {
+                        alert('The request timed out. Please try again later.');
+                        swal('เกิดข้อผิดพลาด', 'The request timed out. Please try again later.', 'error');
+                    } else {
+                        swal('เกิดข้อผิดพลาด', 'An error occurred: ' + xhr.status + ' ' + xhr.statusText + '. Please try again later.', 'error');
+                    }
+                }
+            });
+        }
+
+        const GetLabelTotal = () => {
+            $.ajax({
+                async: false,
+                url: "@Url.Action("GetDashboardClaimRejectResult", "ClaimPayBack")",
+                type: "POST",
+                data:{
+                    billingDateFrom: $('#dtpDateFrom').val(),
+                    billingDateTo: $('#dtpDateTo').val(),
+                    claimTypeId: $('#ddlClaimType').val(),
+                    claimHeaderGroupType: $('#ddlProductType').val(),
+                    organizeId: $('#ddlOrganizeId').val()
+                    
+                },
+                  success: function (data) {
+                      var all = 0;
+                      var rejectCount = 0;
+                      var partialCount = 0;
+                      var rejectTotal = 0;
+                      var partialTotal = 0;
+
+                      for (var i = 0; i < data.length; i++) {
+                            all += data[i].AllAmountTotal;
+                            rejectCount += data[i].RejectCount;
+                            partialCount += data[i].PartiallyRejectCount;
+                            rejectTotal += data[i].RejectAmountTotal;
+                            partialTotal += data[i].PartiallyRejectAmountTotal;
+                      }
+
+                      $('#lblAllTotal').text(numberWithCommas(all.toFixed(2)) + " บาท");
+                      $('#lblRejectCount').text("ปฏิเสธ " + numberWithCommas(rejectCount) + " รายการ");
+                      $('#lblPartiallyRejectCount').text("ปฏิเสธบางส่วน " + numberWithCommas(partialCount) + " รายการ");
+                      $('#lblRejectAmountTotal').text("จำนวนเงินที่ปฏิเสธ " + numberWithCommas(rejectTotal.toFixed(2)) + " บาท");
+                      $('#lblPartiallyRejectAmountTotal').text("จำนวนเงินที่ปฏิเสธบางส่วน " + numberWithCommas(partialTotal.toFixed(2)) + " บาท");
+
+                      maxV1 = rejectCount;
+                      maxV2 = partialCount;
+
+                      if (all == 0 && rejectCount == 0 && partialCount == 0 && rejectTotal == 0 && partialTotal == 0) {
+                          swal('เกิดข้อผิดพลาด !', 'ไม่พบข้อมูล', 'error');
+                      } else {
+                          $('#Chart').show();
+                      }
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    if (textStatus === 'timeout') {
+                        alert('The request timed out. Please try again later.');
+                        swal('เกิดข้อผิดพลาด', 'The request timed out. Please try again later.', 'error');
+                    } else {
+                        swal('เกิดข้อผิดพลาด', 'An error occurred: ' + xhr.status + ' ' + xhr.statusText + '. Please try again later.', 'error');
+                    }
+                }
+            });
+        }
+
+        //main
+        const DoLoadDoughnutChart = () => {
+            $.ajax({
+                async: false,
+                url: "@Url.Action("GetDashboardClaimRejectResult", "ClaimPayBack")",
+                type: "POST",
+                data:{
+                    billingDateFrom: $('#dtpDateFrom').val(),
+                    billingDateTo: $('#dtpDateTo').val(),
+                    claimTypeId: $('#ddlClaimType').val(),
+                    claimHeaderGroupType: $('#ddlProductType').val(),
+                    organizeId: $('#ddlOrganizeId').val()
+                },
+                success: function (data) {
+                    //console.log(data);
+                    var pieData = {
+                        labels: [],
+                        datasets: [{
+                            data: [],
+                            backgroundColor: color.slice(0, data.length)
+                        }]
+                    };
+
+                    for (var i = 0; i < data.length; i++) {
+                        pieData.labels.push(data[i].InsuranceCompany + ' : ' + numberWithCommas(data[i].AllAmountTotal.toFixed(2)));
+                        pieData.datasets[0].data.push(data[i].AllAmountTotal);
+                    }
+
+                    var pieChartCanvas = $('#pieChart').get(0).getContext('2d')
+                    var pieOptions = {
+                        //Boolean - Whether we should show a stroke on each segment
+                        segmentShowStroke: true,
+                        //String - The colour of each segment stroke
+                        segmentStrokeColor: '#fff',
+                        //Number - The width of each segment stroke
+                        segmentStrokeWidth: 2,
+                        //Number - The percentage of the chart that we cut out of the middle
+                        percentageInnerCutout: 50, // This is 0 for Pie charts
+                        //Number - Amount of animation steps
+                        animationSteps: 100,
+                        //String - Animation easing effect
+                        animationEasing: 'easeOutBounce',
+                        //Boolean - Whether we animate the rotation of the Doughnut
+                        animateRotate: true,
+                        //Boolean - Whether we animate scaling the Doughnut from the centre
+                        animateScale: false,
+                        //Boolean - whether to make the chart responsive to window resizing
+                        responsive: true,
+
+                        cutoutPercentage: 75,
+
+                        legend: {
+                            position: 'right',
+                        },
+
+                        tooltips: {
+                            callbacks: {
+                                label: function (tooltipItem, data) {
+                                    var label = data.labels[tooltipItem.index];
+                                    return label + ' บาท';
+                                }
+                            }
+                        },
+                    }
+
+                    pieChart = new Chart(pieChartCanvas, {
+                        type: 'doughnut',
+                        data: pieData,
+                        options: pieOptions
+                    });
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    if (textStatus === 'timeout') {
+                        alert('The request timed out. Please try again later.');
+                        swal('เกิดข้อผิดพลาด', 'The request timed out. Please try again later.', 'error');
+                    } else {
+                        swal('เกิดข้อผิดพลาด', 'An error occurred: ' + xhr.status + ' ' + xhr.statusText + '. Please try again later.', 'error');
+                    }
+                }
+            });
+
+        }
+
+        //1
+        const DoLoadChartCountRejectClaim_1 = () => {
+            $.ajax({
+                async: false,
+                url: "@Url.Action("GetDashboardClaimRejectResult", "ClaimPayBack")",
+                type: "POST",
+                data:{
+                    billingDateFrom: $('#dtpDateFrom').val(),
+                    billingDateTo: $('#dtpDateTo').val(),
+                    claimTypeId: $('#ddlClaimType').val(),
+                    claimHeaderGroupType: $('#ddlProductType').val(),
+                    organizeId: $('#ddlOrganizeId').val()
+                },
+                success: function (data) {
+                    //console.log(data);
+                    var barData = {
+                        labels: [],
+                        datasets: [{
+                            data: [],
+                            backgroundColor: color
+                        }]
+                    };
+
+                    for (var i = 0; i < data.length; i++) {
+                        barData.labels.push(data[i].InsuranceCompany);
+                        barData.datasets[0].data.push(data[i].RejectCount);
+                    }
+
+                    var barChartCanvas = $('#barChart_1').get(0).getContext('2d')
+                    var barOptions = {
+                        responsive: true,
+                        scales: {
+                            xAxes: [{
+                                ticks: {
+                                    beginAtZero: true,
+                                    //precision: 0, // กำหนดให้แสดงเฉพาะจำนวนเต็ม
+                                    //stepSize: 10, // กำหนดค่าของช่วงที่แสดง (ในกรณีนี้แสดงทุกๆ 10 หน่วย)
+                                    //max: maxV1 > 0 ? (maxV1 % 12) + maxV1 : undefined,// กำหนดจุดสิ้นสุดในแกน x
+                                    callback: function (value, index, values) {
+                                        if (Number.isInteger(value)) {
+                                            return numberWithCommas(value.toString());
+                                        } else {
+                                            return "";
+                                        }
+                                    },
+                                }
+                            }],
+                        },
+                        legend: {
+                            display: false // ปิดการแสดงผลตัวกรอง
+                        },
+                        tooltips: {
+                            callbacks: {
+                                label: function (tooltipItem, data) {
+                                    var label = data.labels[tooltipItem.index];
+                                    var value = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                                    return label + ': ' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' รายการ';
+                                }
+                            }
+                        },
+                    }
+
+                    barChart = new Chart(barChartCanvas, {
+                        type: 'horizontalBar',
+                        data: barData,
+                        options: barOptions
+                    });
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    if (textStatus === 'timeout') {
+                        alert('The request timed out. Please try again later.');
+                        swal('เกิดข้อผิดพลาด', 'The request timed out. Please try again later.', 'error');
+                    } else {
+                        swal('เกิดข้อผิดพลาด', 'An error occurred: ' + xhr.status + ' ' + xhr.statusText + '. Please try again later.', 'error');
+                    }
+                }
+            });
+        }
+
+        //2
+        const DoLoadChartCountRejectClaim_2 = () => {
+            $.ajax({
+                async: false,
+                url: "@Url.Action("GetDashboardClaimRejectResult", "ClaimPayBack")",
+                type: "POST",
+                data: {
+                    billingDateFrom: $('#dtpDateFrom').val(),
+                    billingDateTo: $('#dtpDateTo').val(),
+                    claimTypeId: $('#ddlClaimType').val(),
+                    claimHeaderGroupType: $('#ddlProductType').val(),
+                    organizeId: $('#ddlOrganizeId').val()
+                },
+                success: function (data) {
+                    var bar2Data = {
+                        labels: [],
+                        datasets: [{
+                            data: [],
+                            backgroundColor: color
+                        }]
+                    };
+
+                    for (var i = 0; i < data.length; i++) {
+                        bar2Data.labels.push(data[i].InsuranceCompany);
+                        bar2Data.datasets[0].data.push(data[i].PartiallyRejectCount);
+                    }
+
+                    var bar2ChartCanvas = $('#barChart_2').get(0).getContext('2d')
+                    var bar2Options = {
+                        responsive: true,
+                        scales: {
+                            xAxes: [{
+                                ticks: {
+                                    beginAtZero: true,
+                                    //precision: 0, // กำหนดให้แสดงเฉพาะจำนวนเต็ม
+                                    //stepSize: 10, // กำหนดค่าของช่วงที่แสดง (ในกรณีนี้แสดงทุกๆ 10 หน่วย)
+                                    //max: maxV2 > 0 ? (maxV2 % 12) + maxV2 : undefined ,// กำหนดจุดสิ้นสุดในแกน x
+                                    callback: function (value, index, values) {
+                                        if (Number.isInteger(value)) {
+                                            return numberWithCommas(value.toString());
+                                        } else {
+                                            return "";
+                                        }
+                                    }
+                                }
+                            }],
+                        },
+                        legend: {
+                            display: false // ปิดการแสดงผลตัวกรอง
+                        },
+                        tooltips: {
+                            callbacks: {
+                                label: function (tooltipItem, data) {
+                                    var label = data.labels[tooltipItem.index];
+                                    var value = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                                    return label + ': ' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' รายการ';
+                                }
+                            }
+                        },
+                    }
+
+                    bar2Chart = new Chart(bar2ChartCanvas, {
+                        type: 'horizontalBar',
+                        data: bar2Data,
+                        options: bar2Options
+                    });
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    if (textStatus === 'timeout') {
+                        alert('The request timed out. Please try again later.');
+                        swal('เกิดข้อผิดพลาด', 'The request timed out. Please try again later.', 'error');
+                    } else {
+                        swal('เกิดข้อผิดพลาด', 'An error occurred: ' + xhr.status + ' ' + xhr.statusText + '. Please try again later.', 'error');
+                    }
+                }
+            });
+        }
+
+        //3
+        const DoLoadChartAmountRejectClaim_1 = () => {
+            $.ajax({
+                async: false,
+                url: "@Url.Action("GetDashboardClaimRejectResult", "ClaimPayBack")",
+                type: "POST",
+                data: {
+                    billingDateFrom: $('#dtpDateFrom').val(),
+                    billingDateTo: $('#dtpDateTo').val(),
+                    claimTypeId: $('#ddlClaimType').val(),
+                    claimHeaderGroupType: $('#ddlProductType').val(),
+                    organizeId: $('#ddlOrganizeId').val()
+                },
+                success: function (data) {
+                    var bar3Data = {
+                        labels: [],
+                        datasets: [{
+                            data: [],
+                            backgroundColor: color
+                        }]
+                    };
+
+                    for (var i = 0; i < data.length; i++) {
+                        bar3Data.labels.push(data[i].InsuranceCompany);
+                        bar3Data.datasets[0].data.push(data[i].RejectAmountTotal);
+                    }
+                        //var dataLength = bar3Data.labels.length;
+
+                    var bar3ChartCanvas = $('#barChart_3').get(0).getContext('2d')
+                    var bar3Options = {
+                        responsive: true,
+                        scales: {
+                            xAxes: [{
+                                ticks: {
+                                    beginAtZero: true,
+                                    precision: 0, // กำหนดให้แสดงเฉพาะจำนวนเต็ม
+                                    //stepSize: 10, // กำหนดค่าของช่วงที่แสดง (ในกรณีนี้แสดงทุกๆ 10 หน่วย)
+                                    beginAtZero: true, // กำหนดให้ค่าเริ่มต้นของแกน x เริ่มจาก 0
+                                    //max: dataLength + 2000,// กำหนดจุดสิ้นสุดในแกน x
+                                    callback: function (value, index, values) {
+                                        if (Number.isInteger(value)) {
+                                            if (value >= 1000) {
+                                                if (value >= 1000000) {
+                                                    return value / 1000000 + 'M';
+                                                } else {
+                                                    return value / 1000 + 'K';
+                                                }
+                                            }
+                                            return value.toString();
+                                        }
+                                        return "";
+                                    }
+                                }
+                            }],
+                        },
+                        legend: {
+                            display: false // ปิดการแสดงผลตัวกรอง
+                        },
+                        tooltips: {
+                            callbacks: {
+                                label: function (tooltipItem, data) {
+                                    var label = data.labels[tooltipItem.index];
+                                    var value = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].toFixed(2);
+                                    return label + ': ' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' บาท';
+                                }
+                            }
+                        },
+                    }
+
+                    bar3Chart = new Chart(bar3ChartCanvas, {
+                        type: 'horizontalBar',
+                        data: bar3Data,
+                        options: bar3Options
+                    });
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    if (textStatus === 'timeout') {
+                        alert('The request timed out. Please try again later.');
+                        swal('เกิดข้อผิดพลาด', 'The request timed out. Please try again later.', 'error');
+                    } else {
+                        swal('เกิดข้อผิดพลาด', 'An error occurred: ' + xhr.status + ' ' + xhr.statusText + '. Please try again later.', 'error');
+                    }
+                }
+            });
+        }
+
+        //4
+        const DoLoadChartAmountRejectClaim_2 = () => {
+            $.ajax({
+                async: false,
+                url: "@Url.Action("GetDashboardClaimRejectResult", "ClaimPayBack")",
+                type: "POST",
+                data: {
+                    billingDateFrom: $('#dtpDateFrom').val(),
+                    billingDateTo: $('#dtpDateTo').val(),
+                    claimTypeId: $('#ddlClaimType').val(),
+                    claimHeaderGroupType: $('#ddlProductType').val(),
+                    organizeId: $('#ddlOrganizeId').val()
+                },
+                success: function (data) {
+                    var bar4Data = {
+                        labels: [],
+                        datasets: [{
+                            data: [],
+                            backgroundColor: color
+                        }]
+                    };
+
+                    for (var i = 0; i < data.length; i++) {
+                        bar4Data.labels.push(data[i].InsuranceCompany);
+                        bar4Data.datasets[0].data.push(data[i].PartiallyRejectAmountTotal);
+                    }
+
+                    var bar4ChartCanvas = $('#barChart_4').get(0).getContext('2d')
+                    var bar4Options = {
+                        responsive: true,
+                        scales: {
+                            xAxes: [{
+                                ticks: {
+                                    beginAtZero: true,
+                                    callback: function (value, index, values) {
+                                        if (Number.isInteger(value)) {
+                                            if (value >= 1000) {
+                                                if (value >= 1000000) {
+                                                    return value / 1000000 + 'M';
+                                                } else {
+                                                    return value / 1000 + 'K';
+                                                }
+                                            }
+                                            return value.toString();
+                                        }
+                                        return "";
+                                    }
+                                }
+                            }],
+                        },
+                        legend: {
+                            display: false // ปิดการแสดงผลตัวกรอง
+                        },
+                        tooltips: {
+                            callbacks: {
+                                label: function (tooltipItem, data) {
+                                    var label = data.labels[tooltipItem.index];
+                                    var value = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].toFixed(2);
+                                    return label + ': ' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' บาท';
+                                }
+                            }
+                        },
+                    }
+
+                    bar4Chart = new Chart(bar4ChartCanvas, {
+                        type: 'horizontalBar',
+                        data: bar4Data,
+                        options: bar4Options
+                    });
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    if (textStatus === 'timeout') {
+                        alert('The request timed out. Please try again later.');
+                        swal('เกิดข้อผิดพลาด', 'The request timed out. Please try again later.', 'error');
+                    } else {
+                        swal('เกิดข้อผิดพลาด', 'An error occurred: ' + xhr.status + ' ' + xhr.statusText + '. Please try again later.', 'error');
+                    }
+                }
+            });
+        }
+
+        const ClearChart = () => {
+
+            if (pieChart) {
+                pieChart.destroy();
+            }
+
+            if (barChart) {
+                barChart.destroy();
+            }
+
+            if (bar2Chart) {
+                bar2Chart.destroy();
+            }
+
+            if (bar3Chart) {
+                bar3Chart.destroy();
+            }
+
+            if (bar4Chart) {
+                bar4Chart.destroy();
+            }
+
+            maxV1 = 0;
+            maxV2 = 0;
+            $('#Chart').hide();
+        }
+
+    </script>
+}

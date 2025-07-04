@@ -1,0 +1,350 @@
+﻿
+@{
+    ViewBag.Title = "ข้อมูลการพิมพ์บัตรประจำตัวผู้เอาประกัน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div class="box box-primary box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ข้อมูลกรมธรรม์</h3>
+                    <!-- /.box-tools -->
+                </div>
+
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <label>ApplicationCode :</label>
+                            <input type="text" class="form-control" id="txtapplicationCode"/>
+                        </div>
+                        <div class="col-xs-6">
+                            <label>ชื่อกรมธรรม์ :</label>
+                            <input type="text" class="form-control" id="txtapplicationName" />
+                        </div>
+                        <div class="col-xs-3">
+                            <label>จังหวัด :</label>
+                            <input type="text" class="form-control" id="txtProvince"/>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top:5px">
+                        <div class="col-xs-3">
+                            <label>วันเริ่มสัญญา :</label>
+                            <input type="text" class="form-control" id="txtstartDate"/>
+                        </div>
+                        <div class="col-xs-3">
+                            <label>วันสิ้นสุดสัญญา :</label>
+                            <input type="text" class="form-control" id="txtendDate" />
+                        </div>
+                        <div class="col-xs-3">
+                            <label>สถานะกรมธรรม์ :</label>
+                            <input type="text" class="form-control" id="txtstatus"/>
+                        </div>
+                        <div class="col-xs-3">
+                            <label>แผนประกัน :</label>
+                            <input type="text" class="form-control" id="txtproduct"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box box-primary box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ข้อมูลผู้เอาประกัน</h3>
+                    <!-- /.box-tools -->
+                </div>
+
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <label id="countSelect"></label>
+                            <a id="textSelectAll" style="display:none;cursor:pointer" onclick="GetCustomerDetailAll();"></a>
+                            <a id="textSelectAllClear" style="display:none;cursor:pointer" onclick="ClearCheckboxAll();">ล้างข้อมูลที่เลือก</a>
+                            <button type="button" class="btn btn-success" style="float:right" id="btnPrintTicket">พิมพ์บัตรประกัน</button>
+                        </div>
+
+                    </div>
+                    <div>
+                        <table id="dtMain" name="dtMain" class="table table-bordered table-hover dataTable" role="grid" width="100"></table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <input type="hidden" id="hdfapplicationId" value="@ViewBag.ApplicationId" />
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var count = 0;
+        var rowDT = 0;
+        var totalDT = 0;
+        var ListCheckBox = [];
+        var ListCheckBoxAll = [];
+
+        $(function () {
+            $('input[type="text"]').prop('disabled', 'disabled');
+            getloadTicketHeaderById();
+            getLoadCustomerDetail();
+
+
+            /*checkbox in datatables change*/
+            $('#dtMain').on('change', 'input[type="checkbox"]', function (e) {
+                let table = $('#dtMain').DataTable();
+                let rows = table.rows().nodes();
+                debugger;
+                switch (this.className) {
+                    case 'chk-row-select-all':
+                        if (this.checked) {
+                            $('input[class="chk-row-select"]', rows).prop('checked', true).change();
+                        } else {
+                            $('input[class="chk-row-select"]', rows).prop('checked', false).change();
+                        }
+                        break;
+                    case 'chk-row-select':
+                        if (this.checked) {
+                            let count = 0;
+                            const value = this.value;
+                            //adds one or more elements to the end of an array and returns the new length of the array.
+                            if (!ListCheckBox.includes(value)) ListCheckBox.push(this.value);
+                            if (!ListCheckBoxAll.includes(value)) ListCheckBoxAll.push(this.value);
+                            //check count data equal rows.length then checkbox-all is checked
+                            if (!(ListCheckBox.length === rows.length)) {
+                                $('table[name="dtMain"]').find(".chk-row-select-all").prop('checked', false);
+                                $('#countSelect').text(`คุณเลือกข้อมูลทั้ง ${ListCheckBox.length} รายการในหน้านี้`)
+                                //$('#textSelectAll').text(`เลือกทั้งหมด ${totalDT}`).show();
+                                $('#textSelectAllClear').show();
+                            } else {
+                                $('table[name="dtMain"]').find(".chk-row-select-all").prop('checked', true);
+                                $('#countSelect').text(`คุณเลือกข้อมูลทั้ง ${ListCheckBox.length} รายการในหน้านี้`)
+                                //$('#textSelectAll').text(`เลือกทั้งหมด ${totalDT}`).show();
+                                $('#textSelectAllClear').show();
+                            }
+                        } else {
+                            const value = this.value;
+                            //replaces 1 element at indexOd() returnValue index
+                            ListCheckBox.splice(ListCheckBox.indexOf(value), 1);
+                            ListCheckBoxAll.splice(ListCheckBoxAll.indexOf(value), 1);
+
+                            //check count data equal rows.length then checkbox-all is checked
+                            if (!(ListCheckBox.length === rows.length)) {
+                                $('table[name="dtMain"]').find(".chk-row-select-all").prop('checked', false);
+                                
+
+                                if (ListCheckBox.length != 0) {
+                                    $('#countSelect').text(`คุณเลือกข้อมูลทั้ง ${ListCheckBox.length} รายการในหน้านี้`)
+                                    //$('#textSelectAll').text(`เลือกทั้งหมด ${totalDT}`).show();
+                                    $('#textSelectAllClear').show();
+                                } else {
+                                    $('#countSelect').text('')
+                                    $('#textSelectAll').hide();
+                                    $('#textSelectAllClear').hide();
+                                }
+
+                                
+                            } else {
+                                $('table[name="dtMain"]').find(".chk-row-select-all").prop('checked', true);
+                            }
+                        }
+                        break;
+                    default:
+                }
+            });
+
+            $('#btnPrintTicket').click(function (e) {
+                e.preventDefault();
+                if (IsvalidateForPrint()) { 
+                    UpdateTicketByCustomerDetailList();
+                }
+            });
+        });
+
+        const getloadTicketHeaderById = () => {
+            $.ajax({
+                type: "Get",
+                url: "@Url.Action("GetApplicationTicketHerderById","Report")",
+                data: {
+                    applicationId: $('#hdfapplicationId').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+
+                    $('#txtapplicationCode').val(data.ApplicationCode);
+                    $('#txtapplicationName').val(data.ApplicationName);
+                    $('#txtProvince').val(data.Province);
+
+                    debugger;
+                    let d_startDate = moment(data.ApplicationStartCoverDate).add(543, 'years').format('DD/MM/YYYY');
+                    let d_endDate = moment(data.ApplicationEndCoverDate).add(543, 'years').format('DD/MM/YYYY');
+
+                    $('#txtstartDate').val(d_startDate);
+                    $('#txtendDate').val(d_endDate);
+                    $('#txtstatus').val(data.ApplicationStatus);
+                    $('#txtproduct').val(data.Product);
+                }
+            });
+        }
+
+        const getLoadCustomerDetail = () => {
+             $('#dtMain').empty();
+            let t = $('#dtMain').DataTable({
+                pageLength: 99999,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+             ajax: {
+                 url: '@Url.Action("GetCustomerDetailById", "Report")',
+                 type: 'POST',
+                    async:false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search;
+                        d.applicationId = $('#hdfapplicationId').val();
+                        
+                 },
+                 dataSrc: function (json) {
+                     debugger;
+                     rowDT = json.data.length;
+                     totalDT = json.recordsTotal;
+                     return json.data;
+                 },
+                },
+                
+                columns: [
+                    {
+                        title: '<label>เลือก</label><input id="chk-all" name="chk-all" style="cursor:pointer"  class="chk-row-select-all" type="checkbox" />',
+                        data: null,
+                        orderable: false,
+                        className: 'th-center td-center-checkbox nosort',
+                        width: "33px",
+                        render: function (data) {
+                            let Ischecked = "";
+                            if (ListCheckBoxAll.includes(data.CustomerDetailId.toString())) {
+                                count++
+                                Ischecked = "checked"
+                            }
+                            //debugger;
+                            if (!(totalDT === ListCheckBoxAll.length)) {
+                                if (count === rowDT) {
+                                    $('input[class="chk-row-select-all"]').prop('checked', true);
+                                    $('#countSelect').text(`คุณเลือกข้อมูลทั้ง ${rowDT} รายการในหน้านี้`)
+                                    //$('#textSelectAll').text(`เลือกทั้งหมด ${totalDT}`).show();
+                                    $('#textSelectAllClear').show();
+                                    rowDT = 0;
+                                    count = 0;
+                                }
+                            }
+
+                            return `<input type="checkbox" style="cursor:pointer"  class="chk-row-select" ${Ischecked} id="chkdtrow_${data.CustomerDetailId}" name="chkdtrow_${data.CustomerDetailId}" value="${data.CustomerDetailId}">`;
+                        }
+                    },
+                    { title: 'MemberId', data: 'CustomerDetailCode', orderable: false, width: '15%' },
+                    { title: 'ชื่อ - นามสกุล', data: 'CustomerName', orderable: false, width: '40%' },
+                    { title: 'บัตรประชาชน', data: 'IdCardNumber', orderable: false, width: '15%' },
+                    
+                    { title: 'Passport', data: 'PassPortNumber', orderable: false, width: '15%' },
+                    { title: 'ฟรี', data: 'CustomerDetailType', orderable: false, width: '15%' },
+                    {
+                        title: 'วันที่มีผล', data: 'CustomerDetailStartCoverDate', orderable: false, width: '15%',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY", "LLLL");
+                        }
+                    },
+
+                ],
+                bLengthChange: false,
+                //'columnDefs': [
+                //              {
+                //                  "targets": [ 3,4], // your case first column
+                //                  "className": "text-center",
+                //             }],
+
+            });
+            //window.onresize = function () {
+            //    table.columns.adjust().responsive.recalc();
+            //};
+        }
+
+        const GetCustomerDetailAll = () => {
+             $.post("@Url.Action("GetCustomerDetailAll")", {
+                 applicationId: $("#hdfapplicationId").val()
+            }, function (data) {
+                    ListCheckBoxAll = []
+                    for (var i = 0; i < data.length; i++) {
+                        if (!ListCheckBoxAll.includes(data[i].CustomerDetailId.toString())) ListCheckBoxAll.push(data[i].CustomerDetailId.toString())
+                    }
+                    $('#countSelect').text(`ทั้ง ${totalDT} รายการถูกเลือกอยู่`)
+                    $('#textSelectAllClear').show();
+                    $('#textSelectAll').hide();
+                   //console.log(ListCheckBoxAll);
+            });
+        }
+
+        const ClearCheckboxAll = () => {
+            ListCheckBoxAll = [];
+            ListCheckBox = [];
+            $('#countSelect').text('');
+            $('#textSelectAll').hide();
+            $('#textSelectAllClear').hide();
+            $('table[name="dtMain"]').find(".chk-row-select").prop('checked', false);
+            $('table[name="dtMain"]').find(".chk-row-select-all").prop('checked', false);
+            //console.log(ListCheckBoxAll);
+            //console.log(ListCheckBox);
+        }
+
+        const IsvalidateForPrint = () => {
+
+            if (ListCheckBox.length == 0) { 
+                swal("ตรวจสอบ", "กรุณาเลือกรายการที่ต้องการพิมพ์", "warning");
+                return false;
+            }
+
+            return true;
+        }
+
+        const UpdateTicketByCustomerDetailList = () => {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("SetCustomerDetail", "Report")",
+                data: {
+                    customerDetaillist: ListCheckBoxAll,
+                    applicationId: $("#hdfapplicationId").val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+
+                    if (data == false) {
+                        swal("คำเตือน", "พิมพ์บัตรไม่สำเร็จ", "error");
+                    } else {
+                        var en_temcode = window.btoa(data);
+                        debugger;
+                        window.open('../PrintCardViewer/frmPrintCardViewer.aspx?temCode=' + en_temcode, '_newtab');
+                    }
+
+                    
+                }
+            });
+
+            
+        }
+    </script>
+}

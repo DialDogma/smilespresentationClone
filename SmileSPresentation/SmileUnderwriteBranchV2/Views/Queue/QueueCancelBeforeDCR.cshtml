@@ -1,0 +1,177 @@
+﻿@{
+    ViewBag.Title = "QueueCancelBeforeDCR";
+    Layout = "~/Views/Shared/_LayoutForTopIndexPH.cshtml";
+}
+<style>
+    .table {
+        font-size: 14px;
+    }
+</style>
+<div class="box box-primary">
+    <div class="box-body">
+        <div class="form-group">
+            <fieldset>
+                <legend style="text-align:center;background: #FF4128;color:white">คิวงานยกเลิกก่อน DCR</legend>
+                <hr />
+                <div>
+                    <table id="dtQueueCancelBeforeDCR" class="table table-bordered table-striped display responsive" style="width:100%;">
+                        <tbody>
+                            <tr style="text-align:center"><td>ไม่พบข้อมูล</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+</div>
+
+@* hidden *@
+<input type="hidden" id="userId" value="@ViewBag.UserId" />
+<input type="hidden" id="hd_branchId" value="@ViewBag.branchId" />
+</form>
+@section ViewSpecificJavascript
+{
+
+    <script type="text/javascript">
+        $(function () {
+            /*start signalR*/
+            // Reference the auto-generated proxy for the hub.
+            var chat = $.connection.chatHub;
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                //join group
+                chat.server.joinGroup($('#userId').val());
+            });
+            //Show public message to client
+            chat.client.receiveGroupNotice = function (message) {
+                /*full msg*/
+                const fullMessage = message;
+                /*new date*/
+                const date = new Date();
+                /*set str*/
+                const str = date.getFullYear() +
+                    "-" +
+                    (date.getMonth() + 1) +
+                    "-" +
+                    date.getDate() +
+                    " " +
+                    date.getHours() +
+                    ":" +
+                    date.getMinutes() +
+                    ":" +
+                    date.getSeconds();
+                /*alert toastr*/
+                window.toastr["success"](`อัพเดตครั้งล่าสุด : ${str}`, fullMessage);
+                /*Load Datatables*/
+                GetQueue_dt();
+                GetQueueConsidered_dt();
+            };
+
+            window.toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+        /*end signalR*/
+
+            GetDT();
+        });
+
+        const GetDT = () => {
+            $('#dtQueueCancelBeforeDCR').empty();
+            var tbl = $('#dtQueueCancelBeforeDCR').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("QueueeByQueueStatus_dt", "Queue")',
+                    method: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.branchId = $('#hd_branchId').val();
+                        //d.queueStatusId = "7"; //ยกเลิกก่อน dcr
+                        d.dcr = '@ViewBag.DCR';
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ',
+                        data: null,
+                        orderable: false,
+                        className:"h-dt-center"
+                    },
+                    { title: 'Application Code', data: 'ApplicationCode' },
+                    { title: 'ชื่อลูกค้า', data: 'CustomerName' },
+                    { title: 'ชื่อผู้ชำระเบี้ย', data: 'PayerName' },
+                    { title: 'ชื่อ ผอ.บล.', data: 'DirectorName' },
+                    { title: 'สาขา', data: 'BranchDetail' },
+                    {
+                        title: 'ผลการคัดกรอง ผอ.บล.', data: 'IsUnderwritePass',
+                        className:"text-center",
+                        render:function(data){
+                            switch (data) {
+                            case true:
+                                return '<span class="label label-success">ผ่าน</span>';
+                                break;
+                            case false:
+                                    return '<span class="label label-danger">ไม่ผ่าน</span>';
+                                break;
+                            default:
+                                    return '<span class="label label-default">รอข้อมูล</span>';
+                                break;
+                            }
+                        }
+                    },
+                    {
+                        title: 'จัดการ', data:null,
+                        render: function (data) {
+                            return '<a target="_blank" onclick="LoadDetail(' + data.QueueId +')" class="btn btn-block btn-info">เปิด</a>';
+                        }
+                    }
+                ]
+            });
+            tbl.on('draw.dt', function () {
+                var PageInfo = tbl.page.info();
+                tbl.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                });
+            });
+            window.onresize = function () {
+                tbl.columns.adjust().responsive.recalc();
+            };
+        }
+
+        const LoadDetail = (qId) => {
+            var encoded = btoa(qId);
+            window.open(`@Url.Action("UnderwriteDetail","Underwrite")?queueId=`+encoded,'_blank');
+        }
+    </script>
+}

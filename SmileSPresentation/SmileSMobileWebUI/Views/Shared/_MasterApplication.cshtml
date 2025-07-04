@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@ViewBag.Title</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/css/select2.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/star-rating.css" rel="stylesheet" type="text/css" media="all">
+    <link rel="stylesheet" href="~/Content/Style.css" />
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.3/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    @*<style>
+            html, body {
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                overflow: auto;
+            }
+        </style>*@
+</head>
+<body>
+    <div>
+        @RenderBody()
+    </div>
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Bootstrap JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap3-dialog/1.35.1/js/bootstrap-dialog.min.js"></script>
+    <!-- jquery-validate -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.17.0/jquery.validate.min.js"></script>
+    <!-- select2 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/js/select2.min.js"></script>
+    <!-- Star rating-->
+    <script type="text/javascript" src="~/Scripts/star-rating.js"></script>
+    @RenderSection("scripts", required: false)
+    <script>
+        $(function () {
+            jQuery.extend(jQuery.validator.messages, {
+                required: "กรุณากรอกข้อมูลช่องนี้",
+                remote: "Please fix this field.",
+                email: "กรุณากรอก Email ให้ถูกต้อง",
+                url: "Please enter a valid URL.",
+                date: "Please enter a valid date.",
+                dateISO: "Please enter a valid date (ISO).",
+                number: "Please enter a valid number.",
+                digits: "Please enter only digits.",
+                creditcard: "Please enter a valid credit card number.",
+                equalTo: "Please enter the same value again.",
+                accept: "Please enter a value with a valid extension.",
+                maxlength: jQuery.validator.format("Please enter no more than {0} characters."),
+                minlength: jQuery.validator.format("Please enter at least {0} characters."),
+                rangelength: jQuery.validator.format("Please enter a value between {0} and {1} characters long."),
+                range: jQuery.validator.format("Please enter a value between {0} and {1}."),
+                max: jQuery.validator.format("Please enter a value less than or equal to {0}."),
+                min: jQuery.validator.format("Please enter a value greater than or equal to {0}.")
+            });
+
+            //add method validator check N/A
+            jQuery.validator.addMethod("checkNotAvailable", function (value) {
+                if (value == "-1" || value == "9999999") {
+                    return false;
+                } else {
+                    return true;
+                };
+            }, "กรุณาเลือก");
+
+            jQuery.validator.addMethod("checkAddress", function (value) {
+                if (value == "") {
+                    return false;
+                } else {
+                    return true;
+                };
+            }, "กรุณากรอกที่อยู่");
+
+            //add class rule
+            jQuery.validator.addClassRules({
+                checkNA: {
+                    checkNotAvailable: true
+                },
+                checkAddress: {
+                    checkAddress: true
+                }
+            });
+
+            $("form").validate();
+
+            $('.select2').select2({
+                theme: "bootstrap", width: "100%"
+            });
+
+            //jquery validation check identity ID Card
+            window.jQuery.validator.addMethod("checkID", function (value, element) {
+                window.$(element).parent().removeClass('has-error');
+                window.$(element).parent().removeClass('has-success');
+                if (value == '') {
+                    return true;
+                }
+                if (value.length != 13) {
+                    window.$(element).parent().addClass('has-error');
+                    return false;
+                }
+                var sum = 0;
+                for (var i = 0; i < 12; i++) {
+                    sum += parseFloat(value.charAt(i)) * (13 - i);
+                }
+                if ((11 - (sum % 11)) % 10 != parseFloat(value.charAt(12))) {
+                    window.$(element).parent().addClass('has-error');
+                    return false;
+                }
+                window.$(element).parent().addClass('has-success');
+                return true;
+            }, "เลขบัตรประจำตัวประชาชนไม่ถูกต้อง!");
+
+        });
+    </script>
+</body>
+</html>

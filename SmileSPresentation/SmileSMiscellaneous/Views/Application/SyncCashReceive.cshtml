@@ -1,0 +1,71 @@
+﻿
+@{
+    ViewBag.Title = "ดึงข้อมูลการขำระเงิน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="row">
+    <div class="col-xs-3">
+        <button id="btnSync" type="button" class="btn btn-block btn-primary btn-lg">ดึงข้อมูล</button>
+    </div>
+</div>
+
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+            $('#btnSync').click(function (e) {
+                e.preventDefault();
+                DoSyncDB();
+            });
+
+
+        })
+
+
+
+        const DoSyncDB = () => {
+            window.swal({
+                title: 'ยืนยันการดึงข้อมูลการชำระเงินหรือไม่?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#277020',
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                closeOnConfirm: false,
+                closeOnEsc: false,
+                closeOnCancel: true
+            }, function (isconfirm) {
+
+                if (isconfirm) {
+                    Sync();
+                }
+
+                });
+
+
+        }
+
+
+        const Sync = () => {
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("PremiumReceiveByMatch", "Application")",
+ 
+            dataType: "json",
+            async: false,
+            success: function (d) {
+                if (d.IsResult == 1) {
+                    swal('', d.Msg, 'success');
+                } else {
+                    swal('', d.Msg, 'error');
+                }
+            }
+        });
+    }
+    </script>
+
+}

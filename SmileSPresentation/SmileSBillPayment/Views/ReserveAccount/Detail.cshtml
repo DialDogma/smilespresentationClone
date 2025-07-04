@@ -1,0 +1,184 @@
+﻿@{
+                /**/
+
+                ViewBag.Title = "รายละเอียด Account";
+
+}
+<style>
+
+    .table {
+        font-size: 14px;
+    }
+
+    .toolbar {
+        float: left;
+    }
+</style>
+<form action="" method="post" id="Mainform">
+    <div class="row">
+        @*Form*@
+        @*detail*@
+        <div id="detail_form">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">AccountID : <b>@ViewBag.ReserveAccount.ReserveAccountCode</b></h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div style="height:20px;">
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6 col-md-offset-1 col-md-2">
+                            ผู้ชำระเบี้ย :
+                        </div>
+                        <div class="col-sm-6 col-md-8">
+                            <label style="padding-left: 0px">
+                                @ViewBag.ReserveAccount.ReferenceDetail
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6 col-md-offset-1 col-md-2">
+                            ยอดเงินคงเหลือ :
+                        </div>
+                        <div class="col-sm-6 col-md-2">
+                            <label style="padding-left: 0px">
+                                @String.Format("{0:#,##0.00}",@ViewBag.ReserveAccount.AmountBalance)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @*datatable*@
+        <div id="dt_form">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ประวัติ Transaction</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtReserveAccountTransaction" name="dtReserveAccountTransaction" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @*end Form*@
+    </div>
+</form>
+@section ViewSpecificJavascript
+{
+    <script>
+    //Func
+        $(function () {
+
+            loadDTReserveAccountTransaction();
+
+        //Event
+
+        //end Event
+
+        });
+
+         //datatable
+        function loadDTReserveAccountTransaction() {
+            $('#dtReserveAccountTransaction').empty();
+            const table = $('#dtReserveAccountTransaction').DataTable({
+                pageLength: 10,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                ajax: {
+                    url: '@Url.Action("GetReserveAccountTransaction")',
+                    method: "Post",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = "CreatedDate" /*d.columns[d.order[0].column].data*/;
+                        d.orderType = "Desc" /*d.order[0].dir*/;
+                        d.reserveAccountId = @ViewBag.ReserveAccount.ReserveAccountId;
+                    }
+                },
+               columns: [
+                    {
+                       title: 'ลำดับ',
+                       data: null,
+                       orderable: false,
+                       className: "th-center",
+                   },
+                   {
+                       title: 'TransactionId',
+                       data: 'ReserveAccountTransactionCode',
+                       orderable: false,
+                       className: "th-center",
+                   },
+                    {
+                        title: 'ประเภท Transaction',
+                        data: 'ReserveAccountTransactionSubType',
+                        orderable: false,
+                        className: "th-center",
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: 'Detail',
+                        orderable: false,
+                        className: "th-center",
+                   },
+                   {
+                       title: 'จำนวน',
+                       data: 'Amount',
+                       orderable: false,
+                       className: "th-center td-right",
+                       mRender: function (data) {
+                           return formatNumberCurrency(data,2)
+                       }
+                   },
+                   {
+                       title: 'วันเวลาที่ดำเนินการ',
+                       data: 'CreatedDate',
+                       orderable: false,
+                       className: "th-center",
+                       render: function (data) {
+                           if (data != null) {
+                               let startCoverDate = moment(data)._d;
+                               let yearBE = startCoverDate.getFullYear() + 543;
+                               let startCoverDateBE = moment(startCoverDate.setFullYear(yearBE)).format("DD/MM/YYYY HH:mm:ss");
+                               return startCoverDateBE;
+                           } else {
+                               return '';
+                           }
+                       }
+                   },
+                ]
+           });
+           table.on('draw.dt', function () {
+               var PageInfo = table.page.info();
+               table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                   cell.innerHTML = i + 1 + PageInfo.start;
+               })
+           });
+
+             window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+
+        }
+        //end datatable
+    //end Func
+    </script>
+}

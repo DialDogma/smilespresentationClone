@@ -1,0 +1,104 @@
+﻿
+@{
+    ViewBag.Title = "รายละเอียด บ.ส.";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="box box-primary">
+    <div class="box-header with-border " style="background-color: #3C8DBC; color: white">
+        <h3 class="box-title"><i class="fa fa-thumb-tack"></i> รหัสรายการ : @ViewBag.BillingRequestGroupCode</h3>
+
+        <div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                <svg class="svg-inline--fa fa-minus fa-w-14" aria-hidden="true" data-prefix="fa" data-icon="minus" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><path fill="currentColor" d="M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"></path></svg><!-- <i class="fa fa-minus"></i> -->
+            </button>
+        </div>
+    </div>
+    <!-- /.box-header -->
+    <div class="box-body">
+        <div class="box-group">
+
+            <div class="row" style="margin-top:15px">
+                <div class="col-xs-12">
+                    <table id="dtBillingGroupDetail" class="table table-bordered dataTable table-hover" style="text-align: center"></table>
+                </div>
+            </div>
+            <br />
+
+            <div class="row" style="text-align:center">
+                <button type="button" class="btn btn-primary" id="btnBack" style="width:100px">กลับ</button>
+            </div>
+
+            <input type="hidden" id="hdfBillingRequestGroupId" name="hdfBillingRequestGroupId" value="@ViewBag.BillingRequestGroupId" />
+
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+
+        $(function () {
+            DoLoadMonitor();
+        })
+
+        //----------------------------------Event------------------------------------//
+        $('#btnBack').click(function (e) {
+            e.preventDefault();
+            window.close();
+        });
+
+        //----------------------------Method Data Table------------------------------//
+        function DoLoadMonitor() {
+            $('#dtBillingGroupDetail').empty();
+            var t = $('#dtBillingGroupDetail').dataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                "order": [[0, "desc"]],
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetBillingRequestDetail", "ClaimPayBack")',
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.billingRequestGroupId = $('#hdfBillingRequestGroupId').val();
+                        d.draw = d.draw;
+                        d.indexStart = d.start;
+                        d.pageSize = d.length;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchDetail = $('#txtSearchDetail').val();
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ', data: null, className: 'h-dt-center text-center', width: '5%',
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    { title: 'รายการ', data: 'ClaimHeaderGroupCode', className: 'h-dt-center text-center' },
+                    { title: 'BillingRequestItem', data: 'BillingRequestItemCode', className: 'h-dt-center text-center' },
+                    { title: 'เลขที่เคลม', data: 'ClaimCode', className: 'h-dt-center text-center' },
+                    { title: 'ชื่อผู้เอาประกัน', data: 'CustName', className: 'h-dt-center text-left' },
+                    {
+                        title: 'จำนวนเงิน',
+                        data: 'Pay_Total',
+                        className: 'h-dt-center text-right',
+                        mRender: function (data) {
+                            return numberWithCommas(data.toFixed(2));
+                        }
+                    }
+                ],
+                bLengthChange: false,
+
+            });
+        }
+
+    </script>
+}

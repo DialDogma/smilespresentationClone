@@ -1,0 +1,65 @@
+﻿@{
+    ViewBag.Title = "SignalRMonitor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>SignalRMonitor</h2>
+<div class="row">
+    <input type="text" name="txtGroup" value="" id="txtGroup" />
+    <button id="btnJoinGroup" onclick="JoinGroup()">Join Group!</button>
+</div>
+
+@section ViewSpecificJavascript
+{
+
+    <script>
+        var chat;
+        $(document).ready(function () {
+            // Reference the auto-generated proxy for the hub.
+            chat = $.connection.chatHub;
+
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                debugger;
+
+            });
+
+            //Show public message to client
+            chat.client.receivePublicMessage = function (name, message) {
+                var fullMessage = 'Public name:' + name + ' message:' + message;
+                toastr["success"]("Public", fullMessage);
+                console.log('ssssss');
+            };
+
+            //Show group message to client
+            chat.client.receiveGroupMessage = function (name, message) {
+                var fullMessage = 'Group name:' + name + ' message:' + message;
+                toastr["warning"]("Group", fullMessage);
+            };
+
+            toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-bottom-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+
+        });
+
+        function JoinGroup() {
+            //join group
+            chat.server.joinGroup($('#txtGroup').val());
+        }
+    </script>
+}

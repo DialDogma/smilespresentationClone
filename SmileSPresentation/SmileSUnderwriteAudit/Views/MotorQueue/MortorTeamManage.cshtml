@@ -1,0 +1,351 @@
+﻿
+@{
+    ViewBag.Title = "ระบบจัดการทีม";
+    Layout = "~/Views/Shared/_LayoutForTopMotor.cshtml";
+}
+<style>
+    table.dataTable thead {
+        background-color: #337AB7;
+        color: azure;
+    }
+
+    .select2-container .select2-selection--single {
+        height: 34px !important;
+        border-radius: 0px
+    }
+</style>
+<div class="box box-header bg-aqua">
+    <center><span style="font-size:large;">ประกันรถยนต์</span></center>
+</div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="box-body">
+            <div class="form-group">
+                <div class="col-md-10 col-sm-8 col-xs-12">
+                    <h3>
+                        ระบบจัดการทีม
+                    </h3>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-12">
+                <div class="form-group">
+                    <button type="button" class="btn btn-block btn-success" id="btnAddUser">
+                        <i class="fa fa-user-plus" aria-hidden="true" style="color:white"></i>
+                        เพิ่มรายชื่อ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@*Table*@
+<div class="col-sm-12 col-md-12">
+    @* DT form *@
+    <div id="dt_form">
+        <div class="box box-solid">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <table id="dtTeamManageAssignCancellation" name="dtTeamManageAssignCancellation" class="table table-bordered table-hover dataTable" style="width: 100%; ">
+                            <tbody>
+                                <tr style="text-align: center"><td>ไม่พบข้อมูล</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end form *@
+</div>
+
+@* Modal Add User*@
+<div class="modal fade in" id="modal-AreaManager" style="display: none; padding-right: 5px;">
+    <div class="modal-dialog">
+        <div class="box box-primary">
+            <div class="box-header with-border" style="color:deepskyblue">
+                <h3 class="box-title">เพิ่มรายชื่อผู้ใช้งาน</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="box-body">
+                <div class="row" style="padding-top: 5px;">
+                    <div class="col-xs-10 col-xs-offset-1">
+                        <label>เลือกผู้ใช้งาน :</label>
+                        <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="personName">
+                            <option value="-1">-----เลือก-----</option>
+                            @{
+                                foreach (var item in ViewBag.PersonName)
+                                {
+                                    <option value="@item.UserId">@item.EmployeeName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 15px;">
+                    <div class="col-xs-9 col-xs-offset-1">
+                        <div class="icheck-primary d-inline">
+                            <input type="checkbox" id="checkboxPrimary1" checked disabled>
+                            <label for="checkboxPrimary1">
+                                &nbsp;&nbsp;&nbsp; ใช้งาน
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 30px;">
+                    <div class="col-xs-12" style="text-align:center; word-spacing:30px">
+                        <button type="button" class="btn btn-success" id="btnInsertChangeEmployee"><i class="glyphicon glyphicon-ok"></i> ตกลง</button>
+                        <button type="button" class="btn btn-danger" id="btncancleUpdate" data-dismiss="modal"><i class="glyphicon glyphicon-remove"></i> ยกเลิก</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@* Modal in DataTable*@
+<div class="modal fade in" id="modal-EditeStatus" style="display: none; padding-right: 5px;">
+    <div class="modal-dialog">
+        <div class="box box-primary">
+            <div class="box-header with-border" style="color:deepskyblue">
+                <h3 class="box-title">แก้ไขสถานะการใช้งาน</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="box-body">
+                <div class="row" style="padding-top: 5px;">
+                    <div class="col-xs-10 col-xs-offset-1">
+                        <label>ผู้ใช้งาน : <span id="personNameDef"></span></label>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 15px;" id="checkboxUse">
+                    <div class="col-xs-9 col-xs-offset-1">
+                        <div class="icheck-primary d-inline">
+                            <input type="checkbox" id="statusUse" value="true">
+                            <label for="checkboxPrimary1">
+                                &nbsp;&nbsp;&nbsp; ใช้งาน
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 30px;">
+                    <div class="col-xs-12" style="text-align:center; word-spacing:30px">
+                        <button type="button" class="btn btn-success" id="btnUpdateChangeEmployee"><i class="glyphicon glyphicon-ok"></i> ตกลง</button>
+                        <button type="button" class="btn btn-danger" id="btncancleUpdate" data-dismiss="modal"><i class="glyphicon glyphicon-remove"></i> ยกเลิก</button>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" id="QId" value="">
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        $(function () {
+            GetTeamManageAssignCancellation();
+
+            $('.select2').select2();
+
+            $('#btnAddUser').click(function (e) {
+                e.preventDefault();
+                $('#modal-AreaManager').modal('show');
+            });
+
+
+            $('#btnInsertChangeEmployee').click(function (e) {
+                e.preventDefault();
+                InsertChangeEmployee();
+            });
+
+            $('#btnUpdateChangeEmployee').click(function (e) {
+                e.preventDefault();
+                UpdateChangeEmployee($('#QId').val());
+
+            })
+
+            $("#modal-AreaManager").on('hide.bs.modal', function () {
+                $('#personName').val(-1).change();
+            });
+
+            //Datatable Event onSearch
+            $('#dtTeamManageAssignCancellation').on('search.dt', function () {
+                $('.dataTables_filter input').off().on('keyup', function () {
+                    if (this.value.length === 0) {
+                        $('#dtTeamManageAssignCancellation').DataTable().search(this.value.trim(), false, false, false).draw();
+                        $('.dataTables_filter input').removeClass('border-red');
+                        $('.dataTables_filter input').removeClass('border-green');
+                        $('#sp_error').remove();
+                    } else if (this.value.length > 0) {
+                        $('.dataTables_filter input').removeClass('border-red');
+                        $('.dataTables_filter input').addClass('border-green');
+                        $('#dtTeamManageAssignCancellation').DataTable().search(this.value.trim(), false, false, false).draw();
+                        $('#sp_error').remove();
+                    } else {
+                        //swal_info("Pls input morethan 5 charactor..")
+                        $('.dataTables_filter input').addClass('border-red');
+                        $('.dataTables_filter input').removeClass('border-green');
+                        $('.dataTables_filter input').focus();
+                        if ($('#sp_error').length == 0) {
+                            $(".dataTables_filter").append("<p style='color:red' id='sp_error'>ระบุคำค้นหาอย่างน้อย 1 ตัวอักษร</p>");
+                        }
+                    }
+                });
+            });
+
+        });
+
+        const editeStatus = (qCUserId) => {
+            GetQCUserById(qCUserId);
+            console.log(qCUserId);
+            $('#modal-EditeStatus').modal('show');
+            $('#QId').val(qCUserId);
+
+        }
+
+
+
+        function GetQCUserById(qCUserId) {
+             $.ajax({
+                type: "GET",
+               url: '@Url.Action("GetQCUserById")',
+                 data: { qCUserId: qCUserId },
+                dataType: "json",
+                async: false,
+                 success: function (response) {
+                     $('#personNameDef').text(response.EmployeeName);
+                     $('#statusUse').val(response.IsActive);
+
+                     if (response.IsActive == true) {
+                         $('input[id=statusUse]').iCheck('check');
+                     } else {
+                         $('input[id=statusUse]').iCheck('uncheck')
+                     }
+
+                }
+            })
+        }
+
+        const UpdateChangeEmployee = (qCUserId) => {
+            var statusUse = document.getElementById("statusUse");
+            if (statusUse.checked == true) {
+                IsActive = true
+            } else {
+                IsActive = false
+            }
+            $.post("@Url.Action("UpdateChangeEmployee")",
+                {
+                    qCUserId: qCUserId,
+                    isActive: IsActive
+                },
+                function (data, textStatus, jqXHR) {
+                    if (data.IsResult) {
+                        swal_success(data.Msg);
+                        $('#modal-EditeStatus').modal('hide');
+                        $('#dtTeamManageAssignCancellation').DataTable().ajax.reload();
+
+                    }
+
+                });
+        }
+
+        const InsertChangeEmployee = () => {
+            $.post("@Url.Action("InsertChangeEmployee")",
+                {
+                    userId: $('#personName').val(),
+                    productGroupId:4
+                },
+                function (data, textStatus, jqXHR) {
+                    if (data.IsResult) {
+                        swal_success("สำเร็จ");
+                        $('#modal-AreaManager').modal('hide');
+                        $('#dtTeamManageAssignCancellation').DataTable().ajax.reload();
+
+                    } else {
+                        swal_fail(data.Msg);
+                        $('#modal-AreaManager').modal('hide');
+                    }
+
+                });
+        }
+
+
+        const GetTeamManageAssignCancellation = () => {
+            $('#dtTeamManageAssignCancellation').empty();
+            var table = $('#dtTeamManageAssignCancellation').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                searching: true,
+                info: true,
+                orderable: false,
+                ajax: {
+                    url: '@Url.Action("GetTeamManageAssign")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.searchText = d.search.value;
+                        d.productGroupId = 4;
+                    },
+                },
+                columns: [
+                    {
+                        title: 'รหัสพนักงาน',
+                        data: "EmployeeCode",
+                        className: 'text-center'
+                    },
+                    {
+                        title: 'ชื่อ-นามสกุลพนักงาน',
+                        data: "EmployeeName",
+                        data: "EmployeeName",
+                        className: 'text-left th-center'
+                    },
+                    {
+                        title: 'สถานะการใช้งาน',
+                        data: "IsActive",
+                        className: "text-center",
+                        render: function (data) {
+                            switch (data) {
+                                case true:
+                                    return '<span >ใช้งาน</span>';
+                                    break;
+                                case false:
+                                    return '<span >ไม่ใช้งาน</span>';
+                                    break;
+                                default:
+                                    return '<span >รอข้อมูล</span>';
+                                    break;
+                            }
+                        }
+                    },
+                    {
+                        title: 'แก้ไข',
+                        data: null,
+                        orderable: false,
+                        width: '10%',
+                        render: function (data) {
+                            return `<button type="button" class="btn btn-warning" onclick="editeStatus(${data.QCUserId})">แก้ไข</button>`;
+
+                        }
+                    }
+                ],
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+    </script>
+}

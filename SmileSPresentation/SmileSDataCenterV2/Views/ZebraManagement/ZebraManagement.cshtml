@@ -1,0 +1,637 @@
+﻿@{
+    ViewBag.Title = "การจัดการข้อมูลรถม้าลาย";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-2" style="float:right">
+            @{
+                if (ViewBag.Operation == 0)
+                {
+                    <button type="button" class="btn btn-block btn-success" style="text-decoration:none" id="btnAdd">เพิ่มรถม้าลาย</button>
+                }
+            }
+        </div>
+        <div class="col-xs-12">
+            <div class="box box-primary" style="margin-top:15px">
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-xs-3 col-xs-offset-1">
+                                <label>ประเภทรถ :</label>
+                                <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlCarType">
+                                    <option value="-1">-----ทั้งหมด-----</option>
+                                    @{
+                                        foreach (var item in ViewBag.CarType)
+                                        {
+                                            <option value="@item.ZebraTypeId">@item.ZebraType</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-xs-3">
+                                <label>สถานะรถ :</label>
+                                <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlCarStatus">
+                                    <option value="-1">-----ทั้งหมด-----</option>
+                                    <option value="1">ปกติ</option>
+                                    <option value="0">ยกเลิก</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row" style="padding-top:5px">
+                            <div class="col-xs-3 col-xs-offset-1">
+                                <label>สถานะการใช้งาน :</label>
+                                <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlOwnerStatus">
+                                    <option value="-1">-----ทั้งหมด-----</option>
+                                    <option value="1">ใช้งาน</option>
+                                    <option value="0">ไม่ใช้งาน</option>
+                                </select>
+                            </div>
+                            <div class="col-xs-4" style="padding-top:25px">
+                                <input type="text" id="txtkeyword" class="form-control" placeholder="ค้นหา " />
+                            </div>
+                            <div class="col-xs-2" style="padding-top:25px">
+                                <button type="button" class="btn btn-block btn-primary" style="text-decoration:none" id="btnSearch">ค้นหา</button>
+                            </div>
+                            <div class="col-xs-1 col-xs-offset-1" style="padding-top:25px">
+                                <button id="btnExport" type="button" class="btn btn-block btn-success" style="float:right;"><i class="fa fa-file-excel-o" aria-hidden="true"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="row" style="padding-top:6px">
+                            <div class="col-xs-12">
+                                <table id="dtMonitor" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Add Edit Zebra *@
+    <div class="modal fade in" id="modal-ZebraManagement" style="display: none; padding-right: 5px;">
+        <div class="modal-dialog" style="width:70%">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">เพิ่ม / แก้ไขข้อมูลรถม้าลาย</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class=" col-xs-3 col-xs-offset-1">
+                            <label>สังกัดบริษัท :</label>
+                            <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlCompanyType">
+                                <option value="-1">-----เลือก-----</option>
+                                @{
+                                    foreach (var item in ViewBag.ZebraOrganize)
+                                    {
+                                        <option value="@item.Organize_ID">@item.Abbreviation</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-xs-3">
+                            <label>วันที่รับรถจากศูนย์ :</label>
+                            <input type="text" class="form-control pull-right" id="dtpReceiveCarDate" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy">
+                        </div>
+                    </div>
+
+                    <div class="row" style="padding-top:5px">
+                        <div class="col-xs-3 col-xs-offset-1">
+                            <label>เบอร์รถ :</label>
+                            <input class="form-control" type="number" placeholder="" id="txtZebraNo">
+                        </div>
+
+                        <div class="col-xs-3">
+                            <label>สีรถ :</label>
+                            <input class="form-control" type="text" placeholder="" id="txtZebraColor">
+                        </div>
+                    </div>
+
+                    <div class="row" style="padding-top:5px">
+                        <div class="col-xs-3 col-xs-offset-1">
+                            <label>ยี่ห้อรถ :</label>
+                            <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlBrandCar">
+                                <option value="-1">-----เลือก-----</option>
+                                @{
+                                    foreach (var item in ViewBag.CarBrand)
+                                    {
+                                        <option value="@item.BrandId">@item.Brand</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-xs-3">
+                            <label>รุ่นรถ :</label>
+                            <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlCarModel"></select>
+                        </div>
+                        <div class="col-xs-3">
+                            <label>รุ่นย่อย :</label>
+                            <input class="form-control" type="text" placeholder="" id="txtCarSubModel">
+                        </div>
+                    </div>
+
+                    <div class="row" style="padding-top:12px">
+                        <div class="col-xs-2 col-xs-offset-1">
+                            <input type="radio" name="rdRedLabelCar" id="rdoRedLabel" value="option1" checked> <label>ป้ายแดง</label>
+                        </div>
+                        <div class="col-xs-2">
+                            <input type="radio" name="rdRedLabelCar" id="rdoNotRedLabel" value="option2"> <label>ไม่ใช่ป้ายแดง</label>
+                        </div>
+                    </div>
+
+                    <div class="row" style="padding-top:5px">
+                        <div class="col-xs-3 col-xs-offset-1">
+                            <label>ทะเบียนรถ :</label>
+                            <input class="form-control" type="text" placeholder="" id="txtCarRegistration">
+                        </div>
+                        <div class="col-xs-3">
+                            <label>จังหวัดทะเบียนรถ :</label>
+                            <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlProvinceCar">
+                                <option value="-1">-----เลือก-----</option>
+                                @{
+                                    foreach (var item in ViewBag.CarProvince)
+                                    {
+                                        <option value="@item.Province_ID">@item.ProvinceDetail</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row" style="padding-top:5px">
+                        <div class="col-xs-3 col-xs-offset-1">
+                            <label>เลขตัวถัง :</label>
+                            <input class="form-control" type="text" placeholder="" id="txtVINno">
+                        </div>
+                        <div class="col-xs-3">
+                            <label>เลขเครื่อง :</label>
+                            <input class="form-control" type="text" placeholder="" id="txtEngineNo">
+                        </div>
+                    </div>
+
+                    <div class="row" style="padding-top: 10px;">
+                        <div class="col-xs-12" style="text-align:center">
+                            <button type="button" class="btn btn-success" id="btnSave"><i class="glyphicon glyphicon-ok"></i>ตกลง</button>
+                            <button type="button" class="btn btn-danger" id="btnCancel"><i class="glyphicon glyphicon-remove"></i>ยกเลิก</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    @*  *@
+
+    <input type="hidden" id="hdfZebraId" hidden />
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+
+            debugger;
+            var start = new Date();
+            var end = new Date(start);
+
+            $('.select2').select2();
+            $('#dtpReceiveCarDate').datepicker({
+                format: "dd/mm/yyyy", autoclose: true,
+                endDate: end,
+                //gotoCurrent: true,
+                //beforeShowDay: function (date) {
+
+                //},
+            });
+
+            $('#btnAdd').click(function (e) {
+                e.preventDefault();
+                $('#modal-ZebraManagement').addClass("modal_itemcenter");
+                $('#modal-ZebraManagement').modal('show');
+            });
+
+            $('#ddlBrandCar').change(function (e) {
+                e.preventDefault();
+                //get Model Car
+                GetCarModel();
+            });
+
+            $('#btnSave').click(function (e) {
+                e.preventDefault();
+
+                if (Isvalidate()) {
+                    if ($('#hdfZebraId').val() == "") {
+                        DoSave();
+                    } else {
+                        DoUpdate();
+                    }
+
+                }
+
+            });
+
+            $('#btnCancel').click(function (e) {
+                e.preventDefault();
+                DoClear();
+                $('#modal-ZebraManagement').modal('hide');
+            });
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                LoadData();
+            });
+
+            $('#btnExport').click(function (e) {
+                e.preventDefault();
+                Export();
+            });
+
+        });
+
+        ////////////////////////// Function ////////////////////////
+
+        const LoadData = () => {
+            $('#dtMonitor').empty();
+            var t = $('#dtMonitor').dataTable({
+                    pageLength: 10,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    searching: false,
+                    "order": [[0, "desc"]],
+                    destroy: true,
+                    ajax: {
+                        url: '@Url.Action("GetZebraManagement", "ZebraManagement")',
+                        type: 'POST',
+                        async: false,
+                           data: function (d) {
+                               d.draw = d.draw;
+                               d.pageSize = d.length;
+                               d.pageStart = d.start;
+                               d.sortField = d.columns[d.order[0].column].data;
+
+                               d.orderType = d.order[0].dir;
+                               d.search = d.search.value;
+
+                               d.CarTypeId = $('#ddlCarType').val();
+                               d.IsActive = $('#ddlCarStatus').val();
+                               d.IsOwner = $('#ddlOwnerStatus').val();
+                               d.keyword = $('#txtkeyword').val().trim();
+                           }
+                       },
+                       columns: [
+                           { title: 'รหัสรายการ', data: 'Zebra_ID', className: 'h-dt-center text-font-small', width: '8%' },
+                           { title: 'ประเภทรถ', data: 'ZebraType', className: 'h-dt-center text-font-small', width: '8%' },
+                           { title: 'สังกัดบริษัท', data: 'Abbreviation', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'เบอร์รถ', data: 'Zebra_No', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'ยี่ห้อรถ/รุ่นรถ', data: 'BrandXModel', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'เลขเครื่องยนต์', data: 'EngineNo', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'เลขตัวถัง', data: 'VINno', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'ทะเบียนรถ', data: 'PlateNo', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'สถานะรถ', data: 'CarStatus', className: 'h-dt-center text-font-small', width: '15%' },
+                           { title: 'การใช้งาน', data: 'CarOwnerStatus', className: 'h-dt-center text-font-small', width: '15%' },
+                           {
+                               title: 'เลือก',
+                               data: null,
+                               className: 'h-dt-center d-dt-center ',
+                               mRender: (data, type, full) =>
+                               {
+                                   if (@ViewBag.Operation == 0) {
+                                       return '<button type="button"  class="btn btn-warning btn-sm" id="btnEdit' + data.Zebra_ID + '"><i class="glyphicon glyphicon glyphicon-pencil ColorWhite"></i>แก้ไข</button>'
+                                   } else {
+                                       return '';
+                                   }
+
+                               }, width: '5%'
+                           },
+                       ],
+                       bLengthChange: false,
+            });
+
+            $('#dtMonitor tbody').on('click', 'td button', function () {
+                DoClear();
+                var table = $('#dtMonitor').DataTable();
+                var data = table.row($(this).closest('tr')).data()
+                let ZebraId = data.Zebra_ID;
+                let companyTypeId = data.CompanyId;
+                let receiveDate = null;
+                if (data.PickupDate != null) {
+                    receiveDate = moment(data.PickupDate);
+                }
+
+                let ZebraNo = data.Zebra_No;
+                let ZebraColor = data.Color;
+                let brandId = data.BrandId;
+                let modelId = data.ModelId;
+                let subModel = data.SubModel;
+                let isnewCar = data.IsNewCar;
+                let plateNo = data.PlateNo;
+                let provinceplateId = data.PlateProvinceId;
+                let vinNo = data.VINno;
+                let engineNo = data.EngineNo;
+
+                $('#hdfZebraId').val(ZebraId);
+
+                if (companyTypeId != null) {
+                    $('#ddlCompanyType').val(companyTypeId).trigger('change.select2');
+                }
+
+                if (receiveDate != null) {
+                    $('#dtpReceiveCarDate').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date(receiveDate));
+                }
+
+                $('#txtZebraNo').val(ZebraNo);
+                $('#txtZebraColor').val(ZebraColor);
+
+                if (brandId != null) {
+                    $('#ddlBrandCar').val(brandId).trigger('change.select2');
+                }
+
+                GetCarModel();
+                $('#ddlCarModel').val(modelId).trigger('change.select2');
+                $('#txtCarRegistration').val(plateNo);
+
+                if (provinceplateId != null) {
+                    $('#ddlProvinceCar').val(provinceplateId).trigger('change.select2');
+                }
+
+                $('#txtVINno').val(vinNo);
+                $('#txtEngineNo').val(engineNo);
+                $('#txtCarSubModel').val(subModel);
+
+                switch (isnewCar) {
+
+                    case true:
+                        $('#rdoRedLabel').iCheck('check');
+                        break;
+                    case false:
+                        $('#rdoNotRedLabel').iCheck('check');
+                        break;
+                    default:
+                }
+
+                $('#modal-ZebraManagement').addClass("modal_itemcenter");
+                $('#modal-ZebraManagement').modal('show');
+
+                $('#txtZebraNo').prop('disabled', true);
+
+            });
+
+        }
+
+         function Export() {
+            $('#btnExport').prop('disabled', true);
+            $("body").css("cursor", "progress");
+
+            $.ajax({
+                url: "@Url.Action("ExportZebraManagementReport", "ZebraManagement")",
+                type: "GET",
+                data: {
+                    CarTypeId : $('#ddlCarType').val(),
+                    IsActive: $('#ddlCarStatus').val(),
+                    IsOwner :$('#ddlOwnerStatus').val(),
+                    keyword :$('#txtkeyword').val().trim()
+                },
+                success: function (data) {
+                    window.location = "@Url.Action("DownloadExportZebraManagement", "ZebraManagement")";
+                    //loadingSpinner('fadeOut');
+                    $("body").css("cursor", "default");
+                    $('#btnExport').prop('disabled', false);
+                },
+                 error: function (jqXHR, exception) {
+                     checkXHRStatus(jqXHR.status);
+                     //loadingSpinner('fadeOut');
+                 }
+            });
+        }
+
+        const DoSave = () => {
+            let isNewCar = false;
+
+            if ($('#rdoRedLabel').iCheck('update')[0].checked == true) {
+                isNewCar = true;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("DoSaveZebra", "ZebraManagement")",
+                data: {
+                    companyId: $('#ddlCompanyType').val(),
+                    zebraCarNo: $('#txtZebraNo').val(),
+                    carColor: $('#txtZebraColor').val(),
+                    brandId: $('#ddlBrandCar').val(),
+                    modelId: $('#ddlCarModel').val(),
+                    subModel: $('#txtCarSubModel').val(),
+                    isNewCar: isNewCar,
+                    vinNo: $('#txtVINno').val(),
+                    engineNo: $('#txtEngineNo').val(),
+                    pickupDate: $('#dtpReceiveCarDate').val(),
+                    plateNo: $('#txtCarRegistration').val(),
+                    plateProvinceId: $('#ddlProvinceCar').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    if (response.IsResult == true) {
+
+                        //alert Msg
+                        swal("", response.Msg, "success");
+
+                        //doclear
+                        DoClear();
+
+                        //hide modal
+                        $('#modal-ZebraManagement').modal('hide');
+
+                    } else {
+                        //alert Msg
+                        swal("ตรวจสอบข้อมูล", response.Msg, "warning");
+                        $('#modal-ZebraManagement').addClass("modal_itemcenter");
+                        $('#modal-ZebraManagement').modal('show');
+
+                    }
+
+                }
+            });
+        }
+
+        const DoUpdate = () => {
+            let isNewCar = false;
+
+            if ($('#rdoRedLabel').iCheck('update')[0].checked == true) {
+                isNewCar = true;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("DoUpdateZebra", "ZebraManagement")",
+                data: {
+                    zebraId: $('#hdfZebraId').val(),
+                    companyId: $('#ddlCompanyType').val(),
+                    carColor: $('#txtZebraColor').val(),
+                    brandId: $('#ddlBrandCar').val(),
+                    modelId: $('#ddlCarModel').val(),
+                    subModel: $('#txtCarSubModel').val(),
+                    isNewCar: isNewCar,
+                    engineNo: $('#txtEngineNo').val(),
+                    pickupDate: $('#dtpReceiveCarDate').val(),
+                    plateNo: $('#txtCarRegistration').val(),
+                    plateProvinceId: $('#ddlProvinceCar').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+
+                    if (response.IsResult == true) {
+
+                        //alert Msg
+                        swal("", response.Msg, "success");
+
+                        //doclear
+                        DoClear();
+
+                        //doload
+                        LoadData();
+
+                        //hide modal
+                        $('#modal-ZebraManagement').modal('hide');
+
+                    } else {
+                        //alert Msg
+                        swal("ตรวจสอบข้อมูล", response.Msg, "warning");
+                        $('#modal-ZebraManagement').addClass("modal_itemcenter");
+                        $('#modal-ZebraManagement').modal('show');
+
+                    }
+
+                }
+            });
+        }
+
+        const Isvalidate = () => {
+
+            if ($('#ddlCompanyType').val() == '-1') {
+                swal('ตรวจสอบ', 'กรุณาเลือก บริษัท', 'warning');
+                return false;
+            }
+
+            if ($('#dtpReceiveCarDate').val() == "") {
+                swal('ตรวจสอบ', 'กรุณาเลือก วันที่รับรถจากศูนย์', 'warning');
+                return false;
+            }
+
+            let nowDateStr = moment(new Date()).add(543, 'years').format('DD/MM/YYYY');
+            let ReceiveDateStr = moment($('#dtpReceiveCarDate').val())._i;
+
+            let arrNowDate = nowDateStr.split(" ");
+            let arrNowDate2 = arrNowDate[0].split("/");
+
+            let arrReceiveDate = ReceiveDateStr.split(" ");
+            let arrReceiveDate2 = arrReceiveDate[0].split("/");
+
+            let nowDate = new Date(parseInt(arrNowDate2[2]) - 543, parseInt(arrNowDate2[1]) - 1, parseInt(arrNowDate2[0]));
+            let receiveDate = new Date(parseInt(arrReceiveDate2[2]) - 543, parseInt(arrReceiveDate2[1]) - 1, parseInt(arrReceiveDate2[0]));
+
+            if (receiveDate > nowDate) {
+                swal('ตรวจสอบ', 'ตรวจสอบ วันที่รับรถจากศูนย์ เนื่องจากมากกว่าวันปัจจุบัน', 'warning');
+                return false;
+            }
+
+            if ($('#txtZebraNo').val() == "") {
+                swal('ตรวจสอบ', 'กรุณากรอก เบอร์รถ', 'warning');
+                return false;
+            }
+
+            if ($('#txtZebraColor').val() == "") {
+                swal('ตรวจสอบ', 'กรุณากรอก สีรถ', 'warning');
+                return false;
+            }
+
+            if ($('#ddlBrandCar').val() == '-1') {
+                swal('ตรวจสอบ', 'กรุณาเลือก ยี่ห้อรถ', 'warning');
+                return false;
+            }
+
+            if ($('#ddlCarModel').val() == '-1') {
+                swal('ตรวจสอบ', 'กรุณาเลือก รุ่นรถ', 'warning');
+                return false;
+            }
+
+            //if ($('#txtCarSubModel').val() == "") {
+            //    swal('ตรวจสอบ', 'กรุณากรอก รุ่นย่อย', 'warning');
+            //    return false;
+            //}
+
+            if ($('#rdoNotRedLabel').iCheck('update')[0].checked == true) {
+
+                if ($('#txtCarRegistration').val() == "") {
+                    swal('ตรวจสอบ', 'กรุณากรอก ป้ายทะเบียนรถ', 'warning');
+                    return false;
+                }
+
+                if ($('#ddlProvinceCar').val() == '-1') {
+                    swal('ตรวจสอบ', 'กรุณาเลือก จังหวัดทะเบียนรถ', 'warning');
+                    return false;
+                }
+            }
+
+            if ($('#txtVINno').val() == "") {
+                swal('ตรวจสอบ', 'กรุณากรอก เลขตัวถัง', 'warning');
+                return false;
+            }
+
+            if ($('#txtEngineNo').val() == "") {
+                swal('ตรวจสอบ', 'กรุณากรอก เลขเครื่อง', 'warning');
+                return false;
+            }
+
+            return true;
+        }
+
+        const DoClear = () => {
+            $('#ddlCompanyType').val('-1').trigger('change.select2');
+            $('#dtpReceiveCarDate').val('');
+            $('#txtZebraNo').val('');
+            $('#txtZebraColor').val('');
+            $('#ddlBrandCar').val('-1').trigger('change.select2');
+            $('#ddlCarModel').empty();
+            $('#txtCarRegistration').val('');
+            $('#ddlProvinceCar').val('-1').trigger('change.select2');
+            $('#txtVINno').val('');
+            $('#txtEngineNo').val('');
+            $('#txtCarSubModel').val('');
+            $('#hdfZebraId').val('');
+
+            $('#rdoRedLabel').iCheck('check');
+            $('#txtZebraNo').prop('disabled', false);
+            $('#txtVINno').prop('disabled', false);
+
+        }
+
+        const GetCarModel = () => {
+            $('#ddlCarModel').empty();
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetCarModel","ZebraManagement")",
+                data: {
+                    brancdId: $('#ddlBrandCar').val()
+                },
+                dataType: "json",
+                async: false,
+                success: function (response) {
+                    $("#ddlCarModel").append(`<option value="-1">-----เลือก-----</option>`);
+                    for (var i = 0; i < response.length; i++) {
+                        $("#ddlCarModel").append(`<option value="${response[i].ModelId}">${response[i].Model}</option>`);
+                    }
+                }
+            });
+        }
+    </script>
+}

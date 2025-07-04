@@ -1,0 +1,223 @@
+﻿@using SmileSPACommunity.Helper;
+@using SmileSPACommunity.Models;
+@using System;
+@using System.Collections.Generic;
+@using System.Linq;
+@using System.Web;
+@using System.Web.Mvc;
+
+@{
+    // var userDetail = GlobalFunction.GetLoginDetail(this.Context);
+    var userDetail = SmileSPACommunity.Helper.GlobalFunction.GetLoginDetail(this.Context);
+
+    var role = new SmileSPACommunity.SSOService.SSOServiceClient().GetRoleByUserName(userDetail.UserName);
+    var rolelist = role.Split(',').ToList();
+
+    var roleDev = new[] { "Developer" }; //ฝ่ายพัฒนาระบบ
+    var rolePA = new[] { "PAPersonnel_PAUnderwrite" }; //ฝ่าย PA Underwrite
+
+
+    ViewBag.Firstname = userDetail.FirstName;
+    ViewBag.Lastname = userDetail.LastName;
+    ViewBag.EmpCode = userDetail.UserName;
+    ViewBag.Department = userDetail.DepartmentDetail;
+    ViewBag.BranchDetail = userDetail.BranchDetail;
+
+    using (var _db = new PACommunityEntities())
+    {
+        if (rolelist.Intersect(rolePA).Count() > 0 || rolelist.Intersect(roleDev).Count() > 0)
+        {
+            //รออนุมัติกรมธรรม์
+            var task_WaitApprovePolicy = _db.usp_PersonnelApplicationRound_Select(null, null, null, "3,6", false, 0, 99999, null, null, null).Count();
+            ViewBag.TaskWaitApprovePolicy = task_WaitApprovePolicy;
+
+
+            //รออนุมัติเพิ่มรายชื่อ
+            var task_WaitApproveAddCustomer = _db.usp_PersonnelApplicationRoundWaitApprove_Select(null, null, 2, 0, 99999, null, null, null).Count();
+            ViewBag.TaskWaitApproveAddCustomer = task_WaitApproveAddCustomer;
+
+
+
+            //รออนุมัติยกเลิกกรมธรรม์
+            var task_WaitApproveCancelPolicy = _db.usp_RequestCancelPersonnelApplication_Select(null, null, 2, null, 0, 9999, null, null, null).Count();
+            ViewBag.TaskWaitApproveCancelPolicy = task_WaitApproveCancelPolicy;
+
+
+            // นับจำนวนรายการรออนุมัติ
+            var task_sumWaitApprove = _db.usp_EndorsePersonnelCustomerDetail_Select(null, null, 2, null, 0, 9999, null, null).Count();
+            ViewBag.sumWaitApprove = task_sumWaitApprove;
+
+
+            // จำนวนรายการรวม
+            ViewBag.TaskSum = task_WaitApprovePolicy + task_WaitApproveAddCustomer + task_sumWaitApprove;
+        }
+        else
+        {
+            //ไม่อนุมัติกรมธรรม์
+            var task_UnApprove = _db.usp_PersonnelApplicationRound_Select(null, userDetail.Branch_ID, null, "5", false, 0, 999999, null, null, null).Count();
+            ViewBag.TaskUnApprove = task_UnApprove;
+
+            // นับจำนวนรายการไม่อนุมัติ
+            var task_sumUnApprove = _db.usp_EndorsePersonnelCustomerDetail_Select(null, userDetail.Branch_ID, 4, null, 0, 9999, null, null).Count();
+            ViewBag.sumUnApprove = task_sumUnApprove;
+
+
+            // จำนวนรายการรวม
+            ViewBag.unApproveTotal = (task_UnApprove + task_sumUnApprove);
+        }
+    }
+}
+
+<header class="main-header">
+    @* BEGIN Logo *@
+    <a href="#" class="logo">
+        @* Mini logo for sidebar 50x50 pixels *@
+        <span class="logo-mini"><b>P</b>AC</span>
+        @* Logo for regular state and mobile devices *@
+        <span class="logo-lg"><b>PACommunity</b></span>
+    </a>
+    @* END Logo *@
+    @* BEGIN Header *@
+    <nav class="navbar navbar-static-top" role="navigation">
+        <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+            <span class="sr-only">Toggle navigation</span>
+        </a>
+        <div class="navbar-custom-menu">
+            <ul class="nav navbar-nav">
+
+
+                @if (rolelist.Intersect(rolePA).Count() > 0 || rolelist.Intersect(roleDev).Count() > 0)
+                {
+                    <li class="dropdown notifications-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <i class="fa fa-bell"></i>
+                            <span class="label label-warning">@ViewBag.TaskSum </span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li class="header">You have @ViewBag.TaskSum Job notifications</li>
+                            <li>
+                                <ul class="menu">
+                                    <li>
+                                        <a href="@Url.Action("PAPersonnelApproveMonitor","PAPersonnelApprove")">
+                                            @*<i class="fa fa-calendar-plus text-aqua"></i>*@
+                                            <span class="label label-danger">@ViewBag.TaskWaitApprovePolicy</span>  ยิ้มแฉ่ง:รออนุมัติกรมธรรม์
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="@Url.Action("PAPersonnelAddCustomerMonitor","PAPersonnelEndorse")">
+                                            @*<i class="fa fa-calendar-plus text-aqua"></i>*@
+                                            <span class="label label-danger">@ViewBag.TaskWaitApproveAddCustomer</span>  ยิ้มแฉ่ง:รออนุมัติเพิ่มรายชื่อ
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="@Url.Action("PAPersonnelEndorseRequestCancelMonitor","PAPersonnelEndorse")">
+                                            @*<i class="fa fa-calendar-plus text-aqua"></i>*@
+                                            <span class="label label-danger">@ViewBag.TaskWaitApproveCancelPolicy</span>  ยิ้มแฉ่ง:รออนุมัติขอยกเลิกกรมธรรม์
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a href="@Url.Action("Index","PAPersonnelCustomerData")">
+                                            @* เพิ่มรายการใหม่ *@
+                                            <span class="label label-danger">@ViewBag.sumWaitApprove</span>  ยิ้มแฉ่ง: รออนุมัติแก้ไขรายชื่อ
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
+                        </ul>
+                    </li>
+                }
+                else
+                {
+                    <li class="dropdown notifications-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <i class="fa fa-bell"></i>
+                            <span class="label label-warning">@ViewBag.unApproveTotal </span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li class="header">You have @ViewBag.unApproveTotal Job notifications</li>
+                            <li>
+                                <ul class="menu">
+                                    <li>
+                                        <a href="@Url.Action("PAPersonnelUnApproveMonitor","PAPersonnel")">
+                                            @*<i class="fa fa-calendar-plus text-aqua"></i>*@
+                                            <span class="label label-danger">@ViewBag.TaskUnApprove</span>  ยิ้มแฉ่ง:ไม่อนุมัติกรมธรรม์
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="@Url.Action("Index","PAPersonnelCustomerData")">
+                                            @* notification ไม่อนุมัติ *@
+                                            <span class="label label-danger">@ViewBag.sumUnApprove</span>  ยิ้มแฉ่ง: ไม่อนุมัติแก้ไขรายชื่อ
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
+                        </ul>
+                    </li>
+                }
+
+                <li class="dropdown notifications-menu">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="glyphicon glyphicon-download-alt"></i>
+                    </a>
+
+                    <ul class="dropdown-menu">
+                        <li>
+                            <ul class="menu">
+                                <li>
+                                    <a href="@Url.Action("SystemGuideDownload","System")" title="Download">
+                                        คู่มือ PA ชุมชน
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="@Url.Action("SystemGuideDownloadForPAPersonnel","System")" title="Download">
+                                        คู่มือ PA บุคลากรยิ้มแฉ่ง
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                    </ul>
+
+                </li>
+
+                <li>
+
+                </li>
+                @* BEGIN User Account Menu *@
+                <li class="dropdown user user-menu">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <span class="hidden-lg">@ViewBag.EmpCode</span>
+                        <span class="hidden-xs">@ViewBag.EmpCode  -  @ViewBag.Firstname  @ViewBag.Lastname</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="user-header" style="height:auto">
+                            <p>
+                                <small>@ViewBag.Firstname - @ViewBag.Lastname</small>
+                                <small><label>แผนก : </label>@ViewBag.Department</small>
+                                <small><label>รหัสพนักงาน : </label>@ViewBag.EmpCode</small>
+                                <small><label>สาขา : </label>@ViewBag.BranchDetail</small>
+                            </p>
+                        </li>
+                        <li class="user-footer">
+                            <div class="pull-left">
+                                <a href="@SmileSPACommunity.Properties.Settings.Default.ChangePasswordURL" target="_blank" class="btn btn-default btn-flat">เปลี่ยนรหัสผ่าน</a>
+                            </div>
+                            <div class="pull-right">
+                                <a href="@Url.Action("Logout", "Auth")" class="btn btn-default btn-flat">Sign out</a>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+                @* END User Account Menu *@
+                @* BEGIN Control Sidebar Toggle Button *@
+                @*<li>
+                        <a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
+                    </li>*@
+                @* END Control Sidebar Toggle Button *@
+            </ul>
+        </div>
+    </nav>
+</header>

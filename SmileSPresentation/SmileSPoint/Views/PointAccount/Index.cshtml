@@ -1,0 +1,107 @@
+﻿﻿@{
+    ViewBag.Title = "จัดการบัญชี";
+}
+<div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+            <div class="box-header">
+                <a href="@Url.Action("Add")" class="btn btn-success" style="float: right; width: 100px;">+ เพิ่ม Account</a>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <table id="datatable1" class="table table-bordered table-striped"></table>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+    <!-- /.box -->
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+            //Delete Function
+            window.Delete = function(id) {
+                swal({
+                    title: 'คุณต้องการลบหรือไม่?',
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#DD6B55',
+                    confirmButtonText: 'ตกลง',
+                    cancelButtonText: 'ยกเลิก',
+                    closeOnConfirm: false,
+                    closeOnCancel: true
+                },
+                function(isConfirm) {
+                    if (isConfirm) {
+                        $.ajax({
+                            type: 'POST',
+                            url: '@Url.Action("Delete")',
+                            data: { id: id },
+                            success: function() {
+                                swal({
+                                    title: 'ดำเนินการเรียบร้อย!',
+                                    type: 'success',
+                                    showCancelButton: false,
+                                    confirmButtonColor: '#26A65B',
+                                    confirmButtonText: 'ตกลง',
+                                    closeOnConfirm: false
+                                },
+                                function() {
+                                    location.reload();
+                                });
+                            }
+                        });
+                    }
+                });
+            };
+
+            //Load Datatable
+            $('#datatable1').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '@Url.Action("GetDatatable")',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    {
+                        title: '',
+                        data: 'PointAccountId',
+                        width: 100,
+                        className: 'dt-right',
+                        render: function (data) {
+                            return '<a href="@Url.Action("Edit")?id=' + data +'" class="btn btn-success" title="Edit" style="margin: 2px;"><i class="fa fa-pencil-square-o"></i></a>'+
+                                '<a href="javascript:Delete(\'' + data + '\')" class ="btn btn-danger" title="Delete" style="margin: 2px;"><i class ="fa fa-trash"></i></a>';
+                        }
+                    },
+                    { title: 'เลขบัญชี', data: 'PointAccountId' },
+                    { title: 'รหัสอ้างอิง', data: 'ReferenceCode' },
+                    { title: 'ประเภท', data: 'PointAccountTypeName' },
+                    { title: 'ชื่อบัญชี', data: 'PointAccountName' },
+                    {
+                        title: 'Point',
+                        data: 'PointRemain',
+                        className: 'dt-right',
+                        render: function (data) {
+                            var amount = data.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                            var result;
+                            result = '<p class="text-black">' + amount + '</p>';
+                            return result;
+                        }
+                    }
+
+                ]
+            });
+        });
+    </script>
+}

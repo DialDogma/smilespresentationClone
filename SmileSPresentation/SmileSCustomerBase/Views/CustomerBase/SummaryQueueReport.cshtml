@@ -1,0 +1,355 @@
+﻿@using SmileSCustomerBase.DatacenterAddressService
+@using SmileSCustomerBase.Models
+@{
+    ViewBag.Title = "สรุปความคืบหน้า การดำเนินการปรับปรุงข้อมูลลูกค้า";
+    //ViewBag.TotalCustomers = "1,000,000";
+    //ViewBag.PassStatusValue = "2,000";
+    //ViewBag.PassPercentage = "20%";
+    //ViewBag.PassNoDecStatusValue = "50,000";
+    //ViewBag.PassNoDocPercentage = "50%";
+    //ViewBag.FailStatusValue = "32,000";
+    //ViewBag.FailPercentage = "32%";
+    //ViewBag.DateComplete = "100";
+    using(var dbAddressClient = new AddressServiceClient())
+    {
+        ViewBag.BranchList = dbAddressClient.GetBranch(null).ToList();
+    }
+    using(var db = new CustomerBaseDBContext())
+    {
+        ViewBag.QueueType = db.usp_QueueType_Select().ToList();
+
+    }
+}
+<div class="row">
+    <div class="col-sm-12">
+        @* chart v2 *@
+        <div class="form-horizontal" id="Chart_form">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h4 class="box-title">สรุปภาพรวม</h4>
+                </div>
+                <div class="box box-body">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <h4>จำนวนคิวลูกค้าที่ต้องปรับปรุงทั้งหมด : @ViewBag.TotalCleanCustomer.ToString("#,##0") รายการ</h4>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            <canvas id="donutChart_totalResult" width="560" height="385" style="display: block; width: 560px; height: 385px;"></canvas>
+                        </div>
+                        <div class="col-sm-6">
+                            <canvas id="barchart_TotalResultByType" width="560" height="385" style="display: block;width: 560px;height: 385px;"></canvas>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <h3>
+                            <label class="col-sm-offset-3 col-sm-5 control-label">ประมาณระยะเวลาดำเนินการ : <a style="color: darkorange">@ViewBag.DateComplete</a> วัน</label>
+                        </h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@* search form *@
+<form action="@Url.Action("ExportExcelReport")" method="post" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-sm-12">
+            <div id="Search_form" class="form-horizontal">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h4 class="box-title">ค้นหา</h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group row">
+                            <label for="select_queueType" class="control-label col-sm-2">ประเภทคิว</label>
+                            <div class="col-sm-3">
+                                <select id="select_queueType" name="select_queueType" class="form-control select2">
+                                    @foreach(var itm in ViewBag.QueueType)
+                                    {
+                                        if(itm.QueueTypeId == 1)
+                                        {
+                                            <option value="">--ทั้งหมด--</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@itm.QueueTypeId">@itm.QueueType</option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                            <label for="select_branch" class="control-label col-sm-1">สาขา</label>
+                            <div class="col-sm-3">
+                                <select id="select_branch" name="select_branch" class="select2 form-control">
+                                    @foreach(var itm in ViewBag.BranchList)
+                                    {
+                                        if(itm.Branch_ID == 1)
+                                        {
+                                            <option value="">--ทั้งหมด--</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@itm.Branch_ID">@itm.BranchDetail</option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-sm-3">
+                                <button type="button" id="btnSearch" onclick="GetQueueTypeSummaryByBranch()" class="btn btn-block btn-info">ค้นหา</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* table form *@
+    <div class="row">
+        <div class="col-sm-12">
+            <div id="Table_form" class="form-horizontal">
+                <div class="box box-primary">
+                    <div class="box-header">
+                        <h4 class="box-title">สรุปคิวงานทั้งหมด</h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group row">
+                            <div class="col-sm-12">
+                                <table class="table table-bordered table-hover dataTable" id="tblResultQueue" role="grid"></table>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-offset-10 col-sm-2">
+                                <button class="btn btn-block btn-success" type="submit" id="btnExportExcel" onclick="">Export Excel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@* hidden field *@
+<input type="hidden" id="hd_TotalQueueAgent" value="" />
+<input type="hidden" id="hd_TotalQueueBranch" value="" />
+<input type="hidden" id="hd_QueueAgent_new" value="" />
+<input type="hidden" id="hd_QueueBranch_new" value="" />
+<input type="hidden" id="hd_QueueAgent_Onprocess" value="" />
+<input type="hidden" id="hd_QueueBranch_Onprocess" value="" />
+<input type="hidden" id="hd_QueueAgent_CloseQueue" value="" />
+<input type="hidden" id="hd_QueueBranch_CloseQueue" value="" />
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            //call function
+            GetQueueTypeMonitor();
+            GetQueueTypeSummaryByBranch();
+            debugger;
+            @*$('#btnExportExcel').on('click', function () {
+                 $.post('@Url.Action("ExportExcelReport")');
+            });*@
+        });
+        //get summary queue
+        function GetQueueTypeMonitor() {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("CallQueueTypeMonitor","CustomerBase")',
+                data: { queueTypeId: null },
+                success: function (response) {
+                    debugger;
+                    $.each(response, function (index) {
+                         debugger;
+                        if (response[index].QueueTypeId == 2) {
+
+                            $('#hd_TotalQueueAgent').val(response[index].ALL);
+                            $('#hd_QueueAgent_new').val(response[index].คิวงานใหม่);
+                            $('#hd_QueueAgent_Onprocess').val(response[index].รอดำเนินการ);
+                            $('#hd_QueueAgent_CloseQueue').val(response[index].ปิดคิวงาน);
+                        } else if (response[index].QueueTypeId == 3) {
+                            $('#hd_TotalQueueBranch').val(response[index].ALL);
+                            $('#hd_QueueBranch_new').val(response[index].คิวงานใหม่);
+                            $('#hd_QueueBranch_Onprocess').val(response[index].รอดำเนินการ);
+                            $('#hd_QueueBranch_CloseQueue').val(response[index].ปิดคิวงาน);
+                        }
+                    });
+                    //render after declare value
+                    renderChartJs();
+                },
+                error: function () {
+                    alert('Error occured');
+                }
+            });
+        }
+        //call table summary by type and branch
+        function GetQueueTypeSummaryByBranch() {
+            $('#tblResultQueue').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    type: 'GET',
+                    method:'POST',
+                    url: '@Url.Action("CallResultBranchReport")',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.queueTypeId = $('#select_queueType').val();
+                        d.branchId = $('#select_branch').val();
+                        d.assignToUserId = null;
+                        d.createDateFrom = null;
+                        d.createDateTo = null;
+                    }
+                },
+                columns: [
+                    { title: 'ประเภทคิว', data: 'QueueType' },
+                    { title: 'สาขา', data: 'Branch' },
+                    { title: 'เจ้าของงาน', data: 'AssignToName' },
+                    {
+                        title: 'คิวงานทั้งหมด', data: 'ALL',
+                        className: 'dt-right',
+                        render: $.fn.dataTable.render.number(',')
+                    },
+                    {
+                        title: 'รอดำเนินการ', data: 'รอดำเนินการ',
+                        className: 'dt-right',
+                        render: $.fn.dataTable.render.number(',')
+                    },
+                    {
+                        title: 'คิวงานที่ปิดแล้ว', data: 'ปิดคิวงาน',
+                        className: 'dt-right',
+                        render: $.fn.dataTable.render.number(',')
+                    },
+                    {
+                        title: 'วันที่ดำเนินการล่าสุด', data: 'LastUpdate' ,
+                        className: 'dt-center',
+                        render: function (data) {
+                            return moment(data).format('DD/MM/YYYY');
+                        }
+                    }
+                ]
+            });
+        }
+        //render chart
+        function renderChartJs() {
+            var donutChartResult = new Chart("donutChart_totalResult",
+                {
+                    type: 'pie',
+                    data: {
+                        "labels":
+                            ["คิวงานส่วนกลาง", "คิวงานกระจายให้ตัวแทน"],
+                        "datasets": [{
+                            "label": "คิวงานทั้งหมด",
+                            "data": [$('#hd_TotalQueueBranch').val(), $('#hd_TotalQueueAgent').val()],
+                            "backgroundColor": ["rgb(25, 68, 253)", "rgb(230, 68, 73)"]
+                        }]
+                    },
+                    options: {
+                        tooltips: {
+                            callbacks: {
+                                label: function (tooltipItem, data) {
+                                    var value = data.datasets[0].data[tooltipItem.index];
+                                    value = value.toString();
+                                    value = value.split(/(?=(?:...)*$)/);
+                                    value = value.join(',');
+                                    return value;
+                                }
+                            } // end callbacks:
+                        }, //end tooltips
+                        responsive: true,
+                        //scales: {
+                        //    xAxes: [
+                        //        {
+                        //            ticks: {
+                        //                beginAtZero:true,
+                        //                userCallBack: function (value, index, values) {
+                        //                    value = value.toString();
+                        //                    value = value.split(/(?=(?:...)*$)/);
+                        //                    value = value.join(',');
+                        //                    return value;
+                        //                }
+                        //            }
+                        //        }],
+                        //    yAxes: [
+                        //        {
+                        //            ticks: {
+                        //                beginAtZero:true,
+                        //                userCallBack: function (value, index, values) {
+                        //                    value = value.toString();
+                        //                    value = value.split(/(?=(?:...)*$)/);
+                        //                    value = value.join(',');
+                        //                    return value;
+                        //                }
+                        //            }
+                        //        }]
+                        //}
+                    }
+                });
+            //line chart
+            var lineChartResult = new Chart("barchart_TotalResultByType",
+                {
+                    type: 'horizontalBar',
+                    data: {
+                        'labels': ['คิวงานส่วนกลาง', 'คิวงานกระจายให้ตัวแทน'],
+                        'datasets': [
+                            {
+                                'label': ['ปิดงานแล้ว'],
+                                'data': [$('#hd_QueueBranch_CloseQueue').val(), $('#hd_QueueAgent_CloseQueue').val()],
+                                'backgroundColor': ["rgb(54, 162, 235)", "rgb(54, 162, 235)"],
+                                'fill': false
+                            }, {
+
+                                'label': ['รอดำเนินการ'],
+                                'data': [$('#hd_QueueBranch_Onprocess').val(), $('#hd_QueueAgent_Onprocess').val()],
+                                'backgroundColor': ["rgb(255, 205, 86)", "rgb(255, 205, 86)"],
+                                'fill': false
+                            }, {
+                                'label': ['คิวงานใหม่'],
+                                'data': [$('#hd_QueueBranch_new').val(), $('#hd_QueueAgent_new').val()],
+                                'backgroundColor': ["rgb(84, 250, 77)", "rgb(84, 250, 77)"],
+                                'fill': false
+                            }]
+                    },
+                    options: {
+                        responsive: true,
+                        tooltips: {
+                            callbacks: {
+                                label: function (value, index, values) {
+
+                                    value = value.xLabel.toString();
+                                     value = value.split(/(?=(?:...)*$)/);
+                                     value = value.join(',');
+                                     return value;
+                                }
+                            }
+                        }
+                    }
+                });
+        }
+        // call export function
+        function ExportExcel() {
+            $.post('@Url.Action("ExportExcelReport")');
+        }
+        function addCommas(nStr)
+        {
+	        nStr += '';
+	        x = nStr.split('.');
+	        x1 = x[0];
+	        x2 = x.length > 1 ? '.' + x[1] : '';
+	        var rgx = /(\d+)(\d{3})/;
+	        while (rgx.test(x1)) {
+	        	x1 = x1.replace(rgx, '$1' + ',' + '$2');
+	        }
+	        return x1 + x2;
+        }
+    </script>
+}

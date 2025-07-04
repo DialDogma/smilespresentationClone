@@ -1,0 +1,336 @@
+﻿@{
+    ViewBag.Title = "รายงานแก้ไขรายชื่อผู้เอาประกัน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">ค้นหา<text>@ViewBag.Title</text></h3>
+            </div>
+            <div class="box-body">
+                <div class="box-group">
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <label style="margin-top:0.5rem"> วันที่สร้างรายงาน :</label>
+                            <input type="text" class="form-control pull-right" name="startDate" id="startDate" required="required" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy">
+                        </div>
+                        <div class="col-lg-3">
+                            <label style="margin-top:0.5rem"> ถึงวันที่ :</label>
+                            <input type="text" class="form-control pull-right" name="endDate" id="endDate" required="required" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy">
+                        </div>
+                        <div class="col-lg-3" style="padding-top:30px">
+                            <button type="button" style="text-decoration:none" class="btn btn-primary" id="searchDate"><i class="fa fa-fw fa-search"></i> ค้นหา</button>
+                            *
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <label style="margin-top:2rem">รายงานที่ออกรายงานแล้ว</label><br />
+                            <div class="table-responsive">
+                                <table id="tableReported" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title"> รายการที่รอออกรายงาน</h3>
+            </div>
+            <div class="box-body">
+                <div class="box-group">
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <label style="margin-top:0.5rem"> บริษัทประกัน :</label>
+                            <select class="form-control select2" style="width:100%" id="Organize">
+
+                                @{
+                                    var orgNames = ViewBag.Organize as IEnumerable<SmileSPACommunity.Models.usp_Organize_Select_Result>;
+                                    foreach (var get in orgNames)
+                                    {
+                                        <option value="@get.OrganizeId">@get.Organize</option>
+                                    }
+                                }
+
+                            </select>
+                        </div>
+                        <div class="col-lg-3" style="padding-top:30px">
+                            <button type="button" style="text-decoration:none" class="btn btn-primary" id="searchInsured"><i class="fa fa-fw fa-search"></i> ค้นหา</button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <label style="margin-top:2rem">รายงานที่ออกรายงานแล้ว</label><br />
+                            <div class="table-responsive">
+                                <table id="tableWaitReporte" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <input type="button" class="btn btn-warning" id="saveEditInsured" value="สร้างรายงานแก้ไขรายชื่อผู้เอาประกัน" />
+    </div>
+</div>
+
+@*modal*@
+<div class="modal fade" id="mdReject" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div id="renderDataModal"></div>
+    </div>
+</div>
+
+
+
+<input type="hidden" name="fromDate" id="fromDate" />
+<input type="hidden" name="toDate" id="toDate" />
+
+
+@section ViewSpecificJavascript
+{
+    <script>
+
+        $(function () {
+
+            /* create by Pak bunchuai */
+
+            // init select2
+            $(".select2").select2();
+
+            var currentDate = new Date();
+            var ToEndDate = new Date();
+
+            ToEndDate.setDate(ToEndDate.getDate() + 365);
+            $('#startDate').datepicker({
+                format: "dd/mm/yyyy",
+                startDate: '01/01/2012',
+                endDate: currentDate,
+                autoclose: true,
+            }).datepicker("setDate", new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
+
+            $('#endDate').datepicker({
+                format: "dd/mm/yyyy",
+                startDate: '01/01/2012',
+                endDate: ToEndDate,
+                autoclose: true,
+            }).datepicker("setDate", new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0));
+
+            // ค้นหาตามวันที่
+            $("#searchDate").click(function () {
+                let startDate = $("#startDate").val();
+                _startDate = startDate.split('/');
+                $("#fromDate").val(_startDate[2] - 543 + "/" + _startDate[1] + "/" + _startDate[0]);
+
+                let endDate = $("#endDate").val();
+                _endDate = endDate.split('/');
+                $("#toDate").val(_endDate[2] - 543 + "/" + _endDate[1] + "/" + _endDate[0]);
+
+                loadDataReported($("#fromDate").val(), $("#toDate").val());
+            });
+            $("#searchDate").click();
+
+            // สร้างรายงานแก้ไขรายชื่อผู้เอาประกัน
+
+            $("#saveEditInsured").click(function () {
+                let insuranceId = $("#Organize").val();
+                swal({
+                    title: "ยืนยันการทำรายการ",
+                    text: "",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: '#008d4c',
+                    confirmButtonText: 'ยืนยัน',
+                    cancelButtonText: "ยกเลิก",
+                    closeOnConfirm: false,
+                    closeOnCancel: true
+                },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            $.post("/PAPersonnelCustomerDataReport/GetPersonalWaitReport", { "insuranceId": insuranceId }, function (result) {
+                                if (result.valid == true) {
+                                    swal("แจ้งเตือน", "สร้างรายงานแก้ไขรายชื่อผู้เอาประกันสำเร็จ", "success");
+                                } else {
+                                    swal("แจ้งเตือน", result.message, "error");
+                                }
+                            });
+
+                            loadDataReported($("#fromDate").val(), $("#toDate").val());
+                        }
+                    });
+            });
+
+            // ค้นหารายการที่รอออกรายงาน
+            $("#searchInsured").click(function () {
+                loadDataReportCreated($("#Organize").val());
+            });
+            $("#searchInsured").click();
+
+        });
+
+        // รายการที่ออกรายงานแล้ว
+        function loadDataReported(startDate, endDate) {
+            $("#tableReported").DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                ajax: {
+                    url: '/PAPersonnelCustomerDataReport/GetPersonalReported',
+                    async: false,
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.startDate = startDate;
+                        d.endDate = endDate;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'วันที่สร้างรายงาน', data: 'CreatedDate', className: 'text-center ',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                    { title: 'ผู้สร้างรายงาน', data: 'CreatedByName', className: 'text-left' },
+                    { title: 'บริษัทประกัน', data: 'InsuranceName', className: 'text-center' },
+                    { title: 'สถานะ', data: 'PersonnelEndorseCustomerReportStatusName', className: 'text-center' },
+                    {
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) => {
+                            var setHtml = '<a href="/PAPersonnelCustomerDataReport/ExportPersonalDataExcel?PersonnelEndorseCustomerReportGroupId=' + data.PersonnelEndorseCustomerReportGroupId + '" class="btn btn-primary btn-sm view"><i class="fa fa-download"></i> Export to excel</a>';
+                            return setHtml;
+                        },
+                        width: '10%'
+                    },
+                    {
+                        title: 'วันที่ทำการส่ง', data: 'SendSMIDate', className: 'text-center ',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL") == 'Invalid date' ? '-' : moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                    {
+                        data: null,
+                        className: 'text-center',
+                        mRender: (data, type, full) => {
+                            let disableConfirm = "";
+                            let disableSendReport = "";
+                            if (data.PersonnelEndorseCustomerReportStatusId == 2) {
+                                disableConfirm = "";
+                                disableSendReport = "disabled";
+                            }
+                            else if (data.PersonnelEndorseCustomerReportStatusId == 3 && data.InsuranceId != 18) {
+                                disableConfirm = "disabled";
+                                disableSendReport = "";
+                            }
+                            else if (data.PersonnelEndorseCustomerReportStatusId == 3 && data.InsuranceId == 18) {
+                                disableConfirm = "disabled";
+                                disableSendReport = "disabled";
+                            }
+                            else if (data.PersonnelEndorseCustomerReportStatusId == 4) {
+                                disableConfirm = "disabled";
+                                disableSendReport = "disabled";
+                            }
+
+                            //let setHtml = '<a href="javascript:void(0)" class="btn btn-primary btn-sm ' + disableConfirm + ' udpateReportGroup" data-id="' + data.PersonnelEndorseCustomerReportGroupId + '" data-status="3"> ยืนยัน</a> ' +
+                            //    '<a href="javascript:void(0)" class="btn btn-warning btn-sm ' + disableSendReport + ' udpateReportGroup" data-id="' + data.PersonnelEndorseCustomerReportGroupId + '" data-status="4"> ยืนยันส่งงาน</a> ';
+                            let setHtml = '<a href="javascript:void(0)" class="btn btn-primary btn-sm ' + disableConfirm + ' udpateReportGroup" data-id="' + data.PersonnelEndorseCustomerReportGroupId + '" data-status="3"> ยืนยัน</a> ';
+                            return setHtml;
+                        },
+                        width: '5%'
+                    }
+                ],
+                bLengthChange: false
+            });
+
+            $('[data-toggle="tooltip"]').tooltip();
+
+            // ยืนยันข้อมูล
+            $("#tableReported").on("click", ".udpateReportGroup", function () {
+                let statusId = $(this).attr("data-status");
+                let reportGroupId = $(this).attr("data-id");
+                swal({
+                    title: "ยืนยันการทำรายการ",
+                    text: "",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: '#008d4c',
+                    confirmButtonText: 'ยืนยัน',
+                    cancelButtonText: "ยกเลิก",
+                    closeOnConfirm: false,
+                    closeOnCancel: true
+                },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            $.post("/PAPersonnelCustomerDataReport/UpdateEndorseCustomerReportGroup", { "statusId": statusId, "reportGroupId": reportGroupId }, function (result) {
+                                if (result.valid == true) {
+                                    swal("แจ้งเตือน", "บันทึกรายการสำเร็จ", "success");
+                                    loadDataReported($("#fromDate").val(), $("#toDate").val());
+                                } else {
+                                    swal("แจ้งเตือน", result.message, "error");
+                                }
+                            });
+                        }
+                    });
+
+            });
+        }
+
+        // รายการที่รอออกรายงาน
+        function loadDataReportCreated(insuranceId) {
+            $("#tableWaitReporte").DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                ajax: {
+                    url: '/PAPersonnelCustomerDataReport/loadDataReportCreated',
+                    async: false,
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.insuranceId = insuranceId;
+                    }
+                },
+                columns: [
+                    { title: 'App ID', data: 'PersonnelApplicationCode', className: 'text-center' },
+                    { title: 'สถานศึกษา', data: 'PersonnelApplicationName', className: 'text-left' },
+                    { title: 'แผนประกัน', data: 'ProductDetail', className: 'text-center' },
+                    {
+                        title: 'วันที่เริ่มคุ้มครอง', data: 'StartCoverDate', className: 'text-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    }
+                ],
+                bLengthChange: false
+            });
+        }
+
+    </script>
+}

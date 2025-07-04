@@ -1,0 +1,964 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_EmptyLayout.cshtml";
+}
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Title Page</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <!-- <link rel="stylesheet" href="/rating-star/star-rating.css" media="all"> -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-star-rating/4.0.3/css/star-rating.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Pridi" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div id="row1" class="row">
+            <div id="sales" class="col-xs-4 menu">
+                <label>นักขาย</label>
+            </div>
+            <div id="teams" class="col-xs-4 menu">
+                <label>ทีม</label>
+            </div>
+            <div id="branch" class="col-xs-4 menu">
+                <label>สาขา</label>
+            </div>
+        </div>
+        <div id="row4" class="row">
+            <div class="col-xs-12">
+                <table id="icon">
+                    <tr>
+                        <td align="center">
+                            <div class="icon-menu">
+                                <img id="icon1" src="~/Content/Image/PH.png" class="img-responsive img-icon" alt="Image">
+                                <span id="badge-PH" class="badge">0</span>
+                            </div>
+                        </td>
+                        <td align="center">
+                            <div class="icon-menu">
+                                <img id="icon2" src="~/Content/Image/PL.png" class="img-responsive img-icon" alt="Image">
+                                <span id="badge-PL" class="badge">0</span>
+                            </div>
+                        </td>
+                        <td align="center">
+                            <div class="icon-menu">
+                                <img id="icon3" src="~/Content/Image/HO.png" class="img-responsive img-icon" alt="Image">
+                                <span id="badge-H" class="badge">0</span>
+                            </div>
+                        </td>
+                        <td align="center">
+                            <div class="icon-menu">
+                                <img id="icon4" src="~/Content/Image/MO.png" class="img-responsive img-icon" alt="Image">
+                                <span id="badge-M" class="badge">0</span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div id="row4-1" class="row">
+            <div id="performance" class="col-xs-2">
+                Performance
+            </div>
+            <div id="dcr" class="col-xs-10">
+                DCR :
+                <select id="dcr-month" class="form-control"></select>
+            </div>
+        </div>
+        <div id="row5" class="row chart">
+            <div>
+                <table class="headgraph-table" style="width:100%">
+                    <tr>
+                        <td style="width:50%">
+                            <label class="graphname-label">New Application</label>
+                        </td>
+                        <td>
+                            <label class="dateupdate-label">Last Update : </label><label id="updateNewApp" class="dateupdate-label" style="margin-left:5px;"></label>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-xs-9">
+
+                <canvas id="canvas"></canvas>
+            </div>
+            <div class="col-xs-3">
+                <div>
+                    <div id="dcr1">
+                        <table class="table table-detail"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @*START LAP*@
+        <div id="row7" class="row chart">
+            <div>
+                <table class="headgraph-table" style="width:100%">
+                    <tr>
+                        <td style="width:50%">
+                            <label class="graphname-label">Lap</label>
+                        </td>
+                        <td>
+                            <label class="dateupdate-label">Last Update  : </label><label id="updateLap" class="dateupdate-label" style="margin-left:5px;"></label>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-xs-9">
+                <canvas id="canvas2"></canvas>
+            </div>
+            <div class="col-xs-3">
+                <div>
+                    <div id="dcr3">
+                        <table class="table table-detail"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @*END LAP*@
+    </div>
+
+    <div class="modal fade" id="modal-icondetail" align="center">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">New App <label id="lbl_dcr"></label></h4>
+                </div>
+                <div class="modal-body">
+                    <table id="datatable1" class="table table-bordered table-striped"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading">
+        <div class="spinner">
+            <div class="bounce1"></div>
+            <div class="bounce2"></div>
+            <div class="bounce3"></div>
+        </div>
+    </div>
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Bootstrap JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!-- <script src="/rating-star/star-rating.js"></script> -->
+</body>
+
+@section scripts{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-star-rating/4.0.3/js/star-rating.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.js"></script>
+
+    <script>
+        var refId;
+        var group;
+        var myLine1, myLine2;
+        var dcrValue;
+        $(function () {
+            $(window).load(function () {
+                debugger;
+                $('#loading').fadeOut('slow');
+            });
+            //-----------GET  VALUE
+            getDCR();
+            refId = getParameterByName('empID');
+            //-----------SET GROUP 1 LOAD DEFAULT
+            group = 1;
+            dcrValue = $('#dcr-month').val();
+            getCountIcon(group, refId, '');
+            loadData(group, refId, dcrValue);
+            loadGraph(group, refId);
+            //-------------------------------------------------------------
+            $('#sales').click(function (e) {
+                e.preventDefault();
+                $('#sales').css("background-color", "#80D6F9");
+                $('#teams,#branch').css("background-color", "#00ADEF");
+                group = 1;
+                myLine1.destroy();
+                myLine2.destroy();
+                getCountIcon(group, refId, '');
+                loadData(group, refId, dcrValue);
+                loadGraph(group, refId);
+            });
+
+            $('#teams').click(function (e) {
+                e.preventDefault();
+                $('#teams').css("background-color", "#80D6F9");
+                $('#sales,#branch').css("background-color", "#00ADEF");
+                group = 2;
+                myLine1.destroy();
+                myLine2.destroy();
+                getCountIcon(group, refId, '');
+                loadData(group, refId, dcrValue);
+                loadGraph(group, refId);
+            });
+
+            $('#branch').click(function (e) {
+                e.preventDefault();
+                $('#branch').css("background-color", "#80D6F9");
+                $('#sales,#teams').css("background-color", "#00ADEF");
+                group = 3;
+                myLine1.destroy();
+                myLine2.destroy();
+                getCountIcon(group, refId, '');
+                loadData(group, refId, dcrValue);
+                loadGraph(group, refId);
+            });
+
+            $('#dcr-month').change(function (e) {
+                dcrValue = $('#dcr-month').val();
+                loadData(group, refId, dcrValue);
+            });
+
+            //----------ICON----------//
+            $('#icon1').click(function (e) {
+                e.preventDefault();
+                if ($('#badge-PH').text() != '0') {
+                    getIconDetail(group, "1000", refId, dcrValue);
+                    $('#modal-icondetail').modal('show');
+                }
+            });
+
+            $('#icon2').click(function (e) {
+                e.preventDefault();
+                if ($('#badge-PL').text() != '0') {
+                    getIconDetail(group, '3000', refId, dcrValue);
+                    $('#modal-icondetail').modal('show');
+                }
+            });
+
+            $('#icon3').click(function (e) {
+                e.preventDefault();
+                if ($('#badge-H').text() != '0') {
+                    getIconDetail(group, "4000", refId, dcrValue);
+                    $('#modal-icondetail').modal('show');
+                }
+            });
+
+            $('#icon4').click(function (e) {
+                e.preventDefault();
+                if ($('#badge-M').text() != '0') {
+                    getIconDetail(group, "5000", refId, dcrValue);
+                    $('#modal-icondetail').modal('show');
+                }
+            });
+
+        });
+
+        function getDCR() {
+            $.ajax({
+                type: "GET",
+                url: "@ViewBag.APIUrlFirstPage1/api/parameters/GetPeriod",
+                async: false,
+                success: function (response) {
+                    for (let i = 0; i < response.length; i++) {
+                        $('#dcr-month').append("<option value=" + response[i].period + ">" + response[i].periodString + "</option>");
+                    }
+                }
+            });
+        }
+
+        function getCountIcon(refTypeCode, refId, productGroupID) {
+            $.ajax({
+                type: "GET",
+                url: "@ViewBag.APIUrlFirstPage1/api/parameters/GetNewAppDcrByProductGroupCount?refTypeCode=" + refTypeCode + "&empCode=" + refId + "&productGroupCode=" + productGroupID,
+                success: function (response) {
+                    for (let i = 0; i < response.length; i++) {
+                        switch (response[i].productGroupCode) {
+                            case '1000':
+                                $('#badge-PH').text(response[i].value);
+                                break;
+                            case '2000':
+                                //PA
+                                break;
+                            case '2500':
+                                //PAชุมชน
+                                break;
+                            case '3000':
+                                $('#badge-PL').text(response[i].value);
+                                break;
+                            case '4000':
+                                $('#badge-H').text(response[i].value);
+                                break;
+                            case '5000':
+                                $('#badge-M').text(response[i].value);
+                                break;
+                        }
+                    }
+                }
+            });
+        }
+
+        function getIconDetail(refTypeId, productGroupID, refId) {
+            $('#datatable1').empty();
+            $('#datatable1').DataTable({
+                lengthChange: false,
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                ajax: {
+                    url: '@ViewBag.APIUrlFirstPage1/api/parameters/GetNewAppDcrByProductGroupDetail',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.keyword = d.search.value;
+                        d.refTypeCode = refTypeId;
+                        d.empCode = refId;
+                        d.productGroupCode = productGroupID;
+                    },
+                    dataSrc: function (response) {
+                        const d = moment(response.data[0].startCoverDate).format('MMMM-YYYY');
+                        $('#lbl_dcr').text(d);
+                        return response.data;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'App ID',
+                        data: 'app_id'
+                    },
+                    {
+                        title: 'Customer Name',
+                        data: 'customerName'
+                    },
+                    {
+                        title: 'Payer Name',
+                        data: 'payerName'
+                    },
+                    {
+                        title: 'Product',
+                        data: 'product'
+                    },
+                    //{
+                    //    title: 'StartCoverDate',
+                    //    data: 'startCoverDate',
+                    //    render: function (data) {
+                    //        return moment(data).format('DD/MM/YYYY');
+                    //    }
+
+                    //},
+                    {
+                        title: 'Status',
+                        data: 'status'
+                    },
+                    {
+                        title: 'UWD Status',
+                        data: 'udwStatus'
+                    }
+                ]
+            });
+        }
+
+        function getDataNewAppForTable(typeCode, valueTypeCode, empCode, filterType) {
+            var chkData = 0;
+            $.ajax({
+                type: "GET",
+                url: "@ViewBag.APIUrlFirstPage1/api/parameters/ApplicationByProductGroup?refTypeCode=" + typeCode + "&valueTypeCode=" + valueTypeCode + "&empCode=" + empCode + "&period=" + filterType,
+                success: function (response) {
+                    const len = response.length;
+                    $('#dcr1 > table > tbody').empty();
+
+                    for (let i = 0; i < len; i++) {
+
+                        if (i == 0) {
+                            $('#dcr1 > table').empty();
+                            $('#dcr1 > table').append(
+                                '<thead class="table-head">' +
+                                '<tr>' +
+                                '<th>Product</th>' +
+                                '<th>จำนวน</th>' +
+                                '</tr>' +
+                                '</thead>' +
+                                '<tbody>' +
+                                '</tbody>'
+                            );
+                        }
+
+                        if (len != 0) {
+
+                            chkData = len;
+
+                            $('#dcr1 > table > tbody').append(
+                                '<tr>' +
+                                '<td>' + response[i].productGroup + '</td>' +
+                                '<td>' + response[i].value + '</td>' +
+                                '</tr>'
+                            );
+                        }
+                    }
+
+                    if (chkData == 0) {
+                        $('#dcr1 > table').empty();
+                        $('#dcr1 > table').append(
+                            '<thead class="table-head">' +
+                            '<tr>' +
+                            '<th style="width:50%;">Product</th>' +
+                            '<th style="width:50%;">จำนวน</th>' +
+                            '</tr>' +
+                            '</thead>' +
+                            '<tbody>' +
+                            '<tr style="text-align:center;">' +
+                            '<td colspan="2">ไม่พบข้อมูล</td>' +
+                            '</tr>' +
+                            '</tbody>'
+                        );
+                    }
+                }
+            });
+        }
+
+        function getDataNewAppForGraph(typeCode, valueTypeCode, empCode, filterType) {
+            var lstTotalNewapp = [];
+            var lstPeriod = [];
+            var lstEditPeriod = [];
+            var lstNameNewapp = [];
+            var config;
+            var nameTeamBranch;
+            var reportName = 'NEWAPP';
+            $.ajax({
+                type: "GET",
+                url: "@ViewBag.APIUrlFirstPage1/api/parameters/ApplicationByProductGroup?refTypeCode=" + typeCode + "&valueTypeCode=" + valueTypeCode + "&empCode=" + empCode + "&period=" + filterType,
+                success: function (response) {
+                    for (var i = 0; i < response.length; i++) {
+
+                        var chkPeriod = response[i].period.split('T');
+                        var chkNameNewapp = response[i].productGroup;
+
+                        var year;
+                        var month;
+                        var editPeriodArr;
+                        var editPeriod;
+                        var countData;
+                        if (lstPeriod.length == 0) {
+
+                            lstPeriod.push(chkPeriod[0]);
+
+                            editPeriodArr = chkPeriod[0].split('-');
+
+                            year = parseInt(editPeriodArr[0]) + 543;
+
+                            switch (editPeriodArr[1]) {
+
+                                case '01':
+                                    month = 'มกราคม';
+                                    break;
+                                case '02':
+                                    month = 'กุมภาพันธ์';
+                                    break;
+                                case '03':
+                                    month = 'มีนาคม';
+                                    break;
+                                case '04':
+                                    month = 'เมษายน';
+                                    break;
+                                case '05':
+                                    month = 'พฤษภาคม';
+                                    break;
+                                case '06':
+                                    month = 'มิถุนายน';
+                                    break;
+                                case '07':
+                                    month = 'กรกฎาคม';
+                                    break;
+                                case '08':
+                                    month = 'สิงหาคม';
+                                    break;
+                                case '09':
+                                    month = 'กันยายน';
+                                    break;
+                                case '10':
+                                    month = 'ตุลาคม';
+                                    break;
+                                case '11':
+                                    month = 'พฤศจิกายน';
+                                    break;
+                                case '12':
+                                    month = 'ธันวาคม';
+                                    break;
+                            }
+
+                            editPeriod = month + ' ' + year;
+
+                            lstEditPeriod.push(editPeriod);
+
+                        } else {
+                            countData = 0;
+
+                            for (var ii = 0; ii < lstPeriod.length; ii++) {
+                                if (chkPeriod[0] == lstPeriod[ii]) {
+                                    countData++;
+                                }
+
+                                if (countData > 0) {
+                                    break;
+                                }
+                            }
+
+                            if (countData == 0) {
+                                lstPeriod.push(chkPeriod[0]);
+
+                                editPeriodArr = chkPeriod[0].split('-');
+
+                                year = parseInt(editPeriodArr[0]) + 543;
+
+                                switch (editPeriodArr[1]) {
+
+                                    case '01':
+                                        month = 'มกราคม';
+                                        break;
+                                    case '02':
+                                        month = 'กุมภาพันธ์';
+                                        break;
+                                    case '03':
+                                        month = 'มีนาคม';
+                                        break;
+                                    case '04':
+                                        month = 'เมษายน';
+                                        break;
+                                    case '05':
+                                        month = 'พฤษภาคม';
+                                        break;
+                                    case '06':
+                                        month = 'มิถุนายน';
+                                        break;
+                                    case '07':
+                                        month = 'กรกฎาคม';
+                                        break;
+                                    case '08':
+                                        month = 'สิงหาคม';
+                                        break;
+                                    case '09':
+                                        month = 'กันยายน';
+                                        break;
+                                    case '10':
+                                        month = 'ตุลาคม';
+                                        break;
+                                    case '11': month = 'พฤศจิกายน';
+                                        break;
+                                    case '12':
+                                        month = 'ธันวาคม';
+                                        break;
+                                }
+
+                                editPeriod = month + ' ' + year;
+                                lstEditPeriod.push(editPeriod);
+
+                            }
+
+                            if (i == response.length - 1) {
+                                $('#updateNewApp').text(editPeriod);
+                            }
+                        }
+
+                        if (lstNameNewapp.length == 0) {
+                            lstNameNewapp.push(chkNameNewapp);
+                        } else {
+                            countData = 0;
+
+                            for (let jj = 0; jj < lstNameNewapp.length; jj++) {
+                                if (chkNameNewapp == lstNameNewapp[jj]) {
+                                    countData++;
+                                }
+
+                                if (countData > 0) {
+                                    break;
+                                }
+                            }
+
+                            if (countData == 0) {
+                                lstNameNewapp.push(chkNameNewapp);
+                            }
+                        }
+
+                        if (typeCode == 2 || typeCode == 3) {
+                            if (response[i].valueString != null) {
+                                nameTeamBranch = response[i].valueString;
+                            }
+                        }
+                    }
+
+                    for (var j = 0; j < lstNameNewapp.length; j++) {
+                        var lstNewapp = [];
+                        for (let jj = 0; jj < response.length; jj++) {
+                            if (lstNameNewapp[j] == response[jj].productGroup) {
+                                lstNewapp.push(response[jj].value);
+                            }
+                        }
+
+                        lstTotalNewapp.push(lstNewapp);
+                    }
+
+                    config = drawGraph(lstEditPeriod, lstNameNewapp, lstTotalNewapp, typeCode, nameTeamBranch, reportName);
+                    const ctx = document.getElementById("canvas").getContext("2d");
+                    myLine1 = new Chart(ctx, config);
+                }
+            });
+        }
+
+        function getDataLapTable(typeCode, valueTypeCode, empCode, filterType) {
+            var chkData = 0;
+            $.ajax({
+                type: "GET",
+                url: "@ViewBag.APIUrlFirstPage1/api/parameters/ApplicationByProductGroup?refTypeCode=" + typeCode + "&valueTypeCode=" + valueTypeCode + "&empCode=" + empCode + "&period=" + filterType,
+                success: function (response) {
+                    const len = response.length;
+                    $('#dcr3 > table > tbody').empty();
+                    for (let i = 0; i < len; i++) {
+                        if (i == 0) {
+                            $('#dcr3 > table').empty();
+                            $('#dcr3 > table').append(
+                                '<thead class="table-head">' +
+                                '<tr>' +
+                                '<th>Product</th>' +
+                                '<th>จำนวน</th>' +
+                                '</tr>' +
+                                '</thead>' +
+                                '<tbody>' +
+                                '</tbody>'
+                            );
+                        }
+
+                        if (len != 0) {
+
+                            chkData = len;
+
+                            $('#dcr3 > table > tbody').append(
+                                '<tr>' +
+                                '<td>' + response[i].productGroup +
+                                '<td>' + response[i].value + '</td>' +
+                                '</tr>'
+                            );
+                        }
+                    }
+
+                    if (chkData == 0) {
+
+                        $('#dcr3 > table').empty();
+                        $('#dcr3 > table').append(
+                            '<thead class="table-head">' +
+                            '<tr>' +
+                            '<th style="width:50%;">DCR</th>' +
+                            '<th style="width:50%;">จำนวน</th>' +
+                            '</tr>' +
+                            '</thead>' +
+                            '<tbody>' +
+                            '<tr style="text-align:center;">' +
+                            '<td colspan="2">ไม่พบข้อมูล</td>' +
+                            '</tr>' +
+                            '</tbody>'
+                        );
+                    }
+                }
+            });
+        }
+
+        function getDataLapForGraph(typeCode, valueTypeCode, empCode, filterType) {
+            var lstTotalLap = [];
+            var lstPeriod = [];
+            var lstEditPeriod = [];
+            var lstNameLap = [];
+            var config;
+            var nameTeamBranch;
+            var reportName = 'LAP';
+            $.ajax({
+                type: "GET",
+                url: "@ViewBag.APIUrlFirstPage1/api/parameters/ApplicationByProductGroup?refTypeCode=" + typeCode + "&valueTypeCode=" + valueTypeCode + "&empCode=" + empCode + "&period=" + filterType,
+                success: function (response) {
+                    for (var i = 0; i < response.length; i++) {
+                        var chkPeriod = response[i].period.split('T');
+                        var chkNameLap = response[i].productGroup;
+
+                        var year;
+                        var month;
+                        var editPeriodArr;
+                        var editPeriod;
+                        var countData;
+                        if (lstPeriod.length == 0) {
+
+                            lstPeriod.push(chkPeriod[0]);
+
+                            editPeriodArr = chkPeriod[0].split('-');
+
+                            year = parseInt(editPeriodArr[0]) + 543;
+
+                            switch (editPeriodArr[1]) {
+
+                                case '01':
+                                    month = 'มกราคม';
+                                    break;
+                                case '02':
+                                    month = 'กุมภาพันธ์';
+                                    break;
+                                case '03':
+                                    month = 'มีนาคม';
+                                    break;
+                                case '04':
+                                    month = 'เมษายน';
+                                    break;
+                                case '05':
+                                    month = 'พฤษภาคม';
+                                    break;
+                                case '06':
+                                    month = 'มิถุนายน';
+                                    break;
+                                case '07':
+                                    month = 'กรกฎาคม';
+                                    break;
+                                case '08':
+                                    month = 'สิงหาคม';
+                                    break;
+                                case '09':
+                                    month = 'กันยายน';
+                                    break;
+                                case '10':
+                                    month = 'ตุลาคม';
+                                    break;
+                                case '11':
+                                    month = 'พฤศจิกายน';
+                                    break;
+                                case '12':
+                                    month = 'ธันวาคม';
+                                    break;
+                            }
+
+                            editPeriod = month + ' ' + year;
+
+                            lstEditPeriod.push(editPeriod);
+
+                        } else {
+                            countData = 0;
+
+                            for (var ii = 0; ii < lstPeriod.length; ii++) {
+                                if (chkPeriod[0] == lstPeriod[ii]) {
+                                    countData++;
+                                }
+
+                                if (countData > 0) {
+                                    break;
+                                }
+                            }
+
+                            if (countData == 0) {
+                                lstPeriod.push(chkPeriod[0]);
+
+                                editPeriodArr = chkPeriod[0].split('-');
+
+                                year = parseInt(editPeriodArr[0]) + 543;
+
+                                switch (editPeriodArr[1]) {
+
+                                    case '01':
+                                        month = 'มกราคม';
+                                        break;
+                                    case '02':
+                                        month = 'กุมภาพันธ์';
+                                        break;
+                                    case '03':
+                                        month = 'มีนาคม';
+                                        break;
+                                    case '04':
+                                        month = 'เมษายน';
+                                        break;
+                                    case '05':
+                                        month = 'พฤษภาคม';
+                                        break;
+                                    case '06':
+                                        month = 'มิถุนายน';
+                                        break;
+                                    case '07':
+                                        month = 'กรกฎาคม';
+                                        break;
+                                    case '08':
+                                        month = 'สิงหาคม';
+                                        break;
+                                    case '09':
+                                        month = 'กันยายน';
+                                        break;
+                                    case '10':
+                                        month = 'ตุลาคม';
+                                        break;
+                                    case '11': month = 'พฤศจิกายน';
+                                        break;
+                                    case '12':
+                                        month = 'ธันวาคม';
+                                        break;
+                                }
+
+                                editPeriod = month + ' ' + year;
+                                lstEditPeriod.push(editPeriod);
+
+                            }
+
+                            if (i == response.length - 1) {
+                                $('#updateLap').text(editPeriod);
+                            }
+                        }
+
+                        if (lstNameLap.length == 0) {
+                            lstNameLap.push(chkNameLap);
+                        } else {
+                            countData = 0;
+
+                            for (let jj = 0; jj < lstNameLap.length; jj++) {
+                                if (chkNameLap == lstNameLap[jj]) {
+                                    countData++;
+                                }
+
+                                if (countData > 0) {
+                                    break;
+                                }
+                            }
+
+                            if (countData == 0) {
+                                lstNameLap.push(chkNameLap);
+                            }
+                        }
+
+                        if (typeCode == 2 || typeCode == 3) {
+                            if (response[i].valueString != null) {
+                                nameTeamBranch = response[i].valueString;
+                            }
+                        }
+                    }
+
+                    for (var j = 0; j < lstNameLap.length; j++) {
+                        var lstNew = [];
+                        for (let jj = 0; jj < response.length; jj++) {
+                            if (lstNameLap[j] == response[jj].productGroup) {
+                                lstNew.push(response[jj].value);
+                            }
+                        }
+
+                        lstTotalLap.push(lstNew);
+                        reportName = 'LAP';
+                    }
+
+                    config = drawGraph(lstEditPeriod, lstNameLap, lstTotalLap, typeCode, nameTeamBranch, reportName);
+                    const ctx = document.getElementById("canvas2").getContext("2d");
+                    myLine2 = new Chart(ctx, config);
+                },
+                error(xhr, err) {
+                    alert(xhr.responseText);
+                }
+            });
+        }
+
+        function drawGraph(lstPeriod, lstName, lstTotal, typeCode, nameTeamBranch, reportName) {
+            var maxValue = 0;
+            var dataSet = [];
+            var lstColor = ['#A4C8F0', '#88DDBB', '#FFFF88', '#FFBE7D', '#FDB4BF', '#D0B3E1'];
+            for (let i = 0; i < lstName.length; i++) {
+                let maxValArray = Math.max.apply(Math, lstTotal[i]);
+                if (maxValArray > maxValue) {
+                    maxValue = maxValArray;
+                }
+                dataSet.push({
+                    label: lstName[i],
+                    backgroundColor: lstColor[i],
+                    borderColor: lstColor[i],
+                    borderWidth: 5,
+                    data: lstTotal[i],
+                    fill: false
+
+                });
+            }
+
+            var textTitle;
+
+            if (typeCode == 1) {
+                switch (reportName) {
+                    case 'NEWAPP':
+                        textTitle = 'รายงานลูกค้าใหม่ รายบุคคล';
+                        break;
+                    case 'LAP':
+                        textTitle = 'รายงาน Lap รายบุคคล';
+                        break;
+                }
+
+            } else if (typeCode == 2) {
+                switch (reportName) {
+                    case 'NEWAPP':
+                        textTitle = 'รายงานลูกค้าใหม่ ทีม ' + nameTeamBranch;
+                        break;
+                    case 'LAP':
+                        textTitle = 'รายงาน Lap ทีม ' + nameTeamBranch;
+                        break;
+                }
+
+            } else if (typeCode == 3) {
+                switch (reportName) {
+                    case 'NEWAPP':
+                        textTitle = 'รายงานลูกค้าใหม่ สาขา ' + nameTeamBranch;
+                        break;
+                    case 'LAP':
+                        textTitle = 'รายงาน Lap สาขา ' + nameTeamBranch;
+                        break;
+                }
+            }
+
+            const config = {
+                type: 'line',
+                data: {
+                    labels: lstPeriod,
+                    datasets: dataSet
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: textTitle
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'เดือน'
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            ticks: {
+                                reverse: false,
+                                max: maxValue + 1
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'จำนวน App'
+                            }
+                        }]
+                    }
+                }
+            };
+
+            return config;
+        }
+
+        function loadData(group, refId, dcr) {
+            getDataNewAppForTable(group, '1', refId, dcr); //1NEWAPP
+            getDataLapTable(group, '2', refId, dcr); //2LAP
+        }
+
+        function loadGraph(group, refId) {
+            getDataNewAppForGraph(group, '1', refId, '');//1NEWAPP
+            getDataLapForGraph(group, '2', refId, '');//2LAP
+        }
+    </script>
+}

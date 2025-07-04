@@ -1,0 +1,144 @@
+﻿@{
+    ViewBag.Title = "จัดการเงินในถังกลาง";
+}
+<div class="row">
+    @* Transfer *@
+    <div id="transfer_form" class="col-xs-12 col-md-12">
+        <div class="box box-primary">
+            <div class="box-body">
+                <div class="form-group row">
+                    <div class="col-md-offset-1 col-md-3">
+                        <label class="control-label" for="">ประเภทรายการ :</label>
+                        <select class="form-control" id="select_transferType">
+                            <option value="1">Transfer</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-offset-1 col-md-4">
+                        <label class="control-label" for="">จาก Account :</label>
+                        <select id="select_fromAccount" class="form-control select2-ajax"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="control-label" for="">ไปยัง Account :</label>
+                        <select id="select_toAccount" class="form-control select2-ajax"></select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-offset-1 col-md-3">
+                        <label class="control-label" for="">จำนวนเงิน :</label>
+                        <input type="text" id="txtCashbackValue" class="form-control"
+                               data-inputmask="'alias':'decimal','groupSeparator': ',', 'autoGroup': true, 'digits': 2,
+                                   'digitsOptional': false, 'suffix': ' บาท', 'placeholder': '0'" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-offset-1 col-md-3">
+                        <label class="control-label" for="">สถานะคำขอ :</label>
+                        <select class="form-control" id="select_transferCause">
+                            <option value="-1">---กรุณาเลือก---</option>
+                            @foreach(var itm in ViewBag.transferCauseList)
+                            {
+                                <option value="@itm.TransferCauseId">@itm.TransferCause</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-offset-1 col-md-6 ">
+                        <label class="control-label" for="">หมายเหตุ</label>
+                        <textarea id="txtRemark" class="form-control" rows="2" placeholder="กรุณากรอกหมายเหตุ"></textarea>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-offset-3 col-sm-3">
+                        <button type="button" class="btn btn-block btn-success" onclick="ValidateTransferRequest()">ยืนยัน</button>
+                    </div>
+                    <div class="col-sm-3">
+                        <button type="button" class="btn btn-block btn-danger" id="btnCancel">ยกเลิก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            //input mask
+            $('#txtCashbackValue').inputmask();
+            //select2
+            $('.select2-ajax').select2({
+                ajax: {
+                    url: '@Url.Action("GetAccountSearch","RefundPayment")',
+                    datatype: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term,
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, search) {
+                        return {
+                            results: $.map(data, function (item) {
+                                return {
+                                    id: item.ReserveAccountId,
+                                    text: item.Detail +' ยอดเงินคงเหลือ:'+item.AmountBalance
+                                }
+                            })
+                        };
+                    },
+                    cache: true
+                },
+                placeholder: 'กรอกคำค้นหามากกว่า 6 ตัวอักษร',
+                minimumInputLength: 6
+            });
+
+            $('#btnCancel').click(() => {
+                window.location = '@Url.Action("TransferFund","RefundPayment")';
+            });
+
+        });
+        const ValidateTransferRequest = () => {
+            if ($('#select_fromAccount').val() == null) {
+                return swal_fail('กรุณาเลือก Account ที่ต้องการทำรายการ');
+            }
+            if ($('#select_toAccount').val() == null) {
+                return swal_fail('กรุณาเลือก Account ที่ต้องการทำรายการ');
+            }
+            if ($('#txtCashbackValue').val() == '') {
+                return swal_fail('กรุณากรอกยอดเงินที่ต้องการโอน');
+            }
+            if ($('#select_transferCause').val() == -1) {
+                return swal_fail('กรุณาเลือกหมายเหตุการโอน');
+            }
+            return ConfirmTransfer();
+        }
+
+        const ConfirmTransfer = () => {
+            let refundText = $('#txtCashbackValue').val();
+            let splitValue = refundText.split(' ');
+            let refundValue = splitValue[0];
+
+            swal_confirm('ยืนยันการทำรายการ', 'ตรวจสอบรายการโอนถูกต้องแล้ว ยืนยันการทำรายการ', () => {
+                $.post('@Url.Action("ReserveAccountTransfer","RefundPayment")',
+                    {
+                        reserveAccountIdFrom: $('#select_fromAccount').val(),
+                        reserveAccountIdTo: $('#select_toAccount').val(),
+                        transferAmount: refundValue,
+                        transferCauseId: $('#select_transferCause').val(),
+                        transferRemark:$('#txtRemark').val()
+                    }, (data) => {
+                        if (data.IsResult) {
+                            swal_success('ทำรายการสำเร็จ');
+                            return setTimeout(() => { window.location = '@Url.Action("TransferFund","RefundPayment")'; }, 1500);
+                        } else {
+                            swal_fail(data.Msg);
+                        }
+                    });
+            });
+        }
+    </script>
+}

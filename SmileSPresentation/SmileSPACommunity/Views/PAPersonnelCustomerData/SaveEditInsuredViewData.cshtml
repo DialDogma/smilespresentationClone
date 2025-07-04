@@ -1,0 +1,502 @@
+﻿@{
+    ViewBag.Title = "บันทึกแก้ไขรายชื่อผู้เอาประกัน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row" style="display:none">
+    <div class="col-lg-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">ข้อมูลกรมธรรม์</h3>
+            </div>
+            <div class="box-body">
+
+                @Html.Partial("~/Views/PartialView/_PAPersonnelApplicationDetail.cshtml")
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row" style="display:none">
+    <div class="col-lg-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title"> ข้อมูลผู้เอาประกัน</h3>
+            </div>
+            <div class="box-body">
+
+                <div class="table-responsive">
+
+                    <table id="dtInsuredDataDetail" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title"> รายการแก้ไขผู้เอาประกัน</h3>
+            </div>
+            <div class="box-body">
+
+                <div class="table-responsive">
+
+                    <table id="dtUpdateInsuredDataDetail" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row" style="display:none">
+    <div class="col-lg-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title"> รายการเอกสาร</h3>
+            </div>
+            <div class="box-body">
+                <div class="table-responsive">
+
+                    <table id="dtInsuredDataDocumentDetail" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row" style="display:none">
+    <div class="col-lg-12 text-center">
+        <input type="button" id="sendApprove" class="btn btn-success btn-lg" value="ส่งขออนุมัติ" />
+    </div>
+</div>
+
+@* modal *@
+<div class="modal fade " id="modalForm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div id="renderDataModal"></div>
+    </div>
+</div>
+
+<input type="hidden" name="appId" id="AppId" value="@ViewBag.AppId" />
+<input type="hidden" name="isResult" id="isResult" value="@ViewBag.IsResult" />
+<input type="hidden" name="EndorsePersonnelCustomerDetailHeaderId" id="EndorsePersonnelCustomerDetailHeaderId" value="@ViewBag.Id" />
+
+@section ViewSpecificJavascript
+{
+    <script>
+        var disabledButton = [];
+
+        $(function () {
+
+            // set data
+            let appId = $("#AppId").val();
+            let isResult =  $("#isResult").val();
+            let referentId = $("#EndorsePersonnelCustomerDetailHeaderId").val();
+
+            if (isResult == "true") {
+                var appCode = '';
+                $(".row").show();
+                $("#warning-system").hide();
+
+                // ข้อมูลกรมธรรม์
+                $.get("/PAPersonnel/GetPAApplicationDetailByAppID", { "appId": atob(appId) }, function (data) {
+                    $('#lblOrganize').text(data.PersonnelApplicationName);
+                    $('#lblPlan').text(data.ProductName);
+                    $('#lblBranch').text(data.BranchName);
+                    $('#hdfReferenceCode').val(data.RefApplicationCode);
+
+                    let startCoverDate = moment(data.StartCoverDate).add(543, 'years').format("DD/MM/YYYY");
+                    let effectiveDate = moment(data.EffectiveDate).add(543, 'years').format("DD/MM/YYYY");
+                    let endCoverDate = moment(data.EndCoverDate).add(543, 'years').format("DD/MM/YYYY");
+
+
+                    $('#lblStartCoverDate').text(startCoverDate);
+                    $('#lblEffectiveDate').text(effectiveDate);
+                    $('#lblEndCoverDate').text(endCoverDate);
+
+                    $('#lblYear').text(data.PAYear);
+
+                    $('#aReferenceCode').text(data.RefApplicationCode);
+
+                    GetSchoolDetail(data.RefApplicationCode);
+                });
+
+                loadData(appId, referentId);
+
+                // เอกสาร
+                reloadDocument();
+
+            }
+            else {
+                $("#warning-system").show();
+                $(".row").hide();
+            }
+
+            // ส่งอนุมัติ
+            $("#sendApprove").click(function () {
+                swal({
+                    title: "ยืนยันการทำรายการ",
+                    text: "",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: '#008d4c',
+                    confirmButtonText: 'ยืนยัน',
+                    cancelButtonText: "ยกเลิก",
+                    closeOnConfirm: false,
+                    closeOnCancel: true
+                },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            $.post("/PAPersonnelCustomerData/SendToApprove", { "EndorsePersonnelCustomerDetailHeaderId": referentId }, function (result) {
+                                if (result.valid == true) {
+                                    swal("แจ้งเตือน", "บันทึกรายการสำเร็จ", "success");
+
+                                    setTimeout(function () {
+                                        window.close();
+                                    }, 500);
+
+                                } else {
+                                    swal("แจ้งเตือน", result.message, "error");
+                                }
+                            });
+                        }
+                    });
+            });
+
+            // reload document
+            setInterval(function () {
+                reloadDocument();
+            }, 3000)
+
+        });
+
+        function loadDataUpdateInsured(referentId) {
+
+            $("#dtUpdateInsuredDataDetail").DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetInsuredDataUpdateLists", "PAPersonnelCustomerData")',
+                    async: false,
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.referentId = window.btoa(referentId);
+                    }
+                },
+                columns: [
+                    /* { title: 'รหัสรายการ', data: 'EndorsePersonnelCustomerDetailHeaderId', className: 'text-center ' },*/
+                    { title: 'Member ID', data: 'PersonnelCustomerDetailCode', className: 'text-left' },
+                    { title: 'คำนำหน้าใหม่', data: 'ToTitle', className: 'text-left' },
+                    { title: 'ชื่อใหม่', data: 'ToFirstName', className: 'text-center' },
+                    { title: 'นามสกุลใหม่', data: 'ToLastName', className: 'text-center' },
+                    { title: 'เลขบัตรใหม่', data: 'ToIdCard', className: 'text-center' },
+                    { title: 'Passport ใหม่', data: 'ToPassport', className: 'text-center' },
+                    { title: 'ตำแหน่งใหม่', data: 'ToPosition', className: 'text-center' },
+                    { title: 'เบอร์โทรศัพท์ใหม่', data: 'ToMobileNumber', className: 'text-center' },
+                    {
+                        title: 'วันที่มีผลบังคับ', data: 'EffectiveDate', className: 'text-center',
+                        mRender: function (data) {
+                            moment.locale('th');
+                            return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                        }
+                    },
+                    {
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) => {
+
+                            disabledButton.push(data.PersonnelCustomerDetailCode);
+
+                            var setHtml = '<a href="javascript:void(0)" class="btn btn-primary btn-sm view" data-id="' + data.EndorsePersonnelCustomerDetailItemId + '"><i class="fa fa-eye"></i></a> ' +
+                                    '<a href="javascript:void(0)" class="btn btn-warning btn-sm  edit" data-id="' + data.EndorsePersonnelCustomerDetailItemId + '"><i class="fa fa-edit"></i></a> ' +
+                                    '<a href="javascript:void(0)" class="btn btn-danger btn-sm delete" data-id="' + data.EndorsePersonnelCustomerDetailItemId + '"><i class="fa fa-trash"></i></a>' ;
+                                return setHtml;
+
+                            },
+                            width: '10%'
+                        }
+                    ],
+                    bLengthChange: false
+            });
+
+            $("#dtUpdateInsuredDataDetail").on("click", ".view", function () {
+
+                $.get("/PAPersonnelCustomerData/InsuredPersonViewDetail", { "EndorsePersonnelCustomerDetailItemId": $(this).attr("data-id") }, function (result) {
+                    $("#modalForm").modal('show');
+                    $("#renderDataModal").html(result);
+
+                });
+
+            });
+
+            $("#dtUpdateInsuredDataDetail").on("click", ".delete", function () {
+                let id = $(this).attr("data-id");
+                swal({
+                    title: "ยืนยันการลบรายการ",
+                    text: "",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: '#008d4c',
+                    confirmButtonText: 'ยืนยัน',
+                    cancelButtonText: "ยกเลิก",
+                    closeOnConfirm: false,
+                    closeOnCancel: true
+                },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            $.post("/PAPersonnelCustomerData/InsuredPersonDeleteDetail", { "EndorsePersonnelCustomerDetailItemId": id }, function (result) {
+                                if (result.valid == true) {
+                                    swal("แจ้งเตือน", "บันทึกรายการสำเร็จ", "success");
+
+                                    loadDataUpdateInsured(referentId);
+
+                                } else {
+                                    swal("แจ้งเตือน", result.message, "error");
+                                }
+                            });
+                        }
+                    });
+            });
+
+            $("#dtUpdateInsuredDataDetail").on("click", ".edit", function () {
+                $.get("/PAPersonnelCustomerData/FormEditCustomerDetailItem", { "EndorsePersonnelCustomerDetailItemId": $(this).attr("data-id"), "EndorsePersonnelCustomerDetailHeaderId": $("#EndorsePersonnelCustomerDetailHeaderId").val() }, function (result) {
+                    $("#modalForm").modal('show');
+                    $("#renderDataModal").html(result);
+
+                    $("#renderDataModal .card-type").click(function () {
+                        if ($(this).val() == "1") {
+                            $("#ToPassport").val("");
+                            $("#ToPassport").attr("disabled", true);
+                            $("#ToIdCard").attr("disabled", false);
+                            $("#ToIdCard").attr("required", true);
+                        } else {
+                            $("#ToIdCard").val("");
+                            $("#ToIdCard").attr("disabled", true);
+                            $("#ToPassport").attr("disabled", false);
+                            $("#ToPassport").attr("required", true);
+                        }
+                    });
+
+                    $("#form-validate").validate({
+                        submitHandler: function (form) {
+                            var jsonData = new FormData($("#form-validate")[0]);
+                            $.ajax(
+                                {
+                                    type: "POST",
+                                    url: "/PAPersonnelCustomerData/FormEditCustomerDetailItem",
+                                    contentType: false,
+                                    processData: false,
+                                    data: jsonData,
+                                    success: function (response) {
+
+                                        if (response.valid == true) {
+                                            $("#modalForm").modal('hide');
+
+                                            swal("แจ้งเตือน", "บันทึกรายการสำเร็จ", "success");
+
+                                            loadDataUpdateInsured(referentId);
+
+                                        } else {
+                                            swal("แจ้งเตือน", response.message, "error");
+
+                                        }
+                                    }
+                                });
+                        }
+                    });
+
+                });
+            });
+
+        }
+
+        function GetSchoolDetail(appCode) {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetSchoolDetail", "PAPersonnel")",
+                data: {
+                    appCode: appCode
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $('#lblProvince').text(data.Province);
+                    $('#lblPAPlan').text(data.ProductName);
+                    $('#lblPAPremium').text(commaSeparateNumber(data.StandardCoverage));
+                    $('#aReferenceCode').prop('href', data.UrlPA);
+                }
+            });
+        }
+
+        function checker(value) {
+            console.log(disabledButton);
+            for (var i = 0; i < disabledButton.length; i++) {
+                if (value.indexOf(disabledButton[i]) > -1) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function loadData(appId, referentId) {
+                     // ข้อมูลผู้เอาประกัน
+            $("#dtInsuredDataDetail").DataTable({
+                         pageLength: 10,
+                         processing: true,
+                         serverSide: true,
+                         responsive: true,
+                         destroy: true,
+                         searching: true,
+                         ajax: {
+                             url: '@Url.Action("GetInsuredData", "PAPersonnelCustomerData")',
+                             async: false,
+                             type: 'POST',
+                             data: function (d) {
+                                 d.draw = d.draw;
+                                 d.pageSize = d.length;
+                                 d.indexStart = d.start;
+                                 d.sortField = d.columns[d.order[0].column].data;
+                                 d.orderType = d.order[0].dir;
+                                 d.appId = appId;
+                                 d.search = d.search.value;
+                             }
+                         },
+                         columns: [
+                             { title: 'Member ID', data: 'PersonnelCustomerDetailCode', className: 'text-center ' },
+                             { title: 'ชื่อ-นามสกุล', data: 'PersonnelCustomerName', className: 'text-left' },
+                             { title: 'รหัสประจำตัวประชาชน', data: 'IdCardNumber', className: 'text-center' },
+                             { title: 'Passport', data: 'PassPortNumber', className: 'text-center' },
+                             { title: 'ตำแหน่ง', data: 'Position', className: 'text-center' },
+                             { title: 'เบอร์โทร', data: 'MobileNumber', className: 'text-center' },
+                             { title: 'รอบที่นำเข้า', data: 'RoundNo', className: 'text-center' },
+                             {
+                                 title: 'วันที่มีผลบังคับ', data: 'PersonnelCustomerDetailStartCoverDate', className: 'text-center',
+                                 mRender: function (data) {
+                                     moment.locale('th');
+                                     return moment(data).add(543, 'years').format("DD/MM/YYYY ", "LLLL");
+                                 }
+                             },
+                             { title: 'สถานะ', data: 'PersonnelCustomerDetailStatusName', className: 'text-center', },
+                             {
+                                 data: null,
+                                 className: 'h-dt-center d-dt-center',
+                                 mRender: (data, type, full) => {
+                                     return '<a href="javascript:void(0)" class="btn btn-warning btn-sm dtInsuredDataDetail-edit" data-id="' + window.btoa(data.PersonnelCustomerDetailId) + '"><i class="fa fa-edit"></i> แก้ไข </a>';
+                                 },
+                                 width: '10%'
+                             }
+                         ],
+                         bLengthChange: false
+                     });
+
+            // รายการแก้ไขผู้เอาประกัน
+            loadDataUpdateInsured(referentId);
+
+                     // form edit data
+            $("#dtInsuredDataDetail").on("click", ".dtInsuredDataDetail-edit", function () {
+                         $.get("/PAPersonnelCustomerData/FormEditInsuredPerson", { "PersonnelCustomerDetailId": $(this).attr("data-id"), "EndorsePersonnelCustomerDetailHeaderId": $("#EndorsePersonnelCustomerDetailHeaderId").val() }, function (result) {
+                             $("#modalForm").modal('show');
+                             $("#renderDataModal").html(result);
+
+                             $("#renderDataModal .card-type").click(function () {
+                                 if ($(this).val() == "1") {
+                                     $("#IdCardNumber").attr("disabled", false);
+                                     $("#IdCardNumber").attr("required", true);
+                                     $("#passportNumber").val("");
+                                     $("#passportNumber").attr("disabled", true);
+
+                                 } else {
+                                     $("#passportNumber").attr("disabled", false);
+                                     $("#passportNumber").attr("required", true);
+                                     $("#IdCardNumber").val("");
+                                     $("#IdCardNumber").attr("disabled", true);
+                                 }
+                             });
+                           // $("#renderDataModal .card-type").click();
+
+                             $("#form-validate").validate({
+                                 submitHandler: function (form) {
+                                     var jsonData = new FormData($("#form-validate")[0]);
+                                     $.ajax(
+                                         {
+                                             type: "POST",
+                                             url: "/PAPersonnelCustomerData/FormEditInsuredPerson",
+                                             contentType: false,
+                                             processData: false,
+                                             data: jsonData,
+                                             success: function (response) {
+                                                 if (response.valid == true) {
+                                                     $("#modalForm").modal('hide');
+                                                     loadDataUpdateInsured(referentId);
+                                                     loadData(appId, referentId);
+                                                     swal("แจ้งเตือน", "บันทึกรายการสำเร็จ", "success");
+                                                 } else {
+                                                     swal("แจ้งเตือน", response.message, "error");
+                                                 }
+                                             }
+                                         });
+                                 }
+                             });
+                         });
+                     });
+        }
+
+        function reloadDocument() {
+            $("#dtInsuredDataDocumentDetail").DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetDocumentInsuredData", "PAPersonnelCustomerData")',
+                    async: false,
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.referentId = window.btoa($("#EndorsePersonnelCustomerDetailHeaderId").val());
+                    }
+                },
+                columns: [
+                    { title: 'รหัสเอกสาร', data: 'DocumentCode', className: 'text-center ', width: '10%' },
+                    { title: 'ประเภทเอกสาร', data: 'DocumentType', className: 'text-left' } ,
+                    {
+                        data: null,
+                        className: 'h-dt-center d-dt-center',
+                        mRender: (data, type, full) => {
+
+                            return '<a href="' + data.UrlLinkScan + '" class="btn btn-warning btn-sm" target="_blank"><i class="fa fa-upload"></i> Scan</a> <a href="' + data.UrlLinkOpen + '" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-file"></i> เอกสาร (' + data.FileCount +') </a>';
+
+                        },
+                        width: '30%'
+                    }
+                ],
+                bLengthChange: false
+            });
+        }
+
+    </script>
+}

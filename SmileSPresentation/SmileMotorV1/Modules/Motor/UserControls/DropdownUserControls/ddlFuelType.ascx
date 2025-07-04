@@ -1,0 +1,2 @@
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="ddlFuelType.ascx.cs" Inherits="SmileMotorV1.Modules.Motor.UserControls.DropdownUserControls.ddlFuelType" %>
+<asp:DropDownList ID="ddlFuelType1" runat="server"></asp:DropDownList>

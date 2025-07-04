@@ -1,0 +1,277 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutForTop.cshtml";
+    var userDetail = SmileUnderwriteBranch.Helper.GlobalFunction.GetLoginDetail(this.HttpContext);
+
+}
+<div class="wrapper" style="height: auto; min-height: 100%;">
+    <div class="content-wrapper" style="min-height: 960px;">
+        <!-- Content Header (Page header) -->
+        <section>
+            <div class="col-md-12 clearfix">
+                <div class="col-xs-3 col-sm-2 col-md-2 col-lg-1" style="text-align:center">
+                    <img src="~/Content/img/logo_user1.jpg" class="profile-img" />
+                </div>
+                <div class="col-xs-9 col-sm-10 col-md-10 col-lg-11" style="padding:0">
+                    <div class="col-md-6" style="padding:0">
+                        <div class="col-md-12">
+                            <span class="font-size-h" style="display:block;margin-top:15px">
+                                <strong>ยินดีต้อนรับ</strong>  คุณ@(userDetail.FirstName) @userDetail.LastName
+                            </span>
+                        </div>
+                        <div class="clearfix">
+                            <div class="col-md-6">
+                                <span class="font-size-d">
+                                    <strong>App ทั้งหมด <span style="float: right;" id="sumPHQueueAll"></span></strong>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="font-size-d">
+                                <strong>ยังไม่ได้คัดกรอง </strong> <span style="float: right;" id="sumPHQueueOnProcess" class="label label-default"></span>
+                            </span>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="font-size-d">
+                                <strong>พิจารณาแล้ว </strong> <span style="float: right;" id="sumPHQueueCMConsidered" class="label label-success"></span>
+                            </span>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="font-size-d">
+                                <strong>รอพิจารณา </strong> <span style="float: right;" id="sumPHQueueCMOnProcess" class="label label-warning"></span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-6" style="padding:0">
+                        <div class="col-md-12 border-top-xs">
+                            <div class="form-group" style="margin-bottom:0">
+                                <div style="padding:0">
+                                    <span class="font-size-h" style="display:block;margin-top:15px">
+                                        <strong>งวดความคุ้มครอง &nbsp; </strong>
+                                    </span>
+                                </div>
+                                <div style="padding:0">
+                                    <select id="select-period" class="form-control">
+                                        @if (ViewBag.PeriodList != null)
+                                        {
+                                            <option value="-1">ทั้งหมด</option>
+                                            foreach (var i in ViewBag.PeriodList)
+                                            {
+
+                                                if (@i.Value.Month == @ViewBag.CurrentMonth)
+                                                {
+                                                    <option value="@i.Value.ToString("yyyy-MM-dd")" selected> @i.Display</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@i.Value.ToString("yyyy-MM-dd")"> @i.Display</option>
+                                                }
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="content">
+            <div class="row">
+                <div id="boxcontent"></div>
+            </div>
+        </section>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+    {
+    <script>
+        $(function () {
+            getArea();
+
+            $('#select-period').change(function (e) {
+                e.preventDefault();
+                getArea();
+            });
+        });
+
+        const getArea = () => {
+            var myNode = document.getElementById("boxcontent");
+            while (myNode.firstChild) {
+                myNode.removeChild(myNode.firstChild);
+            }
+            var period = $('#select-period').val();
+            if (period != "-1") {
+                period = Date.parse(period);
+            };
+            $.get('@Url.Action("Get_StudyAreaUserCM")',
+                { period: period },
+                (data) => {
+                    var sumPHQueueAll = data.reduce((a, b) => a + (b["PHQueueAll"] || 0), 0);
+                    var sumPHQueueCMOnProcess = data.reduce((a, b) => a + (b["PHQueueCMOnProcess"] || 0), 0);
+                    var sumPHQueueCMConsidered = data.reduce((a, b) => a + (b["PHQueueCMConsidered"] || 0), 0);
+                    var sumPHQueueOnProcess = data.reduce((a, b) => a + (b["PHQueueOnProcess"] || 0), 0);
+                    $('#sumPHQueueAll').text(sumPHQueueAll);
+                    $('#sumPHQueueOnProcess').text(sumPHQueueOnProcess);
+                    $('#sumPHQueueCMOnProcess').text(sumPHQueueCMOnProcess);
+                    $('#sumPHQueueCMConsidered').text(sumPHQueueCMConsidered);
+                    for (let i = 0; i < data.length; i++) {
+                        const StudyAreaId = data[i].StudyAreaId;
+                        const StudyArea = data[i].StudyAreaName;
+                        const UserId = data[i].UserId;
+                        const DirectorFullName = data[i].DirectorFullName;
+                        const PHQueueAll = data[i].PHQueueAll;
+                        const PHQueueOnProcess = data[i].PHQueueOnProcess;
+                        const PHQueueComplete = data[i].PHQueueComplete;
+                        const PHQueueResultPass = data[i].PHQueueResultPass;
+                        const PHQueueResultNotPass = data[i].PHQueueResultNotPass;
+                        const PHQueueCMConsidered = data[i].PHQueueCMConsidered;
+                        const PHQueueCMOnProcess = data[i].PHQueueCMOnProcess;
+                        const PHQueueCMApprove = data[i].PHQueueCMApprove;
+                        const PHQueueCMNotApprove = data[i].PHQueueCMNotApprove;
+                        const PercentComplete = (PHQueueComplete / PHQueueAll) * 100;
+                        const PercentOnProcess = (PHQueueOnProcess / PHQueueAll) * 100;
+                        const PercentResultPass = (PHQueueResultPass / PHQueueAll) * 100;
+                        const PercentResultNotPass = (PHQueueResultNotPass / PHQueueAll) * 100;
+                        const PercentCMConsidered = (PHQueueCMConsidered / PHQueueAll) * 100;
+                        const PercentCMOnProcess = (PHQueueCMOnProcess / PHQueueAll) * 100;
+                        const PercentCMApprove = (PHQueueCMApprove / PHQueueAll) * 100;
+                        const PercentCMNotApprove = (PHQueueCMNotApprove / PHQueueAll) * 100;
+                        const Div_Id = 'div-branch-cm-' + StudyAreaId;
+                        const div = document.createElement('div');
+                        div.setAttribute("id", Div_Id);
+                        div.innerHTML = `<div class="col-md-4" style="padding: 0px 5px 0px 5px">` +
+                        `<div class="box div_hover" id="box_${StudyAreaId}" onclick="gotoTaskConider(${UserId},${StudyAreaId},${period});">` +
+                        `<div class="box-header with-border" style="background-color: lightgrey;">` +
+                        `<h3 class="box-title"><strong>${DirectorFullName}</strong> - ${StudyArea}</h3>` +
+                        `</div>` +
+                        `<!-- /.box-header -->` +
+                        `<div class="box-body">` +
+                            `<div class="row">` +
+                                `<!-- /.col -->` +
+                                `<div class="col-md-12">` +
+                                    `<p class="text-center">` +
+                                        `<strong>App ทั้งหมด ${PHQueueAll}</strong>` +
+                                    `</p>` +
+                                    `<div class="col-md-6">` +
+                                        `<div class="progress-group">` +
+                                            `<span class="progress-text">คัดกรองแล้ว</span>` +
+                                            `<span class="progress-number"><b>${PHQueueComplete}</b></span>` +
+
+                                            //`<div class="progress sm progess-mb-0">` +
+                                            //    `<div class="progress-bar progress-bar-aqua" style="width: ${PercentComplete}%"></div>` +
+                                            //`</div>` +
+                                        `</div>` +
+                                        `<!-- /.progress-group -->` +
+                                        `<div class="col-md-12" style="padding-right:0px">` +
+                                            `<div class="progress-group">` +
+                                                `<span class="progress-text">&#9656; ผ่านคัดกรอง</span>` +
+                                                `<span class="progress-number"><b>${PHQueueResultPass}</b></span>` +
+
+                                                //`<div class="progress sm progess-mb-0">` +
+                                                //    `<div class="progress-bar progress-bar-green" style="width: ${PercentResultPass}%"></div>` +
+                                                //`</div>` +
+                                            `</div>` +
+                                            `<!-- /.progress-group -->` +
+                                        `</div>` +
+                                        `<div class="col-md-12" style="padding-right:0px">` +
+                                            `<div class="progress-group">` +
+                                                `<span class="progress-text">&#9656; ไม่ผ่านคัดกรอง</span>` +
+                                                `<span class="progress-number"><b>${PHQueueResultNotPass}</b></span>` +
+
+                                                //`<div class="progress sm progess-mb-0">` +
+                                                //    `<div class="progress-bar progress-bar-red" style="width: ${PercentResultNotPass}%"></div>` +
+                                                //`</div>` +
+                                            `</div>` +
+                                           `<!-- /.progress-group -->` +
+                                        `</div>` +
+                                    `</div>` +
+                                    `<div class="col-md-6">` +
+                                        `<div class="progress-group">` +
+                                            `<span class="progress-text">ยังไม่ได้คัดกรอง</span>` +
+                                            `<span class="progress-number"><b>${PHQueueOnProcess}</b></span>` +
+
+                                            //`<div class="progress sm progess-mb-0">` +
+                                            //    `<div class="progress-bar progress-bar-yellow" style="width: ${PercentOnProcess}%"></div>` +
+                                            //`</div>` +
+                                        `</div>` +
+                                        `<!-- /.progress-group -->` +
+                                   ` </div>` +
+                                `</div>` +
+                                `<!-- /.row -->` +
+                            `</div>` +
+                            `<!-- ./box-body -->` +
+                        `</div>` +
+                        //`<div class="box-header with-border" style="border-top:1px solid #f4f4f4;background-color: #b7dde8de;">` +
+                        //    `<h3 class="box-title"><strong>ประธานสาขา</strong></h3>` +
+                        //`</div>` +
+                        //`<!-- /.box-header -->` +
+                        `<div class="box-body">` +
+                            `<div class="row">` +
+                                `<!-- /.col -->` +
+                                `<div class="col-md-12">` +
+                                    `<div class="col-md-6">` +
+                                        `<div class="progress-group">` +
+                                            `<span class="progress-text">พิจารณาแล้ว</span>` +
+                                            `<span class="progress-number"><b>${PHQueueCMConsidered}</b></span>` +
+
+                                            //`<div class="progress sm progess-mb-0">` +
+                                            //    `<div class="progress-bar progress-bar-aqua" style="width: ${PercentCMConsidered}%"></div>` +
+                                            //`</div>` +
+                                        `</div>` +
+                                        `<!-- /.progress-group -->` +
+                                         `<div class="col-md-12" style="padding-right:0px">` +
+                                            `<div class="progress-group">` +
+                                                `<span class="progress-text">&#9656; อนุมัติให้ผ่านคัดกรอง</span>` +
+                                                `<span class="progress-number"><b>${PHQueueCMApprove}</b></span>` +
+
+                                                //`<div class="progress sm progess-mb-0">` +
+                                                //    `<div class="progress-bar progress-bar-green" style="width: ${PercentCMApprove}%"></div>` +
+                                                //`</div>` +
+                                            `</div>` +
+                                            `<!-- /.progress-group -->` +
+                                        `</div>` +
+                                        `<div class="col-md-12"  style="padding-right:0px">` +
+                                            `<div class="progress-group">` +
+                                                `<span class="progress-text">&#9656; อนุมัติไม่ให้ผ่านคัดกรอง</span>` +
+                                                `<span class="progress-number"><b>${PHQueueCMNotApprove}</b></span>` +
+
+                                                //`<div class="progress sm progess-mb-0">` +
+                                                //    `<div class="progress-bar progress-bar-red" style="width: ${PercentCMNotApprove}%"></div>` +
+                                                //`</div>` +
+                                            `</div>` +
+                                            `<!-- /.progress-group -->` +
+                                        `</div>` +
+                                    `</div>` +
+                                    `<div class="col-md-6">` +
+                                        `<div class="progress-group">` +
+                                            `<span class="progress-text">รอพิจารณา</span>` +
+                                            `<span class="progress-number label label-warning"><b>${PHQueueCMOnProcess}</b></span>` +
+
+                                            //`<div class="progress sm progess-mb-0">` +
+                                            //    `<div class="progress-bar progress-bar-yellow" style="width: ${PercentCMOnProcess}%"></div>` +
+                                            //`</div>` +
+                                        `</div>` +
+                                        `<!-- /.progress-group -->` +
+                                    `</div>` +
+                                `</div>` +
+                               ` <!-- /.row -->` +
+                            `</div>` +
+                            `<!-- ./box-body -->` +
+                        `</div>` +
+                    `</div>` +
+                `</div>`;
+                        document.getElementById('boxcontent').appendChild(div);
+                    }
+                });
+        }
+
+        const gotoTaskConider = (user, area, period) => {
+            //var date = moment(new Date(period)).format("DD/MM/YYYY").toString();
+            user = btoa(user);
+            area = btoa(area);
+            period = btoa(period);
+            window.open(`@Url.Action("TaskWaitToConsider","TaskCM")?userId=${user}&areaid=${area}&period=${period}`, '_self');
+        }
+    </script>
+}

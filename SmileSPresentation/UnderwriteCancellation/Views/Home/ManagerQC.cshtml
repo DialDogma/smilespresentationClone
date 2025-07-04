@@ -1,0 +1,553 @@
+﻿@{
+    ViewBag.Title = "ระบบโทรหาลูกค้ายกเลิก";
+}
+<style>
+    .info-box-custom {
+        display: block;
+        min-height: 90px;
+        width: 100%;
+        background: #fff;
+        box-shadow: 0 1px 1px rgb(0 0 0 / 10%);
+        border-radius: 2px;
+        border: 1px solid;
+        border-color: #40A6D8;
+        margin-bottom: 15px
+    }
+
+    .table-hover {
+        cursor: context-menu;
+    }
+
+    .pagination {
+        padding-left: 158px !important;
+        margin: 3px !important;
+    }
+</style>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="box-body">
+            <div class="form-group">
+                <div class="col-md-6 col-sm-6 col-xs-6">
+
+                    @if (ViewBag.Msg != "")
+                    {
+                        <div style="text-align:right">
+                            <h5 style="color:red">
+                                @ViewBag.Msg
+                            </h5>
+                        </div>
+                    }
+                    <h3>
+                        ระบบโทรหาลูกค้ายกเลิก
+                        @*<small>@ViewBag.Description</small>*@
+                    </h3>
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-6 col-xs-6">
+                <div class="form-group">
+                    <label for="datepicker" class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-2 col-sm-5 col-sm-offset-0 control-label">DCR ยกเลิก :</label>
+                    <div class="input-group date">
+                        <div class="input-group-addon">
+                            <i class="fa fa-calendar"></i>
+                        </div>
+                        <input type="text" class="form-control pull-right" id="datepicker" data-date-language="th-th" data-provide="datepicker" value="" placeholder="กรุณาเลือก" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="box">
+            @*แก้ collapse box-body*@
+            <div class="box-body1" style="padding:10px">
+                <div class="row">
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <div class="info-box bg-aqua">
+                            <span class="info-box-icon"><i class="fa fa-phone"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">คิวงานทั้งหมด</span>
+                                <span class="info-box-number" id="queueAllCount">??</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <div class="info-box bg-yellow">
+                            <span class="info-box-icon"><i class="fa fa-hourglass-half"></i></span>
+                            <div class="info-box-content">
+                                <div class="box-tools pull-right">
+                                    <div class="box-tools pull-right">
+                                        <button class="btn btn-box-tool" title="Show" id="btn-jobWaiting"><span style="color:white">เพิ่มเติม</span><i class="fa fa-angle-left" id="icon-btn-jobWaiting" style="color:white;margin-left:5px"></i></button>
+                                    </div>
+                                </div>
+                                <span class="info-box-text">รอปิดคิวงาน</span>
+                                <span class="info-box-number" id="queuePendingCount">??</span>
+                            </div>
+                        </div>
+                        <div class="box-body box-btn-jobWaiting animate__animated animate__bounceInLeft" style="background-color:#FFE097" hidden>
+                            @if (ViewBag.AccessRole.Contains("UWCancellation_QCManager")) // กด แล้วไม่ลิ้งหน้า
+                            {
+                                foreach (var item in ViewBag.CallStatus)
+                                {
+                                    if (item.CallStatusId != 7)
+                                    {
+                                        <div class="col-md=12" style="margin-bottom:5px">
+                                            <span class="info-box-text text-bold col-md-10" id="@String.Format("CallStatus{0}_QCManager", item.CallStatusId)">@item.CallStatusDetail</span>
+                                            <span class="info-box-text label" id="@String.Format("CallStatusId{0}_QCManager", item.CallStatusId)" style="background-color:white;color:black;">??</span>
+                                        </div>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                foreach (var item in ViewBag.CallStatus)
+                                {
+                                    if (item.CallStatusId != 7)
+                                    {
+                                        <div class="col-md=12" style="margin-bottom:5px">
+                                            <span class="info-box-text text-bold col-md-10" id="@String.Format("CallStatus{0}", item.CallStatusId)">@item.CallStatusDetail</span>
+                                            <span class="info-box-text label" id="@String.Format("CallStatusId{0}", item.CallStatusId)" style="background-color:white;color:black;cursor:pointer">??</span>
+                                        </div>
+                                    }
+                                }
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <div class="info-box bg-green">
+                            <span class="info-box-icon"><i class="fa fa-check"></i></span>
+                            <div class="info-box-content">
+                                <div class="box-tools pull-right">
+                                    <div class="box-tools pull-right">
+                                        <button class="btn btn-box-tool" title="Show" id="btn-jobCompleted"><span style="color:white">เพิ่มเติม</span><i class="fa fa-angle-left" id="icon-btn-jobCompleted" style="color:white;margin-left:5px"></i></button>
+                                    </div>
+                                </div>
+                                <span class="info-box-text">ปิดคิวงานสำเร็จ</span>
+                                <span class="info-box-number" id="queueCompleteCount">??</span>
+                            </div>
+                        </div>
+                        <div class="box-body box-btn-jobCompleted animate__animated animate__bounceInRight" style="background-color:#94CD9B" hidden>
+                            @if (ViewBag.AccessRole.Contains("UWCancellation_QCManager"))
+                            {
+                                foreach (var item in ViewBag.QueueStatus)
+                                {
+                                    if (item.QueueStatusId == 3)
+                                    {
+                                        <div class="col-md=12" style="margin-bottom:5px">
+                                            <span class="info-box-text text-bold col-md-10" id="@string.Format("queueStatus{0}_QCManager",item.QueueStatusId)">@item.QueueStatusDetail<button class="btn btn-box-tool" title="Show" id="@string.Format("btn-jobCompleted-queueStatusId{0}",item.QueueStatusId)"><i class="fa fa-angle-left" id="@string.Format("icon-btn-jobCompleted-queueStatusId{0}",item.QueueStatusId)" style="color:black;margin-left:5px"></i></button></span>
+                                            <span class="info-box-text label" id="@string.Format("queueStatusId{0}_QCManager",item.QueueStatusId)" style="background-color: white; color: black;">??</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="col-md=12" style="margin-bottom:5px">
+                                            <span class="info-box-text text-bold col-md-10" id="@string.Format("queueStatus{0}_QCManager",item.QueueStatusId)">@item.QueueStatusDetail</span>
+                                            <span class="info-box-text label" id="@string.Format("queueStatusId{0}_QCManager",item.QueueStatusId)" style="background-color: white; color: black; ">??</span>
+                                        </div>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                foreach (var item in ViewBag.QueueStatus)
+                                {
+                                    <div class="col-md=12" style="margin-bottom:5px">
+                                        <span class="info-box-text text-bold col-md-10" id="@string.Format("queueStatus{0}",item.QueueStatusId)">@item.QueueStatusDetail</span>
+                                        <span class="info-box-text label" id="@string.Format("queueStatusId{0}",item.QueueStatusId)" style="background-color: white; color: black; cursor: pointer">??</span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <div class="box-body box-btn-jobCompleted-queueStatusId3 animate__animated animate__bounceInRight" style="background-color:#94CD9B;margin-top:1px" hidden>
+                            <div class="col-md=12" style="margin-bottom:5px">
+                                <span class="info-box-text col-md-10">มีประเด็น</span>
+                                @if (ViewBag.AccessRole.Contains("UWCancellation_QC"))
+                                {
+                                    <span class="info-box-text label" id="queueResultIsIssue1_qc" style="background-color: white; color: black;">??</span>
+                                }
+                                else
+                                {
+                                    <span class="info-box-text label" id="queueResultIsIssue1" style="background-color: white; color: black; cursor: pointer">??</span>
+                                }
+                            </div>
+                            <div class="col-md=12" style="margin-bottom:5px">
+                                <span class="info-box-text col-md-10">ไม่มีประเด็น </span>
+                                <span class="info-box-text label" id="queueResultIsIssue0" style="background-color: white; color: black;">??</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        @{
+            if (ViewBag.AccessRole.Contains("Developer") || ViewBag.AccessRole.Contains("UWCancellation_QCManager"))
+            {
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                    <div class="box">
+                        <div class="box-body2" style="padding:10px">
+                            <h5 class="text-bold">ผลิตภัณฑ์</h5>
+                            <div class="row">
+                                <div class="col-md-6 col-sm-12 col-xs-12">
+                                    <div class="info-box-custom">
+                                        <span class="box-tools"><i class="fa fa-plus" style="font-size: 30px; padding: 10px; color:#40A6D8"></i></span>
+                                        <div class="box-body">
+                                            <span class="info-box-text" style="text-align:center">ประกันสุขภาพ</span>
+                                            <span class="info-box-number" id="PHQueueCount" style="text-align: center; color: #40A6D8">??</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-sm-12 col-xs-12">
+                                    <div class="info-box-custom">
+                                        <span class="box-tools">
+                                            <i class="material-icons" style="font-size: 30px; color: #40A6D8;padding:10px">
+                                                savings
+                                            </i>
+                                        </span>
+                                        <div class="box-body">
+                                            <span class="info-box-text" style="text-align:center">ประกันชีวิตออมทรัพย์</span>
+                                            <span class="info-box-number" id="PLQueueCount" style="text-align: center; color: #40A6D8">??</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 col-sm-12 col-xs-12">
+                                    <div class="info-box-custom">
+                                        <span class="box-tools"><i class="fa fa-stethoscope" style="font-size: 30px; padding: 10px; color:#40A6D8"></i></span>
+                                        <div class="box-body">
+                                            <span class="info-box-text" style="text-align:center">ประกัน 50 โรคร้ายแรง</span>
+                                            <span class="info-box-number" id="CIQueueCount" style="text-align: center; color: #40A6D8">??</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-sm-12 col-xs-12">
+                                    <div class="info-box-custom">
+                                        <span class="box-tools"><i class="fa fa-home" style="font-size: 30px; padding: 10px; color:#40A6D8"></i></span>
+                                        <div class="box-body">
+                                            <span class="info-box-text" style="text-align:center">ประกันบ้าน</span>
+                                            <span class="info-box-number" id="HOQueueCount" style="text-align: center; color: #40A6D8">??</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                    <div class="box">
+                        <div class="box-body3" style="padding: 10px;">
+                            <a class="text-bold" style="color: cornflowerblue; text-decoration: underline" href="@Url.Action("QueueManageAssign", "QueueManageAssign")">ระบบจัดการคิวงาน</a>
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12" style="width:100%; color:black;margin-top:10px">
+                                    <table id="teamManage" class="table table-bordered table-hover dataTable"></table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="col-md-8 col-md-offset-2 col-sm-offset-1 col-xs-offset-1">
+                    <div class="box" style="text-align:right">
+                        <div class="box-body2" style="padding:10px">
+                            <h5 class="text-bold">ผลิตภัณฑ์</h5>
+                            <div class="row">
+                                <div class="col-md-3 col-sm-12 col-xs-12">
+                                    <div class="info-box-custom">
+                                        <span class="box-tools"><i class="fa fa-plus" style="font-size: 30px; padding: 10px; color:#40A6D8"></i></span>
+                                        <div class="box-body">
+                                            <span class="info-box-text" style="text-align:center">ประกันสุขภาพ</span>
+                                            <span class="info-box-number" id="PHQueueCount" style="text-align: center; color: #40A6D8">??</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-12 col-xs-12">
+                                    <div class="info-box-custom">
+                                        <span class="box-tools">
+                                            <i class="material-icons" style="font-size: 30px; color: #40A6D8;padding:10px">
+                                                savings
+                                            </i>
+                                        </span>
+                                        <div class="box-body">
+                                            <span class="info-box-text" style="text-align:center">ประกันชีวิตออมทรัพย์</span>
+                                            <span class="info-box-number" id="PLQueueCount" style="text-align: center; color: #40A6D8">??</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-sm-12 col-xs-12">
+                                    <div class="info-box-custom">
+                                        <span class="box-tools"><i class="fa fa-stethoscope" style="font-size: 30px; padding: 10px; color:#40A6D8"></i></span>
+                                        <div class="box-body">
+                                            <span class="info-box-text" style="text-align:center">ประกัน 50 โรคร้ายแรง</span>
+                                            <span class="info-box-number" id="CIQueueCount" style="text-align: center; color: #40A6D8">??</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-12 col-xs-12">
+                                    <div class="info-box-custom">
+                                        <span class="box-tools"><i class="fa fa-home" style="font-size: 30px; padding: 10px; color:#40A6D8"></i></span>
+                                        <div class="box-body">
+                                            <span class="info-box-text" style="text-align:center">ประกันบ้าน</span>
+                                            <span class="info-box-number" id="HOQueueCount" style="text-align: center; color: #40A6D8">??</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            }
+        }
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        $(function () {
+            $('#datepicker').datepicker({
+                autoclose: true,
+                todayHighlight: true,
+                minViewMode: "months",
+                format: "dd/mm/yyyy",
+                endDate: "+"
+            }).datepicker('update', moment('@ViewBag.Period').format('MM-DD-YYYY'))
+                .on('changeDate', function (ev) {
+                    let data = moment(ev.date).format("DD/MM/YYYY");
+                    GetManagerQC(data);
+                    let data2 = moment(ev.date).format("DD/MM/YYYY");
+                    GetTeamManageQueue(data2);
+                });
+
+            //disable hand key
+            $("#datepicker").keypress(function (e) {
+                return false;
+            });
+
+        var dd = '@ViewBag.Period';
+            GetManagerQC(dd);
+        var dd2 = '@ViewBag.Period';
+            GetTeamManageQueue(dd2);
+
+        });//end load
+
+        //toggle ปิดคิวงานสำเร็จ
+        $("#btn-jobCompleted").click(() => {
+            $(".box-btn-jobCompleted").toggle(200, () => {
+                if ($('#icon-btn-jobCompleted').hasClass('fa-angle-left')) {
+                    $('#icon-btn-jobCompleted').removeClass('fa-angle-left')
+                    $('#icon-btn-jobCompleted').addClass('fa-angle-down')
+                } else {
+                    $('#icon-btn-jobCompleted').removeClass('fa-angle-down')
+                    $('#icon-btn-jobCompleted').addClass('fa-angle-left')
+                };
+            });
+
+            //เช็ค box-btn-jobCompleted-queueStatusId3 show อยู่ หรือเปล่า ถ้า show อยู่ ก็ให้เปิดไปด้วย
+            if (!$(".box-btn-jobCompleted-queueStatusId3").is(":hidden")) {
+                $(".box-btn-jobCompleted-queueStatusId3").toggle(200, () => {
+                    $('#icon-btn-jobCompleted-queueStatusId3').removeClass('fa-angle-down')
+                    $('#icon-btn-jobCompleted-queueStatusId3').addClass('fa-angle-left')
+                })
+            }
+        });
+
+        //toggle ปิดคิวงานโดยตรวจสอบแล้ว
+        $("#btn-jobCompleted-queueStatusId3").click(() => {
+            $(".box-btn-jobCompleted-queueStatusId3").toggle(200, () => {
+                if ($('#icon-btn-jobCompleted-queueStatusId3').hasClass('fa-angle-left')) {
+                    $('#icon-btn-jobCompleted-queueStatusId3').removeClass('fa-angle-left')
+                    $('#icon-btn-jobCompleted-queueStatusId3').addClass('fa-angle-down')
+                } else {
+                    $('#icon-btn-jobCompleted-queueStatusId3').removeClass('fa-angle-down')
+                    $('#icon-btn-jobCompleted-queueStatusId3').addClass('fa-angle-left')
+                };
+            });
+        });
+
+        //toggle รอปิดคิวงาน
+        $("#btn-jobWaiting").click(() => {
+            $(".box-btn-jobWaiting").toggle(200, () => {
+                if ($('#icon-btn-jobWaiting').hasClass('fa-angle-left')) {
+                    $('#icon-btn-jobWaiting').removeClass('fa-angle-left')
+                    $('#icon-btn-jobWaiting').addClass('fa-angle-down')
+                } else {
+                    $('#icon-btn-jobWaiting').removeClass('fa-angle-down')
+                    $('#icon-btn-jobWaiting').addClass('fa-angle-left')
+                };
+
+            });
+        });
+
+        const GetManagerQC = (dataPeriod) => {
+            $.get('@Url.Action("GetManagerQC")', { period: dataPeriod },
+                (data) => {
+                    $("#queueAllCount").text(data.pvQueueStatusCount.QueueAllCount); //คิวงานทั้งหมด
+                    $("#queuePendingCount").text(data.pvQueueStatusCount.QueuePendingCount); //รอปิดคิวงาน
+                    $("#queueCompleteCount").text(data.pvQueueStatusCount.QueueCompleteCount); //ปิดคิวงานสำเร็จ
+
+                    //set val callCallStatus
+                    //UWCancellation_QCManager
+                    $("#CallStatusId2_QCManager").text(data.pvQueueStatusCount.CallStatusId2) //รอดำเนินการ
+                    $("#CallStatusId3_QCManager").text(data.pvQueueStatusCount.CallStatusId3) //ติดต่อไม่ได้
+                    $("#CallStatusId4_QCManager").text(data.pvQueueStatusCount.CallStatusId4) //ไม่รับสาย
+                    $("#CallStatusId5_QCManager").text(data.pvQueueStatusCount.CallStatusId5) //เบอร์ผิด
+                    $("#CallStatusId6_QCManager").text(data.pvQueueStatusCount.CallStatusId6) //ไม่สะดวก
+                    $("#CallStatusId7_QCManager").text(data.pvQueueStatusCount.CallStatusId7) //โทรแล้ว
+
+                    //UWCancellation_QC
+                    $("#CallStatusId2").text(data.pvQueueStatusCount.CallStatusId2) //รอดำเนินการ
+                    $("#CallStatusId3").text(data.pvQueueStatusCount.CallStatusId3) //ติดต่อไม่ได้
+                    $("#CallStatusId4").text(data.pvQueueStatusCount.CallStatusId4) //ไม่รับสาย
+                    $("#CallStatusId5").text(data.pvQueueStatusCount.CallStatusId5) //เบอร์ผิด
+                    $("#CallStatusId6").text(data.pvQueueStatusCount.CallStatusId6) //ไม่สะดวก
+                    $("#CallStatusId7").text(data.pvQueueStatusCount.CallStatusId7) //โทรแล้ว
+
+                    //set val ปิดคิวงานโดยไม่ได้ตรวจสอบ,ปิดคิวงานโดยตรวจสอบแล้ว
+                    //QC
+                    $("#queueStatusId2").text(data.pvQueueStatusCount.QueueStatusId2)//ปิดคิวงานโดยตรวจสอบแล้ว
+                    $("#queueStatusId3").text(data.pvQueueStatusCount.QueueStatusId3)//ปิดคิวงานโดยไม่ได้ตรวจสอบ
+                    $("#queueStatusId4").text(data.pvQueueStatusCount.QueueStatusId4)//ยกเลิกคิวงาน
+
+                    //QCManager
+                    $("#queueStatusId2_QCManager").text(data.pvQueueStatusCount.QueueStatusId2)//ปิดคิวงานโดยตรวจสอบแล้ว
+                    $("#queueStatusId3_QCManager").text(data.pvQueueStatusCount.QueueStatusId3)//ปิดคิวงานโดยไม่ได้ตรวจสอบ
+                    $("#queueStatusId4_QCManager").text(data.pvQueueStatusCount.QueueStatusId4)//ยกเลิกคิวงาน
+
+                    //set val มีประเด็นหรือไม่
+                    $("#queueResultIsIssue1").text(data.pvQueueStatusCount.QueueResultIsIssue1)//มีประเด็น
+                    //roles UWCancellation_QC
+                    $("#queueResultIsIssue1_qc").text(data.pvQueueStatusCount.QueueResultIsIssue1)//มีประเด็น
+                    $("#queueResultIsIssue0").text(data.pvQueueStatusCount.QueueResultIsIssue0)//ไม่มีประเด็น
+
+                    //set val ผลิตภัณฑ์
+                    $("#PHQueueCount").text(data.pvProductGroupQueueCount.PHQueueCount)//สุขภาพ
+                    $("#PLQueueCount").text(data.pvProductGroupQueueCount.PLQueueCount)//ประกันชีวิตออมทรัพย์
+                    $("#CIQueueCount").text(data.pvProductGroupQueueCount.CIQueueCount)//ประกัน 50 โรคร้ายแรง
+                    $("#HOQueueCount").text(data.pvProductGroupQueueCount.HouseQueueCount)//ประกันบ้าน
+                    return '';
+                });
+        };
+
+        //onClick span call status
+        //รอดำเนินการ
+        $("#CallStatusId2").click(() => {
+            window.open(`@Url.Action("WaitCloseQueue", "QueueManageAssign")?callStatusId=2&dcr=${$('#datepicker').val()}`);
+        });
+        //ติดต่อไม่ได้
+        $("#CallStatusId3").click(() => {
+            window.open(`@Url.Action("WaitCloseQueue", "QueueManageAssign")?callStatusId=3&dcr=${$('#datepicker').val()}`);
+        })
+        //ไม่รับสาย
+        $("#CallStatusId4").click(() => {
+            window.open(`@Url.Action("WaitCloseQueue", "QueueManageAssign")?callStatusId=4&dcr=${$('#datepicker').val()}`);
+        })
+        //เบอร์ผิด
+        $("#CallStatusId5").click(() => {
+            window.open(`@Url.Action("WaitCloseQueue", "QueueManageAssign")?callStatusId=5&dcr=${$('#datepicker').val()}`);
+        })
+        //ไม่สะดวก
+        $("#CallStatusId6").click(() => {
+            window.open(`@Url.Action("WaitCloseQueue", "QueueManageAssign")?callStatusId=6&dcr=${$('#datepicker').val()}`);
+        })
+        //โทรแล้ว
+        $("#CallStatusId7").click(() => {
+            window.open(`@Url.Action("WaitCloseQueue", "QueueManageAssign")?callStatusId=7&dcr=${$('#datepicker').val()}`);
+        })
+
+        //ปิดคิวงานโดยไม่ได้ตรวจสอบ
+        $("#queueStatusId2").click(() => {
+            window.open(`@Url.Action("CloseQueueSuccess", "QueueManageAssign")?queueStatusId=2&dcr=${$('#datepicker').val()}`);
+        });
+
+        //ปิดคิวงานโดยตรวจสอบแล้ว
+        $("#queueStatusId3").click(() => {
+            window.open(`@Url.Action("CloseQueueSuccess", "QueueManageAssign")?queueStatusId=3&dcr=${$('#datepicker').val()}`);
+        });
+
+        //ยกเลิกคิวงาน
+        $("#queueStatusId4").click(() => {
+            window.open(`@Url.Action("CloseQueueSuccess", "QueueManageAssign")?queueStatusId=4&dcr=${$('#datepicker').val()}`);
+        });
+
+        //มีประเด็น กดเป็น link
+        $("#queueResultIsIssue1").click(() => {
+            window.open(`@Url.Action("Queuepending", "QueueManageAssign")?dcr=${$('#datepicker').val()}`);
+        })
+        //ไม่มีประเด็น
+        $("#queueResultIsIssue0").click(() => {
+           // window.open(`@Url.Action("Queuepending", "QueueManageAssign")?dcr=${$('#datepicker').val()}`);
+        })
+
+        const GetTeamManageQueue = (dataPeriod) => {
+            $('#teamManage').empty();
+            var table = $('#teamManage').DataTable({
+                pageLength: 10,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                searching: false,
+                info: true,
+                orderable: false,
+                language: {
+                    info: "แสดง _START_ ถึง _END_ จาก _TOTAL_ แถว",
+                    infoFiltered: "<span class='quickApproveTable_info_filtered_span'></span>",
+                    emptyTable: "ไม่พบข้อมูล",
+                },
+                ajax: {
+                    url: '@Url.Action("GetTeamManageQueue")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.period = dataPeriod;
+                    },
+
+                },
+                columns: [
+                    {
+                        title: 'ลำดับที่',
+                        data: null,
+                        className: "th-center",
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        title: 'ชื่อผู้รับผิดชอบ',
+                        data: 'PersonName',
+                        className: "th-left"
+                    },
+                    {
+                        title: 'ทั้งหมด',
+                        data: 'QueueAllCount',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'รอปิดคิวงาน',
+                        data: 'QueuePendingCount',
+                        className: "th-center"
+                    },
+                    {
+                        title: 'ปิดคิวงานสำเร็จ',
+                        data: 'QueueCompleteCount',
+                        className: "th-center"
+                    },
+                ]
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        };
+    </script>
+}

@@ -1,0 +1,234 @@
+﻿@{
+    ViewBag.Title = "TaskMain";
+    Layout = "~/Views/Shared/_LayoutForTop.cshtml";
+}
+<section class="content">
+    <div class="row">
+        <div class="box box-primary">
+            <div class="box-body">
+                <div class="form-group form-group-lg-flat col-md-12 col-sm-12">
+                    <div class="col-md-12 font-header" style="text-align: center !important">
+                        <label>ภาพรวมการคัดกรองสาขา :</label>
+                        <label>@ViewBag.AreaName</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12" style="display: flex; flex-direction: row; justify-content: center;">
+                    <canvas id="myChart" style="max-width: 700px; height: auto; margin-bottom: 10px"></canvas>
+                </div>
+                <div class="col-md-12" style="display: flex; flex-direction: row; justify-content: center;    margin-bottom: 20px">
+                    <label id="lbl_sum" style="font-size: 30px"></label>
+                </div>
+                <div class="col-md-12">
+                    <div id="div_box_onprocess" style="cursor: pointer" class="col-lg-4 col-xs-4">
+                        <!-- small box -->
+                        <div class="small-box bg-yellow" style="color: #000000 !important;">
+                            <div class="inner">
+                                <h3><span id="sp_onprocess">0</span></h3>
+
+                                <p><h4>ยังไม่ได้คัดกรอง</h4></p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-list-ul"></i>
+                            </div>
+                            <a href="#" class="small-box-footer" style="color: #000000 !important;">
+                                รายละเอียด <i class="fa fa-arrow-circle-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- ./col -->
+                    <div id="div_box_complete" style="cursor: pointer" class="col-lg-4 col-xs-4">
+                        <!-- small box -->
+                        <div class="small-box bg-green" style="color: #000000 !important;">
+                            <div class="inner">
+                                <h3><span id="sp_resultpass">0</span></h3>
+
+                                <p><h4>คัดกรองแล้วผ่าน</h4></p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-check"></i>
+                            </div>
+                            <a href="#" class="small-box-footer" style="color: #000000 !important;">
+                                รายละเอียด <i class="fa fa-arrow-circle-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- ./col -->
+                    <div id="div_box_overduecomplete" style="cursor: pointer" class="col-lg-4 col-xs-4">
+                        <!-- small box -->
+                        <div class="small-box bg-red" style="color: #000000 !important;">
+                            <div class="inner">
+                                <h3><span id="sp_resultnotpass">0</span></h3>
+
+                                <p><h4>คัดกรองแล้วไม่ผ่าน</h4></p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-tag"></i>
+                            </div>
+                            <a href="#" class="small-box-footer" style="color: #000000 !important;">
+                                รายละเอียด <i class="fa fa-arrow-circle-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- ./col -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<input type="hidden" id="userId" value="@ViewBag.UserId" />
+<input type="hidden" value="@ViewBag.AreaId" id="hidden_areaId" />
+@section ViewSpecificJavascript
+{
+    <script>
+        'use strict';
+        var chat;
+        var objKey;
+        $(function() {
+            /*start signalR*/
+            // Reference the auto-generated proxy for the hub.
+            chat = $.connection.chatHub;
+            //Start Connection
+            $.connection.hub.start().done(function() {
+                //join group
+                chat.server.joinGroup($('#userId').val());
+            });
+            //Show public message to client
+            chat.client.receiveGroupToUpdateQueue = function(message) {
+                /*full msg*/
+                const fullMessage = message;
+                /*new date*/
+                const date = new Date();
+                /*set str*/
+                const str = date.getFullYear() +
+                    "-" +
+                    (date.getMonth() + 1) +
+                    "-" +
+                    date.getDate() +
+                    " " +
+                    date.getHours() +
+                    ":" +
+                    date.getMinutes() +
+                    ":" +
+                    date.getSeconds();
+                /*alert toastr*/
+                window.toastr["success"](`อัพเดตครั้งล่าสุด : ${str}`, fullMessage);
+                /*Load Data and Chart*/
+                config.data.datasets = [];
+                loadDataset();
+                const ctx = document.getElementById('myChart').getContext('2d');
+                window.myPie = new Chart(ctx, config);
+            };
+
+            window.toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+            /*end signalR*/
+            $('#div_box_onprocess').click(function(e) {
+                e.preventDefault();
+                const Id = $('#hidden_areaId').val();
+                window.open(`@Url.Action("TaskList")?areaId=${Id}`, '_self');
+            });
+            $('#div_box_complete').click(function(e) {
+                e.preventDefault();
+                const Id = $('#hidden_areaId').val();
+                const IsPass = btoa(1);
+                window.open(`@Url.Action("CallHistory", "Call")?areaId=${Id}&isPass=${IsPass}`, '_self');
+            });
+            $('#div_box_overduecomplete').click(function(e) {
+                e.preventDefault();
+                const Id = $('#hidden_areaId').val();
+                const IsPass = btoa(0);
+                window.open(`@Url.Action("CallHistory", "Call")?areaId=${Id}&isPass=${IsPass}`, '_self');
+            });
+            loadDataset();
+            const ctx = document.getElementById('myChart').getContext('2d');
+            window.myPie = new Chart(ctx, config);
+        });
+
+        /*set config*/
+        const config = {
+            type: 'pie',
+            data:
+            {
+                labels: [],
+                datasets: []
+            },
+            options: {
+                title: {
+                    display: false,
+                    text: 'ภาพรวมการโทรคัดกรองสาขา'
+                },
+                plugins: {
+                    labels: {
+                        render: 'percentage',
+                        fontSize: 14,
+                        fontStyle: 'bold',
+                        fontColor: '#000'
+                    }
+                }
+            }
+        };
+        /*Load dataset*/
+        const loadDataset = () => {
+            const newDataset = {
+                backgroundColor: [],
+                data: [],
+                label: 'dataset ' + config.data.datasets.length
+            };
+            $.get('@Url.Action("Get_StatusByStudyArea")', { studyAreaId: @ViewBag.AreaId },
+                (data) => {
+                    /*sum value*/
+                    const  sum = data.PHQueueAll;
+                    /*sum value all*/
+                    $('#lbl_sum').text(`ผลงานรวม : ${sum}`);
+                    /*Map Status*/
+                    const mapStatus = {
+                        PHQueueOnProcess : [window.chartColors.yellow,"ยังไม่ได้คัดกรอง"],
+                        PHQueueResultPass : [window.chartColors.green,"คัดกรองแล้วผ่าน"],
+                        PHQueueResultNotPass : [window.chartColors.red,"คัดกรองแล้วไม่ผ่าน"]
+                    };
+
+                    for (let key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            if (key != "PHQueueAll") {
+                                /*push key to labels*/
+                                config.data.labels.push(mapStatus[key][1]);
+                                /*push data to array*/
+                                newDataset.data.push(data[key]);
+                                /*push color to array*/
+                                newDataset.backgroundColor.push(mapStatus[key][0]);
+                            }
+
+                        }
+                    }
+
+                    /*set text label*/
+                    $('#sp_onprocess').text(data.PHQueueOnProcess);
+                    $('#sp_resultpass').text(data.PHQueueResultPass);
+                    $('#sp_resultnotpass').text(data.PHQueueResultNotPass);
+
+                    /*push newDataset to datasets*/
+                    config.data.datasets.push(newDataset);
+
+                    /*update*/
+                    window.myPie.update();
+                });
+        };
+    </script>
+}

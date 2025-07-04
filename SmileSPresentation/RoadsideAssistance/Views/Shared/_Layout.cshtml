@@ -1,0 +1,102 @@
+﻿@using System.Web.Optimization
+@using WebHelpers.Mvc5.Enum
+@using RoadsideAssistance.Helper
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>
+
+        @if (!string.IsNullOrWhiteSpace(ViewBag.Title))
+        {
+            @ViewBag.Title
+        }
+    </title>
+    <link rel="shortcut icon" type="image/png" sizes="32x32" href="~/Content/img/logo1.png">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+    @Styles.Render("~/Bundles/css")
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+    <div class="wrapper">
+        @Html.Partial("_Header")
+        @Html.Partial("_Sidebar")
+
+        <div class="content-wrapper">
+            <section class="content-header text-center text-bold">
+                <h1>
+                    @ViewBag.Title
+                    <small>@ViewBag.Description</small>
+                </h1>
+                <div><h3 id="ttt" class="text-center"></h3></div>
+            </section>
+
+            <section class="content">
+                @RenderBody()
+            </section>
+            @* Spinner *@
+            <div id="loading">
+                <div class="spinner">
+                    <div class="bounce1"></div>
+                    <div class="bounce2"></div>
+                    <div class="bounce3"></div>
+                </div>
+            </div>
+        </div>
+
+        @Html.Partial("_ControlSidebar")
+    </div>
+
+    <script src="@RouteJs.RouteJsHandler.HandlerUrl"></script>
+    <script src="@EnumHandler.HandlerUrl"></script>
+    @Scripts.Render("~/Bundles/js")
+    @RenderSection("ViewSpecificJavascript", required: false)
+    @if (OAuth2Helper.CheckSession)
+    {
+        <iframe id="checksession" width="0" height="0" src="@OAuth2Helper.Issuer/connect/checksession" style="visibility: hidden; position: absolute; display: none;"></iframe>
+        <script type="text/javascript">
+	    var stat = "unchanged";
+	    var mes = "@OAuth2Helper.ClientId @OAuth2Helper.GetState()";
+	    var targetOrigin = "@OAuth2Helper.Issuer"; // Validates origin
+	    var opFrameId = "checksession";
+	    var timerID;
+	    function check_session() {
+		    var win = window.parent.frames[opFrameId].contentWindow
+            win.postMessage(mes, targetOrigin);
+            checkCookie();
+	    }
+	    function setTimer() {
+		    check_session();
+		    timerID = setInterval(check_session, 30 * 1000);
+	    }
+	    window.addEventListener("message", receiveMessage, false);
+	    function receiveMessage(e) {
+		    if (e.origin !== targetOrigin) {
+			    return;
+		    }
+		    stat = e.data;
+		    if (stat === "changed") {
+			    clearInterval(timerID);
+			    document.location.href = "/Auth/Logout?state=" + document.location;
+		    }
+            }
+            function checkCookie() {
+                fetch("/Auth/CheckCookie")
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.cookieStatus == false) {
+                            clearInterval(timerID);
+                            document.location.href = "/";
+                        }
+                    });
+            }
+	    setTimer();
+        </script>
+    }
+</body>
+</html>

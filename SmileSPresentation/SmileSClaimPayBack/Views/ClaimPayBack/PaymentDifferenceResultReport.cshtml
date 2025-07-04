@@ -1,0 +1,165 @@
+﻿
+@{
+    ViewBag.Title = "รายงานผลต่างการชำระเงินจากบริษัทประกัน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายงาน</h3>
+                    <!-- /.box-tools -->
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <label>ค้นหาจาก :</label>
+                            <select class="form-control select2" id="ddlSearchType">
+                                <option value="-1">---โปรดระบุ---</option>
+                                <option value="1">วันที่วางบิล</option>
+                                <option value="2">วันที่จ่ายเงิน</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-2">
+                            <label>วันที่ :</label>
+
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right" id="dtpDateFrom" data-date-language="th-th">
+                            </div>
+                            <!-- /.input group -->
+                        </div>
+                        <div class="col-sm-2">
+                            <label>ถึงวันที่ :</label>
+
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right" id="dtpDateTo" data-date-language="th-th">
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label>บริษัทประกันภัย :</label>
+                            <select class="form-control select2" id="ddlInsuranceCompany">
+                                <option value="-1">---ทั้งหมด---</option>
+                                @{
+                                    foreach (var item in ViewBag.InsuranceCompany)
+                                    {
+                                        <option value="@item.OrganizeId">@item.OrganizeDetail</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-2" style="padding-top:26px;">
+                            <button type="button" class="btn btn-block btn-success" id="btnExportExcel"><i class="fa fa-file-excel-o"></i>  Export To Excel </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var date = new Date();
+        var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+        $(function () {
+
+
+            $('.select2').select2();
+
+            //Date picker
+            $('#dtpDateFrom').datepicker({
+                format: 'dd/mm/yyyy',
+                autoclose: true
+            }).datepicker('setDate', today)
+
+            $('#dtpDateTo').datepicker({
+                format: 'dd/mm/yyyy',
+                autoclose: true
+            }).datepicker('setDate', today)
+
+            $("#dtpDateFrom").on("change", function () {
+                var dateEndString = $('#dtpDateTo').val();
+                var [day, month, year] = dateEndString.split("/");
+                var dateEnd = new Date(`${year}-${month}-${day}`);
+
+                var dateStartString = $('#dtpDateFrom').val();
+                var [day, month, year] = dateStartString.split("/");
+                var dateStart = new Date(`${year}-${month}-${day}`);
+
+                if (dateEnd < dateStart) {
+                    var date2 = $('#dtpDateFrom').datepicker('getDate');
+                    date2.setMonth();
+
+                    $('#dtpDateTo').val($('#dtpDateFrom').val());
+                    $('#dtpDateTo').datepicker('setEndDate', date2);
+                }
+            });
+
+            //Button Export
+            $('#btnExportExcel').click(function (e) {
+                e.preventDefault();
+                //Validate
+                if (Isvalidate()) {
+                    //Export
+                    ExportToExcel()
+                }
+
+
+            });
+        });
+
+        const Isvalidate = () => {
+
+            if ($('#ddlSearchType').val() == '-1') {
+                swal_info("กรุณาเลือก การค้นหา");
+                return false;
+            }
+
+            //Chk Datefrom & DateTo Is Null
+            if ($('#dtpDateFrom').val() == "" || $('#dtpDateTo').val() == "") {
+                swal_info("กรุณาเลือก ช่วงวันที่");
+                return false;
+            }
+
+            return true;
+        }
+
+        function ExportToExcel() {
+            loadingSpinner('fadeIn', 999999);
+            $.ajax({
+                url: "@Url.Action("ExportPaymentDifferenceResult")",
+                type: "POST",
+                data: {
+                    dateFrom: $('#dtpDateFrom').val(),
+                    dateTo: $('#dtpDateTo').val(),
+                    insuranceCompanyId: $('#ddlInsuranceCompany').val(),
+                    searchTypeId: $('#ddlSearchType').val()
+                },
+                success: function (response) {
+                    if (!response.isError) {
+                        window.location = "@Url.Action("ExportPaymentDifferenceResultDownload")";
+                        loadingSpinner('fadeOut');
+                    }
+                    else {
+                        swal('เกิดข้อผิดพลาด !', response.Msg, 'error');
+                        loadingSpinner('fadeOut');
+                    }
+                }
+            });
+        }
+
+    </script>
+}

@@ -1,0 +1,665 @@
+﻿@{
+    ViewBag.Title = "ยอดคงค้าง บริษัทประกัน";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .spanInsurance {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 12px;
+    }
+
+    .boxSumAmount {
+        border-radius: 5px;
+        box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+    }
+
+
+    .box {
+        border-color: #65aadb;
+    }
+
+    @@keyframes fadeIn {
+        0% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .boxSumAmountContrainer {
+        animation: fadeIn 1s;
+    }
+
+    /*    td.dtTextColor {
+        color: #1087DD;
+    }*/
+
+    .colorSpan {
+        color: white;
+        border-radius: 4px;
+        display: inline-block;
+        width: 80px;
+    }
+    /*
+    table.dataTable thead {
+        background-color: #9DE1FF;
+        color: black;
+    }*/
+</style>
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title" style="color: #2B7ABA ">
+            <i class="glyphicon glyphicon-filter"></i> ค้นหาข้อมูล
+        </h3>
+    </div>
+    <div class="box-body">
+        <div class="col-sm-12">
+            <div class="row">
+                <div class="form-group">
+                    <div class="col-xs-12 col-sm-6 col-md-4">
+                        <div class="form-group">
+                            <label>ประเภทเคลม :</label>
+                            <select class="form-control select2" id="ddlClaimType">
+                                <option value="-1">---ทั้งหมด---</option>
+                                @foreach (var item in ViewBag.ClaimType)
+                                {
+                                    <option value="@item.Code">@item.Detail</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-6 col-md-2">
+                        <div class="form-group">
+                            <label>บริษัทประกัน :</label>
+                            <select class="form-control select2" id="ddlOrganizeId">
+                                <option value="-1">---ทั้งหมด---</option>
+                                @{
+                                    foreach (var item in ViewBag.InsuranceCompany)
+                                    {
+                                        <option value="@item.OrganizeId">@item.OrganizeDetail</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-6 col-md-2">
+                        <label>&nbsp;</label>
+                        <button id="btnSearch" class="btn btn-block btn-dropbox"><i class="fa fa-search"> ค้นหา</i></button>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-2">
+                        <label>&nbsp;</label>
+                        <button id="btnExportExcel" class="btn btn-block btn-success"><i class="fa fa-file-excel-o"> Export to Excel</i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xs-12 col-md-6 col-lg-4">
+        <div class="info-box bg-light-blue boxSumAmount">
+            <span class="info-box-icon"><i class="fa fa-warning"></i></span>
+            <div class="info-box-content">
+                <div class="inner">
+                    <h5>ยอดคงค้างทั้งหมด</h5>
+                    <span class="info-box-number" id="spanOutstandingBalanceTotal"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-12 col-md-6 col-lg-4">
+        <div class="info-box bg-yellow boxSumAmount">
+            <span class="info-box-icon"><i class="fa fa-send"></i></span>
+            <div class="info-box-content">
+                <div class="inner">
+                    <h5>ยอดแจ้งผลการพิจารณา</h5>
+                    <span class="info-box-number" id="spanConsiderResultTotal"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-12 col-md-6 col-lg-4">
+        <div class="info-box bg-green boxSumAmount">
+            <span class="info-box-icon"><i class="fa fa-recycle"></i></span>
+            <div class="info-box-content">
+                <div class="inner">
+                    <h5>ยอดที่ยังไม่ได้พิจารณา</h5>
+                    <span class="info-box-number" id="spanConsiderRequestTotal"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xs-12 col-md-6 col-lg-6">
+        <div class="box" style="border-color: #5DB6EA;">
+            <div class="box-header" style="height: 54px !important;">
+                <div class="col-xs-12 col-md-6 col-lg-6">
+                    <h3 class="box-title" style="font-size:16px">ยอดค้างที่อยู่ในระยะเวลา Duedate</h3>
+                </div>
+            </div>
+            <div class="box-body" style="padding-top: 0 !important;">
+                <table id="dtInDuedate" class="table table-bordered dataTable table-hover table-striped" style="text-align: center; font-size:12px; display: none;">
+                    <tfoot>
+                        <tr>
+                            <th>รวมทั้งหมด</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-12 col-md-6 col-lg-6">
+        <div class="box" style="border-color: #5DB6EA;">
+            <div class="box-header">
+                <div class="col-xs-12 col-md-6 col-lg-6">
+                    <h3 class="box-title" style="font-size: 16px">ยอดค้างที่เกินระยะเวลา Duedate</h3>
+                </div>
+                <div class="col-xs-12 col-md-6 col-lg-6" style="float: right;">
+                    <select class="form-control select2" id="ddlDuedate">
+                        <option value="-1">---ทั้งหมด---</option>
+                        <option value="0">16-30 วัน</option>
+                        <option value="1">31-60 วัน</option>
+                        <option value="2">61-90 วัน</option>
+                        <option value="3">มากกว่า 90 วัน</option>
+                    </select>
+                </div>
+            </div>
+            <div class="box-body" style="padding-top: 0 !important;">
+                <table id="dtOverDuedate" class="table table-bordered dataTable table-hover table-striped" style="text-align: center; font-size: 12px; display: none;">
+                    <tfoot>
+                        <tr>
+                            <th>รวมทั้งหมด</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-12 col-md-2 col-lg-6">
+        <div class="info-box boxSumAmount">
+            <span class="info-box-icon" style="background-color: #8BB187"><i class="fa fa-calendar-check-o" style="color: white;"></i></span>
+            <div class="info-box-content">
+                <div class="inner">
+                    <font style="color:gray;font-weight:400;">จำนวนเงินที่อยู่ในระยะเวลา Duedate ทั้งหมด</font>
+                    <span class="info-box-number" id="spanInDuedateTotal"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-12 col-md-2 col-lg-6">
+        <div class="info-box boxSumAmount">
+            <span class="info-box-icon" style="background-color: #8BB187"><i class="fa fa-calendar-times-o" style="color: white;"></i></span>
+            <div class="info-box-content">
+                <div class="inner">
+                    <font style="color:gray;font-weight:400;">จำนวนเงินที่เกินระยะเวลา Duedate ทั้งหมด</font>
+                    <span class="info-box-number" id="spanOverDuedateTotal"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+            var InDuedateTotal = "";
+            var OverDuedateTotal = "";
+
+        $(function () {
+            $('.select2').select2();
+
+            //--------------------------------- Event -----------------------------------//
+            //GET DATA Before Click Button Search
+            GetDashboardOutStandingBalanceTotal();
+            DoLoadMonitorInduedate();
+            $("#spanInDuedateTotal").html(`${numberWithCommas(InDuedateTotal)} บาท`);
+            DoLoadMonitorOverDuedate();
+            $("#spanOverDuedateTotal").html(`${numberWithCommas(OverDuedateTotal)} บาท`);
+
+
+            $("#btnSearch").click(function (e) {
+                e.preventDefault();
+                GetDashboardOutStandingBalanceTotal();
+                DoLoadMonitorInduedate();
+                $("#spanInDuedateTotal").html(`${numberWithCommas(InDuedateTotal)} บาท`);
+                DoLoadMonitorOverDuedate();
+                $("#spanOverDuedateTotal").html(`${numberWithCommas(OverDuedateTotal)} บาท`);
+            });
+
+            $('#btnExportExcel').click(function (e) {
+                e.preventDefault();
+                    //Export
+                    ExportToExcel();
+            });
+
+        });
+
+            $("#ddlDuedate").change(function () {
+                console.log("change");
+                DoLoadMonitorOverDuedate();
+                $("#spanOverDuedateTotal").html(`${numberWithCommas(OverDuedateTotal)} บาท`);
+            });
+            //--------------------------------- Method -----------------------------------//
+
+        const DoLoadMonitorInduedate = () => {
+            $('#dtInDuedate').show();
+                $('#dtInDuedate').dataTable({
+                    paging: false,
+                    info: false,
+                    lengthChange: false,
+                    processing: true,
+                    serverSide: true,
+                    autoWidth: false,
+                    responsive: true,
+                    destroy: true,
+                    "order": [[0, "desc"]],
+                    searching: false,
+                    ajax: {
+                        url: '@Url.Action("GetDashboardOutstandingBalanceInDueDateResult", "ClaimPayBack")',
+                        type: 'POST',
+                        async: false,
+                        data: function (d) {
+                            d.claimTypeId = $('#ddlClaimType').val();
+                            d.draw = d.draw;
+                            d.indexStart = d.start;
+                            d.pageSize = d.length;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.organizeId = $('#ddlOrganizeId').val()
+                        }
+                    },
+                    columns: [
+                        { title: 'บริษัทประกัน', data: 'InsuranceCompany', className: 'h-dt-center text-left dtTextColor' },
+                        {
+                            title: 'PA',
+                            data: 'PA',
+                            className: "h-dt-center text-center",
+                            orderable: false,
+                            mRender: function (data) {
+                                if (data == null) {
+                                    data = 0
+                                }
+                                return numberWithCommas(data.toFixed(2));
+                            }
+                        },
+                        {
+                            title: 'PH',
+                            data: 'PH',
+                            className: "h-dt-center text-center",
+                            orderable: false,
+                            mRender: function (data) {
+                                if (data == null) {
+                                    data = 0
+                                }
+                                return numberWithCommas(data.toFixed(2));
+                            }
+                        },
+                        {
+                            title: 'PA30',
+                            data: 'PA30',
+                            className: "h-dt-center text-center",
+                            orderable: false,
+                            mRender: function (data) {
+                                if (data == null) {
+                                    data = 0
+                                }
+                                return numberWithCommas(data.toFixed(2));
+                            }
+                        },
+                        {
+                            title: 'โอนแยก',
+                            data: 'Compensate',
+                            className: "h-dt-center text-center",
+                            orderable: false,
+                            mRender: function (data) {
+                                if (data == null) {
+                                    data = 0
+                                }
+                                return numberWithCommas(data.toFixed(2));
+                            }
+                        },
+                        {
+                            title: 'รวม',
+                            data: null,
+                            className: "h-dt-center text-center",
+                            orderable: false,
+                            mRender: function (data, type, row) {
+                                var Total = row.PH + row.PA + row.PA30 + row.Compensate;
+                                return numberWithCommas(Total.toFixed(2));
+                            }
+                        },
+                    ],
+                    footerCallback: function (row, data, start, end, display) {
+                        var api = this.api(), data;
+
+                        // Remove the formatting to get integer data for summation
+                        var intVal = function (i) {
+                            return typeof i === 'string' ?
+                                i.replace(/[\$,]/g, '') * 1 :
+                                typeof i === 'number' ?
+                                    i : 0;
+                        };
+
+                        // Total over all pages
+                        totalColumn1 = api
+                            .column(1)
+                            .data()
+                            .reduce(function (a, b) {
+                                return intVal(a) + intVal(b);
+                            }, 0);
+                        totalColumn2 = api
+                            .column(2)
+                            .data()
+                            .reduce(function (a, b) {
+                                return intVal(a) + intVal(b);
+                            }, 0);
+                        totalColumn3 = api
+                            .column(3)
+                            .data()
+                            .reduce(function (a, b) {
+                                return intVal(a) + intVal(b);
+                            }, 0);
+                        totalColumn4 = api
+                            .column(4)
+                            .data()
+                            .reduce(function (a, b) {
+                                return intVal(a) + intVal(b);
+                            }, 0);
+                        totalColumn5 = api
+                            .column(5)
+                            .data()
+                            .reduce(function (a, b) {
+                                return totalIn = totalColumn1 + totalColumn2 + totalColumn3 + totalColumn4;
+                            }, 0);
+
+                        // Update footer
+                        $(api.column(1).footer()).html(
+                            numberWithCommas(totalColumn1.toFixed(2))
+                        );
+                        $(api.column(2).footer()).html(
+                            numberWithCommas(totalColumn2.toFixed(2))
+                        );
+                        $(api.column(3).footer()).html(
+                            numberWithCommas(totalColumn3.toFixed(2))
+                        );
+                        $(api.column(4).footer()).html(
+                            numberWithCommas(totalColumn4.toFixed(2))
+                        );
+                        $(api.column(5).footer()).html(
+                            numberWithCommas(totalColumn5.toFixed(2))
+                        );
+
+                        //get ค่ารวม จาก Column รวมทั้งหมดไปแสดง
+                        if (totalColumn5 != 0) {
+                            InDuedateTotal = totalIn.toFixed(2);
+                        } else {
+                            InDuedateTotal = 0.00;
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        if (textStatus === 'timeout') {
+                            alert('The request timed out. Please try again later.');
+                            swal('เกิดข้อผิดพลาด', 'The request timed out. Please try again later.', 'error');
+                        } else {
+                            swal('เกิดข้อผิดพลาด', 'An error occurred: ' + xhr.status + ' ' + xhr.statusText + '. Please try again later.', 'error');
+                        }
+                    },
+                    bLengthChange: false,
+                });
+        }
+
+        const DoLoadMonitorOverDuedate = () => {
+            $('#dtOverDuedate').show();
+            $('#dtOverDuedate').dataTable({
+                    paging: false,
+                    info: false,
+                    lengthChange: false,
+                    processing: true,
+                    serverSide: true,
+                    autoWidth: false,
+                    responsive: true,
+                    destroy: true,
+                    "order": [[0, "desc"]],
+                    searching: false,
+                    ajax: {
+                        url: '@Url.Action("GetDashboardOutstandingBalanceOverDueDateResult", "ClaimPayBack")',
+                        type: 'POST',
+                        async: false,
+                        data: function (d) {
+                            d.claimTypeId = $('#ddlClaimType').val();
+                            d.dueDateLength = $('#ddlDuedate').val()
+                            d.draw = d.draw;
+                            d.indexStart = d.start;
+                            d.pageSize = d.length;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.organizeId = $('#ddlOrganizeId').val()
+                        }
+                    },
+                columns: [
+                    { title: 'บริษัทประกัน', data: 'InsuranceCompany', className: 'h-dt-center text-left dtTextColor' },
+                    {
+                        title: 'PA',
+                        data: 'PA',
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data) {
+                            if (data == null) {
+                                data = 0
+                            }
+                            return numberWithCommas(data.toFixed(2));
+                        }
+                    },
+                    {
+                        title: 'PH',
+                        data: 'PH',
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data) {
+                            if (data == null) {
+                                data = 0
+                            }
+                            return numberWithCommas(data.toFixed(2));
+                        }
+                    },
+                    {
+                        title: 'PA30',
+                        data: 'PA30',
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data) {
+                            if (data == null) {
+                                data = 0
+                            }
+                            return numberWithCommas(data.toFixed(2));
+                        }
+                    },
+                    {
+                        title: 'โอนแยก',
+                        data: 'Compensate',
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data) {
+                            if (data == null) {
+                                data = 0
+                            }
+                            return numberWithCommas(data.toFixed(2));
+                        }
+                    },
+                    {
+                        title: 'รวม',
+                        data: null,
+                        className: "h-dt-center text-center",
+                        orderable: false,
+                        mRender: function (data, type, row) {
+                            var Total = row.PH + row.PA + row.PA30 + row.Compensate;
+                            return numberWithCommas(Total.toFixed(2));
+                        }
+                    },
+                ],
+                footerCallback: function (row, data, start, end, display) {
+                    var api = this.api(), data;
+
+                    // Remove the formatting to get integer data for summation
+                    var intVal = function (i) {
+                        return typeof i === 'string' ?
+                            i.replace(/[\$,]/g, '') * 1 :
+                            typeof i === 'number' ?
+                                i : 0;
+                    };
+
+                    // Total over all pages
+                    totalColumn1 = api
+                        .column(1)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+                    totalColumn2 = api
+                        .column(2)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+                    totalColumn3 = api
+                        .column(3)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+                    totalColumn4 = api
+                        .column(4)
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+                    totalColumn5 = api
+                        .column(5)
+                        .data()
+                        .reduce(function (a, b) {
+                            return totalOver = totalColumn1 + totalColumn2 + totalColumn3 + totalColumn4;
+                        }, 0);
+
+                    // Update footer
+                    $(api.column(1).footer()).html(
+                        numberWithCommas(totalColumn1.toFixed(2))
+                    );
+                    $(api.column(2).footer()).html(
+                        numberWithCommas(totalColumn2.toFixed(2))
+                    );
+                    $(api.column(3).footer()).html(
+                        numberWithCommas(totalColumn3.toFixed(2))
+                    );
+                    $(api.column(4).footer()).html(
+                        numberWithCommas(totalColumn4.toFixed(2))
+                    );
+                    $(api.column(5).footer()).html(
+                        numberWithCommas(totalColumn5.toFixed(2))
+                    );
+
+                    //get ค่ารวม จาก Column รวมทั้งหมดไปแสดง
+                    if (totalColumn5 != 0) {
+                        OverDuedateTotal = totalOver.toFixed(2);
+                    } else {
+                        OverDuedateTotal = 0.00;
+                    }
+
+                },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        if (textStatus === 'timeout') {
+                            alert('The request timed out. Please try again later.');
+                            swal('เกิดข้อผิดพลาด', 'The request timed out. Please try again later.', 'error');
+                        } else {
+                            swal('เกิดข้อผิดพลาด', 'An error occurred: ' + xhr.status + ' ' + xhr.statusText + '. Please try again later.', 'error');
+                        }
+                    },
+                    bLengthChange: false,
+                });
+            }
+      function GetDashboardOutStandingBalanceTotal() {
+            loadingSpinner('fadeIn', 999999);
+            $.ajax({
+                url: "@Url.Action("GetDashboardOutstandingBalanceTotal", "ClaimPayBack")",
+                type: "POST",
+                data:{
+                    claimTypeId: $('#ddlClaimType').val(),
+                    organizeId: $('#ddlOrganizeId').val()
+                },
+                success: function (response) {
+                    // assuming the response is an array of objects
+                    //ยอดคงค้างทั้งหมด
+                    if (response.AmountTotal == null) {
+                        response.AmountTotal = 0
+                    }
+                    $("#spanOutstandingBalanceTotal").html(`${numberWithCommas(response.AmountTotal.toFixed(2))} บาท`);
+
+                    //ยอดแจ้งผลการพิจารณา
+                    if (response.ConsideredAmountTotal == null) {
+                        response.ConsideredAmountTotal = 0
+                    }
+                    $("#spanConsiderResultTotal").html(`${numberWithCommas(response.ConsideredAmountTotal.toFixed(2))} บาท`);
+
+                    //ยอดที่ยังไม่ได้พิจารณา
+                    if (response.ConsiderAmountTotal == null) {
+                        response.ConsiderAmountTotal = 0
+                    }
+                    $("#spanConsiderRequestTotal").html(`${numberWithCommas(response.ConsiderAmountTotal.toFixed(2))} บาท`);
+
+                    loadingSpinner('fadeOut', 999999);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    if (textStatus === 'timeout') {
+                        alert('The request timed out. Please try again later.');
+                        swal('เกิดข้อผิดพลาด', 'The request timed out. Please try again later.', 'error');
+                    } else {
+                        swal('เกิดข้อผิดพลาด', 'An error occurred: ' + xhr.status + ' ' + xhr.statusText + '. Please try again later.', 'error');
+                    }
+                }
+            });
+        }
+
+         function ExportToExcel() {
+            loadingSpinner('fadeIn', 999999);
+            $.ajax({
+                url: "@Url.Action("ExportOutStandingBalance")",
+                type: "POST",
+                data: {
+                    claimTypeId: $('#ddlClaimType').val(),
+                    organizeId: $('#ddlOrganizeId').val()
+                },
+                success: function (response) {
+                    if (!response.isError) {
+                        window.location = "@Url.Action("ExportOutStandingBalanceDownload")";
+                        loadingSpinner('fadeOut');
+                    }
+                    else {
+                        swal('เกิดข้อผิดพลาด !', response.Msg, 'error');
+                        loadingSpinner('fadeOut');
+                    }
+                }
+            });
+        }
+
+    </script>
+}
+

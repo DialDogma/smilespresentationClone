@@ -1,0 +1,559 @@
+﻿@{
+
+    ViewBag.Title = "FundTransfer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+@*<h2>FundTransfer</h2>*@
+
+<form class="form-horizontal" action="@Url.Action("")" method="post" id="Mainform">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label>เลข บ.ส :</label>
+                            <input class="form-control" type="text" width="100" id="txtSearch1" />
+                        </div>
+                        <div class="col-md-4">
+                            <label>เลข COL :</label>
+                            <input class="form-control" type="text" width="100" id="txtSearchCOL" maxLength="12" minLength="12" />
+                        </div>
+                        <div class="col-md-4" style="padding-top: 25px;">
+                            <button class="btn btn-primary" type="button" id="btnSearch" style="width:50%">ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">รายละเอียด บ.ส</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="form-group row" style="width: 100%">
+                        <div class="col-sm-12">
+                            <table id="dtDetail" class="table table-bordered table-striped display" style="width: 100%"></table>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-3 col-sm-offset-9" style="text-align:right">
+                            <button type="button" class="btn btn-primary" id="btnmodalSave"> บันทึกรับเงิน </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade bd-example-modal-lg" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog  modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">บันทึกการรับเงิน </h5>
+                    @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>*@
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <label class="control-label">บัญชีส่วนกลาง : </label>
+                                    <label class="control-label">ยอดคงเหลือ : </label>
+                                    <label class="control-label" id="lblBalance">-</label>
+                                    <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlClaimOnLineAccount" name="ddlClaimOnLineAccount">
+                                        <option value="-1">  โปรดระบุ </option>
+                                        @foreach (var item in @ViewBag.Account)
+                                        {
+                                            <option value=@item.ClaimOnLineAccountId>  @item.AccountNo - @item.AccountName </option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-sm-4">
+
+                                    <label class="control-label">ประเภทการโอน :</label>
+                                    <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlTransferType" name="ddlTransferType">
+                                        @foreach (var item in @ViewBag.TransferType)
+                                        {
+                                            <option value=@item.TransferTypeId>  @item.TransferType </option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <label class="control-label">จำนวนเงินโอน :</label>
+                                    <input type="text" class="form-control" placeholder="จำนวนเงินโอน...." id="txtAmount" name="txtAmount">
+                                </div>
+                                <div class="col-sm-2">
+                                    <label class="control-label">วันที่โอนเงิน :</label>
+                                    <input type="text" class="form-control pull-right " name="dtpTransferDate" id="dtpTransferDate" required="required"
+                                           data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy hh:mm:ss" data-format="dd/MM/yyyy hh:mm:ss">
+                                </div>
+                                <div class="col-sm-2">
+
+                                    <label class="control-label">เวลาโอนเงิน :</label>
+                                    <input type="text" class="form-control timepicker" id="tpTransfer" name="tpTransfer">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="col-sm-4 col-sm-offset-4" style="text-align:center">
+                                    <button type="button" class="btn btn-success" id="btnSave" name="btnSave" style="width:30%"> บันทึก </button>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btnCancel" name="btnCancel" style="width:30%">ยกเลิก</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var AccCheckBox = [];
+        var sumPay = [];
+        $(function () {
+            $('form').valid();
+            //Select2
+            $('.select2').select2();
+
+            $('#dtpTransferDate').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+
+            $('#tpTransfer').timepicker({
+                timeFormat: 'HH:mm:ss',
+                showMeridian: false
+            });
+
+            $("#txtAmount").inputmask({
+                'alias': 'decimal',
+                rightAlign: false,
+                'groupSeparator': '.',
+                'autoGroup': true
+            });
+
+            //$("#txtAmount").on("keyup", function (event) {
+            //    //$(this).val($(this).val().replace(/[^\d].+/, ""));
+            //    //if ((event.which < 48 || event.which > 57)) {
+            //    //    event.preventDefault();
+            //    //}
+
+            //    event.preventDefault();
+
+            //    // format number
+            //    $(this).val(function (index, value) {
+            //        return value
+            //            //.replace(/\D/g, "")
+            //            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            //            ;
+            //    });
+
+            //});
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                if (IsValidateForSearch()) {
+
+                    GetMonitorDetail();
+                }
+            });
+
+            $('#ddlClaimOnLineAccount').change(function (e) {
+                //GetClaimOnLineAccount
+
+                GetClaimOnLineAccount($('#ddlClaimOnLineAccount').val());
+            });
+
+            $('#dtDetail').on('change', 'input[type="checkbox"]', function () {
+
+                if (this.checked) {
+                    AccCheckBox.push(this.value);
+
+                } else {
+
+                    AccCheckBox.splice(AccCheckBox.indexOf(this.value), 1);
+                }
+
+            });
+
+            $('#btnmodalSave').on('click', function (e) {
+
+                var code = $('input[type="checkbox"]').val();
+
+                if (AccCheckBox.length == 0) {
+                    swal('กรุณาเลือก ชุด บ.ส',"","warning");
+                    $('#exampleModal').modal('hide');
+                } else {
+                    $('#exampleModal').modal();
+                    GetPremiumClaimOnLineGroup(AccCheckBox);
+                }
+            });
+
+            $('#btnSave').on('click', function (e) {
+                e.preventDefault();
+                if (IsValidateForSave() != "") {
+                    alert(IsValidateForSave());
+                    return false;
+                }
+
+                else {
+                    window.swal({
+                        title: 'ยืนยันการทำรายการหรือไม่?',
+                        type: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#277020',
+                        confirmButtonText: 'ตกลง',
+                        cancelButtonText: 'ยกเลิก',
+                        closeOnConfirm: false,
+                        closeOnEsc: false,
+                        closeOnCancel: true
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+                            
+                            FundTransfer(AccCheckBox);
+                            AccCheckBox = [];
+                        }
+                    });
+                }
+
+            });
+
+            $('#btnCancel').click(function (e) {
+
+                e.preventDefault();
+                DoClear();
+
+            });
+
+        })
+
+        function DoClear() {
+            //$("#hdfClaimOnLineId").val('');
+            $("#txtAmount").val("0");
+            $('#lblBalance').text("-");
+        }
+
+        function GetClaimOnLineAccount(ClaimOnlineAccount) {
+
+            $.ajax({
+
+                type: 'GET',
+                url: '@Url.Action("GetClaimOnLineAccountById", "Premium")',
+                dataType: 'json',
+                data: { ClaimOnLineAccountId: ClaimOnlineAccount },
+                success: function (data) {
+
+                    //$('#hdUserId').val(data);
+
+                    if (data == "0") {
+                        $('#lblBalance').text("-");
+
+                    } else
+                    {
+                        $('#lblBalance').text(data);
+                    }
+
+                    //alert(data);
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail');
+                }
+
+            });
+        }
+
+        function FundTransfer(ClaimList)
+        {
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("SaveFundTransfer","Premium")',
+                data: {
+                    account: $('#ddlClaimOnLineAccount').val(),
+                    transferTypeID: $('#ddlTransferType').val(),
+                    amount: $('#txtAmount').val(),
+                    transferDate: $('#dtpTransferDate').val(),
+                    timetransfer: $('#tpTransfer').val(),
+                    claimList: ClaimList
+                },
+                success: function (response) {
+                    if (response == true) {
+                        window.swal({
+                            title: 'ทำรายการสำเร็จ',
+                            type: 'success',
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            //var win = window.open("/BankDirectDebit/AccountDetailGroup?BankDirectDebitID=" + response[1], '_blank');
+                            //win.focus();
+                            //GetReport($('#cBank').val());
+                            $('#exampleModal').modal('hide');
+                            DoClear();
+                            GetMonitorDetail();
+
+                        });
+                    } else {
+                        window.swal({
+                            title: 'เกิดข้อผิดพลาด!',
+                            type: 'error',
+                            text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+
+                        });
+                    }
+                }
+            });
+        }
+
+        function GetPremiumClaimOnLineGroup(claimList)
+        {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("GetPremiumMonitorAll", "Premium")',
+                data: {
+
+                        draw : 1,
+                        pageStart : 0,
+                        pageSize : 99999,
+                        sortField: "ClaimOnLineCode",
+                        orderType: "asc",
+                        claimHeaderGroupCode : $("#txtSearch1").val().trim(),
+                        claimOnlineCode : $("#txtSearchCOL").val().trim(),
+                        claimList: claimList
+                },
+                success: function (response) {
+
+                    $('#txtAmount').val(numberWithCommas(response));
+
+                }
+            });
+        }
+
+        function numberWithCommas(number) {
+            var parts = number.toString().split(".");
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return parts.join(".");
+        }
+
+        function GetMonitorDetail()
+        {
+            $('#dtDetail').empty();
+            var table = $('#dtDetail').DataTable({
+                 pageLength: 10,
+                 processing: true,
+                 serverSide: true,
+                 responsive: true,
+                 searching: false,
+                 destroy: true,
+                 lengthMenu: [10, 20, 35, 50 ,100],
+
+                ajax: {
+                    method: 'POST',
+                    async: false,
+                    url: '@Url.Action("GetMonitorClaimOnLineAll","Premium")',
+                    data: function (d) {
+
+                        d.draw = d.draw;
+                        d.pageStart = d.start;
+                        d.pageSize = d.length;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.claimHeaderGroupCode = $("#txtSearch1").val().trim();
+                        d.claimOnlineCode = $("#txtSearchCOL").val().trim();
+                    }
+                },
+                columns: [
+                    {
+
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        targets:   0,
+                        data: 'ClaimHeaderGroup_id',
+                        title: '<input id="chk-select-all" type="checkbox" />',
+                        render: function (data, type, row, meta) {
+
+                            var Ischecked = ""
+
+                            if (AccCheckBox.includes(data) == true) {
+                                Ischecked = "checked"
+                                //AccCheckBox.push(row.Pay);
+                            }
+
+                            return '<input type="checkbox" class="chk-row-select" ' + Ischecked + ' id="chkdtrow_' + data + '" name="chkdtrow_' + data + '" value="' + data+'" >';
+                        }
+                        ,width: "5%"
+                    },
+                    { title: 'COLCode', data: 'ClaimOnLineCode' ,width: "20%"},
+                    {
+                        searchable: false,
+                        orderable: false,
+                        className: 'dt-center',
+                        data: null,
+                        title: 'ClaimHeaderGroup_id',
+                        mRender: function (data) {
+                            //return '<a href="" onclick="GetLinkByClaimHeaderGroup(\'' + data.ClaimHeaderGroup_id , data.ProductTypeId + '\')";">'+ data.ClaimHeaderGroup_id +'</a>';
+                            return `<a href="javascript:void(0)" onclick="GetLinkByClaimHeaderGroup('${data.ClaimHeaderGroup_id}',${data.ProductTypeId})">${data.ClaimHeaderGroup_id}</a>`;
+
+                        }
+
+                    },
+                    { title: 'Pay', data: 'Pay',className: 'dt-center' },
+
+                ],
+                    select: {
+                        style:    'os',
+                        selector: 'td:first-child'
+                    },
+                    order: [[ 1, 'asc' ]]
+            });
+
+            function GetAll() {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("GetMonitorClaimOnLineAll", "Premium")',
+                data: {
+
+                        draw : 1,
+                        pageStart : 0,
+                        pageSize : 99999,
+                        sortField: "ClaimOnLineCode",
+                        orderType: "asc",
+                        claimHeaderGroupCode: $("#txtSearch1").val().trim(),
+                        claimOnlineCode: $("#txtSearchCOL").val().trim(),
+                        search: ""
+                },
+                success: function (response) {
+
+                    for (var i = 0; i < response.data.length; i++) {
+                        AccCheckBox.push(response.data[i].ClaimHeaderGroup_id);
+                    }
+                    //for (var i = 0; i <= response.data.length; ) {
+                    //    AccCheckBox.push(response.data[i].ClaimHeaderGroup_id);
+                    //    i++;
+                    //    //alert(AccCheckBox);
+                    //}
+
+                }
+            });
+            }
+
+           $('#chk-select-all').change(function (e) {
+
+                e.preventDefault();
+                var rows = table.rows({ 'search': 'applied' }).nodes();
+
+               $('input[class="chk-row-select"]', rows).prop('checked', this.checked);
+               if (this.checked == true) {
+                   AccCheckBox = [];
+                   GetAll();
+               } else {
+
+                   AccCheckBox = [];
+
+               }
+
+            });
+
+        }
+
+        function GetLinkByClaimHeaderGroup2(claimHeaderGroupId, productType) {
+            alert(claimHeaderGroupId + productType)
+        }
+
+        function GetLinkByClaimHeaderGroup(claimHeaderGroupId,productType)
+        {
+           
+            //ตั้งค่า Endorse
+            var encoded = window.btoa(claimHeaderGroupId);
+
+            var path;
+
+            //ถ้าเป็น PH PA30 PAชุมชน ให้เปิดหน้า บ.ส ใน SSS
+            if (productType == "6" || productType =="7" || productType == "8") {
+                //Link PH
+                path = '@(SmileSClaimOnLine.Properties.Settings.Default.LinkClaimHeaderGroupPH)';
+            } else {
+                //Link PA
+                path = '@(SmileSClaimOnLine.Properties.Settings.Default.LinkClaimHeaderGroupPA)';
+            }
+
+            //Go to Link
+            var win = window.open(path + encoded, '_blank');
+        }
+
+        function IsValidateForSave() {
+            var result = "";
+
+            if ($('#ddlClaimOnLineAccount').val() == "-1") {
+                result = "กรุณาเลือก บัญชีส่วนกลาง";
+                return result;
+            }
+
+            if ($("#txtAmount").val() == "") {
+                result = "กรุณากรอก จำนวนเงินโอน";
+                return result;
+            }
+
+            if ($("#txtAmount").val() == "0") {
+                result = "จำนวนเงินต้องไม่เป็น 0";
+                return result;
+            }
+
+            if ($('#dtpTransferDate').val() == "") {
+                result = "กรุณาเลือกวันที่โอนเงิน";
+                return result;
+            }
+
+            if ($('#tpTransfer').val() == "") {
+                result = "กรุณากรอกเวลาโอนเงิน";
+                return result;
+            }
+
+            return result;
+        }
+
+        function IsValidateForSearch() {
+
+            if ($('#txtSearch1').val().trim() === "" && $('#txtSearchCOL').val().trim() === "") {
+               swal("กรุณาระบุคำค้นหา","","warning");
+                return false;
+            }
+            return true;
+        }
+    </script>
+}

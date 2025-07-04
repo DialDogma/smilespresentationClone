@@ -1,0 +1,266 @@
+﻿@{
+    ViewBag.Title = "UnderwriteDashboard";
+    Layout = "~/Views/Shared/_LayoutForTopIndexPH.cshtml";
+}
+<style>
+    .table {
+        font-size: 14px;
+    }
+
+    .header {
+        margin: 15px;
+    }
+
+    .select2-container .select2-selection--single {
+        box-sizing: border-box;
+        cursor: pointer;
+        display: block;
+        height: 34px !important;
+        border-radius: 0px !important;
+        -webkit-user-select: none;
+    }
+
+    .select2 {
+        width: 100% !important;
+    }
+</style>
+<div class="form-group row">
+    <div class="col-sm-6 col-md-6">
+        <label class="control-label" for="">สาขา</label>
+        <select id="selectBranch" class="form-control select2">
+            @if (ViewBag.branchList != null)
+            {
+                <option value="-1">ทั้งหมด</option>
+                foreach (var i in ViewBag.branchList)
+                {
+                    <option value="@i.Branch_ID"> @i.BranchDetail</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="col-sm-6 col-md-6">
+        <label class="control-label" for="">งวดความคุ้มครอง</label>
+        <select id="selectStartCoverDate" class="form-control">
+            @if (ViewBag.PeriodList != null)
+            {
+                foreach (var i in ViewBag.PeriodList)
+                {
+                    <option value="@i.Value.ToString("yyyy-MM-dd")" > @i.Display</option>
+                }
+            }
+        </select>
+    </div>
+</div>
+<div class="form-group row">
+    <div class="col-12 col-sm-6 col-md-4">
+        <div class="info-box">
+            <span class="info-box-icon elevation-1" style="background-color: #00C0EF "><i class="fa fa-file-text" style="color:aliceblue"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">คิวงานมอบบัตรทั้งหมด</span>
+                <div id="txtQueueAll" style="font-size:20px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4">
+        <div class="info-box">
+            <span class="info-box-icon bg-info elevation-1" style="background-color: #F39C12 "><i class="fa fa-clock-o" style="color:aliceblue"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">ยังไม่ได้มอบบัตร</span>
+                <div id="txtQueueNotActionYet" style="font-size:20px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4">
+        <div class="info-box">
+            <span class="info-box-icon bg-info elevation-1" style="background-color: #00A65A "><i class="fa fa-calendar-check-o" style="color:aliceblue"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">คิวงานมอบบัตรแล้ว</span>
+                <div id="txtQueueComplete" style="font-size:20px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4">
+        <div class="info-box">
+            <span class="info-box-icon bg-info elevation-1" style="background-color: #587ea3 "><i class="fa fa-warning" style="color:aliceblue"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">ยกเลิกก่อน DCR</span>
+                <div id="txtQueueCancelBeforeDCR" style="font-size:20px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4">
+        <div class="info-box">
+            <span class="info-box-icon bg-info elevation-1" style="background-color: #DD4B39 "><i class="fa fa-times" style="color:aliceblue"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">ยังไม่ได้ดำเนินการ</span>
+                <div id="txtQueueNotAction" style="font-size:20px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* DT form *@
+<div id="dt_form">
+    <div class="box box-info">
+        <div class="box-body">
+            <label class="control-label" for="" style="padding-bottom:10px">รายละเอียดคิวงาน</label>
+            <div class="row">
+                <div class="col-sm-12">
+                    <table id="pivotQueueFollowUpdt" name="pivotQueueFollowUpdt" class="table table-bordered table-striped display responsive" style="width: 100%">
+                        <tbody>
+                            <tr style="text-align: center"><td>ไม่พบข้อมูล</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@* end form *@
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $('.select2').select2();
+
+            //load dt
+            $(window).load(function () {
+                GetPivotQueueStatus($('#selectStartCoverDate').val(), $('#selectBranch').val());
+                GetPivotQueueFollowUp_Dt();
+            });
+
+            //change
+            $("#selectStartCoverDate").on('change', function (e) {
+                e.preventDefault();
+                GetPivotQueueStatus($(this).val(), $('#selectBranch').val());
+                GetPivotQueueFollowUp_Dt();
+            })
+
+            $("#selectBranch").on('change', function (e) {
+                e.preventDefault();
+                GetPivotQueueStatus($('#selectStartCoverDate').val(), $(this).val());
+                GetPivotQueueFollowUp_Dt();
+            })
+
+        });
+        const GetPivotQueueStatus = (dcr, branchId) => {
+            $.get("@Url.Action("GetPivotQueueStatus")", { dcr: dcr, branchId: branchId }, function (data) {
+                if (data != 0) {
+                    $("#txtQueueAll").text(data.ALL);
+                    $("#txtQueueComplete").text(data.QueueStatusId3 + data.QueueStatusId4 + data.QueueStatusId5 + data.QueueStatusId6);
+                    $("#txtQueueNotAction").text(data.QueueStatusId8);
+                    $("#txtQueueNotActionYet").text(data.QueueStatusId2);
+                    $("#txtQueueCancelBeforeDCR").text(data.QueueStatusId7);
+                } else {
+
+                    $("#txtQueueAll").text("0");
+                    $("#txtQueueComplete").text("0");
+                    $("#txtQueueNotAction").text("0");
+                    $("#txtQueueNotActionYet").text("0");
+                    $("#txtQueueCancelBeforeDCR").text("0");
+                }
+            })
+        }
+
+        const GetPivotQueueFollowUp_Dt = () => {
+            $('#pivotQueueFollowUpdt').empty();
+            var tbl = $('#pivotQueueFollowUpdt').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetPivotQueueFollowUp_dt")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.startCoverDate = $('#selectStartCoverDate').val();
+                        d.payerBranchId = $('#selectBranch').val();
+                        d.searchDetail = d.search.value;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'ลำดับ',
+                        data: null,
+                        orderable: false,
+                        className: "th-center td-center"
+                    },
+                    {
+                        title: 'สาขา',
+                        data: 'BranchName'
+                    },
+                    {
+                        title: 'ชื่อ - สกุลผู้มอบบัตร',
+                        width: "160px",
+                        data: 'PersonName'
+                    },
+                    {
+                        title: 'เบอร์โทรศัพท์',
+                        data: 'PhoneNo'
+                    },
+                    {
+                        title: 'คิวงานทั้งหมด',
+                        data: 'QueueStatusAll',
+                        @*render: function (data) {
+                            return '<label class="control-label" style="color:#00a65a">' + data + '</label>'
+                        }*@
+                    },
+                    {
+                        title: 'ยังไม่ได้มอบบัตร',
+                        data: 'QueueStatusId2',
+                        render: function (data) {
+                            return '<label class="control-label" style="color:#f39c12">' + data + '</label>'
+                        }
+                    },
+                    {
+                        title: 'มอบบัตรแล้ว',
+                        data: null,
+                        render: function (data) {
+                            var sumdata = data.QueueStatusId3 + data.QueueStatusId4 + data.QueueStatusId5 + data.QueueStatusId6;
+                            return '<label class="control-label" style="color:#00a65a">' + sumdata + '</label>'
+                        }
+                    },
+
+                    {
+                        title: 'ยกเลิกก่อน DCR',
+                        data: 'QueueStatusId7'
+                    },
+                    {
+                        title: 'ยังไม่ได้ดำเนินการ',
+                        data: 'QueueStatusId8'
+                    },
+
+                ]
+            });
+            tbl.on('draw.dt', function () {
+                var PageInfo = tbl.page.info();
+                tbl.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                });
+            });
+            window.onresize = function () {
+                tbl.columns.adjust().responsive.recalc();
+            };
+        }
+
+           const LoadDetail = (qId) => {
+            var encoded = btoa(qId);
+            window.open(`@Url.Action("UnderwriteIndexForUnderwriteOverdue", "Underwrite")?queueId=`+encoded,'_blank');
+        }
+    </script>
+}

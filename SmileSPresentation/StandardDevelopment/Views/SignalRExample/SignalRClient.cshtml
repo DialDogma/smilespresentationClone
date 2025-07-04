@@ -1,0 +1,79 @@
+﻿@{
+    ViewBag.Title = "SignalRClient";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>SignalRClient</h2>
+
+<div class="row">
+    <label for="name-public">name</label>
+    <input type="text" name="name" id="name" value="" />
+    <label for="notice-public">notice</label>
+    <input type="text" name="notice" id="notice" value="" />
+    <button id="send-public">send notice public - javascript</button>
+    <button id="send-public-code-behind" onclick="sendCodeBehindAll()">send notice public - code behind</button>
+</div>
+
+<div>
+    <label for="groupname">groupname</label>
+    <input type="text" name="groupname" id="groupname" value="" />
+    <button id="send-group">send notice group - javascript</button>
+    <button id="send-group-code-behind" onclick="sendCodeBehindGroup()">send notice group - code behind</button>
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script>
+        var chat;
+        $(document).ready(function () {
+            debugger;
+            // Reference the auto-generated proxy for the hub.
+            chat = $.connection.chatHub;
+
+            //Start Connection
+            $.connection.hub.start().done(function () {
+                debugger;
+
+                //Send Public
+                $('#send-public').click(function (e) {
+                    e.preventDefault();
+
+                    chat.server.sendPublicMessage($('#name').val(), $('#notice').val());
+
+                });
+
+                //Send To Group
+                $('#send-group').click(function (e) {
+                    e.preventDefault();
+                    chat.server.sendGroupMessage($('#name').val(), $('#notice').val(), $('#groupname').val());
+                });
+
+            });
+        });
+
+        function sendCodeBehindAll() {
+            /*fn submit data*/
+                $.post('@Url.Action("SendFromCodeBehind_All")',
+                    {
+                        name:$('#name').val(),
+                        message: $('#notice').val()
+                    })
+                    .done(() => {
+                        //show other result
+                    });
+        }
+
+        function sendCodeBehindGroup() {
+            /*fn submit data*/
+                $.post('@Url.Action("SendFromCodeBehind_Group")',
+                    {
+                        name: $('#name').val(),
+                        groupName: $('#groupname').val(),
+                        message: $('#notice').val()
+                    })
+                    .done(() => {
+                        //show other result
+                    });
+        }
+    </script>
+}

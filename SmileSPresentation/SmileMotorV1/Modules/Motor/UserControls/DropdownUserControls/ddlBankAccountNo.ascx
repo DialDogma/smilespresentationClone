@@ -1,0 +1,2 @@
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="ddlBankAccountNo.ascx.cs" Inherits="SmileMotorV1.Modules.Motor.UserControls.DropdownUserControls.ddlBankAccountNo" %>
+<asp:DropDownList ID="ddlBankAccountNo1" runat="server"></asp:DropDownList>

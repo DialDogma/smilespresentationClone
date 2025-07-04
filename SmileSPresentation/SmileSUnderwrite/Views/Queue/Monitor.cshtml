@@ -1,0 +1,478 @@
+﻿@{
+    ViewBag.Title = "Monitor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Header = "Monitor";
+}
+
+<div class="row">
+    <div class="col-sm-12">
+
+        <form class="form-horizontal" id="form1" action="" enctype="multipart/form-data">
+
+            @* Head *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหา</h3>
+                </div>
+
+                <div class="box-body">
+                    @* ประเภทคิว *@
+                    <div class="form-group">
+                        <div class="col-sm-4">
+                            <label for="ddlQueueType">ประเภทคิว</label>
+                            <select class="form-control select2" name="ddlQueueType" id="ddlQueueType" style="width: 100%;" onchange="ddlQueueTypeOnChange()">
+                                <option value="" selected disabled>---โปรดระบุ---</option>
+                                <option value="-1" disabled>ทั้งหมด</option>
+                                @foreach (var item in ViewBag.QueueTypes)
+                                {
+                                    <option value="@item.QueueTypeId">@item.QueueTypeDetail</option>
+                                }
+                            </select>
+                        </div>
+
+                        @* ปีการศึกษา *@
+
+                        <div class="col-sm-4" id="div-ddlYear">
+                            <label for="lblQueueGroup" class="control-label">ปีการศึกษา :</label>
+                            <select class="form-control select2" name="ddlYear" id="ddlYear" style="width: 100%;">
+                                @foreach (var item in ViewBag.PaYear)
+                                {
+                                    <option value="@item.Detail">@item.Detail</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="clearfix visable-sm-block"></div>
+                    </div>
+
+                    @* วันที่ / ค้นหา *@
+                    <div class="form-group">
+                        @* วันที่ *@
+                        <div class="col-sm-4">
+                            <label>วันที่:</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+
+                                <input type="text" class="form-control pull-right datepicker" name="dtpDateFrom" id="dtpDateFrom" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy" required="required">
+                            </div>
+                        </div>
+                        @* ถึง *@
+                        <div class="col-sm-4">
+                            <label>ถึงวันที่:</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-right datepicker" name="dtpDateTo" id="dtpDateTo" data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy" required="required">
+                            </div>
+                        </div>
+                        @* ค้นหา *@
+                        <div class="col-sm-2" style="padding-top:5px">
+                            <label></label>
+                            <button type="submit" class="btn btn-block btn-primary" id="btnSearch" name="btnSearch">ค้นหา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* chart *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">สถานะคิวงาน</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group row" id="chartform">
+                        <div class="col-sm-12 col-md-12">
+                            <div id="chart"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row" id="NoDataForm">
+                        <div class="col-sm-12 col-md-12">
+                            <h4>------No Data------</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* Detail *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียด</h3>
+                </div>
+
+                <div class="box-body">
+
+                    <div class="form-group" style="padding-left: 11px; padding-right: 13px;">
+
+                        <table id="dtMonitor" class="table table-bordered table-striped" style="width:100%"></table>
+                    </div>
+                </div>
+            </div>
+
+            @* Work Detail *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">รายละเอียดงาน</h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="form-group" style="padding-left: 11px; padding-right: 13px;">
+
+                        <!-- Nav tabs -->
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#NewQueue" aria-controls="NewQueue" role="tab" data-toggle="tab">คิวงานใหม่</a></li>
+                            <li role="presentation"><a href="#WaitQueue" aria-controls="WaitQueue" role="tab" data-toggle="tab">กำลังดำเนินการ</a></li>
+                        </ul>
+
+                        <!-- Tab panes -->
+                        <div class="tab-content">
+
+                            @* คิวงานใหม่ *@
+                            <div role="tabpanel" class="tab-pane  active" id="NewQueue" style="padding-top: 7px;">
+                                <table id="dtNewQueue" class="table table-bordered table-striped" style="width:100%"></table>
+                            </div>
+
+                            @* รอดำเนินการ *@
+                            <div role="tabpanel" class="tab-pane" id="WaitQueue" style="padding-top: 7px;">
+                                <table id="dtWaitQueue" class="table table-bordered table-striped" style="width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* โยกคิวงาน *@
+            <div class="col-sm-12">
+                @*<div class="col-sm-offset-10">
+                    </div>*@
+                <div class="col-sm-2 col-sm-offset-10">
+                    <div style="text-align:right">
+                        <a href="@Url.Action("MoveQueue")" class="btn btn-block btn-primary">โยกคิวงาน</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">รายละเอียด</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+
+                <table id="dtDetail" class="table table-bordered table-striped dataTable" style="width:100%"></table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                @*<button type="submit" class="btn btn-primary">Submit</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript{
+
+    <script>
+        let resultArray;
+        $(function () {
+
+            $('.select2').select2();
+
+            var d1 = new Date();
+            $('#dtpDateFrom').datepicker("update", new Date(d1.getFullYear(), 0, 2));
+            $('#dtpDateTo').datepicker("update", new Date(d1.getFullYear(), 11, 32));
+
+            GetDatatableMonitor();
+            //Show GetDatatableDetail
+            GetDatatableMonitorDetail(2, 'dtNewQueue');  //คิวงานใหม่
+
+            GetDatatableMonitorDetail(3, 'dtWaitQueue');  //รอดำเนินการ
+
+            GetResultJsonForChart();
+            $('#chartform').hide();
+            setTimeout(() => {
+                RenderChart();
+            }, 1000);
+
+            $("#form1").validate();
+
+            $("#btnSearch").click(function (e) {
+                e.preventDefault();
+                let ddlQueueType = $("#ddlQueueType").val();
+                //required ประเภทคีว
+                if (ddlQueueType == "" || ddlQueueType == null) {
+                    swal("กรุณาตรวจสอบข้อมูล", "โปรดระบุประเภทคิว", "warning")
+                } else {
+                    if ($("#form1").valid() == true) {
+                        GetResultJsonForChart();
+                        $('#chartform').hide();
+                        setTimeout(() => {
+                            RenderChart();
+                        }, 1000);
+                        //Show GetDatatableMonitor
+                        GetDatatableMonitor();
+                        //Show GetDatatableDetail
+                        GetDatatableMonitorDetail(2, 'dtNewQueue');  //คิวงานใหม่
+
+                        GetDatatableMonitorDetail(3, 'dtWaitQueue');  //รอดำเนินการ
+                    }
+                };
+            });
+        });
+
+        //onChange ประเภทคีวงาน
+        const ddlQueueTypeOnChange = () => {
+            let ddlQueueType = $("#ddlQueueType").val();
+
+            //ประเภทคีว เป็น โรงเรียนเก่าไม่ต่อสัญญา hidden ปีการศึกษา
+            if (ddlQueueType == 3) {
+                $('#div-ddlYear').attr('hidden','hidden');
+            } else {
+                $('#div-ddlYear').removeAttr('hidden', 'hidden');
+            }
+        }
+
+        function GetDatatableMonitor() {
+
+            $('#dtMonitor').empty();
+            let ddlYear = $('#ddlYear').val(); //ปีการศึกษา
+            let ddlQueueType = $("#ddlQueueType").val(); //ประเภทคีว
+
+             //ไม่ได้เลือก ประเภทคีว ไม่ยิง
+            if (ddlQueueType != "" || ddlQueueType != null) {
+                if (ddlQueueType == "3") {
+                    ddlYear = "";
+                };
+                var table = $('#dtMonitor').DataTable({
+                    //pageLength: 10,
+                    processing: true,
+                    serverSide: true,
+                    destroy: true,
+                    searching: false,
+                    lengthChange: false,
+                    responsive: true,
+                    paging: false,
+                    ajax: {
+                        url: '@Url.Action("GetDatatableMonitor")',
+                        type: 'POST',
+                        data: function (d) {
+                            d.draw = d.draw;
+                            d.queueType = $("#ddlQueueType").val();
+                            d.dFrom = $("#dtpDateFrom").val();
+                            d.dTo = $("#dtpDateTo").val();
+                            d.yearData = ddlYear;
+                        }
+                    },
+                    columns: [
+
+                        { title: 'รายชื่อ', data: 'AssignToUserName' },
+                        { title: 'จำนวนงานทั้งหมด', data: 'ALL' },
+                        { title: 'จำนวนคิวงานใหม่', data: 'QueueStatusId2' },
+                        { title: 'จำนวนงานที่รอดำเนินการ', data: 'QueueStatusId3' },
+                        //{ title: 'คิวงานที่มีประเด็น',data:null},
+                        { title: 'จำนวนงานที่ปิดคิวงาน', data: 'QueueStatusId4' },
+                        { title: 'จำนวนงานที่ยกเลิกคิวงาน', data: 'QueueStatusId5' }
+                        //{ title: 'test', render: function () { return '<input type="checkbox" disabled>'; }}
+
+                    ]
+                });
+            }
+        }
+
+        function GetDatatableMonitorDetail(status, dt) {
+
+            var table = '#' + dt;
+            $(table).empty();
+            let ddlYear = $('#ddlYear').val(); //ปีการศึกษา
+            let ddlQueueType = $("#ddlQueueType").val(); //ประเภทคีว
+             //ไม่ได้เลือก ประเภทคีว ไม่ยิง
+            if (ddlQueueType != "" && ddlQueueType != null) {
+                if (ddlQueueType == "3") {
+                    ddlYear = "";
+                };
+                $(table).DataTable({
+                    pageLength: 10,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    destroy: true,
+                    order: [[4, "asc"]], //set order default
+                    ajax: {
+                        url: '@Url.Action("GetDatatableMonitorDetail")',
+                        data: function (d) {
+                            d.draw = d.draw;
+                            d.pageSize = d.length;
+                            d.pageStart = d.start;
+                            d.sortField = d.columns[d.order[0].column].data;
+                            d.orderType = d.order[0].dir;
+                            d.search = d.search.value;
+                            d.queueType = $("#ddlQueueType").val();
+                            d.dFrom = $("#dtpDateFrom").val();
+                            d.dTo = $("#dtpDateTo").val();
+                            d.yearData = ddlYear;
+                            d.status = status;
+                        }
+                    },
+                    columns: [
+
+                        { title: 'ชื่อโรงเรียน', data: 'Detail1' },
+                        { title: 'ที่อยู่', data: 'Detail2' },
+                        { title: 'ประเภทคิว', data: 'QueueTypeDetail' },
+                        { title: 'ผู้รับผิดชอบ', data: 'AssignToName' },
+                        {
+                            title: 'วันที่รับคิวงาน',
+                            data: 'CreatedDate',
+                            className: 'dt-center',
+                            render: function (data) {
+                                return moment(data).format('DD/MM/YYYY');
+                            }
+                        },
+                        {
+                            searchable: false,
+                            orderable: false,
+                            className: 'dt-center',
+                            //data: 'QueueId',
+
+                            data: null,
+                            title: 'จำนวนวัน',
+                            mRender: function (t) {
+                                var underwrite;
+                                if (t.UnderwriteId == null) {
+                                    underwrite = 0;
+                                } else {
+                                    underwrite = t.UnderwriteId;
+                                }
+                                return '<a href= "" onclick="GetDetail(' + underwrite + ');return false;"  data-toggle="modal" data-target="#exampleModal" class="btn btn-info" style="margin: 2px;" >' + t.DayCount + '</a>';
+
+                            }
+                        }
+
+                    ]
+                });
+            }
+        }
+
+        function GetDetail(id) {
+            $('#dtDetail').empty()
+            var table = $('#dtDetail').DataTable({
+                //pageLength: 10,
+                searching: false,
+                lengthChange: false,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                responsive: true,
+                paging: false,
+                ajax: {
+                    url: '@Url.Action("GetDatatableDetail")',
+                    data: function (d) {
+                        d.underwriteId = id;
+
+                    }
+                },
+                columns: [
+
+                    {
+                        title: 'วันที่', data: 'CreatedDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            return moment(data).format('DD/MM/YYYY');
+                        }
+                    },
+                    { title: 'ผู้รับผิดชอบ', data: 'CreatedByName' },
+                    { title: 'สถานะ', data: 'CallStatus' }
+
+                    //{ title: 'test', render: function () { return '<input type="checkbox" disabled>'; }}
+
+                ]
+            });
+        }
+
+        //TODO: get result for chart by string to array
+        const GetResultJsonForChart = () => {
+            let ddlQueueType = $("#ddlQueueType").val(); //ประเภทคีว
+            let ddlYear = $('#ddlYear').val(); //ปีการศึกษา
+            //ไม่ได้เลือก ประเภทคีว ไม่ยิง
+            if (ddlQueueType != "" && ddlQueueType != null) {
+                if (ddlQueueType == "3") {
+                    ddlYear = "";
+                };
+                $.get('@Url.Action("GetChartData","Queue")',
+                    {
+                        dFrom: $("#dtpDateFrom").val(),
+                        dTo: $("#dtpDateTo").val(),
+                        queueType: $("#ddlQueueType").val(), //ประเภทคีว
+                        yearData: ddlYear //ปีการศึกษา
+                    }, (data) => {
+                        if (data != null) {
+                            var result = data.QueueStatusChart;
+                            var resultString = result.split(',');
+                            for (var i = 0; i < resultString.length; i++) {
+                                resultString[i] = +resultString[i];
+                            }
+                            resultArray = resultString;
+                            $('#chartform').show();
+                            $('#NoDataForm').hide();
+
+                        } else {
+                            resultArray = null;
+                            $('#chartform').hide();
+                            $('#NoDataForm').show();
+                        }
+                    }).fail(function () {
+                    });
+            }
+        }
+
+        const RenderChart = () => {
+            $('#chart').empty();
+            var options = {
+                chart: {
+                    type: 'donut',
+                    width: "100%",
+                    height: 380
+                },
+                labels: ['คิวงานใหม่', 'คิวงานรอดำเนินการ', 'คิวงานที่ปิดคิวงาน', 'คิวงานที่ยกเลิกคิว'],
+                series: resultArray,
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            labels: {
+                                show: true,
+                                name: {
+                                    show: true,
+
+                                },
+                                value: {
+                                    show: true,
+                                },
+                                total: {
+                                    show: true,
+                                }
+                            }
+                        }
+                    }
+                },
+                responsive: [
+                    {
+                        breakpoint: 1000,
+                        options: {
+                            legend: {
+                                position: "bottom"
+                            }
+                        }
+                    }
+                ]
+            }
+            var chart = new ApexCharts(document.querySelector("#chart"), options);
+            chart.render();
+        }
+    </script>
+
+}

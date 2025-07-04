@@ -1,0 +1,416 @@
+﻿@{
+    //ViewBag.Title = "Assign";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal" id="form1" action="" method="post" enctype="multipart/form-data">
+
+    <div class="row">
+        <div class="col-sm-6">
+            @* กระจายคิว *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">กระจายคิว</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <label for="select_QueueType" class="control-label">ประเภทคิว</label>
+                            <select name="select_QueueType" id="select_QueueType" class="form-control" required="required">
+                                <option value="-1">----ทั้งหมด----</option>
+                                @foreach(var itm in ViewBag.QueueType)
+                                {
+                                    <option value="@itm.QueueTypeId">@itm.QueueType</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-12" style="text-align: center">
+                            คิวงานคงเหลือที่ยังไม่ได้กระจาย<label id="lblQueueUnAssign" class="control-label" style="color: red"> @ViewBag.QueueUnAssign.ToString("#,##0") รายการ</label>
+                        </div>
+                        <div class="col-sm-12">
+                            <label for="txtQueueAmount" class="control-label">จำนวนคิวงาน</label>
+                            <input type="number" class="form-control" id="txtQueueAmount" name="txtQueueAmount" placeholder="จำนวนคิวงาน" required="required" step="1" pattern="^\d+(?:\.\d{1,2})?$">
+                        </div>
+                        <div class="col-sm-12">
+                            <label for="txtSearchEmp" class="control-label">Assign To</label>
+                            <select name="txtSearchEmp" id="txtSearchEmp" class="form-control js-search-person" required="required"></select>
+                        </div>
+                        <div class="col-sm-12" style="padding-top: 27px;">
+                            <br />
+                        </div>
+                        <div class="col-sm-12" style="padding-top: 27px;">
+                            <br />
+                        </div>
+                        <div class="col-sm-12" style="padding-top: 27px;">
+                            <button type="button" class="btn btn-block btn-primary" id="btnSave" name="btnSave">ตกลง</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            @* สรุป *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">กราฟแสดงข้อมูล</h3>
+                </div>
+                <div class="box-body">
+
+                    <div class="form-group">
+
+                        <div class="col-sm-12">
+                            <div>
+                                จำนวนคิวทั้งหมด : <label for="xxx" class="control-label" id="lblQueueCount" name="lblQueueCount">@ViewBag.QueueAll.ToString("#,##0")</label> รายการ
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <div style="width: 380px; height: 380px">
+                            <canvas id="chartjs-4" class="chartjs" width="250" height="200" style="display: block; width: 250px; height: 200px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-12">
+
+            <input id="hdfQueueAll" type="hidden" value="@ViewBag.QueueAll" />
+            <input id="hdfNewQueue" type="hidden" value="@ViewBag.NewQueue" />
+            <input id="hdfWaitQueue" type="hidden" value="@ViewBag.WaitQueue" />
+            <input id="hdfClosedQueue" type="hidden" value="@ViewBag.ClosedQueue" />
+
+            @* สรุปทั้งหมด *@
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">สรุปคิวงานส่วนกลางทั้งหมด</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group">
+                        <div class="col-sm-12" style="width: 100%">
+                            <table id="dtQueueDetail" class="table table-bordered table-striped" style="width: 100%"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <input id="hdfUserId" type="hidden" />
+        </div>
+    </div>
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        var donutChartResult;
+
+        $(function () {
+            $('.select2').select2();
+
+            //select queuetype cahnge event
+            $('#select_QueueType').change(function () {
+                debugger;
+                GetDatatableQueueDetail();
+                if (donutChartResult) {
+                    donutChartResult.destroy();
+                }
+                GetChartWithData($('#select_QueueType').val());
+                GetUnAssignQueue($('#select_QueueType').val());
+            });
+
+            $('.js-search-person').select2({
+                //debugger();
+                ajax: {
+                    type: 'GET',
+                    url: '@Url.Action("GetEmployee","CustomerBase")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,// search term
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, search) {
+                        //params.page = params.page || 1;
+                        return {
+                            results: $.map(data, function (item) {
+                                return {
+                                    id: item.EmployeeCode,
+                                    text: item.EmployeeCode + ' - ' + item.FirstName + ' ' + item.LastName
+                                }
+                            })
+                        };
+                    },
+                    cache: true
+                },
+                templateResult: function (item) {
+                    if (item.loading) return item.text;
+                    return item.text;
+                },
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 4,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 4 ตัวอักษร'; } }
+            });
+
+            GetChart($('#hdfNewQueue').val(),$('#hdfWaitQueue').val(),$('#hdfClosedQueue').val());
+            GetDatatableQueueDetail();
+
+            $("#txtSearchEmp").change(function (e) {
+                //alert($("#txtSearchEmp").val());
+                GetUserId($("#txtSearchEmp").val());
+                //alert($('#hdfUserId').val());
+            });
+
+            $("#btnSave").click(function (e) {
+                e.preventDefault();
+                if (IsvalidateForAssign() != '') {
+                    alert(IsvalidateForAssign());
+                    return false;
+                } else {
+                    window.swal({
+                        title: 'ยืนยันการทำรายการหรือไม่?',
+                        type: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#277020',
+                        confirmButtonText: 'ตกลง',
+                        cancelButtonText: 'ยกเลิก',
+                        closeOnConfirm: false,
+                        closeOnEsc: false,
+                        closeOnCancel: true
+                    }, function () {
+                        debugger;
+                        AssignQueue($('#txtQueueAmount').val(), $('#hdfUserId').val());
+                    });
+                }
+                return false;
+            });
+
+        });
+
+        function IsvalidateForAssign() {
+            var result = '';
+
+            if ($('#txtQueueAmount').val() == "") {
+                result = 'กรุณากรอกจำนวนคิวงาน';
+                return result;
+            }
+
+            //if (!isNumber($('#txtQueueAmount').val())) {
+            //    result = 'รบกวนตรวจสอบจำนวนคิวงาน';
+            //    return result;
+            //}
+
+            if ($('#txtQueueAmount').val() <= 0) {
+                result = 'รบกวนตรวจสอบจำนวนคิวงาน';
+                return result;
+            }
+
+            if ($("#txtSearchEmp").val() == null) {
+                result = 'กรุณาเลือกพนักงาน';
+                return result;
+            }
+
+            return result;
+
+        }
+
+        function AssignQueue(amountQueue, userId) {
+            debugger;
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("AssignQueue", "CustomerBase")',
+                data: {
+                    amountQueue: amountQueue,
+                    assignUser: userId,
+                    queueType: $('#select_QueueType').val()
+                },
+                success: function (response) {
+                    if (response == true) {
+                        window.swal({
+                            title: 'ทำรายการสำเร็จ',
+                            type: 'success',
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            //GetDatatableQueue();
+                            //GetDatatableQueueEmployee();
+                            window.location = "@Url.Action("Assign","CustomerBase")";
+                        });
+                    } else {
+                        window.swal({
+                            title: 'เกิดข้อผิดพลาด!',
+                            type: 'error',
+                            text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            window.location = "@Url.Action("InternalServerError","Error")";
+                        });
+                    }
+                }
+            });
+        }
+
+        function GetUserId(empCode) {
+            debugger;
+            $.ajax({
+
+                type: 'GET',
+                url: '@Url.Action("GetUserIdByEmployeeCode","CustomerBase")',
+                dataType: 'json',
+                data: { empCode: empCode },
+                success: function (data) {
+                    debugger;
+                    $('#hdfUserId').val(data);
+                    //alert(data);
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail');
+                }
+
+            });
+        }
+
+        function GetChartWithData(queueType) {
+             $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetDataForChartResult")',
+                data: {
+                    queueType: queueType
+                },
+                success: function (data) {
+                    GetChart(data.คิวงานใหม่, data.รอดำเนินการ, data.ปิดคิวงาน);
+                    debugger;
+                    $('#lblQueueCount').text(data.ALL);
+                }, error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail');
+                }
+            });
+        }
+
+        function GetUnAssignQueue(queueType) {
+             $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetUnAssignQueueResult")',
+                data: {
+                    queueType: queueType
+                },
+                 success: function (data) {
+
+                          //$('#lblQueueCount').text(data);
+                          $('#lblQueueUnAssign').text(data);
+
+                }, error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail');
+                }
+            });
+        }
+
+        function GetChart(newQueue, waitQueue, closedQueue) {
+
+            donutChartResult = new Chart(document.getElementById("chartjs-4"),
+                {
+                    type: 'pie',
+                    data: {
+                        "labels": ["คิวงานคงเหลือ", "อยู่ระหว่างดำเนินการ", "ปิดแล้ว"],
+                        "datasets": [{
+                            "label": "My First Dataset",
+                            "data": [newQueue, waitQueue, closedQueue],
+                            "backgroundColor": ["#3497C9", "#F74343", "#18A257"]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        tooltips: {
+                            callbacks: {
+                                label: function (tooltipItem, data) {
+                                    var value = data.datasets[0].data[tooltipItem.index];
+                                    value = value.toString();
+                                    value = value.split(/(?=(?:...)*$)/);
+                                    value = value.join(',');
+                                    return value;
+                                }
+                            }
+                        }
+                    }
+                }
+
+            );
+        }
+
+        function GetDatatableQueueDetail() {
+            $('#dtQueueDetail').empty();
+            var table = $('#dtQueueDetail').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                responsive: true,
+                ajax: {
+                    method: 'POST',
+                    url: '@Url.Action("GetDatatableQueue","CustomerBase")',
+                    data: function (d) {
+                        d.queueType = $('#select_QueueType').val();
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    { title: 'ประเภทคิว', data: 'QueueType' },
+                    { title: 'สาขา', data: 'Branch' },
+                    { title: 'เจ้าของงาน', data: 'AssignToName' },
+                    {
+                        title: 'คิวงานทั้งหมด', data: 'ALL',
+                        className: 'dt-right',
+                        render: $.fn.dataTable.render.number(',')
+                    },
+                    {
+                        title: 'รอดำเนินการ', data: 'รอดำเนินการ',
+                        className: 'dt-right',
+                        render: $.fn.dataTable.render.number(',')
+                    },
+                    {
+                        title: 'คิวงานที่ปิดแล้ว', data: 'ปิดคิวงาน',
+                        className: 'dt-right',
+                        render: $.fn.dataTable.render.number(',')
+                    },
+                     {
+                         title: 'วันที่ดำเนินการล่าสุด', data: 'LastUpdate',
+                         className: 'dt-center',
+                         render: function (data) {
+                             return moment(data).format('DD/MM/YYYY');
+                         }
+                     }
+
+                ]
+            });
+        }
+
+        function SearchEmp(empCode) {
+            debugger;
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetEmployee")',
+                data: {
+                    empCode: empCode
+                },
+                success: function (data) {
+                    $('#txtSearchEmp').val(data.EmployeeCode + ' ' + data.FirstName + ' ' + data.LastName);
+                    //$('#hdfUserId').val(data.UserId);
+                }, error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail');
+                }
+            });
+        }
+    </script>
+}

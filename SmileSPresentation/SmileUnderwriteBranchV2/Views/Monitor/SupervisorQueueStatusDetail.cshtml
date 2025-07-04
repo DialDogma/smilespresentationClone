@@ -1,0 +1,166 @@
+﻿@{
+    ViewBag.Title = "สถานะคิวงานตามพื้นที่ ผอ.บล.";
+    Layout = "~/Views/Shared/_LayoutForTop.cshtml";
+}
+<style>
+    html > /**/ body table {
+        font-size: 12px !important;
+    }
+</style>
+@* DATA TABLE *@
+<div class="row">
+    <div class="col-md-12">
+        <div class="col-md-12">
+            <div class="box box-info">
+                <div class="box-body">
+                    <div class="col-sm-12 col-md-12">
+                        <div class="box box-solid">
+                            <div class="box-body">
+                                <div class="row" style="background-color: #f7f7f7; text-align: center; padding: 7px 10px; margin-top: 0;">
+                                    <label style="font-weight: bold;font-size:16px">
+                                        สถานะคิวงานแบ่งตามพื้นที่ - ผอ.บล. สาขา<span id="lbl_branch">@(ViewBag.Branch != null ? ViewBag.Branch.BranchDetail : " -")</span> รอบความคุ้มครอง <span id="lbl_dcr">@ViewBag.PeriodText</span>
+                                    </label>
+                                    <button class="btn btn-success pull-right" id="supervisor_queue_status_detail_export"><i class="fa fa-file"></i> Download</button>
+                                </div>
+                                <table id="supervisor_queue_status_detail_datatable" class="table table-bordered table-striped display responsive" style="width: 100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+            SupervisorQueueStatusDetailDT();
+
+            $('#supervisor_queue_status_detail_export').click(function (e) {
+                e.preventDefault();
+                SupervisorQueueStatusDetailExcel();
+            });
+        });
+
+        const SupervisorQueueStatusDetailDT = () => {
+            $('#supervisor_queue_status_detail_datatable').empty();
+            const table = $('#supervisor_queue_status_detail_datatable').DataTable({
+                pageLength: 5,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                lengthChange: false,
+                searching: true,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                language: {
+                    url: '/Content/js/plugins/datatable/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("SupervisorQueueStatusDetailDT")',
+                    method: "POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.period ='@ViewBag.Period';
+                        d.branch ='@ViewBag.Branch.Branch_ID';
+                    }
+                },
+                columns: [
+                    {
+                        title: 'อำเภอ',
+                        data: 'DistrictDetail',
+                        orderable: true,
+                    },
+                    {
+                        title: 'จังหวัด',
+                        data: 'ProvinceDetail',
+                        orderable: true,
+                    },
+                    {
+                        title: 'ผู้รับผิดชอบ',
+                        data: null,
+                        orderable: true,
+                        render: (d) => {
+                            return `${d.DirectorEmployeeCode} ${d.DirectorFullName}`;
+                        }
+                    },
+                    {
+                        title: 'ทั้งหมด',
+                        data: 'QueueStatusAll',
+                        orderable: true,
+                    },
+                    {
+                        title: 'ยังไม่ได้คัดกรอง',
+                        data: 'QueueStatusId2',
+                        orderable: true,
+                    },
+                    {
+                        title: 'โทรคัดกรองและมอบบัตรภายหลัง',
+                        data: 'QueueStatusId3',
+                        orderable: true,
+                    },
+                    {
+                        title: 'โทรคัดกรองและมอบบัตรแล้ว',
+                        data: 'QueueStatusId4',
+                        orderable: true,
+                    },
+                    {
+                        title: 'เข้าพบคัดกรองและมอบบัตร',
+                        data: 'QueueStatusId5',
+                        orderable: true,
+                    },
+                    {
+                        title: 'ไม่ผ่านคัดกรอง',
+                        data: 'QueueStatusId6',
+                        orderable: true,
+                    },
+                    {
+                        title: 'ยกเลิกก่อน_DCR',
+                        data: 'QueueStatusId7',
+                        orderable: true,
+                    },
+                    {
+                        title: 'ยังไม่ได้ดำเนินการ',
+                        data: 'QueueStatusId8',
+                        orderable: true,
+                    },
+                    {
+                        title: 'รายละเอียด',
+                        data: null,
+                        orderable: false,
+                        render: (d) => {
+                            const period = btoa('@ViewBag.Period');
+                            const districtEncode = btoa(unescape(encodeURIComponent(d.District_ID)));
+                            return `<button  class="btn btn-info" onclick="toSupervisorQueue('${period}','${districtEncode}')"><i class="fa fa-search"></i> เปิด</button>`;
+                        }
+                    }
+                ]
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        //export
+        const SupervisorQueueStatusDetailExcel = () => {
+            const period = '@ViewBag.Period';
+            const branch = '@ViewBag.Branch.Branch_ID';
+            const search = $('#supervisor_queue_status_detail_datatable_filter input').val();;
+            window.location.href = encodeURI(`@Url.Action("SupervisorQueueStatusDetailExcel")?period=${period}&branch=${branch}&search=${search}`);
+        }
+
+        //goto SupervisorQueue
+        const toSupervisorQueue = (p,d) => {
+            window.open(encodeURI(`@Url.Action("SupervisorQueue")?period=${p}&district=${d}`),'_blank');
+        }
+    </script>
+}

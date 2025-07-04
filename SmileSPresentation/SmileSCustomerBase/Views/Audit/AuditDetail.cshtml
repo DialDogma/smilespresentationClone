@@ -1,0 +1,766 @@
+﻿@{
+    ViewBag.Title = "Application ID:" + @ViewBag.AppId;
+    ViewBag.Description = "แผน:" + @ViewBag.Plan + " สถานะกรมธรรม์:" + @ViewBag.Status;
+    Layout = "~/Views/Shared/_Layout_Empty.cshtml";
+}
+<form action="@Url.Action("AuditDetail")" method="post" id="Mainform">
+    <div class="row">
+        @* on left *@
+        <div class="col-md-5">
+            @* Customer Detail *@
+            <div id="Customer_form" class="form-horizontal">
+                <div class="box box-warning">
+                    <div class="box-header with-border">
+                        <h4 class="box-title">ข้อมูลผู้เอาประกัน </h4> &emsp; เบอร์โทร: @ViewBag.PhoneNum
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group row">
+                            <label for="select_title" class="control-label col-sm-4">คำนำหน้า:</label>
+                            <div class="col-sm-7">
+                                <select class="form-control" id="select_title" name="select_title">
+                                    @foreach(var itm in ViewBag.PersonTitle)
+                                    {
+                                        if(ViewBag.CustomerTitle == itm.TempCode)
+                                        {
+                                            <option value="@itm.TempCode" selected="selected">@itm.TitleDetail</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@itm.TempCode">@itm.TitleDetail</option>
+                                        }
+                                    }
+                                </select>
+                                <input type="hidden" id="hd_CustTitle" name="hd_CustTitle" value="@ViewBag.CustomerTitle" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="txtFname" class="control-label col-sm-4">ชื่อ:</label>
+                            <div class="col-sm-7">
+                                <input class="form-control" type="text" id="txtFname" name="txtFname" value="@ViewBag.Fname" required="required" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="txtLname" class="control-label col-sm-4">นามสกุล:</label>
+                            <div class="col-sm-7">
+                                <input class="form-control" type="text" id="txtLname" name="txtLname" value="@ViewBag.Lname" required="required" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="" class="control-label col-sm-4">วันเกิด:</label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control pull-right datepicker" name="CusBirthDate" id="CusBirthDate" required="required"
+                                       data-provide="datepicker" value="@ViewBag.BirthDay" data-date-language="th-th" placeholder="dd/mm/yyyy">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="radio-inline col-sm-offset-3 col-sm-4">
+                                <input type="radio" name="rd_Nation" id="rd_Thai" value="2"
+                                       @if(ViewBag.CusNation == 2) { <text> checked="checked" </text> } />ชาวไทย
+                            </label>
+                            <label class="radio-inline col-sm-4">
+                                <input type="radio" name="rd_Nation" id="rd_Nation1" value="3"
+                                       @if(ViewBag.CusNation == 3) { <text> checked="checked" </text> } />ชาวต่างชาติ
+                            </label>
+                        </div>
+                        <div class="form-group row">
+                            <label for="txtIdCard" class="control-label col-sm-4">เลขบัตรประชาชน:</label>
+                            <div class="col-sm-7">
+                                <input class="form-control" type="text" id="txtIdCard" name="txtIdCard" value="@ViewBag.IdCard" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="txtPassport" class="control-label col-sm-4">Passport:</label>
+                            <div class="col-sm-7">
+                                <input class="form-control" type="text" id="txtPassport" name="txtPassport" value="@ViewBag.Passport" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="select_result" class="control-label col-sm-4">ผลการตรวจสอบ:</label>
+                            <div class="col-sm-7">
+                                <select class="form-control" id="select_Result" name="select_Result">
+                                    @foreach(var itm in ViewBag.StatusType)
+                                    {
+                                        if(ViewBag.StatusTypeCustomer == itm.CheckStatusId)
+                                        {
+                                            <option value="@itm.CheckStatusId" selected="selected">@itm.CheckStatus</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@itm.CheckStatusId">@itm.CheckStatus</option>
+                                        }
+                                    }
+                                </select>
+                                <input type="hidden" id="hd_CustStatusType" name="hd_CustStatusType" value="@ViewBag.StatusTypeCustomer" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* Payer Detail *@
+            <div id="Payer_form" class="form-horizontal">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h4 class="box-title">ข้อมูลผู้ชำระเบี้ย</h4> &emsp; เบอร์โทร: @ViewBag.PayerPhoneNum
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group row">
+                            <label for="select_Payertitle" class="control-label col-sm-4">คำนำหน้า:</label>
+                            <div class="col-sm-7">
+                                <select class="form-control" id="select_Payertitle" name="select_Payertitle" required="">
+                                    @foreach(var itm in ViewBag.PersonTitle)
+                                    {
+                                        if(ViewBag.PayerTitle == itm.TempCode)
+                                        {
+                                            <option value="@itm.TempCode" selected="selected">@itm.TitleDetail</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@itm.TempCode">@itm.TitleDetail</option>
+                                        }
+                                        <option value="@itm.TempCode">@itm.TitleDetail</option>
+                                    }
+                                </select>
+                                <input type="hidden" id="hd_PayerTitle" name="hd_PayerTitle" value="@ViewBag.PayerTitle" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="txtPayerFname" class="control-label col-sm-4">ชื่อ:</label>
+                            <div class="col-sm-7">
+                                <input class="form-control" type="text" id="txtPayerFname" name="txtPayerFname" value="@ViewBag.PayerFname" required="" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="txtPayerLname" class="control-label col-sm-4">นามสกุล:</label>
+                            <div class="col-sm-7">
+                                <input class="form-control" type="text" id="txtPayerLname" name="txtPayerLname" value="@ViewBag.PayerLname" required="" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="" class="control-label col-sm-4">วันเกิด:</label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control pull-right datepicker" name="PayerBirthDate" id="PayerBirthDate"
+                                       data-provide="datepicker" value="@ViewBag.PayerBirthDate" data-date-language="th-th" placeholder="dd/mm/yyyy">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="radio-inline col-sm-offset-3 col-sm-4">
+                                <input type="radio" name="rd_PayerNation" id="rd_PayerThai" value="2"
+                                       @if(ViewBag.PayerNation == 2) { <text> checked="checked" </text> } />ชาวไทย
+                            </label>
+                            <label class="radio-inline col-sm-4">
+                                <input type="radio" name="rd_PayerNation" id="rd_PayerNation" value="3"
+                                       @if(ViewBag.PayerNation == 3) { <text> checked="checked" </text> } />ชาวต่างชาติ
+                            </label>
+                        </div>
+                        <div class="form-group row">
+                            <label for="txtPayerIdCard" class="control-label col-sm-4">เลขบัตรประชาชน:</label>
+                            <div class="col-sm-7">
+                                <input class="form-control" type="text" id="txtPayerIdCard" name="txtPayerIdCard" value="@ViewBag.PayerIdCard" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="txtPayerPassport" class="control-label col-sm-4">Passport:</label>
+                            <div class="col-sm-7">
+                                <input class="form-control" type="text" id="txtPayerPassport" name="txtPayerPassport" value="@ViewBag.PayerPassport" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="select_PayerResult" class="control-label col-sm-4">ผลการตรวจสอบ:</label>
+                            <div class="col-sm-7">
+                                <select class="form-control" id="select_PayerResult" name="select_PayerResult" required="">
+                                    @foreach(var itm in ViewBag.StatusTypePayerList)
+                                    {
+                                        if(ViewBag.StatusTypePayer == itm.CheckStatusId)
+                                        {
+                                            <option value="@itm.CheckStatusId" selected="selected">@itm.CheckStatus</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@itm.CheckStatusId">@itm.CheckStatus</option>
+                                        }
+                                    }
+                                </select>
+                                <input type="hidden" id="hd_PayerStatusType" name="hd_PayerStatusType" value="@ViewBag.StatusTypePayer" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* verify *@
+            <div class="form-horizontal" id="Verify_form">
+                <div class="box box-success">
+                    <div class="box box-header with-border">
+                        <h4 class="box-title">ผลการตรวจสอบ</h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label for="" class="control-label col-sm-4">สถานะการตรวจสอบ:</label>
+                            <label for="" id="lblResult" class="control-label col-sm-7" style="text-align: center">
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label for="" class="control-label col-sm-4">ตรวจสอบโดย:</label>
+                            <label for="" class="control-label col-sm-7" style="color: green; text-align: center">
+                                @ViewBag.VerifyBy
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label for="" class="control-label col-sm-4">หมายเหตุ:</label>
+                            <label for="" class="control-label col-sm-7" style="color: green; text-align: center">
+                                @ViewBag.Remark
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* on right *@
+        <div class="col-md-7">
+            @* document *@
+            <div id="Document_form" class="form-horizontal">
+                <div class="box box-primary">
+                    <div class="box-body">
+                        <div class="form-group row">
+                            <div class="col-sm-12">
+                                @if(ViewBag.FirstDoc == null)
+                                {
+                                    <div id="form1_msg" class="alert alert-warning alert-dismissible">
+                                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                        <h4><i class="icon fa fa-ban"></i> เตือน!</h4>
+                                        ไม่มีรายการเอกสารดังกล่าว
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            @if(ViewBag.DocLink != null)
+                            {
+                                foreach(var itm in ViewBag.DocLink)
+                                {
+                                    <div class="col-sm-6">
+                                        <button type="button" class="btn btn-block btn-info" id="btn_@itm.DocumentFileId" onclick="SeeDoc('@itm.PathFullDoc')"><i class="fa fa-fw fa-search"></i>@itm.DocumentTypeName:@itm.DocumentId</button>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <div class="form-group row" id="DocDetail_form">
+                            <div class="col-sm-12" style="height: 1050px">
+                                <iframe class="SeeDoc" style="width: 100%; height: 100%;" src="@ViewBag.FirstDoc"></iframe>
+                                @*<iframe style="width: 100%;height: 100%;" src="https://pbs.twimg.com/media/DOrH-4pUMAAHEGv.jpg"></iframe>*@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        @* footer *@
+        <div class="col-sm-12">
+            @* audit form *@
+            <div class="form-horizontal" id="AuditResult_form">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h4 class="box-title">บันทึการตรวจสอบ โดย Audit</h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group row">
+                            <label class="col-sm-offset-1 col-sm-2">
+                                <input type="radio" name="rd_verify" id="rd_verify_pass" value="3" @if(ViewBag.IsAudit == "True" && ViewBag.AuditResult == 3) { <text> checked="checked" </text> } />
+                                ถูกต้อง
+                            </label>
+                            <label class="col-sm-3">
+                                <input type="radio" name="rd_verify" id="rd_verify_Notpass" value="4" @if(ViewBag.IsAudit == "True" && ViewBag.AuditResult == 4) { <text> checked="checked" </text> } />
+                                ไม่ถูกต้อง(กรุณาระบุ)
+                            </label>
+                        </div>
+                        @* not pass verify (show if not pass) *@
+                        <div id="NotPass_Verify">
+                            <div class="form-group row">
+                                <div class="col-sm-offset-3 col-sm-4" style="border: solid 0.5px">
+                                    <h5 style="color: red">- ผู้เอาประกัน</h5>
+                                    <label class="alert_text" style="color: red">*</label>
+                                    <label>
+                                        <input type="checkbox" class="chk_CusReq" id="chk_CusTitle" name="chk_CusTitle" value="1"
+                                               @if(ViewBag.IsAudit == "True" && ViewBag.IsFalseCustitle) { <text> checked="checked" </text> } /> คำนำหน้า
+                                    </label><br />
+                                    <label class="alert_text" style="color: red">*</label>
+                                    <label>
+                                        <input type="checkbox" class="chk_CusReq" id="chk_CusName" name="chk_CusName" value="1"
+                                               @if(ViewBag.IsAudit == "True" && ViewBag.IsFalseCusName) { <text> checked="checked" </text> } /> ชื่อ-นามสกุล
+                                    </label><br />
+                                    <label class="alert_text" style="color: red">*</label>
+                                    <label>
+                                        <input type="checkbox" class="chk_CusReq" id="chk_CusBday" name="chk_CusBday" value="1"
+                                               @if(ViewBag.IsAudit == "True" && ViewBag.IsFalseCusBirthDate) { <text> checked="checked" </text> } /> วันเกิด
+                                    </label><br />
+                                    <label class="alert_text" style="color: red">*</label>
+                                    <label>
+                                        <input type="checkbox" class="chk_CusReq" id="chk_CusZCard" name="chk_CusZCard" value="1"
+                                               @if(ViewBag.IsAudit == "True" && ViewBag.IsFalseCusZCard_Passport) { <text> checked="checked" </text> } /> เลขบัตรประชาชน/Passport
+                                    </label>
+                                </div>
+                                <div class="col-sm-4" style="border: solid 0.5px">
+                                    <h5 style="color: red">- ผู้ชำระเบี้ย</h5>
+                                    <label class="alert_text" style="color: red">*</label>
+                                    <label>
+                                        <input type="checkbox" class="chk_PayReq" id="chk_PayerTitle" name="chk_PayerTitle" value="1"
+                                               @if(ViewBag.IsAudit == "True" && ViewBag.IsFalsePayertitle) { <text> checked="checked" </text> } /> คำนำหน้า
+                                    </label><br />
+                                    <label class="alert_text" style="color: red">*</label>
+                                    <label>
+                                        <input type="checkbox" class="chk_PayReq" id="chk_PayerName" name="chk_PayerName" value="1"
+                                               @if(ViewBag.IsAudit == "True" && ViewBag.IsFalsePayerName) { <text> checked="checked" </text> } /> ชื่อ-นามสกุล
+                                    </label><br />
+                                    <label class="alert_text" style="color: red">*</label>
+                                    <label>
+                                        <input type="checkbox" class="chk_PayReq" id="chk_PayerBday" name="chk_PayerBday" value="1"
+                                               @if(ViewBag.IsAudit == "True" && ViewBag.IsFalsePayerBirthDate) { <text> checked="checked" </text> } /> วันเกิด
+                                    </label><br />
+                                    <label class="alert_text" style="color: red">*</label>
+                                    <label>
+                                        <input type="checkbox" class="chk_PayReq" id="chk_PayerZCard" name="chk_PayerZCard" value="1"
+                                               @if(ViewBag.IsAudit == "True" && ViewBag.IsFalsePayerZCard_Passport) { <text> checked="checked" </text> } /> เลขบัตรประชาชน/Passport
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-offset-3 col-sm-6">
+                                หมายเหตุ:
+                                <textarea id="txtAuditRemark" name="txtAuditRemark" rows="4" style="width: 100%">@ViewBag.AuditRemark</textarea>
+                            </label>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-offset-3 col-sm-2">
+                                <button type="button" class="btn btn-block btn-success" id="btnSubmit" disabled="disabled">บันทึก</button>
+                            </div>
+                            <div class="col-sm-2">
+                                <button type="button" class="btn btn-block btn-danger" id="btnBack" onclick="ReturnToMainPage()">ยกเลิก</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="hd_CleanCustomerId" name="hd_CleanCustomerId" value="@ViewBag.CleanCustomerId" />
+    <input type="hidden" id="hd_IsAudit" name="hd_IsAudit" value="@ViewBag.IsAudit" />
+    <input id="hd_planId" name="hd_planId" type="hidden" value="@ViewBag.PlanId" />
+</form>
+@section ViewSpecificJavascript
+ {
+    <script type="text/javascript">
+        $(function () {
+            //insert input mask
+            $('#txtIdCard').inputmask('9-9999-99-999-99-9', { 'clearIncomplete': true });
+            $('#txtPayerIdCard').inputmask('9-9999-99-999-99-9', { 'clearIncomplete': true });
+
+            // Reference the auto-generated proxy for the hub.
+            var chat = $.connection.myHub;
+
+            //diable and readonly all data
+            Disableattr();
+            //check if is audit
+            debugger;
+            if ($('#hd_IsAudit').val() == 'True') {
+                $('#txtAuditRemark').prop('disabled', true);
+                $('input[name="rd_verify"]').prop('disabled', true);
+                $('#NotPass_Verify input:checkbox').prop('disabled', true);
+                $('#NotPass_Verify').show();
+
+            }
+            //check if cheked
+            $('input[name="rd_verify"]').on('ifChecked', function () {
+                debugger;
+                if ($(this).val() == 3) {
+                    $('#btnSubmit').prop('disabled', false);
+                    //hide not pass verify form and require checkbox
+                    $('#NotPass_Verify').hide();
+                    $('#NotPass_Verify input:checkbox').iCheck('uncheck');
+                } else if ($(this).val() == 4) {
+                    $('#btnSubmit').prop('disabled', false);
+                    //show not pass verify form and require checkbox
+                    $('#NotPass_Verify').show();
+
+                }
+            });
+
+            //check if have value idcard or passport onload(customer)
+            if ($('#txtIdCard').val() != '') {
+                $('#rd_Thai').iCheck('check');
+                $('#txtIdCard').prop('required', true);
+                $('#txtPassport').prop('disabled', true);
+            } else if ($('#txtPassport').val() != '') {
+                $('#rd_Nation1').iCheck('check');
+                $('#txtPassport').prop('required', true);
+                $('#txtIdCard').prop('disabled', true);
+            } else {
+                $('#showErrorCust').show();
+            }
+            //check if have value idcard or passport onload(payer)
+            if ($('#txtPayerIdCard').val() != '') {
+                $('#rd_PayerThai').iCheck('check');
+                $('#txtPayerIdCard').prop('required', true);
+                $('#txtPayerPassport').prop('disabled', true);
+            } else if ($('#txtPayerPassport').val() != '') {
+                $('#rd_PayerNation').iCheck('check');
+                $('#txtPayerPassport').prop('required', true);
+                $('#txtPayerIdCard').prop('disabled', true);
+            } else {
+                $('#showErrorPayer').show();
+            }
+
+            //Check Redio
+            $("input[name=rd_Nation]").on('ifChecked', function (e) {
+                debugger;
+                $('#showErrorCust').hide();
+                if ($(this).val() == 2) { //ชาวไทย
+                    //manage id card input
+                    $('#txtIdCard').prop('disabled', false);
+                    //$('#txtIdCard').prop('required', true);
+
+                    //manage passport input
+                    $('#txtPassport').prop('disabled', true);
+                    //$('#txtPassport').prop('required', false);
+                    $('#txtPassport').val('');
+
+                } else {
+                    debugger;
+                    //manage passport input
+                    $('#txtPassport').prop('disabled', false);
+                    //$('#txtPassport').prop('required', true);
+                    //manage id card input
+                    $('#txtIdCard').prop('disabled', true);
+                    //$('#txtIdCard').prop('required', false);
+                    $('#txtIdCard').val('');
+                }
+            });
+
+            $("input[name=rd_PayerNation]").on('ifChecked', function (e) {
+                debugger;
+                $('#showErrorPayer').hide();
+                if ($(this).val() == 2) { //ชาวไทย
+                    //manage id card input
+                    $('#txtPayerIdCard').prop('disabled', false);
+                    //$('#txtPayerIdCard').prop('required', true);
+                    //manage passport input
+                    //$('#txtPayerPassport').prop('required', false);
+                    $('#txtPayerPassport').prop('disabled', true);
+                    $('#txtPayerPassport').val('');
+                } else {
+                    //manage passport input
+                    $('#txtPayerPassport').prop('disabled', false);
+                    //$('#txtPayerPassport').prop('required', true);
+                    //manage id card input
+                    $('#txtPayerIdCard').prop('disabled', true);
+                    //$('#txtPayerIdCard').prop('required', false);
+                    $('#txtPayerIdCard').val('');
+                }
+            });
+
+            //check status
+            if (($('#select_Result').val() == 3 || $('#select_Result').val() == 4) &&
+                ($('#select_PayerResult').val() == 3 || $('#select_PayerResult').val() == 4)) {
+                $('#lblResult').text("ผ่านการตรวจสอบ");
+                $('#lblResult').css("color", "green");
+            } else {
+                $('#lblResult').text("ไม่ผ่านการตรวจสอบ");
+                $('#lblResult').css("color", "red");
+            }
+
+            //submit event
+            $('#btnSubmit').click(function () {
+                if ($('#Mainform').valid()) {
+                    if (Validate() != '') {
+                        window.swal({
+                            title: 'คำเตือน',
+                            type: 'error',
+                            text: Validate(),
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            return false;
+                        });
+                    } else {
+                        window.swal({
+                            title: 'ยืนยันการตรวจสอบ?',
+                            type: 'info',
+                            showCancelButton: true,
+                            confirmButtonColor: '#277020',
+                            confirmButtonText: 'ตกลง',
+                            cancelButtonText: 'ยกเลิก',
+                            closeOnConfirm: false,
+                            closeOnEsc: false,
+                            closeOnCancel: true
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                $('#Mainform').submit();
+                                this.close();
+                            }
+                        });
+                    }
+                    return false;
+                }
+
+            });
+
+        });
+
+        function Disableattr() {
+            //$('#select_Result').prop('disabled', true);
+            //$('#select_PayerResult').prop('disabled', true);
+            //$('#txtRemark').prop('disabled', true);
+            $('#Customer_form input').attr('readonly', true);
+            $('#Customer_form select').attr('disabled', true);
+            $('input[name=rd_Nation]').prop('disabled', true);
+            $('#CusBirthDate').unbind('focus');
+            $('#Payer_form input').attr('readonly', true);
+            $('#Payer_form select').attr('disabled', true);
+            $('input[name=rd_PayerNation]').prop('disabled', true);
+            $('#PayerBirthDate').unbind('focus');
+            $('#NotPass_Verify').hide();
+            $('.alert_text').hide();
+        }
+
+        //validate
+        function Validate() {
+            var result = '';
+            debugger;
+            //ถ้า ข้อมูลผู้เอาประกัน ผลการตรวจสอบเป็น ผ่าน หรือ ผ่าน แนบ ให้ Check การกรอก
+            if ($('#select_Result').val() == 3 || $('#select_Result').val() == 4) {
+                //Title
+
+                if ($('#select_title').val() == "-1") {
+                    result = 'กรุณาเลือกคำนำหน้า';
+                    return result;
+                }
+
+                //Name
+                if ($('#txtFname').val() == "") {
+                    result = 'กรุณากรอกชื่อผู้เอาประกัน';
+                    return result;
+                }
+
+                //lastname
+                if ($('#txtLname').val() == "") {
+                    result = 'กรุณากรอกนามสกุลผู้เอาประกัน';
+                    return result;
+                }
+
+                //BirthDate
+                if ($('#CusBirthDate').val() == "") {
+                    result = 'กรุณาเลือกวันเกิด';
+                    return result;
+                }
+
+                var CustdatetoDiff = new Date($('#CusBirthDate').datepicker('getDate'))
+
+                var CustToday = new Date();
+
+                var CustYears = GetYears(CustdatetoDiff);
+
+                if ($('#hd_planId').val() != "1220") {
+
+                    if (CustYears < 5) {
+                        result = 'รบกวนตรวจสอบวันเกิดผู้เอาประกัน เนื่องจากอายุน้อยกว่า 5 ปี';
+                        return result;
+                    }
+                }
+
+                //if (CustdatetoDiff >= CustToday) {
+                //    result = 'รบกวนตรวจสอบวันเกิด เนื่องจากวันเกิดมากกว่าวันปัจจุบัน';
+                //    return result;
+                //}
+
+                //if ($('#CusBirthDate').val() >= d) {
+                //    result = 'รบกวนตรวจสอบวันเกิด เนื่องจากวันเกิดมากกว่าวันปัจจุบัน';
+                //    return result;
+                //}
+
+            } else {
+
+                var CustdatetoDiff = new Date($('#CusBirthDate').datepicker('getDate'))
+
+                var CustToday = new Date();
+
+                var CustYears = GetYears(CustdatetoDiff);
+
+                if ($('#CusBirthDate').val() != "") {
+
+                    if ($('#hd_planId').val() != "1220") {
+
+                        if (CustYears < 5) {
+                            result = 'รบกวนตรวจสอบวันเกิดผู้เอาประกัน เนื่องจากอายุน้อยกว่า 5 ปี';
+                            return result;
+                        }
+                    }
+                }
+
+            }
+
+            //ถ้า ข้อมูลผู้ชำระเบี้ย ผลการตรวจสอบเป็น ผ่าน หรือ ผ่าน แนบ ให้ Check การกรอก
+            if ($('#select_PayerResult').val() == 3 || $('#select_PayerResult').val() == 4) {
+
+                //Title
+                if ($('#select_Payertitle').val() == "-1") {
+                    result = 'กรุณาเลือกคำนำหน้า';
+                    return result;
+                }
+
+                //Name
+                if ($('#txtPayerFname').val() == "") {
+                    result = 'กรุณากรอกชื่อผู้ชำระเบี้ย';
+                    return result;
+                }
+
+                //lastname
+                if ($('#txtPayerLname').val() == "") {
+                    result = 'กรุณากรอกนามสกุลผู้ชำระเบี้ย';
+                    return result;
+                }
+
+                //BirthDate
+                //if ($('#PayerBirthDate').val() == "") {
+                //    result = 'กรุณาเลือกวันเกิด';
+                //    return result;
+                //}
+
+                var PayerdatetoDiff = new Date($('#PayerBirthDate').datepicker('getDate'))
+
+                var PayerToday = new Date();
+
+                var payerYears = GetYears(PayerdatetoDiff);
+
+                if ($('#PayerBirthDate').val() != "") {
+
+                    //ผู้ชำระเบี้ย อายุห้ามน้อยกว่า 18
+                    if (payerYears < 18) {
+                        result = 'รบกวนตรวจสอบวันเกิดผู้ชำระเบี้ย เนื่องจากอายุน้อยกว่า 18';
+                        return result;
+                    }
+
+                }
+
+                //if (PayerdatetoDiff >= PayerToday) {
+                //    result = 'รบกวนตรวจสอบวันเกิด เนื่องจากวันเกิดมากกว่าวันปัจจุบัน';
+                //    return result;
+                //}
+
+                //สัญชาติ
+                if ($('#showErrorPayer').is(':visible') == true) {
+                    result = 'กรุณาเลือกสัญชาติ';
+                    return result;
+                }
+
+            } else {
+
+                var PayerdatetoDiff = new Date($('#PayerBirthDate').datepicker('getDate'));
+
+                var PayerToday = new Date();
+
+                var payerYears = GetYears(PayerdatetoDiff);
+
+                if ($('#PayerBirthDate').val() != "") {
+
+                    //ผู้ชำระเบี้ย อายุห้ามน้อยกว่า 18
+                    if (payerYears < 18) {
+                        result = 'รบกวนตรวจสอบวันเกิดผู้ชำระเบี้ย เนื่องจากอายุน้อยกว่า 18';
+                        return result;
+                    }
+
+                    //if (PayerdatetoDiff >= PayerToday) {
+                    //    result = 'รบกวนตรวจสอบวันเกิด เนื่องจากวันเกิดมากกว่าวันปัจจุบัน';
+                    //    return result;
+                    //}
+
+                }
+
+            }
+
+            if (($('#select_Result').val() == 3 || $('#select_Result').val() == 4) && ($('#select_PayerResult').val() == 3 || $('#select_PayerResult').val() == 4)) {
+
+                if ($('#rd_Thai').is(":checked") && $('#rd_PayerThai').is(":checked")) {
+
+                    //ถ้าIDCard เหมือนกัน ให้ เช็ค ชื่อ ด้วย
+                    if ($('#txtIdCard').val() == $('#txtPayerIdCard').val()) {
+
+                        // เช็ค ชื่อ - นามสกุล เหมือนกัน ไหม ถ้าไม่เหมือนกัน ให้รีเทรินข้อความแจ้งเตือนออกไป
+                        if (($('#txtFname').val() != $('#txtPayerFname').val()) || ($('#txtLname').val() != $('#txtPayerLname').val())) {
+                            result = 'รบกวนตรวจสอบเลขบัตรประชาชน เนื่องจากไม่ใช่บุคคลเดียวกัน';
+                            return result;
+                        }
+                    }
+
+                } else {
+                    //ถ้าPassport เหมือนกัน ให้ เช็ค ชื่อ ด้วย
+                    if ($('#txtPassport').val() == $('#txtPayerPassport').val()) {
+
+                        // เช็ค ชื่อ - นามสกุล เหมือนกัน ไหม ถ้าไม่เหมือนกัน ให้รีเทรินข้อความแจ้งเตือนออกไป
+                        if (($('#txtFname').val() != $('#txtPayerFname').val()) || ($('#txtLname').val() != $('#txtPayerLname').val())) {
+                            result = 'รบกวนตรวจสอบเลข Passport เนื่องจากไม่ใช่บุคคลเดียวกัน';
+                            return result;
+                        }
+                    }
+                }
+
+            }
+
+            return result;
+
+        }
+        //click to show document
+        function SeeDoc(path) {
+            debugger;
+            $('#DocDetail_form').children().show();
+            var extension = path.substr(path.length - 4);
+            switch (extension) {
+                case '.pdf':
+                    $('.SeeDoc').attr('src', 'http://49.231.178.252:81/sssdocfiles/pdfviewer/web/viewer.html?file=' + encodeURIComponent(path));
+                    break;
+                case '.jpg':
+                    $('.SeeDoc').attr('src', path);
+                    break;
+                default:
+            }
+        }
+        function GetYears(from) {
+            var now = new Date();
+            //var past = new Date(birthday);
+            var nowYear = now.getFullYear();
+            var pastYear = from.getFullYear();
+            var age = nowYear - pastYear;
+
+            return age;
+
+        }
+        //back to main page
+        function ReturnToMainPage() {
+            window.swal({
+                title: 'ต้องการละทิ้งข้อมูลใช่หรือไม่?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#277020',
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                closeOnConfirm: false,
+                closeOnEsc: false,
+                closeOnCancel: true
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    window.close();
+                }
+            });
+
+        }
+    </script>
+}

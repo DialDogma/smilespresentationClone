@@ -1,0 +1,103 @@
+﻿
+@{
+    ViewBag.Title = "รายการผลการส่ง SMS";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+                    <div class="box-tools pull-right">
+                    </div>
+                    <!-- /.box-tools -->
+                    <div class="box-body" style="">
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col  col-sm-3 col-md-auto">
+                                    <label class="control-label"> ช่วงวันที่ส่ง SMS :</label>
+                                    <input type="text" class="form-control pull-right" name="dtpSMSFromDate" id="dtpSMSFromDate" required="required"
+                                           data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy">
+                                </div>
+                                <div class="col  col-sm-3 col-md-auto">
+                                    <label class="control-label"> ถึงวันที่ :</label>
+                                    <input type="text" class="form-control pull-right" name="dtpDate" id="dtpDate" required="required"
+                                           data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy" data-format="dd/MM/yyyy">
+                                </div>
+                                <div class="col col-sm-3 col-md-auto">
+                                    <label class="control-label"> สถานะการส่ง SMS :</label>
+                                    <select type="text" class="form-control select2" id="ddlSentSMSStatus">
+                                        <option value="-1">ทั้งหมด</option>
+                                        <option value="1">ส่งสำเร็จ</option>
+                                        <option value="2">ส่งไม่สำเร็จ</option>
+                                    </select>
+                                </div>
+
+                                <div class="col  col-sm-3 " style="padding-top:27px; float:left;  width:150px;">
+                                    <button id="btnExport" type="button" class="btn btn-success btn-block"><i class="fa fa-file-excel"></i> Export</button>
+                                </div>
+
+                            </div>
+
+
+
+                        </div>
+                    </div>
+                    <!-- /.box-body -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+</form>
+
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        ///--------------------------------------------Main Function---------------------------------------------------------
+        $(function () {
+
+            $('.select2').select2();
+
+            $('#dtpSMSFromDate').datepicker({
+                format: "dd/mm/yyyy",
+                autoclose: true
+            }).datepicker("setDate", new Date());
+
+            $('#dtpDate').datepicker({
+                format: "dd/mm/yyyy",
+                autoclose: true,
+            }).datepicker("setDate", new Date());
+
+
+            $('#btnExport').click(function (e) {
+                e.preventDefault();
+                    loadingSpinner('fadeIn', 3000)
+                    ExportExcel();
+            });
+
+        });
+
+           //-----------------------------------------------------------------Funtions-----------------------------------------------------------------
+          function ExportExcel() {
+            debugger;
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("ExportResultSendSMSReport", "PAPersonnelReport")",
+                data: {
+                    DateFrom : $('#dtpSMSFromDate').val(),
+                    DateTo : $('#dtpDate').val(),
+                    SmsStatus: $('#ddlSentSMSStatus').val() == -1 ? null : $('#ddlSentSMSStatus').val(),
+                },
+                dataType: "json",
+                success: function (response) {
+                    window.location.href = `@Url.Action("ExportResultSendSMSReportDownload", "PAPersonnelReport")`;
+                    loadingSpinner('fadeOut', 3000);
+                }
+            });
+        }
+
+    </script> 
+}

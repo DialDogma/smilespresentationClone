@@ -1,0 +1,94 @@
+﻿@*
+    Parameters: ViewBag.AppId
+    Functions: GetPremiumReceive_dt(appId)
+*@
+
+
+   
+        
+
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box box-primary box-solid">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">การให้ความยินยอมการเก็บ รวบรวม ใช้ เปิดเผยข้อมูลส่วนบุคคล</h3>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                        <!-- /.box-tools -->
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <div class="form-group">
+                            <div class="col-xs-12">
+
+                                <button type="button" class="btn btn-block btn-warning btn-sm" style="width: 20%; " id="btnPDPA">ข้อมูล PDPA</button>
+
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.box-body -->
+                </div>
+            </div>
+        </div>
+  
+
+        <script type="text/javascript">
+
+    const AllMethod = (appId, mode) =>
+    {
+        window.open("@Url.Action("PDPAPostData", "Application")?appId=" + appId + "&Mode=" + mode);
+    }
+     //var date = "";
+    const SetValidataToDataPDPA = (appid) => {
+        debugger;
+        const Date = GetDatePDPA(appid);
+        var SetDate = GetCheckDatePDPA();
+        if (Date >= SetDate) {
+            return true;
+        }
+        return false;
+    }
+    const GetDatePDPA = (appid) => {
+        debugger;
+        var result = null;
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("GetPDPADateByID", "Application")",
+            data: {
+                appid: appid
+                },
+                async: false,
+            dataType: "json",
+            success: function (data) {
+                //date = data.CreatedDate;
+                moment.locale('th');
+                let DateMoment = moment(data.CreatedDate).add(543, 'years');
+                result = moment(new Date(DateMoment)).add(543, 'years')._i;
+                return result;
+            }
+         });
+    return result;
+    }
+    const GetCheckDatePDPA = () => {
+        var result = null;
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("GetCheckDatePDPA", "Application")",           
+                async: false,
+            dataType: "json",
+            success: function (data) {
+                //date = data.CreatedDate;
+                moment.locale('th');
+                let DateMoment = moment(data.ValueDateTime).add(543, 'years');
+                result = moment(new Date(DateMoment)).add(543, 'years')._i;
+                return result;
+                }
+        });
+    return result;
+    }
+</script>
+
+

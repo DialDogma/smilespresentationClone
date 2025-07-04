@@ -1,0 +1,319 @@
+﻿@using System.Linq;
+@{
+    ViewBag.Title = "Job";
+    ViewBag.Description = "งาน";
+}
+<style>
+    .select2-results__options {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        font-size: 14px !important;
+    }
+
+        table tr {
+            cursor: pointer !important;
+        }
+
+    .border-red {
+        border: solid 1px red !important;
+    }
+
+    .border-green {
+        border: solid 1px green !important;
+    }
+</style>
+<div class="row">
+    <div class="col-xs-12 col-md-12">
+        <div class="box box-info">
+            <div class="box-body">
+                <div class="form-group col-xs-12 col-md-3">
+                    <label class="control-label" for="">Job Status :</label>
+                    <select id="select_Status" class="form-control select2" multiple="multiple">
+
+                        @foreach (var itm in ViewBag.jobStatusList)
+                        {
+                            List<int> jobstatus = new List<int>(ViewBag.jobSelected);
+                            if (jobstatus.Contains(itm.JobStatusId))
+                            {
+                                <option value="@itm.JobStatusId" selected="selected">@itm.JobStatus</option>
+                            }
+                            else
+                            {
+                                <option value="@itm.JobStatusId">@itm.JobStatus</option>
+                            }
+
+                        }
+                    </select>
+                </div>
+                <div class="col-xs-12 col-md-7">
+                    <label class="control-label" for="">Assignee :</label>
+                    <select id="select_DevList" class="form-control select2" multiple="multiple">
+                        <option value="ALL">--ทั้งหมด--</option>
+                        @foreach (var itm in ViewBag.devList)
+                        {
+                            if (itm.UserId == ViewBag.devSelected)
+                            {
+                                <option value="@itm.UserId" selected="selected">@itm.FullNamexNickName</option>
+                            }
+                            else
+                            {
+                                <option value="@itm.UserId">@itm.FullNamexNickName</option>
+                            }
+
+                        }
+                    </select>
+                </div>
+                <div class="col-xs-12 col-md-1" style="margin-top: 24px">
+                    <button class="btn btn-block btn-primary form-control" type="button" id="btnSearch">ค้นหา</button>
+                </div>
+                <div class="form-group col-xs-12 col-md-12" style="margin-top: 24px">
+                    <table class="table table-hover  display table-responsive" style="width: 100%" id="dtJobMonitorBox"></table>
+                </div>
+                <div class="form-group col-xs-12 col-md-12" style="margin-top: 24px">
+                    <table class="table table-hover display table-bordered" style="width: 100%" id="dtJobBox"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var table;
+        $(function () {
+            $('.select2').select2();
+
+            $('#select_DevList').on('select2:select',function (e) {
+                var devList = $(this).val();
+                if (devList != null) {
+                    var index = devList.indexOf("ALL");
+                    if (index >= 0) {
+                        $('#select_DevList').val("ALL");
+                        $("#select_DevList").trigger("change");
+                    }
+                }
+            });
+
+            GetJob_DT();
+            GetJobMonitor_dt();
+
+            $('#btnSearch').click(() => {
+                //check null
+                if ($("#select_DevList").val() == null) {
+                    swal('กรุณาเลือก Assignee','','warning');
+                    return false;
+                }
+
+                //load
+                GetJob_DT();
+                GetJobMonitor_dt();
+                 $('#dtJobBox tbody').on('click', 'td', function (e) {
+                      e.preventDefault();
+                      //don't trigger when click row index 0
+                      if ($(this).index() == 0||$(this).index() == 6) {
+                          return;
+                      } else {
+                          var data = table.row(this).data();
+                          $.get('@Url.Action("Read_Update")', { incidentTaskId: data.IncidentTaskId ,typeId:0});
+                          setTimeout(() => { SeeDetail(data.IncidentTaskId) },200);
+                      }
+
+                      });
+            });
+
+            $('#dtJobBox tbody').on('click', 'td', function (e) {
+                e.preventDefault();
+                //don't trigger when click row index 0
+                if ($(this).index() == 0||$(this).index() == 6) {
+                    return;
+                } else {
+                    var data = table.row(this).data();
+                    $.get('@Url.Action("Read_Update")', { incidentTaskId: data.IncidentTaskId ,typeId:0});
+                    setTimeout(() => { SeeDetail(data.IncidentTaskId) },200);
+                }
+
+            });
+        });
+
+        const GetJob_DT = () => {
+            var statusListArr = null;
+            var devListArr = null;
+
+            if ($('#select_Status').val() != null) {
+               statusListArr = $('#select_Status').val().join(",");
+
+            }
+            if ($('#select_DevList').val() != null) {
+                devListArr = $('#select_DevList').val().join(",");
+            }
+
+            $('#dtJobBox').empty();
+            table = $('#dtJobBox').DataTable({
+                processing: true,
+                serverSide: true,
+                iDisplayLength:10,
+                responsive: true,
+                destroy: true,
+                 language: {
+                     url:"http://cdn.datatables.net/plug-ins/1.10.19/i18n/Thai.json"
+                 },
+                ajax: {
+                    url: '@Url.Action("JobTask_Dt","Home")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.search = d.search.value;
+                        d.jobStatusArr = statusListArr;
+                        d.devArr = devListArr;
+                    }
+                },
+                columns: [
+                    {
+                        title: '',
+                        data: null,
+                        render: function (data) {
+                            if (data.IncidentJobStatusId == 1) {
+                                return '<span class="label label-info dot_status"><i class="fa fa-genderless">' +
+                                    '</i></span>' +
+                                    '<label class="status_label label label-info">'+data.IncidentJobStatus+'</label>';
+                            } else if (data.IncidentJobStatusId == 2) {
+                                return '<span class="label label-warning dot_status"><i class="fa fa-genderless">' +
+                                    '</i></span>' +
+                                    '<label class="status_label label label-warning">'+data.IncidentJobStatus+'</label>';
+                            } else if (data.IncidentJobStatusId == 3) {
+                                return '<span class="label label-success dot_status"><i class="fa fa-genderless">' +
+                                    '</i></span>' +
+                                    '<label class="status_label label label-success">'+data.IncidentJobStatus+'</label>';
+                            } else {
+                                return '<span class="label label-danger dot_status"><i class="fa fa-genderless">' +
+                                    '</i></span>' +
+                                    '<label class="status_label label label-danger">'+data.IncidentJobStatus+'</label>';
+                            }
+                        }
+                    },
+                    {
+                        title: 'Assignee',
+                        data: 'ActionByName',
+
+                    },
+                    {
+                        title: 'Subject',
+                        data: 'IncidentSubject',
+
+                    },
+                    {
+                        title: 'Branch',
+                        data:'Branch'
+                    },
+                    {
+                        title: 'Task Group',
+                        data:'IncidentType'
+                    },
+
+                    {
+                        title: 'Task Code',
+                        data: 'IncidentTaskCode',
+                    },
+                     {
+                        title: 'Job Code',
+                        data: 'IncidentJobCode',
+                    },
+                    {
+                        title: 'Assign Date',
+                        data: 'CreatedDate',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY HH:mm') + 'น.';
+                            } else {
+                                return '-';
+                            }
+                        }
+                    }
+
+                ],
+                rowId: 'IncidentTaskId'
+            });
+        }
+
+        const GetJobMonitor_dt = () => {
+            var devListArr = null;
+
+            if ($('#select_DevList').val() != null) {
+                devListArr = $('#select_DevList').val().join(",");
+            }
+            $('#dtJobMonitorBox').empty();
+            var tableX = $('#dtJobMonitorBox').DataTable({
+                paging: false,
+                info:false,
+                searching: false,
+                processing: true,
+                ordering: false,
+                serverSide: true,
+                responsive: true,
+                lengthChange: false,
+                destroy: true,
+                 language: {
+                     url:"http://cdn.datatables.net/plug-ins/1.10.19/i18n/Thai.json"
+                 },
+                ajax: {
+                    url: '@Url.Action("JobMonitor_DT","Home")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 99;
+                        d.indexStart = d.start;
+                        d.search = d.search.value;
+                        d.devArr = devListArr;
+                    }
+                },
+                columns: [
+                 {
+                        title: 'Employee Code',
+                        data: 'EmployeeCode',
+
+                    },
+                    {
+                        title: 'Assignee',
+                        data: 'EmployeeName',
+
+                    },
+
+                    {
+                        title: 'New',
+                        data: 'New',
+                        className:'d-dt-center h-dt-center'
+                    },
+                    {
+                        title: 'OnProcessing',
+                        data: 'OnProcessing',
+                         className:'d-dt-center h-dt-center'
+                    },
+                    {
+                        title: 'Complete',
+                        data: 'Complete',
+                         className:'d-dt-center h-dt-center'
+                    },
+                     {
+                        title: 'Cancel',
+                         data: 'Cancel',
+                         className:'d-dt-center h-dt-center'
+                    },
+                     {
+                        title: 'All',
+                         data: 'All',
+                         className:'d-dt-center h-dt-center'
+                    }
+
+                ]
+            });
+        }
+
+        const SeeDetail = (incidentTaskId) => {
+            window.open(`@Url.Action("IncidentDetail")?incidentTaskId=` + incidentTaskId,'_blank');
+        }
+    </script>
+}

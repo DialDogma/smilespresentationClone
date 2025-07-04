@@ -1,0 +1,281 @@
+﻿@{
+    ViewBag.Title = "รายการไม่ผ่านอนุมัติจากบัญชี 2";
+
+}
+<style>
+    .table {
+        font-size: 14px;
+    }
+
+    .modal.fade .modal-dialog {
+        transform: translate(0, -100%);
+    }
+
+    .modal.in .modal-dialog {
+        transform: translate(0, 0);
+    }
+
+    div > label {
+        color: #0c09ce;
+    }
+</style>
+<form action="" method="post">
+    <div class="row">
+        @* DT Row *@
+        <div class="col-sm-12" id="Detail_form">
+            <div class="box box-default">
+                @*<div class="box-header with-border">
+                        <h3 class="box-title">รายการที่ไม่ผ่านการอนุมัติ</h3>
+                    </div>*@
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table id="dtNotPass" name="dtNotPass" class="table table-bordered table-striped"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* end form *@
+    </div>
+    @* modal detail *@
+    <div class="modal fade bd-detail-modal-lg" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModal" aria-hidden="true">
+        <div class="modal-dialog  modal-lg " role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="detailModalHeader">สาขา <label id="txtbranch"></label></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            Code : <label id="txtCode"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            วันที่ตรวจสอบ : <label id="lblCheckedDate"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            ผลการตรวจสอบ : <label id="lblCheckStatus"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            ตรวจโดย : <label id="lblCheckedBy"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            วันที่สร้างรายการ : <label id="lblCreatedDate"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            วันที่ใบเสร็จ/ใบกำกับภาษี : <label id="txtBillDate"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            ประเภท : <label id="txtType"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            ประเภทค่าใช้จ่าย : <label id="txtDescription"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            รายละเอียดเพิ่มเติม : <label id="txtDescriptionDetail"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            ชื่อบริษัท : <label id="txtCompany"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            เลขที่ใบเสร็จ : <label id="txtBillBook"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            จำนวนเงิน : <label id="txtAmountNet"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            ยอดโอน : <label id="txtTransferNet"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            โดย : <label id="txtUpdatedBy"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            เอกสาร : <a target="_blank" href="" id="btnScanDoc" class="btn btn-block btn-default">เอกสาร:<label class="text-bold" id="docCount">0</label></a>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            หมายเหตุ : <label id="txtRemark"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            สาเหตุไม่ผ่าน : <label id="txtUnPassCause"></label>
+                        </div>
+                        <div class="col-sm-6">
+                            หมายเหตุไม่ผ่านจากบัญชี2 : <label id="txtUnPassRemark"></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-sm-6 pull-right">
+                        <button type="button" class="btn btn-warning" data-dismiss="modal" id="btn-finish">ดึงกลับไปตั้งเบิก</button>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">ยกเลิก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end modal *@
+    <input type="hidden" id="docCode" value="" />
+</form>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        var _pettyCashTransactionId;
+        $(function () {
+            loadDatatable();
+
+            GetDocCount();
+
+            $('#btn-finish').click(function(e){
+                e.preventDefault();
+                Update();
+            });
+        });
+
+        const loadDatatable = () => {
+            $('#dtNotPass').empty();
+            var table = $('#dtNotPass').DataTable({
+                paging: false,
+                info: false,
+                searching: false,
+                serverSide: true,
+                responsive: false,
+                destroy: true,
+                scrollX: true,
+                ajax: {
+                    url: '@Url.Action("GetRejectRequisition")',
+                    type: 'GET',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = 99999;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.pettyCashId = @ViewBag.PettyCashId;
+                    }
+                },
+                columns: [
+                    {
+                        title: 'วันที่ตรวจสอบ',
+                        data: 'UpdatedDate',
+                        className: "h-dt-center",
+                        width: '200px',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY HH:mm:ss') + "น.";
+                            } else {
+                                return '-';
+                            }
+                        }
+                    }, {
+                        title: 'ประเภทค่าใช้จ่าย',
+                        className: "h-dt-center",
+                        width: '150px',
+                        data: 'PettyCashTransactionType'
+                    }, {
+                        title: 'รายละเอียดเพิ่มเติม',
+                        className: "h-dt-center",
+                        width: '180px',
+                        data: 'PettyCashTransactionTypeDescription'
+                    }, {
+                        title: 'จำนวนเงิน',
+                        className: "h-dt-center d-dt-right",
+                        width: '100px',
+                        data: 'Amount',
+                        render: function (data) {
+                            return formatNumber(data);
+                        }
+                    }, {
+                        title: 'สาเหตุ',
+                        className: "h-dt-center",
+                        width: '100px',
+                        data: 'RejectRequisitionCause'
+                    }, {
+                        title: 'หมายเหตุ',
+                        className: "h-dt-center d-dt-center",
+                        width: '150px',
+                        data: 'RejectRequisitionRemark'
+
+                    }, {
+                        title: 'โดย',
+                        className: "h-dt-center d-dt-center",
+                        width: '150px',
+                        data: 'UpdatedByName'
+                    }, {
+                        title: 'รายละเอียด',
+                        data: null,
+                        className: "h-dt-center",
+                        width:'100px',
+                        searchable: false,
+                        render: function (data) {
+                            return '<button type="button" data-toggle="modal" data-target=".bd-detail-modal-lg" class="btn btn-block btn-info" id="btnDetail_' + data.PettyCashTransactionId + '" onclick="Detail(' + data.PettyCashTransactionId + ')"><i class="fa fa-search"></i></button>';
+                        }
+                    }
+
+                ]
+            });
+        }
+        const Detail = (pctId) => {
+            $.get('@Url.Action("GetPettyCashTransaction")', { pettyCashTransactionId: pctId },
+                function (data) {
+                    $('#txtbranch').text(data.BranchDetail == null ? "-" : data.BranchDetail);
+                    $('#txtCode').text(data.PettyCashCode == null ? "-" : data.PettyCashCode);
+                    $('#txtBillDate').text(moment(data.BillDate).format('DD/MM/YYYY HH:mm'));
+                    $('#txtType').text(data.PettyCashTransactionGroup == null ? "-" : data.PettyCashTransactionGroup);
+                    $('#txtDescription').text(data.PettyCashTransactionType == null ? "-" : data.PettyCashTransactionType);
+                    $('#txtDescriptionDetail').text(data.PettyCashTransactionTypeDescription == null ? "-" : data.PettyCashTransactionTypeDescription);
+                    $('#txtCompany').text(data.OrganizeDetail == null ? "-" : data.OrganizeDetail);
+                    $('#txtBillBook').text(data.BillBook == null ? "-" : data.BillBook);
+                    $('#txtAmountNet').text(data.Amount == null ? "-" : data.Amount);
+                    $('#txtTransferNet').text(data.Amount == null ? "-" : data.Amount);
+                    $('#lblCheckedDate').text(moment(data.UpdateDate).format('DD/MM/YYYY HH:mm'));
+                    $('#lblCreatedDate').text(moment(data.CreateDate).format('DD/MM/YYYY HH:mm'));
+                    $('#lblCheckedBy').text(data.UpdatedByName);
+                    $('#lblCheckStatus').text(data.PettyCashTransactionStatus);
+                    $('#txtUpdatedBy').text(data.UpdatedByName == null ? "-" : data.UpdatedByName);
+                    $('#btnScanDoc').attr('href', data.UrlLinkOpenSSSDoc);
+                    $('#txtRemark').text(data.Remark == null ? "-" : data.Remark);
+                    $('#docCount').text(data.DocumentFileCount == null ? "-" : data.DocumentFileCount);
+                    $('#txtUnPassRemark').text(data.RejectRequisitionRemark);
+                    $("#txtUnPassCause").text(data.RejectRequisitionCause);
+                    $('#docCode').val(data.DocumentCode);
+                    _pettyCashTransactionId = data.PettyCashTransactionId;
+
+                });
+        }
+
+        const Update = () =>{
+            $.post('@Url.Action("UpdateRejectRequisition")',{pettyCashTransactionId:_pettyCashTransactionId},
+                function(res){
+                    //reload datatable
+                    loadDatatable();
+                });
+        }
+        //get doc count
+        const GetDocCount = () => {
+
+            $.get('@Url.Action("GetDocCount","PettyCash")', { docCode: $('#docCode').val() },
+                function (data) {
+                    $('#docCount').text(data);
+                });
+            setTimeout(GetDocCount, 2000);
+        }
+    </script>
+}

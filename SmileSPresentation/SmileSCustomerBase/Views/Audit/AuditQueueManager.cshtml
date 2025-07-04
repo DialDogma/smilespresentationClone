@@ -1,0 +1,198 @@
+﻿<form action="@Url.Action("GetExportExcel")" method="post" enctype="multipart/form-data">
+    <div class="row">
+        @* info box header row *@
+        <div class="col-sm-12">
+            @* summary queue *@
+            <div class="col-sm-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-blue"><i class="fa fa-file-text-o"></i></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text" style="font-weight: bold; font-size: 15px;">คิวงานทั้งหมด</span>
+
+                        <span class="info-box-number" style="font-size: 25px;"><label for="xxx" class="control-label" id="lblQueueAll" name="lblQueueAll">@ViewBag.TotalQueue</label></span>
+                    </div>
+                </div>
+            </div>
+            @* wait queue *@
+            <div class="col-sm-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-yellow"><i class="fa fa-exclamation-circle"></i></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text" style="font-weight: bold; font-size: 15px;">รอดำเนินการ</span>
+                        <span class="info-box-number" style="font-size: 25px;"><label for="xxx" class="control-label" id="lblWaitQueue" name="lblWaitQueue">@ViewBag.WaitQueue</label></span>
+                    </div>
+                </div>
+            </div>
+            @* Approve *@
+            <div class="col-sm-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-green"><i class="fa fa-check"></i></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text" style="font-weight: bold; font-size: 15px;">ตรวจสอบแล้ว</span>
+                        <span class="info-box-number" style="font-size: 25px;"><label for="xxx" class="control-label" id="lblClosedQueue" name="lblClosedQueue">@ViewBag.DoneQueue</label></span>
+                    </div>
+                </div>
+            </div>
+            @* excel export *@
+            <div class="col-sm-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-green"><i class="fa fa-file-excel-o"></i></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text" style="font-weight: bold; font-size: 15px;">Export Excel</span>
+                        <button type="submit" class="btn btn-block btn-success" id="btnExportExcel" onclick="ExportExcel()">Export</button>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+            </div>
+        </div>
+
+        @* body *@
+        <div class="col-sm-12">
+            @* Search *@
+            <div class="form-horizontal" id="Search_form">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h4 class="box-title">ค้นหาคิวงาน</h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group row">
+                            <div class="col-sm-12">
+                                <div class="col-sm-4 ">
+                                    <label for="xxx" class="control-label">เลขสติ้กเกอร์ :</label>
+                                    <input type="text" class="form-control" id="txtAppId" name="txtAppId" placeholder="">
+                                </div>
+
+                                <div class="col-sm-4">
+                                    <label for="xxx" class="control-label">ชื่อ - สกุล ผู้เอาประกัน :</label>
+                                    <input type="text" class="form-control" id="txtCustName" name="txtCustName" placeholder="">
+                                </div>
+
+                                <div class="col-sm-4">
+                                    <label for="xxx" class="control-label">ชื่อ - สกุล ผู้ชำระเบี้ย :</label>
+                                    <input type="text" class="form-control" id="txtPayerName" name="txtPayerName" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-offset-9 col-sm-2">
+                                <button class="btn btn-block btn-info" id="btnSearch" type="button" onclick="GetDataTableQueueList()"><span class="fa fa-search"></span>ค้นหา</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* queue list *@
+            <div class="form-horizontal" id="QueueList_form">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h4 class="box-title">รายการคิว</h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <table id="tblQueueList" class="table table-bordered table-striped" style="width: 100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" name="hd_User" id="hd_User" value="@Session["User_ID"]" />
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            GetDataTableQueueList();
+
+             // Reference the auto-generated proxy for the hub.
+            var chat = $.connection.myHub;
+            //Start Connection
+            $.connection.hub.start().done(function () {});
+            //Show addNewNotice to client
+            chat.client.refreshQueueManagerResult = function (message) {
+                debugger;
+                GetDataTableQueueList();
+                toastr["success"]("Refresh", message);
+            };
+
+            toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-bottom-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+
+        });
+
+        function GetDataTableQueueList() {
+            $('#tblQueueList').empty();
+            $('#tblQueueList').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                searching: false,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    type: 'GET',
+                    method: 'POST',
+                    url: '@Url.Action("GetDataTableQueueList")',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.indexStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.auditByUserId = $('#hd_User').val();
+                        d.auditIsCheck = false;
+                        d.searchApplication = $('#txtAppId').val();
+                        d.searchCustName =  $('#txtCustName').val();
+                        d.searchPayerName = $('#txtPayerName').val();
+                    }
+                },
+                columns: [
+                    { title: 'เลขสติ๊กเกอร์', data: 'ApplicationCode' },
+                    { title: 'แผน', data: 'Product' },
+                    { title: 'สถานะApp', data: 'Status' },
+                    { title: 'ชื่อ-สกุล ผู้เอาประกัน', data: 'CustName' },
+                    { title: 'ชื่อ-สกุล ผู้ชำระเบี้ย', data: 'PayerName' },
+                    { title: 'ผลการตรวจสอบ', data: 'AuditCheckStatus' },
+                    { title: 'เจ้าของงาน', data: 'CheckByName' },
+                    {
+                        title: 'ตรวจสอบข้อมูล',
+                        data: 'CleanCustomerId',
+                        width: 100,
+                        className: 'dt-center',
+                        render: function (data) {
+                            return '<a href="@Url.Action("AuditDetail","Audit")?cleanCustomerId=' + data + '" class="btn btn-block btn-warning" style="margin: 2px;" target="_blank"><i class="fa fa-fw fa-edit"></i></a>';
+                        }
+                    }
+                ]
+            });
+        }
+
+        function ExportExcel() {
+            debugger;
+            $.post('@Url.Action("GetExportExcel")');
+        }
+    </script>
+}

@@ -1,0 +1,538 @@
+﻿
+@{
+    ViewBag.Title = "ปรับยอดบัญชี";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*<h2>ReceivePremium</h2>*@
+
+
+
+
+<form class="form-horizontal" action="@Url.Action("")" method="post" id="Mainform">
+    <div class="row">
+
+        <div class="col-sm-12">
+
+
+            @* ค้นหารายการ *@
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">ค้นหา</h3>
+                </div>
+
+                <div class="box-body" style="width: 100%">
+
+                    <div class="form-group">
+                        <div class="col-sm-4">
+                            <label class="control-label">เลขที่บัญชี :</label>
+                            <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlAccountNo" name="ddlAccountNo">
+
+                                <option value="-1">  -- โปรดระบุ --  </option>
+
+                                @foreach (var item in @ViewBag.Account)
+                                {
+                                    <option value=@item.ClaimOnLineAccountId>  @item.AccountNo  -  @item.AccountName </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-sm-3" style="padding-top:27px">
+                            <button type="button" class="btn btn-success"  style="width:50%" id="btnmodalSave">บันทึกยอดบัญชี</button>
+                        </div>
+                        
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            @* รายละเอียด *@
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">รายละเอียด</h3>
+                </div>
+
+                <div class="box-body" style="width: 100%">
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-sm-offset-1">
+                            <label class="control-label" style="padding-top:2px">เลขที่บัญชี :</label>
+                            <label class="control-label" id="lblAccountNo" style="font-size:19px;  padding-top:0px; color: #2c4fb3;display: flex;">-</label>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="control-label" style="padding-top:2px">ชื่อบัญชี :</label>
+                            <label class="control-label" id="lblAccountName" style="font-size:19px;  padding-top:0px; color: #2c4fb3;display: flex;">-</label>
+                        </div>
+                        <div class="col-sm-3">
+                            <label class="control-label" style="padding-top:2px">ยอดเงินปันจจุบัน :</label>
+                            <label class="control-label" id="lblAmount" style="font-size:19px;  padding-top:0px; color: #2c4fb3;display: flex;">-</label>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            @* ตารางรายละเอียด *@
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">ความเคลื่อนไหวของบัญชี</h3>
+                </div>
+
+                <div class="box-body" style="width: 100%">
+
+                    <div class="col-sm-12">
+                        <table id="dtMonitor" class="table table-bordered table-striped display" style="width: 100%"></table>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+
+    @* Modal  *@
+
+    <div class="modal fade" id="modal-ReceivePremium">
+        <div class="modal-dialog" style=" width:100vh; justify-content:center; flex-direction:column; display:flex;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title">บันทึกรับเงิน</h4>
+                </div>
+                <div class="modal-body">
+                    
+                    <div class="row">
+                        <div class="col-sm-12">
+
+                            <div class="box">
+                                <div class="box-body">
+
+                                    <div class="form-group row">
+                                        <div class="col-sm-4 ">
+                                            <label class="control-label" style="padding-top:2px">เลขที่บัญชี :</label>
+                                            <label class="control-label" id="lblAccountNo_Pop" style="font-size:19px;  padding-top:0px; color: #2c4fb3;display: flex;">-</label>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <label class="control-label" style="padding-top:2px">ชื่อบัญชี :</label>
+                                            <label class="control-label" id="lblAccountName_Pop" style="font-size:19px;  padding-top:0px; color: #2c4fb3;display: flex;">-</label>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label class="control-label" style="padding-top:2px">ยอดเงินปันจจุบัน :</label>
+                                            <label class="control-label" id="lblAmount_Pop" style="font-size:19px;  padding-top:0px; color: #2c4fb3;display: flex;">-</label>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-6 col-sm-offset-3">
+                                    <label class="control-label">ประเภทการโอน :</label>
+                                    <select class="form-control select2 " style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlTransferType" name="ddlTransferType">
+
+                                        <option value="-1">  -- โปรดระบุ --  </option>
+
+                                        @foreach (var item in @ViewBag.TransferType)
+                                        {
+                                            <option value=@item.TransferTypeId>  @item.TransferType </option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-6 col-sm-offset-3">
+                                    <label class="control-label">จำนวนยอดเงิน :</label>
+                                    <input type="text" class="form-control" placeholder="จำนวนเงินโอน...." id="txtAmount" name="txtAmount" >
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 col-sm-offset-3">
+                                    <label class="control-label">วันที่โอนเงิน :</label>
+                                    <input type="text" class="form-control pull-right" name="dtpTransferDate" id="dtpTransferDate" required="required"
+                                           data-provide="datepicker" data-date-language="th-th" placeholder="dd/mm/yyyy hh:mm:ss" data-format="dd/MM/yyyy">
+                                </div>
+                                <div class="col-sm-3">
+
+                                    <label class="control-label">เวลาโอนเงิน :</label>
+                                    <input type="text" class="form-control timepicker" id="tpTransfer" name="tpTransfer">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal" id="btnClose" style="width:30%">ปิด</button>
+                    <button type="button" class="btn btn-primary" id="btnSave" style="width:30%"> บันทึก </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <input id="hdfAccountId" type="hidden" />
+
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+
+            //Select2
+            $('.select2').select2();
+
+            $('#dtpTransferDate').datepicker({ format: "dd/mm/yyyy", autoclose: true }).datepicker("setDate", new Date());
+
+
+            $('#tpTransfer').timepicker({
+                timeFormat: 'HH:mm:ss',
+                showMeridian: false
+            });
+
+            $("#txtAmount").inputmask({
+                'alias': 'decimal',
+                rightAlign: false,
+                'groupSeparator': '.',
+                'autoGroup': true
+            });
+
+
+            //$("#txtAmount").on("keyup", function (event) {
+            //    //$(this).val($(this).val().replace(/[^\d].+/, ""));
+            //    //if ((event.which < 48 || event.which > 57)) {
+            //    //    event.preventDefault();
+            //    //}
+
+            //    //if (event.which >= 37 && event.which <= 40) return;
+
+            //    event.preventDefault();
+
+            //    // format number
+            //    $(this).val(function (index, value) {
+            //        return value
+            //            //.replace(/\D/g, "")
+            //            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            //            ;
+            //    });
+
+            //});
+
+
+            $("#ddlAccountNo").change(function (e) {
+
+                e.preventDefault();
+                
+
+                if ($('#ddlAccountNo').val() != '-1') {
+                    GetAccountDetail();
+
+                } else {
+
+                    alert('กรุณาเลือก บัญชี');
+
+                    $('#hdfAccountId').val('-1');
+
+                    $('#lblAccountNo').text('-');
+                    $('#lblAccountName').text('-');
+                    $('#lblAmount').text('-');
+
+                    //Popup
+                    $('#lblAccountNo_Pop').text('-');
+                    $('#lblAccountName_Pop').text('-');
+                    $('#lblAmount_Pop').text('-');
+                }
+
+                GetMonitorAccountTransaction();
+
+            });
+
+
+            $("#btnmodalSave").click(function (e) {
+                e.preventDefault();
+                if ($('#ddlAccountNo').val() != '-1') {
+                    $('#modal-ReceivePremium').modal();
+
+                } else {
+                    alert('กรุณาเลือก บัญชี');
+                    $('#hdfAccountId').val('');
+                    var qqq = $(this).closest('.modal');
+                    $(qqq).modal('hide');
+                }
+            });
+
+
+            $("#btnSave").click(function (e) {
+
+                e.preventDefault();
+                if (IsValidateForSave() != "") {
+                    alert(IsValidateForSave());
+                    return false;
+                }
+
+                else {
+                    window.swal({
+                        title: 'ยืนยันการทำรายการหรือไม่?',
+                        type: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#277020',
+                        confirmButtonText: 'ตกลง',
+                        cancelButtonText: 'ยกเลิก',
+                        closeOnConfirm: false,
+                        closeOnEsc: false,
+                        closeOnCancel: true
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+                            
+                            SaveReceivePremium();
+                        }
+                    });
+                }
+
+
+            });
+
+
+            $("#btnClose").click(function (e) {
+                e.preventDefault();
+
+            });
+
+
+        })
+
+
+        function IsValidateForSave()
+        {
+            var result = "";
+
+            if ($("#ddlTransferType").val() == "-1") {
+                result = "กรุณากรอก ประเภทการโอน";
+                return result;
+            }
+
+
+            if ($("#txtAmount").val() == "") {
+                result = "กรุณากรอก จำนวนเงินโอน";
+                return result;
+            }
+
+            if ($("#txtAmount").val() == "0") {
+                result = "จำนวนเงินต้องไม่เป็น 0";
+                return result;
+            }
+
+            if ($('#dtpTransferDate').val() == "") {
+                result = "กรุณาเลือกวันที่โอนเงิน";
+                return result;
+            }
+
+            if ($('#tpTransfer').val() == "") {
+                result = "กรุณากรอกเวลาโอนเงิน";
+                return result;
+            }
+
+
+            return result;
+        }
+
+        function SaveReceivePremium()
+        {
+            
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("SaveReceivePremium", "Premium")',
+                data: {
+                    
+                    account: $('#hdfAccountId').val(),
+                    transferTypeID: $('#ddlTransferType').val(),
+                    amount: $('#txtAmount').val(),
+                    transferDate: $('#dtpTransferDate').val(),
+                    timetransfer: $('#tpTransfer').val()
+                },
+                success: function (response) {
+                    if (response == true) {
+                        window.swal({
+                            title: 'ทำรายการสำเร็จ',
+                            type: 'success',
+                            showCancelButton: false,
+                            confirmButtonColor: '#26A65B',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+                            //var win = window.open("/BankDirectDebit/AccountDetailGroup?BankDirectDebitID=" + response[1], '_blank');
+                            //win.focus();
+                            //GetReport($('#cBank').val());
+                            //$('#exampleModal').modal('hide');
+                            //DoClear();
+                            //GetMonitorDetail();
+                            GetAccountDetail();
+
+                            GetMonitorAccountTransaction();
+
+                            $("#modal-ReceivePremium").modal('hide');
+                        });
+                    } else {
+                        window.swal({
+                            title: 'เกิดข้อผิดพลาด!',
+                            type: 'error',
+                            text: 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+                            showCancelButton: false,
+                            confirmButtonColor: '#ed2b09',
+                            confirmButtonText: 'ตกลง',
+                            closeOnEsc: false
+                        }, function () {
+
+                        });
+                    }
+                }
+            });
+        }
+
+        function GetAccountDetail()
+        {
+             
+            $.ajax({
+                async:false,
+                type: 'GET',
+                url: '@Url.Action("GetClaimOnLineAccountDetail", "Premium")',
+                dataType: 'json',
+                data: { ClaimOnLineAccountId: $('#ddlAccountNo').val() },
+                success: function (data) {
+                    
+                    //$('#hdUserId').val(data);
+
+                        $('#hdfAccountId').val(data.ClaimOnLineAccountId);
+
+                        $('#lblAccountNo').text(data.AccountNo);
+                        $('#lblAccountName').text(data.AccountName);
+                        $('#lblAmount').text(data.Balance);
+
+                        //Popup
+                        $('#lblAccountNo_Pop').text(data.AccountNo);
+                        $('#lblAccountName_Pop').text(data.AccountName);
+                        $('#lblAmount_Pop').text(data.Balance);
+
+
+
+
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert('request fail');
+                }
+
+            });
+        }
+
+
+        //DTMonitor
+        function GetMonitorAccountTransaction()
+        {
+
+            
+            $('#dtMonitor').empty();
+            var table = $('#dtMonitor').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetMonitorAccountTransaction", "Premium")',
+                    type: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.AccountId = $('#hdfAccountId').val();
+                    }
+                },
+                columns: [
+
+                    {
+                        title: 'ฝาก',
+                        data: 'Deposit',
+                        className: 'dt-center',
+                        //render: function (data, type, row, meta) {
+                        //    $.fn.dataTable.render.number(',', '.', 0);
+
+
+                        //}
+                    },
+                    {
+                        title: 'ถอน',
+                        data: 'Withdraw',
+                        className: 'dt-center',
+                        //render: function (data, type, row, meta) {
+                        //    $.fn.dataTable.render.number(',', '.', 0);
+
+
+                        //}
+                    },
+                    {
+                        title: 'คงเหลือ',
+                        data: 'Balance',
+                        className: 'dt-center',
+                        //render: function (data, type, row, meta) {
+                        //    $.fn.dataTable.render.number(',', '.', 0);
+
+
+                        //}
+                    },
+                    {
+                        title: 'วันที่ทำรายการ',
+                        data: 'TransactionDate',
+                        className: 'dt-center',
+                        render: function (data) {
+                            if (data != null) {
+                                return moment(data).format('DD/MM/YYYY HH:ss');
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    },
+                    { title: 'รหัสผู้ทำรายการ', data: 'CreateByEmployeeCode' },
+                    { title: 'ผู้ทำรายการ', data: 'CreateByUser' },
+
+
+
+
+                ],
+                bLengthChange: false,
+                createdRow: function (row, data, index) {
+                    //if (data.ClaimOnLineStatusId == 3) {
+                    //    $('td', row).addClass('selected');
+                    //}
+                }
+
+            });
+
+
+        }
+
+        //GetAccountDetail
+
+        //SaveAccount
+
+    </script>
+}
+

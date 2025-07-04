@@ -1,0 +1,465 @@
+﻿@{
+    ViewBag.Title = "Model Configuration";
+}
+<div class="row">
+    <div class="col-xs-12">
+        <div class="box box-success">
+            <!-- /.box-header -->
+            <div class="box-body">
+                <!-- form start -->
+                <form class="form-horizontal" id="form1" action="@Url.Action("ModelConfiguration")" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="DesignModel_Id" value="@ViewBag.DesignModel_Id" />
+                    <input type="hidden" name="Act" value="@ViewBag.Act" />
+
+                    <!-- /.box-body -->
+                    <div class="box-body">
+
+                        <label for="MainkeyDatasource" class="col-sm-2 control-label">Mainkey Datasource</label>
+                        <div class="col-sm-4">
+                            <select class="form-control select2" name="MainkeyDatasource" id="MainkeyDatasource" required="required">
+                                @foreach(var item in ViewBag.DatasourceList)
+                                {
+                                    if(item.IsMainKey == true)
+                                    {
+                                        <option value="@item.DatasourceName" selected>@item.DatasourceName</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.DatasourceName">@item.DatasourceName</option>
+                                    }
+
+                                }
+                            </select>
+                        </div>
+
+                        <a id="btnNewConfig" name="btnNewConfig" class="btn btn-success" style="float: right; width: 100px;" onclick="showAddModal()">+ New Config</a>
+                        <a id="btnReOrder" name="btnReOrder" class="btn btn-info" style="float: right; width: 100px;" onclick="showReOrderModal()">Re-Order</a>
+                    </div>
+                    <div class="box-body">
+                        <table id="datatable1" class="table table-bordered table-striped" style="width:100%"></table>
+                    </div>
+
+                    <!-- /.box-footer -->
+                    <div class="box-footer" align="center">
+                        <a href="@Url.Action("DatasourceSelection",new {Id=ViewBag.DesignModel_Id,act=ViewBag.Act})" class="btn btn-danger"><i class="fa fa-arrow-left"></i> Back</a>
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-arrow-right"></i> Next </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Modal Popup Add *@
+<form action="" id="Mainform" method="post">
+    <div class="modal fade" id="addEditModal" tabindex="-1" role="dialog" aria-labelledby="addEditModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="addEditModalTitle"></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="txtConfigName" class="control-label">Config Name:</label>
+                        <input type="text" class="checkParameter form-control " name="txtConfigName" id="txtConfigName" required="required">
+                    </div>
+                    <div class="form-group">
+                        <label for="txtConfigFrom" class="control-label">From :</label>
+                        <input type="text" class="form-control" id="txtConfigFrom">
+                    </div>
+                    <div class="form-group">
+                        <label for="txtConfigTo" class="control-label">To :</label>
+                        <input type="text" class="form-control" id="txtConfigTo">
+                    </div>
+                    <div class="form-group">
+                        <label for="txtConfigValue" class="control-label">Value :</label>
+                        <input type="text" class="form-control" id="txtConfigValue">
+                    </div>
+                    <div class="form-group">
+                        <label for="txtConfigDescription" class="control-label">Description :</label>
+                        <textarea class="form-control" id="txtConfigDescription"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <p id="txtError" style="color:red;"></p>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitModal()">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@*Modal Popup Re-order*@
+<div class="modal fade" id="reorderModal" tabindex="-1" role="dialog" aria-labelledby="reorderModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="reorderModalTitle">Re order config</h4>
+            </div>
+            <div class="modal-body">
+                <ul id="lstMain" class="list-group"></ul>
+            </div>
+            <div class="modal-footer">
+                <p id="txtError" style="color:red;"></p>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveReOrder()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript{
+
+    <script type="text/javascript">
+        //Declare variables
+        var modalState = '';
+        var selectedId = '';
+        var designModelId = @ViewBag.DesignModel_Id;
+
+        /*DocReady-----------------------------------------------------------*/
+        $(function () {
+            //Init Datatable
+            loadDatatable();
+
+            $('#Mainform').validate({
+                rules: {
+                    name: { required : true , checkParameter : true }
+                }
+            });
+            //Initialize Select2 Elements
+            $('.select2').select2();
+
+            //Change MainKey
+            $('#MainkeyDatasource').on('select2:select', function (e) {
+                // Update mainKeyDatasouceName
+                updateMainKeyDatasourceName();
+            });
+        });
+        /*-----------------------------------------------------------*/
+
+        //Update Mainkey DatasourceName--------------------------------------------------
+        function updateMainKeyDatasourceName() {
+            debugger;
+            var postData = { designerModelId: designModelId, mainKeyDatasouceName: $('#MainkeyDatasource').val()};
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("UpdateModelConfigMainKeyDatasource","ModelDesign")',
+                data: postData,
+                dataType: "json",
+                success: function (response) {
+                    loadDatatable();
+                }
+            });
+        }
+        //---------------------------------------------------------------------------
+
+        //Load Datatable/*-----------------------------------------------------------*/
+        function loadDatatable() {
+            //Load Datatable
+            $('#datatable1').DataTable({
+                pageLength: 1000,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                searching: false,
+                lengthChange: false,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetConfigTable")',
+                    async: false,
+                    type:"POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = null;
+                        d.orderType = null;
+                        d.search = '';
+                        d.desingerModel_Id = designModelId;
+                    }
+                },
+                columns: [
+                    { title: 'Name', data: 'ConfigName' },
+                    { title: 'From', data: 'ConfigFrom' },
+                    { title: 'To', data: 'ConfigTo' },
+                    { title: 'Value', data: 'ConfigValue' },
+                    { title: 'Description', data: 'ConfigDescription' },
+                    {
+                        title: '',
+                        data: null,
+                        width: 80,
+                        render: function (data, type, full, meta) {
+                            var rowIndex = meta.row;
+                            //ข้าม ModelName และ MainKey_Sheet
+                            if (rowIndex > 1) {
+                                return '<a class="btn btn-success" title="Edit" onclick="showEditModal(${data.Id})" style="margin: 2px;"><i class="fa fa-pencil-square-o"></i></a>' +
+                                    '<a class ="btn btn-danger" title="Delete" onclick="deleteConfig('+data.Id+')" style="margin: 2px;"><i class ="fa fa-trash"></i></a>';
+                            } else {
+                                return '';
+                            }
+
+                        }
+                    }
+                ]
+            });
+        }
+        /*-----------------------------------------------------------*/
+
+        // show re-order modal
+        function showReOrderModal() {
+            debugger;
+            //Get items to show
+             //get list items
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("GetModelConfigurationList","ModelDesign")?designModelId=${designModelId}',
+                async:false,
+                success: function (response) {
+                    //clear list
+                    $('#lstMain').empty();
+                    //create list items
+                    for (var i = 0; i < response.length; i++) {
+
+                        $('#lstMain').append(`<li class="list-group-item" value="${response[i].Id}">${response[i].ConfigName}</li>`);
+                    }
+                    //create sortable
+                    var el = document.getElementById('lstMain');
+                    var sortable = Sortable.create(el, {
+                        animation: 150,
+                        scroll: true
+                    });
+                }
+            });
+            //Show Modal
+            $('#reorderModal').modal();
+        }
+        //----------------------------------------------------------------------------------------
+
+        //Function ShowModalForAdd/*-----------------------------------------------------------*/
+        function showAddModal() {
+            //Clear all modal control
+            clearModalControl();
+
+            //Set modal state
+            modalState = 'Add';
+
+            //Set modal title
+            $('#addEditModalTitle').append('New Config');
+
+            //Show Modal
+            $('#addEditModal').modal();
+        }
+        /*-----------------------------------------------------------*/
+
+        //show Edit Modal/*-----------------------------------------------------------*/
+        function showEditModal(id) {
+            //Clear all modal control
+            clearModalControl();
+
+            //set modal state
+            modalState = 'Edit';
+
+            //Get selectedId
+            selectedId = id;
+
+            //Get value
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("GetModelConfigurationDetail","ModelDesign")?Id=${id}',
+                dataType: "json",
+                success: function (response) {
+                    debugger;
+                    $('#txtConfigName').val(response.ConfigName);
+                    $('#txtConfigFrom').val(response.ConfigFrom);
+                    $('#txtConfigTo').val(response.ConfigTo);
+                    $('#txtConfigValue').val(response.ConfigValue);
+                    $('#txtConfigDescription').val(response.ConfigDescription);
+                }
+            });
+
+            //set Modal title
+            $('#addEditModalTitle').append('Edit Config');
+
+            //Show Modal
+            $('#addEditModal').modal();
+        }
+        /*-----------------------------------------------------------*/
+
+        //Clear modal control/*-----------------------------------------------------------*/
+        function clearModalControl()
+        {
+            selectedId = '';
+            $('#addEditModalTitle').empty();
+            $('#txtConfigName').val('');
+            $('#txtConfigFrom').val('');
+            $('#txtConfigTo').val('');
+            $('#txtConfigValue').val('');
+            $('#txtConfigDescription').val('');
+            $('#txtError').empty();
+        }
+        /*-----------------------------------------------------------*/
+
+        //Validate/*-----------------------------------------------------------*/
+        function validater()
+        {
+            let result = true;
+
+            //reset error text
+            $('#txtError').empty();
+
+            let cfname = $('#txtConfigName').val().trim();
+
+            //Validate Name Required.
+            if (cfname == '') {
+                $('#txtError').append('Config Name Required.');
+                return false;
+            };
+            //Validate Value
+            if ($('#txtConfigValue').val().trim() == '') {
+                $('#txtError').append('Config Value Required.');
+                return false;
+            };
+
+            let url = '';
+
+            //Validate Name not exsist (Add)
+            if (modalState == 'Add') {
+                //Add
+                url = `@Url.Action("ValidateForAddConfig","ModelDesign")?designModelId=${designModelId}&name=${cfname}`;
+            } else {
+                //Edit
+                 url = `@Url.Action("ValidateForEditConfig","ModelDesign")?designModelId=${designModelId}&ConfigId=${selectedId}&newName=${cfname}`;
+            }
+
+            //Validate Name not exsist (Edit)
+            $.ajax({
+                type: "GET",
+                url: url,
+                dataType: "json",
+                async:false,
+                success: function (response) {
+                    debugger;
+                    if (!response.validate) {
+                        $('#txtError').append(response.error);
+                        result = false;
+                    }
+                }
+            });
+
+            return result;
+        }
+        /*-----------------------------------------------------------*/
+
+        //Submit Modal/*-----------------------------------------------------------*/
+        function submitModal()
+        {
+            if ($('#Mainform').valid()) {
+                //Get Configuration Object
+            let id = selectedId;
+            let name = $('#txtConfigName').val().trim();
+            let from = $('#txtConfigFrom').val().trim();
+            let to = $('#txtConfigTo').val().trim();
+            let value = $('#txtConfigValue').val().trim();
+            let description = $('#txtConfigDescription').val().trim();
+
+            //Check validate
+            if (validater()) {
+                let url = '';
+                 //Check state
+                if (modalState == 'Add') {
+                    url= "@Url.Action("AddModelConfig","ModelDesign")";
+                } else {
+                    //Edit
+                    url = "@Url.Action("EditModelConfig","ModelDesign")";
+                }
+                //Update Configuration
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: {
+                        Id: id,
+                        DesignerModel_Id: designModelId,
+                        ConfigName: name,
+                        ConfigFrom: from,
+                        ConfigTo: to,
+                        ConfigValue: value,
+                        ConfigDescription: description
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        //Reload Datatable
+                        loadDatatable();
+                        //Close Modal
+                        $('#addEditModal').modal('toggle');
+                    }
+                });
+            }
+            }
+
+        }
+        /*-----------------------------------------------------------*/
+
+        /*-----------------------------------------------------------*/
+        function saveReOrder() {
+            let lst = [];
+
+            let listItems = $("#lstMain li");
+
+            //get new index
+            for (let li of listItems) {
+                let item = $(li);
+                lst.push(item.attr('value'));
+            }
+
+            var postData = { values: lst };
+
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("UpdateModelConfigIndex","ModelDesign")",
+                data: postData,
+                dataType: "json",
+                success: function (response) {
+                    //Reload datatable
+                    loadDatatable();
+                    //Close modal
+                     $('#reorderModal').modal('toggle');
+                }
+            });
+
+        }
+        /*-----------------------------------------------------------*/
+
+        //*-------------Delete config--------------------------------*/
+        function deleteConfig(id) {
+
+            swal({
+                title: "ยืนยันการลบ?",
+                text: "เมื่อลบแล้วจะไม่สามารถเรียกคืนข้อมูลได้",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+                .then((willDelete) => {
+                    if (willDelete) {
+                        debugger;
+                        $.ajax({
+                            type: "POST",
+                            url: "@Url.Action("DeleteModelConfig","ModelDesign")",
+                            data: `designerModelConfigId=${id.toString()}`,
+                            dataType: "json",
+                            success: function (response) {
+                                swal("ลบข้อมูลเรียบร้อยแล้ว!", {
+                                    icon: "success",
+                                });
+                                loadDatatable();
+                            }
+                        });
+                    } else {
+                    }
+                });
+        }
+        //------------End Delete Config---------------------------------*/
+    </script>
+}

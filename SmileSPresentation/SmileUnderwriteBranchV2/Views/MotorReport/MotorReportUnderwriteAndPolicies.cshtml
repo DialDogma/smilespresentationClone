@@ -1,0 +1,143 @@
+﻿@{
+    ViewBag.Title = "รายงานการคัดกรองและมอบกรมธรรม์";
+    Layout = "~/Views/Shared/_LayoutForTopIndexMotor.cshtml";
+}
+<head>
+    <style>
+        .datepicker-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+            .datepicker-wrapper input {
+                padding: 8px 35px 8px 10px;
+                width: 250px;
+                font-size: 14px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+
+            .datepicker-wrapper .fa-calendar-alt {
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #888;
+                pointer-events: none;
+            }
+
+        .note {
+            color: red;
+            font-size: 14px;
+            margin-top: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<section class="container">
+    <div class="box box-header bg-aqua">
+        <center><span style="font-size:large;">ประกันรถยนต์</span></center>
+    </div>
+    <div class="row" style="margin-top: 25px">
+        <div class="col-sm-12 col-md-12">
+            <div class="box box-solid">
+                <div class="box box-header " style="background-color:#0A5769;color:aliceblue">
+                    <center><span style="font-size:large;">รายงานการมอบกรมธรรม์</span></center>
+                </div>
+
+                <div class="box-body">
+                    <div class="form-group row" style="text-align:center">
+                        <div class="col-sm-12 col-md-offset-1 col-md-10">
+                            <label style="margin-right:10px" for="datepickerFrom">จากรอบความคุ้มครอง:</label>
+                            <div class="datepicker-wrapper">
+                                <input type="text" id="datepickerFrom" placeholder="------กรุณาเลือก------" readonly>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-12 col-md-offset-1 col-md-10" style="margin-top:20px">
+                            <label style="margin-right:15px" for="datepickerTo">ถึงรอบการมอบกรมธรรม์:</label>
+                            <div class="datepicker-wrapper">
+                                <input type="text" id="datepickerTo" placeholder="------กรุณาเลือก------" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="note">
+                        * Ex. รอบการมอบกรมธรรม์จากวันที่ 22- 21 เช่น รอบการมอบกรมธรรม์เดือน ม.ค (22/12/2568 - 21/01/2569)
+
+                    </p>
+
+                    <div class="form-group row" id="Download_form">
+                        <div class="col-sm-12 col-md-offset-4 col-md-4 " style="">
+                            <button type="button" id="btnDownload1" class="btn btn-block btn-success" onclick="getDownloadLink()">Export to Excel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        let resultArray;
+        $(function () {
+         const today = new Date();
+const oneYearAgo = new Date();
+const oneYearAhead = new Date();
+
+oneYearAgo.setFullYear(today.getFullYear() - 1);
+oneYearAhead.setFullYear(today.getFullYear() + 1);
+
+// สร้าง period จาก ViewBag แล้วแปลงให้เป็น Date
+const thaiDateStr = `@ViewBag.PeriodList`; // "01/04/2568"
+const parts = thaiDateStr.split('/');
+
+// แปลงเป็น ค.ศ.
+const day = parseInt(parts[0], 10);
+const month = parseInt(parts[1], 10) - 1; // เดือนใน JS เริ่มจาก 0
+const year = parseInt(parts[2], 10) - 543; // พ.ศ. - 543 = ค.ศ.
+
+const period = new Date(year, month, day);
+
+// เอาไปตั้งค่าใน datepicker
+const fromDate = new Date(period);
+fromDate.setDate(parseInt(`@ViewBag.changePeriodDay`));
+
+const toDate = new Date(period);
+            toDate.setMonth(toDate.getMonth() + 1);
+            toDate.setDate(parseInt(`@ViewBag.changePeriodDay`)-1);
+
+// กำหนดค่าให้กับ datepicker
+$("#datepickerFrom").datepicker({
+    format: 'dd/mm/yyyy',
+    autoclose: true,
+    todayHighlight: true,
+    startDate: oneYearAgo,
+    endDate: oneYearAhead
+}).datepicker('setDate', fromDate);
+
+$("#datepickerTo").datepicker({
+    format: 'dd/mm/yyyy',
+    autoclose: true,
+    todayHighlight: true,
+    startDate: oneYearAgo,
+    endDate: oneYearAhead
+}).datepicker('setDate', toDate);
+           @* $('#Download_form').hide();
+            $('#datepickerFrom, #datepickerTo').on('change', function () {
+                if ($('#datepickerFrom').val() && $('#datepickerTo').val()) {
+                    $('#Download_form').show();
+                } else {
+                    $('#Download_form').hide();
+                }
+            });*@
+
+        });
+
+
+        const getDownloadLink = () => {
+            window.location.href = '@Url.Action("ExportReportQueueMotorDirector","MotorReport")' + '?dateFrom=' + $('#datepickerFrom').val() +'&dateTo=' + $('#datepickerTo').val();
+        }
+    </script>
+}

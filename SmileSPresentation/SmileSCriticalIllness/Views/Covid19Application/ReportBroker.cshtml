@@ -1,0 +1,110 @@
+﻿@{
+    ViewBag.Title = "รายงานส่งบริษัทประกัน";
+}
+
+<style>
+    .table {
+        font-size: 14px;
+    }
+
+    .toolbar {
+        float: left;
+    }
+</style>
+<div class="row">
+    @* operation *@
+    <div class="col-sm-12 col-md-12" id="Operate_Form">
+        <div class="box box-info">
+            <div class="box-body">
+
+                <div class="row">
+                    <div class="col-xs-12 col-md-5">
+                        <label for="sDate" class="col-xs-12 col-md-2 control-label">วันที่:</label>
+                        <div class="col-xs-12 col-md-9 input-group date">
+                            <div class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </div>
+                            <input type="text" class="form-control pull-right" name="sDate" id="sDate"
+                                   data-date-language="th-th" data-provide="datepicker" value="" placeholder="กรุณาเลือก" />
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-md-2">
+                        <button class="btn btn-block btn-info" id="btnExport" type="button">Export To Excel<i class="fa fa-arrow-circle-down" style="margin-left:5px"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* end *@
+</div>
+@section ViewSpecificJavascript
+
+{
+    <script type="text/javascript">
+        $(function () {
+
+            $('#sDate').datepicker({
+                autoclose: true,
+                minViewMode: "months",
+                format: "MM yyyy",
+            });
+
+            $('#eDate').datepicker({
+                autoclose: true,
+            });
+        });
+
+        //export
+        $('#btnExport').click(function (e) {
+
+            e.preventDefault();
+            if ($('#sDate').val() == "") {
+                swal("แจ้งเตือน", "กรุณาเลือกวันที่เริ่มต้น !", "warning");
+                return false;
+            }
+
+            //if ($('#eDate').val() == "") {
+            //    swal("แจ้งเตือน", "กรุณาเลือกวันที่สิ้นสุด !", "warning");
+            //    return false;
+            //}
+
+            let sDate = $('#sDate').datepicker('getDate');
+            let eDate = $('#eDate').datepicker('getDate');
+            //if (eDate < sDate) {
+            //    swal("แจ้งเตือน", "กรุณาตรวจสอบวันที่เริ่มต้น และสิ้นสุด !", "warning");
+            //    return false;
+            //}
+            ExportReport()
+        });
+
+        const ExportReport = () => {
+            loadingSpinner('fadeIn');
+            $.ajax({
+                url: "@Url.Action("ExportReport", "Covid19Application")",
+                type: "GET",
+                data: {
+                    startDate: $('#sDate').val(),
+                    //endDate: $('#EndDate').val(),
+                },
+                success: function (data) {
+                    if (data.IsResult == false) {
+                        loadingSpinner('fadeOut');
+                        swal("ผลการค้นหา", data.Msg, "warning", function (e) {
+                            swal.close();
+                            return false;
+                        });
+                    } else {
+                        loadingSpinner('fadeOut');
+                        let reportName = "report ส่ง บ.ประกัน";
+                        window.location = `@Url.Action("Download", "Covid19Application")?reportName=${reportName}`;
+                    }
+
+                },
+                error: function (jqXHR, exception) {
+                    loadingSpinner('fadeOut');
+                    checkXHRStatus(jqXHR.status);
+                }
+            });
+        }
+    </script>
+}

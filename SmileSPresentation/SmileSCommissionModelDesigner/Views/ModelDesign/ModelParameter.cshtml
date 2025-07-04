@@ -1,0 +1,430 @@
+﻿@{
+    ViewBag.Title = "Model Parameters";
+}
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="box box-success">
+            <!-- /.box-header -->
+            <div class="box-body">
+                <!-- form start -->
+                <form class="form-horizontal" id="form1" action="@Url.Action("ModelParameter")" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="DesignModel_Id" id="DesignModel_Id" value="@ViewBag.DesignModel_Id" />
+                    <input type="hidden" name="Act" value="@ViewBag.Act" />
+                    <!-- /.box-body -->
+                    <div class="box-body">
+                        <a id="btnNewParameter" name="btnNewParameter" class="btn btn-success" style="float: right; width: 130px;" onclick="showAddModal()"> + New Parameter </a>
+                        <a id="btnReOrder" name="btnReOrder" class="btn btn-info" style="float: right; width: 100px;" onclick="showReOrderModal()">Re-Order</a>
+                    </div>
+                    <div class="box-body">
+                        <table id="datatable1" class="table table-bordered table-striped" style="width:100%"></table>
+                    </div>
+                    <div class="box-footer" align="center">
+                        <a href="@Url.Action("ModelConfiguration",new {Id=ViewBag.DesignModel_Id,act=ViewBag.Act})" class="btn btn-danger"><i class="fa fa-arrow-left"></i> Back </a>
+                        <a href="@Url.Action("DownloadDesignModel",new { id=@ViewBag.DesignModel_Id })" target="_blank" class="btn btn-info" title="Download" style="margin: 2px;"><i class="fa fa-download"></i> Download </a>
+                        <button type="button" class="btn btn-success" onclick="CreateUpdate()">Apply Update</button>
+                    </div>
+                    <!-- /.box-footer -->
+                </form>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+    <!-- /.box -->
+</div>
+
+@* Modal Popup Add *@
+<form action="" method="post" id="Mainform">
+    <div class="modal fade" id="addEditModal" tabindex="-1" role="dialog" aria-labelledby="addEditModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="addEditModalTitle"></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="txtParameterName" class="control-label">Parameter Name:</label>
+                        <input type="text" class="form-control checkParameter" id="txtParameterName">
+                    </div>
+                    <div class="form-group">
+                        <label for="txtParameterFormula" class="control-label">Formula :</label>
+                        <textarea class="form-control" id="txtParameterFormula"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="txtParameterFormula" class="control-label">Formula :</label>
+                        <select class="select2 form-control" id="select_Type">
+                            <option value="1">Text</option>
+                            <option value="2">Integer</option>
+                            <option value="3">Float</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <p id="txtError" style="color:red;"></p>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitModal()">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@*Modal Popup Re-order*@
+<div class="modal fade" id="reorderModal" tabindex="-1" role="dialog" aria-labelledby="reorderModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="reorderModalTitle">Re order config</h4>
+            </div>
+            <div class="modal-body">
+                <ul id="lstMain" class="list-group"></ul>
+            </div>
+            <div class="modal-footer">
+                <p id="txtError" style="color:red;"></p>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveReOrder()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript{
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script>
+        //Declare variables
+        var modalState = '';
+        var selectedId = '';
+        var designModelId = @ViewBag.DesignModel_Id;
+
+        /*DocReady-----------------------------------------------------------*/
+        $(function () {
+            //Init Datatable
+            loadDatatable();
+
+            $('#Mainform').valid();
+
+            //Excel formulate
+            $("#txtParameterFormula").ExcelFormulate({});
+        });
+        /*-----------------------------------------------------------*/
+
+         //Load Datatable/*-----------------------------------------------------------*/
+        function loadDatatable() {
+            //Load Datatable
+            $('#datatable1').DataTable({
+                pageLength: 1000,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                searching: false,
+                lengthChange: false,
+                destroy: true,
+                ajax: {
+                    url: '@Url.Action("GetParameterTable")',
+                    async: false,
+                    type:"POST",
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = null;
+                        d.orderType = null;
+                        d.search = '';
+                        d.desingerModel_Id = designModelId;
+                    }
+                },
+                columns: [
+                    { title: 'Name', data: 'ParameterName' },
+                    { title: 'Formula', data: 'ParameterFormula' },
+                    { title: 'DataType', data: null, render: function (data) {
+                        if (data.ParameterDataType == 1) {
+                            return '<h5>Text</h5>';
+                        } else if (data.ParameterDataType == 2) {
+                            return '<h5>Integer</h5>';
+                        } else if (data.ParameterDataType == 3) {
+                            return '<h5>float</h5>';
+                        }
+
+                    }},
+                    {
+                        title: '',
+                        data: 'Id',
+                        width: 80,
+                        render: function (data, type, full, meta) {
+                            var rowIndex = meta.row;
+                            //ข้าม MainKey
+                            if (rowIndex > 0) {
+                                return `<a class="btn btn-success" title="Edit" onclick="showEditModal(${data})" style="margin: 2px;"><i class="fa fa-pencil-square-o"></i></a>` +
+                                    `<a class ="btn btn-danger" title="Delete"  onclick="deleteParameter('${data}')" style="margin: 2px;"><i class ="fa fa-trash"></i></a>`;
+                            } else {
+                                return '';
+                            }
+                        }
+                    }
+                ]
+            });
+        }
+        /*-----------------------------------------------------------*/
+
+        //Clear modal control/*-----------------------------------------------------------*/
+        function clearModalControl()
+        {
+            selectedId = ''
+            $('#addEditModalTitle').empty();
+            $('#txtParameterName').val('');
+            $('#txtParameterFormula').val('');
+            $('#txtError').empty();
+        }
+        /*-----------------------------------------------------------*/
+
+        // show re-order modal
+        function showReOrderModal() {
+            debugger;
+            //Get items to show
+             //get list items
+            $.ajax({
+                type: "GET",
+                url: `@Url.Action("GetModelParameterList","ModelDesign")?designModelId=${designModelId}`,
+                async:false,
+                success: function (response) {
+                    //clear list
+                    $('#lstMain').empty();
+                    //create list items
+                    for (var i = 0; i < response.length; i++) {
+
+                        $('#lstMain').append(`<li class="list-group-item" value="${response[i].Id}">${response[i].ParameterName}</li>`);
+                    }
+                    //create sortable
+                    var el = document.getElementById('lstMain');
+                    var sortable = Sortable.create(el, {
+                        animation: 150,
+                        scroll: true
+                    });
+                }
+            });
+            //Show Modal
+            $('#reorderModal').modal()
+        }
+        //----------------------------------------------------------------------------------------
+
+         //Function ShowModalForAdd/*-----------------------------------------------------------*/
+        function showAddModal() {
+            //Clear all modal control
+            clearModalControl();
+
+            //Set modal state
+            modalState = 'Add';
+
+            //Set modal title
+            $('#addEditModalTitle').append('New Parameter');
+
+            //Show Modal
+            $('#addEditModal').modal()
+        }
+        /*-----------------------------------------------------------*/
+
+        //show Edit Modal/*-----------------------------------------------------------*/
+        function showEditModal(id) {
+            //Clear all modal control
+            clearModalControl();
+
+            //set modal state
+            modalState = 'Edit'
+
+            //Get selectedId
+            selectedId = id;
+
+            //Get value
+            $.ajax({
+                type: "GET",
+                url: `@Url.Action("GetModelParameterDetail","ModelDesign")?Id=${id}`,
+                dataType: "json",
+                success: function (response) {
+                    debugger;
+                    $('#txtParameterName').val(response.ParameterName);
+                    $('#txtParameterFormula').val(response.ParameterFormula);
+                }
+            });
+
+            //set Modal title
+            $('#addEditModalTitle').append('Edit Config');
+
+            //Show Modal
+            $('#addEditModal').modal()
+        }
+        /*-----------------------------------------------------------*/
+
+        //Validate/*-----------------------------------------------------------*/
+        function validater()
+        {
+            let result = true;
+
+            //reset error text
+            $('#txtError').empty();
+
+            let cfname = $('#txtParameterName').val().trim();
+
+            //Validate Name Required.
+            if (cfname == '') {
+                $('#txtError').append('Parameter Name Required.');
+                return false;
+            };
+            //Validate Value
+            if ($('#txtParameterFormula').val().trim() == '') {
+                $('#txtError').append('Formula Required.');
+                return false;
+            };
+
+            //Validate Name not exsist (Add)
+            let url = ''
+            if (modalState == 'Add') {
+                url = `@Url.Action("ValidateForAddParameter","ModelDesign")?designModelId=${designModelId}&name=${cfname}`;
+            } else {
+                url = `@Url.Action("ValidateForEditParameter","ModelDesign")?designModelId=${designModelId}&ConfigId=${selectedId}&newName=${cfname}`;
+            }
+
+            $.ajax({
+                type: "GET",
+                url: url,
+                dataType: "json",
+                async: false,
+                success: function (response) {
+                    if (!response.validate) {
+                        $('#txtError').append(response.error);
+                        result = false;
+                    }
+                }
+            });
+            return result;
+        }
+        /*-----------------------------------------------------------*/
+
+        //Submit Modal/*-----------------------------------------------------------*/
+        function submitModal()
+        {
+            if ($('#Mainform').valid()) {
+                debugger;
+            //Get Configuration Object
+            let id = selectedId;
+            let name = $('#txtParameterName').val().trim();
+            let formula = $('#txtParameterFormula').val().trim();
+            let type = $('#select_Type').val().trim();
+
+            //Check validate
+            if (validater()) {
+
+                let url = ''
+                 //Check state
+                if (modalState == 'Add') {
+                    //Add
+                    url = "@Url.Action("AddModelParameter","ModelDesign")"
+                } else {
+                    //Edit
+                    url = "@Url.Action("EditModelParameter","ModelDesign")"
+                }
+
+                  $.ajax({
+                        type: "POST",
+                        url: url,
+                        data: {
+                            Id: id,
+                            DesignerModel_Id: designModelId,
+                            ParameterName: name,
+                            ParameterFormula: formula,
+                            ParameterDataType: type
+                        },
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.success) {
+                                //Reload Datatable
+                                loadDatatable();
+                                //Close Modal
+                                $('#addEditModal').modal('toggle');
+                            }
+                        }
+                    });
+            }
+            }
+
+        }
+        /*-----------------------------------------------------------*/
+
+        /*-----------------------------------------------------------*/
+        function saveReOrder() {
+            let lst = [];
+
+            let listItems = $("#lstMain li");
+
+            //get new index
+            for (let li of listItems) {
+                let item = $(li);
+                lst.push(item.attr('value'));
+            }
+
+            var postData = { values: lst };
+
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("UpdateModelParameterIndex","ModelDesign")",
+                data: postData,
+                dataType: "json",
+                success: function (response) {
+                    //Reload datatable
+                    loadDatatable();
+                    //Close modal
+                     $('#reorderModal').modal('toggle');
+                }
+            });
+
+        }
+        /*-----------------------------------------------------------*/
+
+        //*-------------Delete parameter--------------------------------*/
+        function deleteParameter(id) {
+
+            swal({
+                title: "ยืนยันการลบ?",
+                text: "เมื่อลบแล้วจะไม่สามารถเรียกคืนข้อมูลได้",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+                .then((willDelete) => {
+                    if (willDelete) {
+                        debugger;
+                        $.ajax({
+                            type: "POST",
+                            url: "@Url.Action("DeleteModelParameter","ModelDesign")",
+                            data: `designerModelParameterId=${id.toString()}`,
+                            dataType: "json",
+                            success: function (response) {
+                                swal("ลบข้อมูลเรียบร้อยแล้ว!", {
+                                    icon: "success",
+                                });
+                                loadDatatable();
+                            }
+                        });
+                    } else {
+                    }
+                });
+        }
+        //------------End Delete Config---------------------------------*/
+        const CreateUpdate = () => {
+            $.post('@Url.Action("AddUpdateDesignerTable")', { designModelId: $('#DesignModel_Id').val() }, (data) => {
+                if (data) {
+                    swal({
+                        title: "Complete",
+                        icon: "success"
+                    });
+                } else {
+                    swal({
+                        title: "Fail",
+                        icon: "warning",
+                        buttons:true
+                    });
+                }
+            });
+        }
+    </script>
+}

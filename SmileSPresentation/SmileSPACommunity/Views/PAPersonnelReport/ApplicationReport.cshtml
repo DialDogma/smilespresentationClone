@@ -1,0 +1,179 @@
+﻿
+@{
+    ViewBag.Title = "รายงาน ผลการส่ง SMS";
+}
+
+<form class="form-horizontal">
+
+    <div class="row">
+        <div class="col-sm-12">
+
+            <div class="box box-primary ">
+
+                <div class="box-header with-border">
+                    <h3 class="box-title">ค้นหารายการ</h3>
+                </div>
+
+                <div class=" box body no-border">
+
+                    <div class="row " style="padding-left:2%;padding-top:1%">
+                        <div class="col-sm-2">
+                            <label>ปีการศึกษา :</label>
+                            <select type="text" class="form-control select2" id="ddlYear">
+                                @foreach (var item in ViewBag.Years)
+                                {
+                                    <option value="@item.Code" selected="selected">@item.Detail</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-4">
+                            <label>สถานะ :</label>
+                            <select class="form-control select2 leaderMultiSelctdropdown" name="ddlStatus" id="ddlStatus" style="width: 100%;" multiple="">
+
+                                @foreach (var item in ViewBag.Status)
+                                {
+                                        <option value="@item.PersonnelApplicationStatusId" selected="selected">@item.PersonnelApplicationStatusName</option>
+                                  
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row " style="padding-left:2%;padding-top:1%">
+
+                        <div class="col-sm-3">
+                            <label>สาขา :</label>
+                            <select type="text" class="form-control select2" id="ddlBranch">
+                                <option value="-1">--- ทั้งหมด ---</option>
+                                @foreach (var item in ViewBag.Branch)
+                                {
+                                    <option value="@item.BranchID">@item.Branch</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-2" style="padding-top:2%;padding-bottom:2%">
+                            <button id="btnExport" type="button" class="btn btn-success btn-block"><i class="fa fa-file-excel"></i> Export</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        </div>
+</form>
+
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        //---------------main function-------------
+        $(function () {
+            $('.select2').select2();
+
+            $.fn.select2.amd.require([
+                'select2/utils',
+                'select2/dropdown',
+                'select2/dropdown/attachBody'
+            ], function (Utils, Dropdown, AttachBody) {
+                function SelectAll() { }
+
+                SelectAll.prototype.render = function (decorated) {
+                    var $rendered = decorated.call(this);
+                    var self = this;
+
+                    var $selectAll = $(
+                        '<button type="button" class="btn btn-xs btn-default" style="margin-left:6px;">&#9744; Select All</button>'
+                    );
+
+                    $unselectAll = $(
+                        '<button class="btn btn-xs btn-default" type="button" style="margin-left:6px;">&#9744; Unselect All</button>'
+                    ),
+                        $btnContainer = $('<div style="margin-top:3px;">').append($selectAll).append($unselectAll);
+                    if (!this.$element.prop("multiple")) {
+                        // this isn't a multi-select -> don't add the buttons!
+                        return $rendered;
+                    }
+
+                    $rendered.find('.select2-dropdown').prepend($btnContainer);
+
+                    $selectAll.on('click', function (e) {
+                        var $results = $rendered.find('.select2-results__option[aria-selected=false]');
+
+                        // Get all results that aren't selected
+                        $results.each(function () {
+                            var $result = $(this);
+
+                            // Get the data object for it
+                            var data = $result.data('data');
+
+                            // Trigger the select event
+                            self.trigger('select', {
+                                data: data
+                            });
+                        });
+
+                        self.trigger('close');
+                    });
+
+                    $unselectAll.on('click', function (e) {
+                        var $results = $rendered.find('.select2-results__option[aria-selected=true]');
+                        $results.each(function () {
+                            self.trigger('unselect', {
+                                data: $(this).data('data')
+                            });
+                        });
+                        self.trigger('close');
+                    });
+
+                    return $rendered;
+                };
+
+                $("#ddlStatus").select2({
+                    placeholder: " ---โปรดระบุ--- ",
+                    dropdownAdapter: Utils.Decorate(
+                        Utils.Decorate(
+                            Dropdown,
+                            AttachBody
+                        ),
+                        SelectAll
+
+                    ),
+                });
+            });
+
+        });
+
+
+        //btnExport event
+        $('#btnExport').click(function (e) {
+            e.preventDefault();
+            loadingSpinner('fadeIn', 3000)
+            ExportExcel();
+        });
+
+        //----------------variable-------------
+
+        //--------------const function---------
+
+
+        function ExportExcel() {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("ExportApplicationReport", "PAPersonnelReport")",
+                data: {
+                    year: $('#ddlYear').val(),
+                    personnelAppStatus: $('#ddlStatus').val().join(","),
+                    branchId: $('#ddlBranch').val()
+                },
+                dataType: "json",
+                success: function (response) {
+                    window.location.href = `@Url.Action("ExportApplicationReportDownload", "PAPersonnelReport")`;
+                    loadingSpinner('fadeOut', 3000);
+                }
+            });
+        }
+
+
+    </script>
+}

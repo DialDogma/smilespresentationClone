@@ -1,0 +1,187 @@
+﻿@{
+    ViewBag.Title = "การจัดการข้อมูลลูกค้า";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form class="form-horizontal">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="box box-primary" style="margin-top:15px">
+                <div class="box-body">
+                    <div class="box-group">
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <label>ประเภทลูกค้า :</label>
+                                <select class="form-control select2  select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true" id="ddlPersonType">
+                                    <option value="-1">---ทั้งหมด---</option>
+                                    @{
+                                        foreach (var item in ViewBag.PersonType)
+                                        {
+                                            <option value="@item.PersonType_ID">@item.PersonTypeDetail</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-sm-6" style="padding-top:25px">
+                                <input class="form-control" type="text" placeholder="ค้นหา " id="txtKeyWord">
+                            </div>
+                            <div class="col-sm-2" style="padding-top:25px">
+                                <button type="button" class="btn btn-block btn-linkedin" style="text-decoration:none" id="btnSearch">ค้นหา</button>
+                            </div>
+                        </div>
+
+                        <div class="box-body" style="margin-top:-10px">
+                            <div class="">
+                                <table id="dtCustomerManagement" class="table table-bordered table-hover dataTable" style="width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="hdfMode" value="@ViewBag.Mode" />
+</form>
+
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+
+        $(function () {
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+
+                DoLoadMonitor();
+            });
+
+
+            $('#txtKeyWord').keydown(function (e) {
+               
+                if (e.keyCode === 13 || e.which == 13) {
+                    e.preventDefault();
+                    DoLoadMonitor();
+                }
+                    
+                });
+          
+        });
+        //Load data to datatable
+        const DoLoadMonitor = () => {
+           
+            $('#dtCustomerManagement').empty();
+            var t = $('#dtCustomerManagement').dataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                responsive: true,
+                destroy: true,
+                "order": [[0, "desc"]],
+                searching: false,
+                ajax: {
+                    url: '@Url.Action("GetPersonForManagement", "CustomerManagement")',
+
+                    type: 'POST',
+                    async: false,
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.keyword = $("#txtKeyWord").val();
+                        d.PersonTypeId = $('#ddlPersonType').val();
+                        d.PersonId = null;
+
+                    }
+                },
+                columns: [
+                    { title: 'รหัสรายการ', data: 'Person_ID', className: 'h-dt-center ' },
+                    { title: 'ชื่อ', data: 'FullName', className: 'h-dt-center ' },
+                    { title: '<span title="เลขบัตรประชาชน/เลขPassport/เลขบัตรประจำตัวผู้เสียภาษีอากร" data-toggle="tooltip" >เลขประจำตัว <i class="glyphicon glyphicon-exclamation-sign" style="color:#feb236;"></span>' , data: 'PersonCard', className: 'h-dt-center ', },
+                    { title: 'เบอร์โทรศัพท์', data: 'ContactDetail', className: 'h-dt-center ' },
+                    {
+                        title: 'สถานะลูกค้า', data: 'ActiveStats', className: 'h-dt-center',
+                        mRender: function (data) {
+                            switch (data) {
+                                case true:
+                                    // code block
+                                    return '<span class="text-green">เป็นลูกค้า</span>';
+                                    break;
+                                    case false:
+                                    return '<span class="text-red">ไม่เป็นลูกค้า</span>';
+                                    break;
+                                    default:
+                                    // code block
+                                    return '<span class="text-yellow">กำลังตรวจสอบ</span>';
+                                    }
+                                    }
+                                    },
+                    {
+                        title: 'เลือก',
+                        className: 'h-dt-center',
+                        data: null,
+                        width: '10%',
+                        mRender: (data, type, full) => {
+                            if (data.PersonType_ID == 2) {
+                                return '<div class="btn-group">' +
+                                    '<button type="button" class="btn btn-warning btn-sm" style="width:"10px""><i class="glyphicon glyphicon-cog"></i> เลือก</button>' +
+                                    '<button type="button" class="btn btn-warning dropdown-toggle cc_pointer btn-sm" data-toggle="dropdown" aria-expanded="true">' +
+                                    '<span class="caret"></span>' +
+                                    '<span class="sr-only">Toggle Dropdown</span>' +
+                                    '</button>' +
+                                    '<ul class="dropdown-menu btn-sm" role="menu">' +
+                                    //' <li><a  onclick="EditToNewTab(\'' + data.Person_ID + '\,' + data.PersonType_ID + '\' );">แก้ไข</a></li>' +
+
+                                    ` <li><a onclick="GetDetailToNewTab(${data.Person_ID},${data.PersonType_ID});"><i class="glyphicon glyphicon-eye-open"></i> ดู</a></li>` +
+                                    `<li><a onclick="EditToNewTab(${data.Person_ID},${data.PersonType_ID});"><i class="glyphicon glyphicon-pencil"></i> แก้ไข</a></li>` +
+
+                                    '</ul>' +
+                                    '</div >';
+
+                            }
+                            else {
+                                return '<div >' +
+                                    `<button onclick="GetDetailToNewTab(${data.Person_ID},${data.PersonType_ID});" type="button" class="btn btn-warning btn-sm " style="width:90px">ดูข้อมูล</button>`
+                                '</div >';
+
+                            }
+                        }
+
+                    }
+                ],
+                bLengthChange: false,
+
+            });
+        }
+
+        const EditToNewTab = (id, typeid ) => {
+            let personId = id;
+            let view = '';
+            let encode_personId = window.btoa(personId);
+
+         
+
+                view = `@Url.Action("CustomerManagementNormal", "CustomerManagement")?personid=${encode_personId}`;
+
+            var url = view
+            window.open(url, '_blank');
+
+        }
+
+        const GetDetailToNewTab = (id, typeid) => {
+            let personId = id;
+            let view = '';
+            let encode_personId = window.btoa(personId);
+            debugger
+            if (typeid == 2) {
+                view = `@Url.Action("CustomerManagementDetail", "CustomerManagement")?personid=${encode_personId}`;
+            } else {
+                view = `@Url.Action("CustomerManagementDetailJuristic", "CustomerManagement")?personid=${encode_personId}`;
+            }
+            var url = view
+            window.open(url, '_blank');
+        }
+    </script>
+}

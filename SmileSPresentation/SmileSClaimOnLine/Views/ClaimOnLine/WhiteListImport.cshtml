@@ -1,0 +1,589 @@
+﻿
+@{
+    ViewBag.Title = "นำเข้ารายชื่อ WhiteList";
+}
+<style>
+    .loading::before {
+        content: "";
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        border: 3px solid white;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<div class="box box-primary" style="margin-top:0.8%;border-color:#65aadb">
+    <div class="box-body">
+        <div class=" form-group">
+            <div class=" row" id="rowImport">
+                <div class="col-xs-12">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <i class="panel-title glyphicon glyphicon-copy"> </i> เลือกไฟล์นำเข้า
+                        </div>
+                        <div class="panel-body">
+                            <div class="col-xs-12">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label>เลือกไฟล์นำเข้า <font color="red">*</font> :</label>
+                                        <div class="input-group">
+                                            <div class=" form-control" style="width: 100%">
+                                                <input type="file" id="ImportFile" name="ImportFile" style="width:100%;" accept=".xls, .xlsx">
+                                            </div>
+                                            <span class="input-group-btn">
+                                                <button class="btn bg-primary" id="btnImportValidation" disabled>
+                                                    <i class="glyphicon glyphicon-open" id="upIcon"></i> อัปโหลด
+                                                </button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <i class="panel-title glyphicon glyphicon-copy"> </i> ข้อมูลรายชื่อ
+                        </div>
+                        <div class="panel-body">
+
+                            <div class="row">
+                                <div class="col-xs-12" style="text-align:right">
+                                    <div class="form-group">
+                                        <button class="btn bg-primary" id="btnAdd">
+                                            <i class="fa fa-plus-circle"></i> เพิ่มรายชื่อ
+                                        </button>
+                                        &nbsp;
+                                        <button class="btn bg-olive" id="btnExportToExcel">
+                                            <i class="fa fa-file-excel-o"></i> Export to Excel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row" style="padding-left:30px;padding-right:30px">
+                                <div class="col-xs-2" style="padding-top:5px;text-align:right">
+                                    <label>ค้นหารายการ :</label>
+                                </div>
+                                <div class="col-xs-4">
+                                    <input type="text" class="form-control" id="txtSearch" name="txtSearch" placeholder="ค้นหาจากรหัสพนักงาน, ชื่อ-สกุลพนักงาน">
+                                </div>
+                                <div class="col-xs-6">
+                                    <button type="button" id="btnSearch" class="btn btn-primary" style="width:120px"> ค้นหา</button>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="col-sm-12" style="padding-left:30px;padding-right:30px">
+                                <table id="dtWhiteList" class="table table-bordered table-striped display" style="width: 100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <table class="table-responsive" style="width:100%;">
+                <tbody>
+                    <tr>
+                        <td style="width:40%; padding:2px">&nbsp;</td>
+                        <td style="width:10%; padding:2px">
+                            <div id="divConfirm" style="display: none;">
+                                <button class="btn btn-block bg-primary" id="btnConfirm" style="color:#ffffff" type="button">ยืนยันการนำเข้า</button>
+                            </div>
+                        </td>
+                        <td style="width: 10%; padding: 2px">
+                            <div id="divCancelConfirm" style="display: none;">
+                                <button class="btn btn-block bg-primary" id="btnCancelConfirm" style="color: #367FA9; border-color: #367FA9; background-color: white; " type="button">ยกเลิก</button>
+                            </div>
+                        </td>
+                        <td style="width:40%; padding:2px">&nbsp;</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="hdfTmpCode" />
+
+<!-- Modal -->
+<div class="modal fade bd-example-modal-lg" id="addWhiteListModal" aria-labelledby="addWhiteListModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title"><i class="fa fa-user-plus"></i> เพิ่มรายชื่อพนักงาน </h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="form-group" style="padding-left:10px">
+                            <div class="col-xs-12 col-sm-12 col-md-12">
+                                <label class="control-label">พนักงาน :</label>
+                                <select name="ddlSearchEmployee" id="ddlSearchEmployee" class="form-control js-search-person" aria-hidden="true" style="width:100%"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 15px;">
+                    <div class="col-xs-12" style="text-align:center">
+                        <button class="btn" id="btnCancel" style="color: white; background-color: #BF5D49; width: 100px " type="button" data-dismiss="modal">ยกเลิก</button>
+                        <button class="btn" id="btnSave" style="color: white; background-color: #62A2C8; width:100px" type="button">บันทึก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bd-example-modal-lg" id="whiteListImportPreviewModal" aria-labelledby="whiteListImportPreviewModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title"> ยืนยันการนำเข้ารายชื่อ </h4>
+            </div>
+            <div class="modal-body">
+                <div class="box-body" style="width: 100%">
+                    <table id="dtWhiteListImportPreview" class="table table-bordered table-striped display" style="width: 100%"></table>
+                </div>
+                <div class="row" style="padding-top: 15px;">
+                    <div class="col-xs-12" style="text-align:center">
+                        <button class="btn" id="btnCancelPreview" style="color: white; background-color: #BF5D49; width: 100px " type="button" data-dismiss="modal">ยกเลิก</button>
+                        <button class="btn" id="btnSavePreview" style="color: white; background-color: #62A2C8; width:100px" type="button"> ยืนยัน</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ViewSpecificJavascript
+    {
+    <script type="text/javascript">
+        //--------------------------------------------- Page load ---------------------------------------------------
+        $(function () {
+            $('.select2').select2();
+
+            getData_WhiteList();
+        });
+
+        $(document).ready(function () {
+           $('.js-search-person').select2({
+                ajax: {
+                    type: 'GET',
+                    url: '@Url.Action("GetEmployee", "ClaimOnLine")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,// search term
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, search) {
+                        //params.page = params.page || 1;
+                        return {
+                            results: $.map(data, function (item) {
+                                return {
+                                    id: item.EmployeeCode,
+                                    text: item.EmployeeCode + ' - ' + item.FirstName + ' ' + item.LastName
+                                }
+                            })
+                        };
+                    },
+                    cache: true
+                },
+                templateResult: function (item) {
+                    if (item.loading) return item.text;
+                    return item.text;
+                },
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 4,
+                language: { inputTooShort: function () { return 'กรอกข้อมูลอย่างน้อย 4 ตัวอักษร'; } }
+            });
+        });
+
+        function checkXHRStatus(xhr, error) {
+            var msg = '';
+            if (xhr === 0) {
+                msg = 'Not connect.\n Verify Network.';
+            } else if (xhr.status == 404) {
+                msg = 'กรุณาลองใหม่อีกครั้งภายหลัง\nRequested page not found. [404]';
+            } else if (xhr.status == 500) {
+                msg = 'กรุณาลองใหม่อีกครั้งภายหลัง\nInternal Server Error. [500].';
+            } else if (error === 'parsererror') {
+                msg = 'กรุณาลองใหม่อีกครั้งภายหลัง\nRequested JSON parse failed.';
+            } else if (error === 'timeout') {
+                msg = 'เนื่องจากมีผู้ใช้งานจำนวนมาก กรุณาลองใหม่อีกครั้งภายหลัง \n Time out error.';
+            } else if (error === 'abort') {
+                msg = 'คำขอถูกยกเลิก กรุณาลองใหม่อีกครั้งภายหลัง\nAjax request aborted.';
+            } else {
+                msg = 'กรุณาลองใหม่อีกครั้งภายหลัง\n' + xhr.responseText;
+            }
+            swal("เกิดข้อผิดพลาด", msg, "error");
+        }
+
+        function addLoaddingButton(buttonIdToAdd, currentIconButton = null) {
+            $(buttonIdToAdd).addClass("loading");
+            if (currentIconButton !== null)
+                $('#upIcon').removeClass("glyphicon glyphicon-open");
+        }
+
+        function clearLoaddingButton(buttonIdToClear, currentIconButton = null) {
+            $(buttonIdToClear).removeClass("loading");
+            if (currentIconButton !== null)
+                $('#upIcon').addClass("glyphicon glyphicon-open");
+        }
+
+        //--------------------------------------------- Event ---------------------------------------------------
+        $('#btnSearch').click(function (e) {
+            e.preventDefault();
+            getData_WhiteList();
+        });
+
+        $('#btnAdd').click(function (e) {
+            e.preventDefault();
+            $('#addWhiteListModal').modal("show");
+            $('#ddlSearchEmployee').empty();
+        });
+
+        $('#btnSave').click(function (e) {
+            e.preventDefault();
+            if ($("#ddlSearchEmployee").val() !== null) {
+                InsertWhiteList($('#ddlSearchEmployee').val());
+            } else {
+                swal("กรุณากรอก \"พนักงาน\"", "", "warning");
+            }
+        });
+
+        $('#btnImportValidation').click(function (e) {
+            e.preventDefault();
+            addLoaddingButton('#btnImportValidation', 'glyphicon glyphicon-open');
+
+            setTimeout(function () {
+                DoUploadFile();
+            }, 500);
+            $('#btnImportValidation').prop('disabled', true);
+        });
+
+        $('#btnSavePreview').click(function (e) {
+            e.preventDefault();
+            DoConfirmImport();
+        });
+
+        $('#btnExportToExcel').click(function (e) {
+            e.preventDefault();
+            ExportExcel();
+        });
+
+        $('#txtSearch').keypress(function (event) {
+            var keycode = (event.keyCode ? event.keyCode : event.which);
+            if (keycode == '13') {
+                getData_WhiteList();
+            }
+        });
+
+        $('#ImportFile').change(function (e) {
+            var filePath = $(this).val();
+            if (filePath != "") {
+                $('#btnImportValidation').prop('disabled', false);
+            } else {
+                $('#btnImportValidation').prop('disabled', true);
+            }
+        });
+
+        //--------------------------------------------- DataTable ---------------------------------------------------
+        const getData_WhiteList = () => {
+            $('#dtWhiteList').empty();
+            var table = $('#dtWhiteList').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetWhiteList")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = $("#txtSearch").val();
+                    },
+                    error: function (xhr, error, thrown) {
+                        checkXHRStatus(xhr, error);
+                    }
+                },
+                columns: [
+                    {
+                        title: 'รหัสพนักงาน',
+                        data: 'EmployeeCode',
+                    },
+                    {
+                        title: 'ชื่อ-สกุลพนักงาน',
+                        data: 'EmployeeName',
+                    },
+                    {
+                    title: 'ดำเนินการ',
+                    data: null,
+                    width: '10%',
+                    render: function (data) {
+                        return `<a href="javascript:DeleteWhiteList('${data.EmployeeCode}')" class="btn btn-danger fa fa-trash" style="width:80px"> ลบ</a>&nbsp `;
+                    }
+                }],
+                'columnDefs': [
+                    {
+                        "targets": [0, 1, 2],
+                        "className": "text-center",
+                    }
+                ],
+                initComplete: function () {
+                    // Display the sum in div element
+                }
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        const getData_WhiteListImportValidatePreview = (tmpCode) => {
+            $('#dtWhiteListImportPreview').empty();
+            var table = $('#dtWhiteListImportPreview').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                searching: false,
+                ordering: true,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Thai.json'
+                },
+                ajax: {
+                    url: '@Url.Action("GetWhiteListImportValidatePreview")',
+                    method: 'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                        d.tmpCode = tmpCode;
+                    },
+                    error: function (xhr, error, thrown) {
+                        checkXHRStatus(xhr, error);
+                    }
+                },
+                columns: [
+                    {
+                        title: 'รหัสพนักงาน',
+                        data: 'EmployeeCode',
+                    },
+                    {
+                        title: 'ชื่อ-สกุลพนักงาน',
+                        data: 'EmployeeName',
+                    },
+                    {
+                        title: 'ผลการตรวจสอบ',
+                        data: 'ValidateResult',
+                    }
+                ],
+                'columnDefs': [
+                    {
+                        "targets": [0, 1, 2],
+                        "className": "text-center",
+                    }
+                ],
+                initComplete: function () {
+                    // Display the sum in div element
+                }
+            });
+            window.onresize = function () {
+                table.columns.adjust().responsive.recalc();
+            };
+        }
+
+        //--------------------------------------------- Method ---------------------------------------------------
+        const InsertWhiteList = (employeeCode) => {
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("InsertWhiteList")",
+                data: {
+                    employeeCode: employeeCode,
+                },
+                dataType: 'json',
+                async: false,
+                success: function (data) {
+                    if (data.IsSuccess) {
+                        swal("เพิ่มรายชื่อสำเร็จ", "", "success");
+                        $('#dtWhiteList').DataTable().ajax.reload();
+                        $('#ddlSearchEmployee').empty();
+                    } else {
+                        swal(data.Message, "", "warning");
+                    }
+                }
+            });
+        }
+
+        const DeleteWhiteList = (employeeCode) => {
+            swal({
+                title: 'ยืนยันการลบรายการ?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#30A8F4',
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                closeOnConfirm: false,
+                closeOnEsc: false,
+                closeOnCancel: true
+            }, function (isConfirm) {
+                if (isConfirm) {
+                     $.ajax({
+                        type: 'POST',
+                        url: "@Url.Action("DeleteWhiteList")",
+                        data: {
+                            employeeCode: employeeCode,
+                        },
+                        dataType: 'json',
+                        async: false,
+                        success: function (data) {
+                            if (data.IsSuccess) {
+                                swal("ลบรายการสำเร็จ", "", "success");
+                                $('#dtWhiteList').DataTable().ajax.reload();
+                            } else {
+                                swal(data.Message, "", "warning");
+                            }
+                        }
+                    });
+                } else {
+                    swal("ยกเลิกทำรายการ", "", "error");
+                }
+            }
+            );
+        }
+
+        const DoUploadFile = () => {
+            var fd = new FormData();
+            fd.append("file", jQuery("#ImportFile").get(0).files[0]);
+            $.ajax({
+                type: "POST",
+                contentType: false,
+                processData: false,
+                async: false,
+                dataType: "json",
+                url: '@Url.Action("WhiteListImportFile")',
+                data: fd,
+                success: function (response) {
+                    let tmpCode = response.Data;
+                    $('#hdfTmpCode').val(tmpCode);
+
+                    if (tmpCode !== null) {
+                        getData_WhiteListImportValidatePreview(tmpCode);
+                        $('#whiteListImportPreviewModal').modal("show");
+                        $('#btnSavePreview').attr("disabled", false);
+                    }
+
+                    if (response.IsSuccess == true && !(response.Message == 'Success.')) {
+                        swal("เกิดข้อผิดพลาด!", response.Message, "warning");
+                        $('#btnSavePreview').attr("disabled", true);
+                    } else if (response.IsSuccess == false) {
+                        swal('เกิดข้อผิดพลาด!', response.Message, 'error');
+                    }
+
+                    //Clear input file
+                    var $el = $('#ImportFile');
+                    $el.wrap('<form>').closest(
+                        'form').get(0).reset();
+                    $el.unwrap();
+
+                    //Clear loading button
+                    clearLoaddingButton('#btnImportValidation', 'glyphicon glyphicon-open');
+                }
+            });
+        }
+
+        const DoConfirmImport = () => {
+            console.log("DoConfirmImport");
+            addLoaddingButton('#btnSavePreview');
+
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("SaveWhiteListImport")",
+                data: {
+                    tmpCode: $('#hdfTmpCode').val(),
+                },
+                dataType: 'json',
+                async: false,
+                success: function (data) {
+                    if (data.IsSuccess) {
+                        swal("นำเข้ารายชื่อสำเร็จ", "", "success");
+                        $('#dtWhiteList').DataTable().ajax.reload();
+                        $('#whiteListImportPreviewModal').modal("hide");
+
+                        //Clear hdfTmpCode
+                        $('#hdfTmpCode').val('');
+                    } else {
+                        swal(data.Message, "", "warning");
+                    }
+
+                    clearLoaddingButton('#btnSavePreview');
+                }
+            });
+        }
+
+        function ExportExcel() {
+            loadingSpinner('fadeIn', 999999);
+            $.ajax({
+                url: "@Url.Action("WhiteListExport", "Report")",
+                type: "POST",
+                data: {},
+                success: function (response) {
+                    if (response.IsSuccess) {
+                        window.location = "@Url.Action("WhiteListExportDownLoad", "Report")";
+                        loadingSpinner('fadeOut');
+                        swal('สำเร็จ', response.Message, 'success');
+                    } else {
+                        swal('เกิดข้อผิดพลาด !', response.Message, 'error');
+                        loadingSpinner('fadeOut')
+                    }
+                },
+                error: function (xhr, error, thrown) {
+                    checkXHRStatus(xhr, error);
+                    loadingSpinner('fadeOut');
+                }
+            });
+        }
+
+    </script>
+}

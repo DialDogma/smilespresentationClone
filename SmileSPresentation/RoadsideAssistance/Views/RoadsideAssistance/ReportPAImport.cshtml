@@ -1,0 +1,135 @@
+﻿@{
+    ViewBag.Title = "รายงานสรุปการนำเข้าโปรบุคลากร PA";
+}
+
+<div class="row">
+    <div class="col-xs-12 col-md-12">
+        <div class="box box-default">
+            <div class="box-body" style="background: linear-gradient(to left, rgb(124, 233, 200), rgb(124, 233, 200)); ">
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="control-label">วันที่ :</label>
+                        <input class="form-control" id="StartDate" name="StartDate" type="text" data-date-language="th-th" data-provide="datepicker" readonly="readonly" onchange="EnableExportButton" />
+                        <label class="control-label" style="color:red;font-size:small;">*สามารถดึงข้อมูลย้อนหลังได้ไม่เกิน 12 เดือน</label>
+                    </div>
+                    <div class="col-sm-3">
+                        <label class="control-label">ถึง :</label>
+                        <input class="form-control" id="EndDate" name="EndDate" type="text" data-date-language="th-th" data-provide="datepicker" readonly="readonly" />
+                    </div>
+                    <div class="col-xs-12 col-md-2" style="padding-top:26px;">
+                        <button id="btnExport" type="button" class="btn btn-info" style="width: 100%"><i class="fa fa-file-excel-o"></i> ดาวน์โหลดไฟล์</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section ViewSpecificJavascript
+{
+    <script type="text/javascript">
+        $(function () {
+            $(window).load(function () {
+
+                //Set Default DatePicker
+                var date = new Date(), y = date.getFullYear(), m = date.getMonth();
+                var firstDay = new Date(y, m, 1);
+                var lastDay = new Date(y, m + 1, 0);
+
+                $('#StartDate').datepicker({
+                    autoclose: true,
+                    todayHighlight: true,
+                });
+                $('#StartDate').datepicker("setDate", firstDay);
+                $('#EndDate').datepicker({
+                    autoclose: true,
+                    todayHighlight: true,
+                });
+                $('#EndDate').datepicker("setDate", lastDay);
+            });
+            //Event Change
+            $("#StartDate").on('change', function (e) {
+                e.preventDefault();
+                //checkEnableButton += 1;
+                //EnableExportButton();
+            })
+            $("#EndDate").on('change', function (e) {
+                e.preventDefault();
+                //checkEnableButton += 1;
+                //EnableExportButton();
+            })
+        });
+    </script>
+
+    <script>
+        //var checkEnableButton = 0
+
+        $(function () {
+
+            //back google chrome
+            history.pushState(null, null, location.href);
+            history.back();
+            history.forward();
+            window.onpopstate = function () {
+                history.go(1);
+            };
+        });
+
+        function EnableExportButton() {
+            if (checkEnableButton >=2 ) {
+                $("#btnExport").prop("disabled", false);
+            }
+        }
+
+        //export
+        $('#btnExport').click(function (e) {
+
+            e.preventDefault();
+            if ($('#StartDate').val() == "" || $('#EndDate').val() == "") {
+                swal("แจ้งเตือน", "กรุณาเลือกวันที่เริ่มต้น และสิ้นสุด !", "warning");
+
+                return false;
+            }
+
+            //validate Datediff 12 months
+            var date1 = new Date(moment($('#StartDate').val(), 'DD-MM-YYYY'));
+            var date2 = new Date(moment($('#EndDate').val(), 'DD-MM-YYYY'));
+            var diffDays = parseInt((date2 - date1) / (1000 * 60 * 60 * 24), 10);
+
+            if (diffDays > 365) {
+                swal("แจ้งเตือน", "สามารถดึงข้อมูลย้อนหลังได้ไม่เกิน 12 เดือน"  , "warning");
+                return false;
+            }
+
+            ExportReport();
+        });
+
+        function ExportReport() {
+            loadingSpinner('fadeIn');
+            $.ajax({
+                url: "@Url.Action("ExportPAImportReport", "RoadsideAssistance")",
+                type: "GET",
+                data: {
+                    startDate: $('#StartDate').val(),
+                    endDate: $('#EndDate').val(),
+                },
+                success: function (data) {
+                    if (data.IsResult == false) {
+                        loadingSpinner('fadeOut');
+                        swal("ผลการค้นหา", data.Msg, "warning", function (e) {
+                            swal.close();
+                            return false;
+                        });
+                    } else {
+                        window.location = "@Url.Action("Download", "RoadsideAssistance")";
+                        loadingSpinner('fadeOut');
+                    }
+
+                },
+                error: function (jqXHR, exception) {
+                    loadingSpinner('fadeOut');
+                    checkXHRStatus(jqXHR.status);
+                }
+            });
+        }
+    </script>
+}

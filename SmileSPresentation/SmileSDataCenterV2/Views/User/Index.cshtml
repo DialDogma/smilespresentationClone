@@ -1,0 +1,85 @@
+﻿﻿@{
+    ViewBag.Title = "Manage User";
+}
+<div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div class="form-group row">
+                    <div class="col-sm-offset-6 col-sm-3">
+                        <a href="@Url.Action("Index","Person")" class="btn btn-block btn-success">+เพิ่มบุคคลภายนอก</a>
+                    </div>
+                    <div class="col-sm-3">
+                        <a href="@Url.Action("AddUser")" class="btn btn-block btn-success">+เพิ่มพนักงาน Siamsmile</a>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <table id="datatable1" class="table table-bordered table-striped"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+    <!-- /.box -->
+</div>
+
+@section ViewSpecificJavascript
+{
+    <script>
+        $(function () {
+            debugger;
+            //Load Datatable
+            $('#datatable1').DataTable({
+                pageLength: 10,
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                ajax: {
+                    url: '@Url.Action("GetDatatable")',
+                    method:'POST',
+                    data: function (d) {
+                        d.draw = d.draw;
+                        d.pageSize = d.length;
+                        d.pageStart = d.start;
+                        d.sortField = d.columns[d.order[0].column].data;
+                        d.orderType = d.order[0].dir;
+                        d.search = d.search.value;
+                    }
+                },
+                columns: [
+                    {
+                        title: '',
+                        data: 'UserName',
+                        width: 100,
+                        className: 'dt-right',
+                        render: function (data) {
+                            return '<a href="@Url.Action("ResetPassword")?username=' + data + '" class="btn btn-success" title="Reset Password" style="margin: 2px;">R</a>' +
+                                '<a href="@Url.Action("EditRoles")?username=' + data +'" class="btn btn-info" title="Edit" style="margin: 2px;">E</a>';
+                        }
+                    }
+                    ,{ title: 'UserName', data: 'UserName' }
+                    ,{ title: 'FirstName', data: 'FirstName' }
+                    ,{ title: 'LastName', data: 'LastName' }
+                    ,{ title: 'Position', data: 'EmployeePositionDetail' }
+                    ,{ title: 'Team', data: 'EmployeeTeamDetail' }
+                    ,{ title: 'BranchDetail', data: 'BranchDetail' }
+                    , { title: 'DepartmentDetail', data: 'DepartmentDetail' }
+                    ,{ title: 'U_ID', data: 'User_ID' }
+                    ,{ title: 'P_ID', data: 'Person_ID' }
+                    ,{ title: 'E_ID', data: 'Employee_ID' }
+                ]
+            });
+
+        });
+
+        $(document).on("keyup", 'input[type="search"]', function () {
+            var value = this.value;
+            if (/[!$^*<>?"{}<>=]/g.test(value)) swal('ตรวจสอบ', 'กรุณาตรวจสอบคำค้นหา', 'warning');
+        });
+       
+       
+    </script>
+}
